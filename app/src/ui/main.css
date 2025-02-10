@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 #bknd-admin.dark,
-.dark .bknd-admin {
+.dark .bknd-admin,
+.bknd-admin.dark {
    --color-primary: 250 250 250; /* zinc-50 */
    --color-background: 30 31 34;
    --color-muted: 47 47 52;

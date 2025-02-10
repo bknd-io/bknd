@@ -111,10 +111,7 @@ CreateModal.defaultTitle = undefined;
 CreateModal.modalProps = {
    withCloseButton: false,
    size: "xl",
-   padding: 0,
-   classNames: {
-      root: "bknd-admin"
-   }
+   padding: 0
 } satisfies Partial<ModalProps>;
 
 export { ModalBody, ModalFooter, ModalTitle, useStepContext, relationsSchema };

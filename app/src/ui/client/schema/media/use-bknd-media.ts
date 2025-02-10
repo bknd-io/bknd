@@ -7,7 +7,12 @@ export function useBkndMedia() {
    const actions = {
       config: {
          patch: async (data: Partial<TAppMediaConfig>) => {
-            return await bkndActions.set("media", data, true);
+            if (await bkndActions.set("media", data, true)) {
+               await bkndActions.reload();
+               return true;
+            }
+
+            return false;
          }
       }
    };
