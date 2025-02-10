@@ -10,5 +10,7 @@ assets = { directory = "../../app/dist/static" }
 [observability]
 enabled = true
 
-#[site]
-#bucket = "../../app/dist/static"
+[[d1_databases]]
+binding = "DB"
+database_name = "bknd-cf-example"
+database_id = "7ad67953-2bbf-47fc-8696-f4517dbfe674"

@@ -49,111 +49,117 @@ if (types && !watch) {
 /**
  * Building backend and general API
  */
-await tsup.build({
-   minify,
-   sourcemap,
-   watch,
-   entry: ["src/index.ts", "src/data/index.ts", "src/core/index.ts", "src/core/utils/index.ts"],
-   outDir: "dist",
-   external: ["bun:test", "@libsql/client"],
-   metafile: true,
-   platform: "browser",
-   format: ["esm"],
-   splitting: false,
-   treeshake: true,
-   loader: {
-      ".svg": "dataurl"
-   },
-   onSuccess: async () => {
-      delayTypes();
-   }
-});
+async function buildApi() {
+   await tsup.build({
+      minify,
+      sourcemap,
+      watch,
+      entry: ["src/index.ts", "src/data/index.ts", "src/core/index.ts", "src/core/utils/index.ts"],
+      outDir: "dist",
+      external: ["bun:test", "@libsql/client"],
+      metafile: true,
+      platform: "browser",
+      format: ["esm"],
+      splitting: false,
+      treeshake: true,
+      loader: {
+         ".svg": "dataurl"
+      },
+      onSuccess: async () => {
+         delayTypes();
+      }
+   });
+}
 
 /**
  * Building UI for direct imports
  */
-await tsup.build({
-   minify,
-   sourcemap,
-   watch,
-   entry: ["src/ui/index.ts", "src/ui/client/index.ts", "src/ui/main.css", "src/ui/styles.css"],
-   outDir: "dist/ui",
-   external: [
-      "bun:test",
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-      "use-sync-external-store",
-      /codemirror/,
-      "@xyflow/react",
-      "@mantine/core"
-   ],
-   metafile: true,
-   platform: "browser",
-   format: ["esm"],
-   splitting: false,
-   bundle: true,
-   treeshake: true,
-   loader: {
-      ".svg": "dataurl"
-   },
-   esbuildOptions: (options) => {
-      options.logLevel = "silent";
-   },
-   onSuccess: async () => {
-      delayTypes();
-   }
-});
+async function buildUi() {
+   await tsup.build({
+      minify,
+      sourcemap,
+      watch,
+      entry: ["src/ui/index.ts", "src/ui/client/index.ts", "src/ui/main.css", "src/ui/styles.css"],
+      outDir: "dist/ui",
+      external: [
+         "bun:test",
+         "react",
+         "react-dom",
+         "react/jsx-runtime",
+         "react/jsx-dev-runtime",
+         "use-sync-external-store",
+         /codemirror/,
+         "@xyflow/react",
+         "@mantine/core"
+      ],
+      metafile: true,
+      platform: "browser",
+      format: ["esm"],
+      splitting: false,
+      bundle: true,
+      treeshake: true,
+      loader: {
+         ".svg": "dataurl"
+      },
+      esbuildOptions: (options) => {
+         options.logLevel = "silent";
+      },
+      onSuccess: async () => {
+         delayTypes();
+      }
+   });
+}
 
 /**
  * Building UI Elements
  * - tailwind-merge is mocked, no exclude
  * - ui/client is external, and after built replaced with "bknd/client"
  */
-await tsup.build({
-   minify,
-   sourcemap,
-   watch,
-   entry: ["src/ui/elements/index.ts"],
-   outDir: "dist/ui/elements",
-   external: [
-      "ui/client",
-      "react",
-      "react-dom",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-      "use-sync-external-store"
-   ],
-   metafile: true,
-   platform: "browser",
-   format: ["esm"],
-   splitting: false,
-   bundle: true,
-   treeshake: true,
-   loader: {
-      ".svg": "dataurl"
-   },
-   esbuildOptions: (options) => {
-      options.alias = {
-         // not important for elements, mock to reduce bundle
-         "tailwind-merge": "./src/ui/elements/mocks/tailwind-merge.ts"
-      };
-   },
-   onSuccess: async () => {
-      // manually replace ui/client with bknd/client
-      const path = "./dist/ui/elements/index.js";
-      const bundle = await Bun.file(path).text();
-      await Bun.write(path, bundle.replaceAll("ui/client", "bknd/client"));
+async function buildUiElements() {
+   await tsup.build({
+      minify,
+      sourcemap,
+      watch,
+      entry: ["src/ui/elements/index.ts"],
+      outDir: "dist/ui/elements",
+      external: [
+         "ui/client",
+         "react",
+         "react-dom",
+         "react/jsx-runtime",
+         "react/jsx-dev-runtime",
+         "use-sync-external-store"
+      ],
+      metafile: true,
+      platform: "browser",
+      format: ["esm"],
+      splitting: false,
+      bundle: true,
+      treeshake: true,
+      loader: {
+         ".svg": "dataurl"
+      },
+      esbuildOptions: (options) => {
+         options.alias = {
+            // not important for elements, mock to reduce bundle
+            "tailwind-merge": "./src/ui/elements/mocks/tailwind-merge.ts"
+         };
+      },
+      onSuccess: async () => {
+         // manually replace ui/client with bknd/client
+         const path = "./dist/ui/elements/index.js";
+         const bundle = await Bun.file(path).text();
+         await Bun.write(path, bundle.replaceAll("ui/client", "bknd/client"));
 
-      delayTypes();
-   }
-});
+         delayTypes();
+      }
+   });
+}
 
 /**
  * Building adapters
  */
-function baseConfig(adapter: string): tsup.Options {
+function baseConfig(adapter: string, overrides: Partial<tsup.Options> = {}): tsup.Options {
    return {
       minify,
       sourcemap,
@@ -162,47 +168,61 @@ function baseConfig(adapter: string): tsup.Options {
       format: ["esm"],
       platform: "neutral",
       outDir: `dist/adapter/${adapter}`,
+      metafile: true,
+      splitting: false,
+      onSuccess: async () => {
+         delayTypes();
+      },
+      ...overrides,
       define: {
-         __isDev: "0"
+         __isDev: "0",
+         ...overrides.define
       },
       external: [
          /^cloudflare*/,
          /^@?(hono|libsql).*?/,
          /^(bknd|react|next|node).*?/,
-         /.*\.(html)$/
-      ],
-      metafile: true,
-      splitting: false,
-      onSuccess: async () => {
-         delayTypes();
-      }
+         /.*\.(html)$/,
+         ...(Array.isArray(overrides.external) ? overrides.external : [])
+      ]
    };
 }
 
-// base adapter handles
-await tsup.build({
-   ...baseConfig(""),
-   entry: ["src/adapter/index.ts"],
-   outDir: "dist/adapter"
-});
+async function buildAdapters() {
+   // base adapter handles
+   await tsup.build({
+      ...baseConfig(""),
+      entry: ["src/adapter/index.ts"],
+      outDir: "dist/adapter"
+   });
 
-// specific adatpers
-await tsup.build(baseConfig("remix"));
-await tsup.build(baseConfig("bun"));
-await tsup.build(baseConfig("astro"));
-await tsup.build(baseConfig("cloudflare"));
+   // specific adatpers
+   await tsup.build(baseConfig("remix"));
+   await tsup.build(baseConfig("bun"));
+   await tsup.build(baseConfig("astro"));
+   await tsup.build(
+      baseConfig("cloudflare", {
+         external: [/^kysely/]
+      })
+   );
 
-await tsup.build({
-   ...baseConfig("vite"),
-   platform: "node"
-});
+   await tsup.build({
+      ...baseConfig("vite"),
+      platform: "node"
+   });
 
-await tsup.build({
-   ...baseConfig("nextjs"),
-   platform: "node"
-});
+   await tsup.build({
+      ...baseConfig("nextjs"),
+      platform: "node"
+   });
 
-await tsup.build({
-   ...baseConfig("node"),
-   platform: "node"
-});
+   await tsup.build({
+      ...baseConfig("node"),
+      platform: "node"
+   });
+}
+
+await buildApi();
+await buildUi();
+await buildUiElements();
+await buildAdapters();

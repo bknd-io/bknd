@@ -1,6 +1,9 @@
-import type { FrameworkBkndConfig } from "bknd/adapter";
+/// <reference types="@cloudflare/workers-types" />
+
+import { type FrameworkBkndConfig, makeConfig } from "bknd/adapter";
 import { Hono } from "hono";
 import { serveStatic } from "hono/cloudflare-workers";
+import { D1Connection } from "./connection/D1Connection";
 import { getCached } from "./modes/cached";
 import { getDurable } from "./modes/durable";
 import { getFresh, getWarm } from "./modes/fresh";
@@ -10,6 +13,7 @@ export type CloudflareBkndConfig<Env = any> = FrameworkBkndConfig<Context<Env>> 
    bindings?: (args: Context<Env>) => {
       kv?: KVNamespace;
       dobj?: DurableObjectNamespace;
+      db?: D1Database;
    };
    static?: "kv" | "assets";
    key?: string;
@@ -26,7 +30,7 @@ export type Context<Env = any> = {
    ctx: ExecutionContext;
 };
 
-export function serve<Env = any>(config: CloudflareBkndConfig<Env>) {
+export function serve<Env = any>(config: CloudflareBkndConfig<Env> = {}) {
    return {
       async fetch(request: Request, env: Env, ctx: ExecutionContext) {
          const url = new URL(request.url);
@@ -61,20 +65,46 @@ export function serve<Env = any>(config: CloudflareBkndConfig<Env>) {
             }
          }
 
-         config.setAdminHtml = config.setAdminHtml && !!config.manifest;
-
          const context = { request, env, ctx } as Context;
          const mode = config.mode ?? "warm";
 
+         const appConfig = makeConfig(config, context);
+         const bindings = config.bindings?.(context);
+         if (!appConfig.connection) {
+            let db: D1Database | undefined;
+            if (bindings && "db" in bindings && bindings.db) {
+               console.log("Using database from bindings");
+               db = bindings.db;
+            } else if (env && Object.keys(env).length > 0) {
+               // try to find a database in env
+               for (const key in env) {
+                  try {
+                     // @ts-ignore
+                     if (env[key].constructor.name === "D1Database") {
+                        console.log(`Using database from env "${key}"`);
+                        db = env[key] as D1Database;
+                        break;
+                     }
+                  } catch (e) {}
+               }
+            }
+
+            if (db) {
+               appConfig.connection = new D1Connection({ binding: db });
+            } else {
+               throw new Error("No database connection given");
+            }
+         }
+
          switch (mode) {
             case "fresh":
-               return await getFresh(config, context);
+               return await getFresh(appConfig, context);
             case "warm":
-               return await getWarm(config, context);
+               return await getWarm(appConfig, context);
             case "cache":
-               return await getCached(config, context);
+               return await getCached(appConfig, context);
             case "durable":
-               return await getDurable(config, context);
+               return await getDurable(appConfig, context);
             default:
                throw new Error(`Unknown mode ${mode}`);
          }

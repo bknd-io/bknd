@@ -18,6 +18,8 @@ export { Connection } from "./connection/Connection";
 export { LibsqlConnection, type LibSqlCredentials } from "./connection/LibsqlConnection";
 export { SqliteConnection } from "./connection/SqliteConnection";
 export { SqliteLocalConnection } from "./connection/SqliteLocalConnection";
+export { SqliteIntrospector } from "./connection/SqliteIntrospector";
+export { KyselyPluginRunner } from "./plugins/KyselyPluginRunner";
 
 export { constructEntity, constructRelation } from "./schema/constructor";
 

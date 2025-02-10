@@ -74,7 +74,6 @@ export class LibsqlConnection extends SqliteConnection {
    }> {
       const stms: InStatement[] = queries.map((q) => {
          const compiled = q.compile();
-         //console.log("compiled", compiled.sql, compiled.parameters);
          return {
             sql: compiled.sql,
             args: compiled.parameters as any[]

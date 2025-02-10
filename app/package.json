@@ -76,6 +76,7 @@
     "clsx": "^2.1.1",
     "esbuild-postcss": "^0.0.4",
     "jotai": "^2.10.1",
+    "kysely-d1": "^0.3.0",
     "open": "^10.1.0",
     "openapi-types": "^12.1.3",
     "postcss": "^8.4.47",

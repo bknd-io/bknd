@@ -11,7 +11,8 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "bknd": "workspace:*"
+    "bknd": "workspace:*",
+    "kysely-d1": "^0.3.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241106.0",

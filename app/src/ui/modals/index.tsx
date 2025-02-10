@@ -22,11 +22,7 @@ declare module "@mantine/modals" {
 }
 
 export function BkndModalsProvider({ children }) {
-   return (
-      <ModalsProvider modals={modals} modalProps={{ className: "bknd-admin" }}>
-         {children}
-      </ModalsProvider>
-   );
+   return <ModalsProvider modals={modals}>{children}</ModalsProvider>;
 }
 
 function open<Modal extends keyof typeof modals>(
