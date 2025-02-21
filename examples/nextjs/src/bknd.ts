@@ -1,12 +1,9 @@
 import { App, type LocalApiOptions } from "bknd";
-import { registerLocalMediaAdapter } from "bknd/adapter/node";
-import { type RemixBkndConfig, getApp as getBkndApp } from "bknd/adapter/remix";
+import { type NextjsBkndConfig, getApp as getBkndApp } from "bknd/adapter/nextjs";
 import { boolean, em, entity, text } from "bknd/data";
 import { secureRandomString } from "bknd/utils";
 
-// since we're running in node, we can register the local media adapter
-registerLocalMediaAdapter();
-
+// the em() function makes it easy to create an initial schema
 const schema = em({
    todos: entity("todos", {
       title: text(),
@@ -20,10 +17,10 @@ declare module "bknd/core" {
    interface DB extends Database {}
 }
 
-const config = {
+export const config = {
    // we can use any libsql config, and if omitted, uses in-memory
    connection: {
-      url: "file:test.db"
+      url: "http://localhost:8080"
    },
    // an initial config is only applied if the database is empty
    initialConfig: {
@@ -32,18 +29,7 @@ const config = {
       auth: {
          enabled: true,
          jwt: {
-            issuer: "bknd-remix-example",
             secret: secureRandomString(64)
-         }
-      },
-      // ... and media
-      media: {
-         enabled: true,
-         adapter: {
-            type: "local",
-            config: {
-               path: "./public"
-            }
          }
       }
    },
@@ -70,10 +56,10 @@ const config = {
          "sync"
       );
    }
-} as const satisfies RemixBkndConfig;
+} as const satisfies NextjsBkndConfig;
 
-export async function getApp(args?: { request: Request }) {
-   return await getBkndApp(config, args);
+export async function getApp() {
+   return await getBkndApp(config);
 }
 
 export async function getApi(options?: LocalApiOptions) {

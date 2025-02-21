@@ -1,12 +1,13 @@
-import { withApi } from "bknd/adapter/nextjs";
+import { getApi } from "@/bknd";
 import type { InferGetServerSidePropsType } from "next";
 
-export const getServerSideProps = withApi(async (context) => {
-   const { data = [] } = await context.api.data.readMany("todos");
-   const user = context.api.getUser();
+export const getServerSideProps = async () => {
+   const api = await getApi();
+   const { data = [] } = await api.data.readMany("todos");
+   const user = api.getUser();
 
    return { props: { data, user } };
-});
+};
 
 export default function Home({
    data,

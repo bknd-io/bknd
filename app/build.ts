@@ -56,7 +56,7 @@ async function buildApi() {
       watch,
       entry: ["src/index.ts", "src/data/index.ts", "src/core/index.ts", "src/core/utils/index.ts"],
       outDir: "dist",
-      external: ["bun:test", "@libsql/client", "bknd/client"],
+      external: ["bun:test", "@libsql/client"],
       metafile: true,
       platform: "browser",
       format: ["esm"],

@@ -4,7 +4,8 @@ export {
    AppEvents,
    type AppConfig,
    type CreateAppConfig,
-   type AppPlugin
+   type AppPlugin,
+   type LocalApiOptions
 } from "./App";
 
 export {
