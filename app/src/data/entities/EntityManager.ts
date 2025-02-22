@@ -8,6 +8,7 @@ import {
    UnableToConnectException
 } from "../errors";
 import { MutatorEvents, RepositoryEvents } from "../events";
+import type { Field } from "../fields/Field";
 import type { EntityIndex } from "../fields/indices/EntityIndex";
 import type { EntityRelation } from "../relations";
 import { RelationAccessor } from "../relations/RelationAccessor";
@@ -140,6 +141,16 @@ export class EntityManager<TBD extends object = DefaultDB> {
    hasIndex(nameOrIndex: string | EntityIndex): boolean {
       const name = typeof nameOrIndex === "string" ? nameOrIndex : nameOrIndex.name;
       return this.indices.some((e) => e.name === name);
+   }
+
+   // @todo: add to Connection whether first index is used or not
+   getIndexedFields(_entity: Entity | string): Field[] {
+      const entity = this.entity(_entity);
+      const indices = this.getIndicesOf(entity);
+      const rel_fields = entity.fields.filter((f) => f.type === "relation");
+      // assuming only first
+      const idx_fields = indices.map((index) => index.fields[0]);
+      return [entity.getPrimaryField(), ...rel_fields, ...idx_fields].filter(Boolean) as Field[];
    }
 
    addRelation(relation: EntityRelation) {

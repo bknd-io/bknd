@@ -51,7 +51,7 @@ export class AppMedia extends Module<typeof mediaConfigSchema> {
          const media = this.getMediaEntity(true);
          this.ensureSchema(
             em({ [media.name as "media"]: media }, ({ index }, { media }) => {
-               index(media).on(["path"], true).on(["reference"]);
+               index(media).on(["path"], true).on(["reference"]).on(["entity_id"]);
             })
          );
       } catch (e) {

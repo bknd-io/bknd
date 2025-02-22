@@ -73,6 +73,7 @@ export abstract class Connection<DB = any> {
       return false;
    }
 
+   // @todo: add if only first field is used in index
    supportsIndices(): boolean {
       return false;
    }

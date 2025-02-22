@@ -66,6 +66,13 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       return this.em.connection.kysely;
    }
 
+   private checkIndex(entity: string, field: string, clause: string) {
+      const indexed = this.em.getIndexedFields(entity).map((f) => f.name);
+      if (!indexed.includes(field)) {
+         $console.warn(`Field "${entity}.${field}" used in "${clause}" is not indexed`);
+      }
+   }
+
    getValidOptions(options?: Partial<RepoQuery>): RepoQuery {
       const entity = this.entity;
       // @todo: if not cloned deep, it will keep references and error if multiple requests come in
@@ -85,6 +92,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
             throw new InvalidSearchParamsException(`Invalid sort direction "${options.sort.dir}"`);
          }
 
+         this.checkIndex(entity.name, options.sort.by, "sort");
          validated.sort = options.sort;
       }
 
@@ -137,9 +145,11 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
                   return true;
                }
 
+               this.checkIndex(alias, prop, "where");
                return !this.em.entity(alias).getField(prop);
             }
 
+            this.checkIndex(entity.name, field, "where");
             return typeof entity.getField(field) === "undefined";
          });
 
@@ -255,12 +265,6 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          ...config?.defaults
       };
 
-      /*$console.log("build query options", {
-         entity: entity.name,
-         options,
-         config
-      });*/
-
       if (!ignore.includes("select") && options.select) {
          qb = qb.select(entity.getAliasedSelectFrom(options.select, alias));
       }
@@ -299,7 +303,9 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       return {
          qb: this.addOptionsToQueryBuilder(undefined, options, {
             ignore,
-            alias: entity.name
+            alias: entity.name,
+            // already done
+            validate: false
          }),
          options
       };
