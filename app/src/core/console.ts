@@ -1,3 +1,4 @@
+import { datetimeStringLocal } from "core/utils";
 import colors from "picocolors";
 
 function hasColors() {
@@ -8,10 +9,10 @@ function hasColors() {
          env = p.env || {};
       return (
          !(!!env.NO_COLOR || argv.includes("--no-color")) &&
-         // biome-ignore lint/complexity/useOptionalChain: <explanation>
          (!!env.FORCE_COLOR ||
             argv.includes("--color") ||
             p.platform === "win32" ||
+            // biome-ignore lint/complexity/useOptionalChain: <explanation>
             ((p.stdout || {}).isTTY && env.TERM !== "dumb") ||
             !!env.CI)
       );
@@ -43,19 +44,17 @@ function __tty(type: any, args: any[]) {
          prefix: colors.cyan
       },
       log: {
-         prefix: colors.gray
+         prefix: colors.dim
       },
       debug: {
          prefix: colors.yellow
       }
    } as const;
-   const prefix = styles[type].prefix(
-      `[${type.toUpperCase()}]${has ? " ".repeat(5 - type.length) : ""}`
-   );
+   const prefix = styles[type].prefix(`[${type.toUpperCase()}]`);
    const _args = args.map((a) =>
       "args" in styles[type] && has && typeof a === "string" ? styles[type].args(a) : a
    );
-   return originalConsoles[type](prefix, ..._args);
+   return originalConsoles[type](prefix, colors.gray(datetimeStringLocal()), ..._args);
 }
 
 export type TConsoleSeverity = keyof typeof originalConsoles;

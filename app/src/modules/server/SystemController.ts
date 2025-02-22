@@ -2,7 +2,15 @@
 
 import type { App } from "App";
 import { tbValidator as tb } from "core";
-import { StringEnum, Type, TypeInvalidError } from "core/utils";
+import {
+   StringEnum,
+   Type,
+   TypeInvalidError,
+   datetimeStringLocal,
+   datetimeStringUTC,
+   getTimezone,
+   getTimezoneOffset
+} from "core/utils";
 import { getRuntimeKey } from "core/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
@@ -273,7 +281,13 @@ export class SystemController extends Controller {
       hono.get("/info", (c) =>
          c.json({
             version: c.get("app")?.version(),
-            runtime: getRuntimeKey()
+            runtime: getRuntimeKey(),
+            timezone: {
+               name: getTimezone(),
+               offset: getTimezoneOffset(),
+               local: datetimeStringLocal(),
+               utc: datetimeStringUTC()
+            }
          })
       );
 

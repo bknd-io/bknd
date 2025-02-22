@@ -82,7 +82,6 @@ export const withSchema = <TSelf extends TThis>(Self: TSelf) =>
          // { "images": {} }
 
          if (!Array.isArray(value) && isObject(value)) {
-            console.log("is object");
             return value as RepoWithSchema;
          }
 

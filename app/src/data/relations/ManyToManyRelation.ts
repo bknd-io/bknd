@@ -143,7 +143,7 @@ export class ManyToManyRelation extends EntityRelation<typeof ManyToManyRelation
          eb
             .selectFrom(other.entity.name)
             .select((eb2) => {
-               const select: any[] = other.entity.getSelect(other.entity.name);
+               const select: any[] = [];
                if (additionalFields.length > 0) {
                   const conn = this.connectionEntity.name;
                   select.push(

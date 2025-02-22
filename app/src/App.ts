@@ -1,4 +1,3 @@
-import { Api, type ApiOptions } from "Api";
 import type { CreateUserPayload } from "auth/AppAuth";
 import { $console } from "core";
 import { Event } from "core/events";
@@ -14,6 +13,9 @@ import {
 import * as SystemPermissions from "modules/permissions";
 import { AdminController, type AdminControllerOptions } from "modules/server/AdminController";
 import { SystemController } from "modules/server/SystemController";
+
+// biome-ignore format: must be there
+import { Api, type ApiOptions } from "Api";
 
 export type AppPlugin = (app: App) => Promise<void> | void;
 
@@ -120,6 +122,8 @@ export class App {
          this.trigger_first_boot = false;
          await this.emgr.emit(new AppFirstBoot({ app: this }));
       }
+
+      $console.log("App built");
    }
 
    mutateConfig<Module extends keyof Modules>(module: Module) {

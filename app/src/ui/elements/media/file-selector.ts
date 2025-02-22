@@ -80,10 +80,8 @@ export interface FileWithPath extends File {
 export async function fromEvent(evt: Event | any): Promise<(FileWithPath | DataTransferItem)[]> {
    if (isObject<DragEvent>(evt) && isDataTransfer(evt.dataTransfer)) {
       return getDataTransferFiles(evt.dataTransfer, evt.type);
-      // biome-ignore lint/style/noUselessElse: not useless
    } else if (isChangeEvt(evt)) {
       return getInputFiles(evt);
-      // biome-ignore lint/style/noUselessElse: not useless
    } else if (
       Array.isArray(evt) &&
       evt.every((item) => "getFile" in item && typeof item.getFile === "function")

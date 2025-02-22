@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Perf, isBlob, ucFirst } from "../../src/core/utils";
+import { Perf, datetimeStringUTC, isBlob, ucFirst } from "../../src/core/utils";
 import * as utils from "../../src/core/utils";
 
 async function wait(ms: number) {
@@ -243,6 +243,16 @@ describe("Core Utils", async () => {
             const result = utils.getPath(obj, path, defaultValue);
             expect(result).toEqual(expected);
          }
+      });
+   });
+
+   describe("dates", () => {
+      test.only("formats local time", () => {
+         expect(utils.datetimeStringUTC("2025-02-21T16:48:25.841Z")).toBe("2025-02-21 16:48:25");
+         console.log(utils.datetimeStringUTC(new Date()));
+         console.log(utils.datetimeStringUTC());
+         console.log(new Date());
+         console.log("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone);
       });
    });
 });

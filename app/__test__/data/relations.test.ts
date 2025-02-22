@@ -310,16 +310,16 @@ describe("Relations", async () => {
        */
       const selectCategoriesFromPosts = kysely
          .selectFrom(posts.name)
-         .select((eb) => postCategoriesRel.buildWith(posts)(eb).as("categories"));
+         .select((eb) => postCategoriesRel.buildWith(posts)(eb).select("id").as("categories"));
       expect(selectCategoriesFromPosts.compile().sql).toBe(
-         'select (select "categories"."id" as "id", "categories"."label" as "label" from "categories" inner join "posts_categories" on "categories"."id" = "posts_categories"."categories_id" where "posts"."id" = "posts_categories"."posts_id" limit ?) as "categories" from "posts"'
+         'select (select "id" from "categories" inner join "posts_categories" on "categories"."id" = "posts_categories"."categories_id" where "posts"."id" = "posts_categories"."posts_id" limit ?) as "categories" from "posts"'
       );
 
       const selectPostsFromCategories = kysely
          .selectFrom(categories.name)
-         .select((eb) => postCategoriesRel.buildWith(categories)(eb).as("posts"));
+         .select((eb) => postCategoriesRel.buildWith(categories)(eb).select("id").as("posts"));
       expect(selectPostsFromCategories.compile().sql).toBe(
-         'select (select "posts"."id" as "id", "posts"."title" as "title" from "posts" inner join "posts_categories" on "posts"."id" = "posts_categories"."posts_id" where "categories"."id" = "posts_categories"."categories_id" limit ?) as "posts" from "categories"'
+         'select (select "id" from "posts" inner join "posts_categories" on "posts"."id" = "posts_categories"."posts_id" where "categories"."id" = "posts_categories"."categories_id" limit ?) as "posts" from "categories"'
       );
 
       // mutation info

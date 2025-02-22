@@ -81,7 +81,9 @@ export function DropzoneContainer({
       return api.media.deleteFile(file.path);
    });
 
-   const actualItems = (initialItems || $q.data || []) as MediaFieldSchema[];
+   const actualItems = (initialItems ??
+      (Array.isArray($q.data) ? $q.data : []) ??
+      []) as MediaFieldSchema[];
    const _initialItems = mediaItemsToFileStates(actualItems, { baseUrl });
 
    const key = id + JSON.stringify(_initialItems);

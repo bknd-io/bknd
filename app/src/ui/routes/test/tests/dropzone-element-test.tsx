@@ -6,6 +6,9 @@ export default function DropzoneElementTest() {
       <Scrollable>
          <div className="flex flex-col w-full h-full p-4 gap-4">
             <div>
+               <b>Dropzone no auto avif only</b>
+               <Media.Dropzone autoUpload={false} allowedMimeTypes={["image/avif"]} />
+
                <b>Dropzone User Avatar 1 (fully customized)</b>
                <Media.Dropzone
                   entity={{ name: "users", id: 1, field: "avatar" }}

@@ -49,6 +49,7 @@ export type DropzoneProps = {
    initialItems?: FileState[];
    flow?: "start" | "end";
    maxItems?: number;
+   allowedMimeTypes?: string[];
    overwrite?: boolean;
    autoUpload?: boolean;
    onRejected?: (files: FileWithPath[]) => void;
@@ -75,6 +76,7 @@ export function Dropzone({
    handleDelete,
    initialItems = [],
    flow = "start",
+   allowedMimeTypes,
    maxItems,
    overwrite,
    autoUpload,
@@ -109,8 +111,26 @@ export function Dropzone({
       return added > remaining;
    }
 
+   function isAllowed(i: DataTransferItem | DataTransferItem[] | File | File[]): boolean {
+      const items = Array.isArray(i) ? i : [i];
+      const specs = items.map((item) => ({
+         kind: "kind" in item ? item.kind : "file",
+         type: item.type,
+         size: "size" in item ? item.size : 0
+      }));
+
+      return specs.every((spec) => {
+         if (spec.kind !== "file") {
+            return false;
+         }
+         return !(allowedMimeTypes && !allowedMimeTypes.includes(spec.type));
+      });
+   }
+
    const { isOver, handleFileInputChange, ref } = useDropzone({
       onDropped: (newFiles: FileWithPath[]) => {
+         if (!isAllowed(newFiles)) return;
+
          let to_drop = 0;
          const added = newFiles.length;
 
@@ -155,6 +175,11 @@ export function Dropzone({
          }
       },
       onOver: (items) => {
+         if (!isAllowed(items)) {
+            setIsOverAccepted(false);
+            return;
+         }
+
          const max_reached = isMaxReached(items.length);
          setIsOverAccepted(!max_reached);
       },

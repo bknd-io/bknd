@@ -5,7 +5,7 @@ export function getExtensionFromName(filename: string): string | undefined {
    if (!filename.includes(".")) return;
 
    const parts = filename.split(".");
-   return parts[parts.length - 1];
+   return parts[parts.length - 1]?.toLowerCase();
 }
 
 export function getRandomizedFilename(file: File, length?: number): string;

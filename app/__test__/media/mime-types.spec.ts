@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import * as large from "../../src/media/storage/mime-types";
 import * as tiny from "../../src/media/storage/mime-types-tiny";
+import { getRandomizedFilename } from "../../src/media/utils";
 
 describe("media/mime-types", () => {
    test("tiny resolves", () => {
@@ -36,19 +37,62 @@ describe("media/mime-types", () => {
    });
 
    test("isMimeType", () => {
-      expect(tiny.isMimeType("image/jpeg")).toBe(true);
-      expect(tiny.isMimeType("image/jpeg", ["image/png"])).toBe(true);
-      expect(tiny.isMimeType("image/png", ["image/png"])).toBe(false);
-      expect(tiny.isMimeType("image/png")).toBe(true);
-      expect(tiny.isMimeType("whatever")).toBe(false);
-      expect(tiny.isMimeType("text/tab-separated-values")).toBe(true);
+      const tests = [
+         ["image/avif", true],
+         ["image/AVIF", true],
+         ["image/jpeg", true],
+         ["image/jpeg", true, ["image/png"]],
+         ["image/png", false, ["image/png"]],
+         ["image/png", true],
+         ["image/heif", true],
+         ["image/heic", true],
+         ["image/gif", true],
+         ["whatever", false],
+         ["text/tab-separated-values", true],
+         ["application/zip", true]
+      ];
+
+      for (const [mime, expected, exclude] of tests) {
+         expect(
+            tiny.isMimeType(mime, exclude as any),
+            `isMimeType(): ${mime} should be ${expected}`
+         ).toBe(expected as any);
+      }
    });
 
    test("extension", () => {
-      expect(tiny.extension("image/png")).toBe("png");
-      expect(tiny.extension("image/jpeg")).toBe("jpeg");
-      expect(tiny.extension("application/zip")).toBe("zip");
-      expect(tiny.extension("text/tab-separated-values")).toBe("tsv");
-      expect(tiny.extension("application/zip")).toBe("zip");
+      const tests = [
+         ["image/avif", "avif"],
+         ["image/png", "png"],
+         ["image/PNG", "png"],
+         ["image/jpeg", "jpeg"],
+         ["application/zip", "zip"],
+         ["text/tab-separated-values", "tsv"],
+         ["application/zip", "zip"]
+      ];
+
+      for (const [mime, ext] of tests) {
+         expect(tiny.extension(mime), `extension(): ${mime} should be ${ext}`).toBe(ext);
+      }
+   });
+
+   test("getRandomizedFilename", () => {
+      const tests = [
+         ["file.txt", "txt"],
+         ["file.TXT", "txt"],
+         ["image.jpg", "jpg"],
+         ["image.avif", "avif"],
+         ["image.heic", "heic"],
+         ["image.jpeg", "jpeg"],
+         ["-473Wx593H-466453554-black-MODEL.jpg", "jpg"],
+         ["-473Wx593H-466453554-black-MODEL.avif", "avif"]
+      ];
+
+      for (const [filename, ext] of tests) {
+         expect(
+            getRandomizedFilename(filename).split(".").pop(),
+            `getRandomizedFilename(): ${filename} should end with ${ext}`
+         ).toBe(ext);
+      }
    });
 });
