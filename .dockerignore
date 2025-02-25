@@ -1,0 +1,9 @@
+**/node_modules
+node_modules
+bun.lockb
+**/node_modules/**
+**/dist
+**/.git
+**/*.lock
+**/bun.lockb
+**/.env* 
