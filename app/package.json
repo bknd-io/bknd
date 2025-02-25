@@ -68,6 +68,8 @@
     "@hono/zod-validator": "^0.4.1",
     "@hookform/resolvers": "^3.9.1",
     "@libsql/kysely-libsql": "^0.4.1",
+    "@mantine/modals": "^7.13.4",
+    "@mantine/notifications": "^7.13.4",
     "@rjsf/core": "^5.22.2",
     "@tabler/icons-react": "3.18.0",
     "@types/node": "^22.10.0",

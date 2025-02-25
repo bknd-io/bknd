@@ -14,7 +14,10 @@
     "updater": "bun x npm-check-updates -ui",
     "clean:dist": "find packages -name 'dist' -type d -exec rm -rf {} +",
     "ci": "find . -name 'node_modules' -type d -exec rm -rf {} + && bun install",
-    "npm:local": "verdaccio --config verdaccio.yml"
+    "npm:local": "verdaccio --config verdaccio.yml",
+    "test:docker": "docker-compose -f docker-compose.test.yml up --build",
+    "test:docker:clean": "docker-compose -f docker-compose.test.yml down --rmi all --volumes --remove-orphans",
+    "test:docker:shell": "docker-compose -f docker-compose.test.yml run --rm test /bin/bash"
   },
   "dependencies": {},
   "devDependencies": {
@@ -43,7 +46,6 @@
   },
   "workspaces": [
     "app",
-    "docs",
-    "packages/*"
+    "docs"
   ]
 }

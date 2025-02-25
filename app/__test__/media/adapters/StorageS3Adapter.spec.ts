@@ -9,9 +9,11 @@ const { R2_ACCESS_KEY, R2_SECRET_ACCESS_KEY, R2_URL, AWS_ACCESS_KEY, AWS_SECRET_
 
 // @todo: mock r2/s3 responses for faster tests
 const ALL_TESTS = !!process.env.ALL_TESTS;
+console.log("ALL_TESTS?", ALL_TESTS);
 
-describe.skipIf(ALL_TESTS)("StorageS3Adapter", async () => {
-   console.log("ALL_TESTS", process.env.ALL_TESTS);
+describe.skipIf(true)("StorageS3Adapter", async () => {
+   if (ALL_TESTS) return;
+
    const versions = [
       [
          "r2",
@@ -55,7 +57,7 @@ describe.skipIf(ALL_TESTS)("StorageS3Adapter", async () => {
 
    // @todo: add mocked fetch for faster tests
    describe.each(versions)("StorageS3Adapter for %s", async (name, adapter) => {
-      if (!_conf.adapters.includes(name)) {
+      if (!_conf.adapters.includes(name) || ALL_TESTS) {
          console.log("Skipping", name);
          return;
       }

@@ -14,6 +14,8 @@ const {
 const ALL_TESTS = !!process.env.ALL_TESTS;
 
 describe.skipIf(ALL_TESTS)("StorageCloudinaryAdapter", () => {
+   if (ALL_TESTS) return;
+
    const adapter = new StorageCloudinaryAdapter({
       cloud_name: CLOUDINARY_CLOUD_NAME as string,
       api_key: CLOUDINARY_API_KEY as string,
