@@ -21,6 +21,10 @@ jobs:
         working-directory: ./app
         run: bun install
 
+      - name: Build
+        working-directory: ./app
+        run: bun run build:static && bun run build.ts
+
       - name: Run tests
         working-directory: ./app
         run: bun run test
