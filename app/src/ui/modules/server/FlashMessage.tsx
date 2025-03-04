@@ -7,7 +7,7 @@ import { Alert } from "ui/components/display/Alert";
  * @constructor
  */
 export function FlashMessage() {
-   const [flash, setFlash] = useState<any>();
+   const [flash, setFlash] = useState<ReturnType<typeof getFlashMessage>>();
 
    useEffect(() => {
       if (!flash) {

@@ -2,11 +2,10 @@ import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import type { ModuleConfigs } from "modules";
 import React from "react";
-import { BkndProvider, useBknd } from "ui/client/bknd";
+import { BkndProvider } from "ui/client/bknd";
 import { useTheme } from "ui/client/use-theme";
 import { Logo } from "ui/components/display/Logo";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
-import { FlashMessage } from "ui/modules/server/FlashMessage";
 import { ClientProvider, type ClientProviderProps } from "./client";
 import { createMantineTheme } from "./lib/mantine/theme";
 import { BkndModalsProvider } from "./modals";
@@ -21,7 +20,7 @@ export type BkndAdminProps = {
 export default function Admin({
    baseUrl: baseUrlOverride,
    withProvider = false,
-   config
+   config,
 }: BkndAdminProps) {
    const Component = (
       <BkndProvider adminOverride={config} fallback={<Skeleton theme={config?.color_scheme} />}>
@@ -45,8 +44,7 @@ function AdminInternal() {
 
    return (
       <MantineProvider {...createMantineTheme(theme as any)}>
-         <Notifications />
-         <FlashMessage />
+         <Notifications position="top-right" />
          <BkndModalsProvider>
             <Routes />
          </BkndModalsProvider>
@@ -54,9 +52,9 @@ function AdminInternal() {
    );
 }
 
-const Skeleton = ({ theme }: { theme?: string }) => {
-   const actualTheme =
-      (theme ?? document.querySelector("html")?.classList.contains("light")) ? "light" : "dark";
+const Skeleton = ({ theme }: { theme?: any }) => {
+   const t = useTheme();
+   const actualTheme = theme ?? t.theme;
 
    return (
       <div id="bknd-admin" className={actualTheme + " antialiased"}>

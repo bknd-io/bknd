@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import React, { Suspense, lazy } from "react";
 import { useBknd } from "ui/client/bknd";
 import { useTheme } from "ui/client/use-theme";
 import { Route, Router, Switch } from "wouter";
@@ -9,6 +9,7 @@ import FlowRoutes from "./flows";
 import MediaRoutes from "./media";
 import { Root, RootEmpty } from "./root";
 import SettingsRoutes from "./settings";
+import { FlashMessage } from "ui/modules/server/FlashMessage";
 
 // @ts-ignore
 const TestRoutes = lazy(() => import("./test"));
@@ -20,6 +21,7 @@ export function Routes() {
 
    return (
       <div id="bknd-admin" className={theme + " antialiased"}>
+         <FlashMessage />
          <Router base={basepath}>
             <Switch>
                <Route path="/auth/login" component={AuthLogin} />
