@@ -15,7 +15,7 @@ describe("SchemaManager tests", async () => {
       const em = new EntityManager([entity], dummyConnection, [], [index]);
       const schema = new SchemaManager(em);
 
-      const introspection = schema.getIntrospectionFromEntity(em.entities[0]);
+      const introspection = schema.getIntrospectionFromEntity(em.entities[0]!);
       expect(introspection).toEqual({
          name: "test",
          isView: false,
@@ -109,7 +109,7 @@ describe("SchemaManager tests", async () => {
       await schema.sync({ force: true, drop: true });
       const diffAfter = await schema.getDiff();
 
-      console.log("diffAfter", diffAfter);
+      //console.log("diffAfter", diffAfter);
       expect(diffAfter.length).toBe(0);
 
       await kysely.schema.dropTable(table).execute();

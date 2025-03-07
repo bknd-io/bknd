@@ -10,7 +10,12 @@ describe("[data] PrimaryField", async () => {
 
    test("schema", () => {
       expect(field.name).toBe("primary");
-      expect(field.schema()).toEqual(["primary", "integer", expect.any(Function)]);
+      expect(field.schema()).toEqual({
+         name: "primary",
+         type: "integer" as const,
+         nullable: false,
+         primary: true,
+      });
    });
 
    test("hasDefault", async () => {

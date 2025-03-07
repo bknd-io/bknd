@@ -36,10 +36,6 @@ export class JsonSchemaField<
       return jsonSchemaFieldConfigSchema;
    }
 
-   override schema() {
-      return this.useSchemaHelper("text");
-   }
-
    getJsonSchema(): JsonSchema {
       return this.config?.schema as JsonSchema;
    }

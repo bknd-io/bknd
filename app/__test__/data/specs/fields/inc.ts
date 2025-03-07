@@ -34,11 +34,14 @@ export function runBaseFieldTests(
 
    test("schema", () => {
       expect(noConfigField.name).toBe("no_config");
-      expect(noConfigField.schema(null as any)).toEqual([
-         "no_config",
-         config.schemaType,
-         expect.any(Function),
-      ]);
+
+      const { type, name, nullable, dflt } = noConfigField.schema()!;
+      expect({ type, name, nullable, dflt }).toEqual({
+         type: config.schemaType as any,
+         name: "no_config",
+         nullable: true, // always true
+         dflt: undefined, // never using default value
+      });
    });
 
    test("hasDefault", async () => {

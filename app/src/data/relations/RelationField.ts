@@ -1,6 +1,6 @@
 import { type Static, StringEnum, Type } from "core/utils";
 import type { EntityManager } from "../entities";
-import { Field, type SchemaResponse, baseFieldConfigSchema } from "../fields";
+import { Field, baseFieldConfigSchema } from "../fields";
 import type { EntityRelation } from "./EntityRelation";
 import type { EntityRelationAnchor } from "./EntityRelationAnchor";
 
@@ -72,14 +72,12 @@ export class RelationField extends Field<RelationFieldConfig> {
       return this.config.target_field!;
    }
 
-   override schema(): SchemaResponse {
-      return this.useSchemaHelper("integer", (col) => {
-         //col.references('person.id').onDelete('cascade').notNull()
-         // @todo: implement cascading?
-
-         return col
-            .references(`${this.config.target}.${this.config.target_field}`)
-            .onDelete(this.config.on_delete ?? "set null");
+   override schema() {
+      return Object.freeze({
+         ...super.schema()!,
+         type: "integer",
+         references: `${this.config.target}.${this.config.target_field}`,
+         onDelete: this.config.on_delete ?? "set null",
       });
    }
 

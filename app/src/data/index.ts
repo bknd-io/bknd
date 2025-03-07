@@ -5,6 +5,7 @@ export * from "./entities";
 export * from "./relations";
 export * from "./schema/SchemaManager";
 export * from "./prototype";
+export * from "./connection";
 
 export {
    type RepoQuery,
@@ -14,11 +15,6 @@ export {
    whereSchema,
 } from "./server/data-query-impl";
 
-export { Connection } from "./connection/Connection";
-export { LibsqlConnection, type LibSqlCredentials } from "./connection/LibsqlConnection";
-export { SqliteConnection } from "./connection/SqliteConnection";
-export { SqliteLocalConnection } from "./connection/SqliteLocalConnection";
-export { SqliteIntrospector } from "./connection/SqliteIntrospector";
 export { KyselyPluginRunner } from "./plugins/KyselyPluginRunner";
 
 export { constructEntity, constructRelation } from "./schema/constructor";

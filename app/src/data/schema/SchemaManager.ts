@@ -1,7 +1,7 @@
-import type { AlterTableColumnAlteringBuilder, CompiledQuery, TableMetadata } from "kysely";
-import type { IndexMetadata } from "../connection/Connection";
+import type { CompiledQuery, TableMetadata } from "kysely";
+import type { IndexMetadata, SchemaResponse } from "../connection/Connection";
 import type { Entity, EntityManager } from "../entities";
-import { PrimaryField, type SchemaResponse } from "../fields";
+import { PrimaryField } from "../fields";
 
 type IntrospectedTable = TableMetadata & {
    indices: IndexMetadata[];
@@ -239,10 +239,9 @@ export class SchemaManager {
 
       for (const column of columns) {
          const field = this.em.entity(table).getField(column)!;
-         const fieldSchema = field.schema(this.em);
-         if (Array.isArray(fieldSchema) && fieldSchema.length === 3) {
-            schemas.push(fieldSchema);
-            //throw new Error(`Field "${field.name}" on entity "${table}" has no schema`);
+         const fieldSchema = field.schema();
+         if (fieldSchema) {
+            schemas.push(this.em.connection.getFieldSchema(fieldSchema));
          }
       }
 
@@ -330,6 +329,7 @@ export class SchemaManager {
          if (local_updates === 0) continue;
 
          // iterate through built qbs
+         // @todo: run in batches
          for (const qb of qbs) {
             const { sql, parameters } = qb.compile();
             statements.push({ sql, parameters });
