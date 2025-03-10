@@ -17,7 +17,7 @@ export class VirtualField extends Field<VirtualFieldConfig> {
       return virtualFieldConfigSchema;
    }
 
-   schema() {
+   override schema() {
       return undefined;
    }
 

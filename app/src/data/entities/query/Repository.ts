@@ -14,6 +14,7 @@ import {
    WithBuilder,
 } from "../index";
 import { JoinBuilder } from "./JoinBuilder";
+import { ensureInt } from "core/utils";
 
 export type RepositoryQB = SelectQueryBuilder<any, any, any>;
 
@@ -225,8 +226,9 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
             data,
             meta: {
                ...payload.meta,
-               total: _total[0]?.total ?? 0,
-               count: _count[0]?.count ?? 0, // @todo: better graceful method
+               // parsing is important since pg returns string
+               total: ensureInt(_total[0]?.total),
+               count: ensureInt(_count[0]?.count),
                items: result.length,
                time,
             },

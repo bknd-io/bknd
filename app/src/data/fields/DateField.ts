@@ -32,8 +32,10 @@ export class DateField<Required extends true | false = false> extends Field<
    }
 
    override schema() {
-      const type = this.config.type === "datetime" ? "datetime" : "date";
-      return this.useSchemaHelper(type);
+      return Object.freeze({
+         ...super.schema()!,
+         type: this.config.type === "datetime" ? "datetime" : "date",
+      });
    }
 
    override getHtmlConfig() {

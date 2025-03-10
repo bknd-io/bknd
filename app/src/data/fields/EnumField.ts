@@ -66,10 +66,6 @@ export class EnumField<Required extends true | false = false, TypeOverride = str
       return enumFieldConfigSchema;
    }
 
-   override schema() {
-      return this.useSchemaHelper("text");
-   }
-
    getOptions(): { label: string; value: string }[] {
       const options = this.config?.options ?? { type: "strings", values: [] };
 

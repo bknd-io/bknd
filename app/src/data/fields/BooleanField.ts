@@ -32,9 +32,11 @@ export class BooleanField<Required extends true | false = false> extends Field<
       }
    }
 
-   schema() {
-      // @todo: potentially use "integer" instead
-      return this.useSchemaHelper("boolean");
+   override schema() {
+      return Object.freeze({
+         ...super.schema()!,
+         type: "boolean",
+      });
    }
 
    override getHtmlConfig() {

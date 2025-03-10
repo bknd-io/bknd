@@ -27,7 +27,7 @@ describe("Relations", async () => {
 
       const sql1 = schema
          .createTable("posts")
-         .addColumn(...r1.schema()!)
+         .addColumn(...em.connection.getFieldSchema(r1.schema())!)
          .compile().sql;
 
       expect(sql1).toBe(
@@ -43,7 +43,7 @@ describe("Relations", async () => {
 
       const sql2 = schema
          .createTable("posts")
-         .addColumn(...r2.schema()!)
+         .addColumn(...em.connection.getFieldSchema(r2.schema())!)
          .compile().sql;
 
       expect(sql2).toBe(

@@ -1,16 +1,16 @@
 import {
+   parse,
+   snakeToPascalWithSpaces,
    type Static,
    StringEnum,
    type TSchema,
    Type,
    TypeInvalidError,
-   parse,
-   snakeToPascalWithSpaces,
 } from "core/utils";
-import type { ColumnBuilderCallback, ColumnDataType, ColumnDefinitionBuilder } from "kysely";
 import type { HTMLInputTypeAttribute, InputHTMLAttributes } from "react";
 import type { EntityManager } from "../entities";
 import { InvalidFieldConfigException, TransformPersistFailedException } from "../errors";
+import type { FieldSpec } from "data/connection/Connection";
 
 // @todo: contexts need to be reworked
 // e.g. "table" is irrelevant, because if read is not given, it fails
@@ -67,8 +67,6 @@ export const baseFieldConfigSchema = Type.Object(
 );
 export type BaseFieldConfig = Static<typeof baseFieldConfigSchema>;
 
-export type SchemaResponse = [string, ColumnDataType, ColumnBuilderCallback] | undefined;
-
 export abstract class Field<
    Config extends BaseFieldConfig = BaseFieldConfig,
    Type = any,
@@ -106,25 +104,18 @@ export abstract class Field<
 
    protected abstract getSchema(): TSchema;
 
-   protected useSchemaHelper(
-      type: ColumnDataType,
-      builder?: (col: ColumnDefinitionBuilder) => ColumnDefinitionBuilder,
-   ): SchemaResponse {
-      return [
-         this.name,
-         type,
-         (col: ColumnDefinitionBuilder) => {
-            if (builder) return builder(col);
-            return col;
-         },
-      ];
-   }
-
    /**
     * Used in SchemaManager.ts
     * @param em
     */
-   abstract schema(em: EntityManager<any>): SchemaResponse;
+   schema(): FieldSpec | undefined {
+      return Object.freeze({
+         name: this.name,
+         type: "text",
+         nullable: true,
+         dflt: this.getDefault(),
+      });
+   }
 
    hasDefault() {
       return this.config.default_value !== undefined;

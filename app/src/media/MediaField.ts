@@ -47,7 +47,7 @@ export class MediaField<
       return this.config.min_items;
    }
 
-   schema() {
+   override schema() {
       return undefined;
    }
 

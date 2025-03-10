@@ -47,10 +47,6 @@ export class TextField<Required extends true | false = false> extends Field<
       return textFieldConfigSchema;
    }
 
-   override schema() {
-      return this.useSchemaHelper("text");
-   }
-
    override getHtmlConfig() {
       if (this.config.html_config) {
          return this.config.html_config as any;

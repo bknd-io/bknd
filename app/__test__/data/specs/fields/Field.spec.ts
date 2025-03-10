@@ -1,23 +1,29 @@
 import { describe, expect, test } from "bun:test";
-import { Default, parse, stripMark } from "../../../../src/core/utils";
-import { Field, type SchemaResponse, TextField, baseFieldConfigSchema } from "../../../../src/data";
-import { runBaseFieldTests, transformPersist } from "./inc";
+import { Default, stripMark } from "../../../../src/core/utils";
+import { baseFieldConfigSchema, Field } from "../../../../src/data/fields/Field";
+import { runBaseFieldTests } from "./inc";
 
 describe("[data] Field", async () => {
    class FieldSpec extends Field {
-      schema(): SchemaResponse {
-         return this.useSchemaHelper("text");
-      }
       getSchema() {
          return baseFieldConfigSchema;
       }
    }
 
+   test("fieldSpec", () => {
+      expect(new FieldSpec("test").schema()).toEqual({
+         name: "test",
+         type: "text",
+         nullable: true, // always true
+         dflt: undefined, // never using default value
+      });
+   });
+
    runBaseFieldTests(FieldSpec, { defaultValue: "test", schemaType: "text" });
 
    test("default config", async () => {
       const config = Default(baseFieldConfigSchema, {});
-      expect(stripMark(new FieldSpec("test").config)).toEqual(config);
+      expect(stripMark(new FieldSpec("test").config)).toEqual(config as any);
    });
 
    test("transformPersist (specific)", async () => {

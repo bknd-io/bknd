@@ -44,8 +44,11 @@ export class NumberField<Required extends true | false = false> extends Field<
       };
    }
 
-   schema() {
-      return this.useSchemaHelper("integer");
+   override schema() {
+      return Object.freeze({
+         ...super.schema()!,
+         type: "integer",
+      });
    }
 
    override getValue(value: any, context?: TRenderContext): any {

@@ -1,9 +1,12 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
 import { App, createApp } from "../../src";
 import type { AuthResponse } from "../../src/auth";
 import { auth } from "../../src/auth/middlewares";
 import { randomString, secureRandomString, withDisabledConsole } from "../../src/core/utils";
-import { disableConsoleLog, enableConsoleLog } from "../helper";
+import { disableConsoleLog, enableConsoleLog, getDummyConnection } from "../helper";
+
+const { dummyConnection, afterAllCleanup } = getDummyConnection();
+afterEach(afterAllCleanup);
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
@@ -64,6 +67,7 @@ const configs = {
 
 function createAuthApp() {
    const app = createApp({
+      connection: dummyConnection,
       initialConfig: {
          auth: configs.auth,
       },

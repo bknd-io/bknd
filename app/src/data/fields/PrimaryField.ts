@@ -30,9 +30,12 @@ export class PrimaryField<Required extends true | false = false> extends Field<
       return baseFieldConfigSchema;
    }
 
-   schema() {
-      return this.useSchemaHelper("integer", (col) => {
-         return col.primaryKey().notNull().autoIncrement();
+   override schema() {
+      return Object.freeze({
+         type: "integer",
+         name: this.name,
+         primary: true,
+         nullable: false,
       });
    }
 
