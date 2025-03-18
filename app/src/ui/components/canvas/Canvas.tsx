@@ -22,17 +22,20 @@ type CanvasProps = ReactFlowProps & {
    onDropNewEdge?: (base: any) => any;
 };
 
-export function Canvas({
-   nodes: _nodes,
-   edges: _edges,
-   externalProvider,
-   backgroundStyle = "lines",
-   minimap = false,
-   children,
-   onDropNewNode,
-   onDropNewEdge,
-   ...props
-}: CanvasProps) {
+export function Canvas(
+   {
+      nodes: _nodes,
+      edges: _edges,
+      externalProvider,
+      backgroundStyle = "lines",
+      minimap = false,
+      children,
+      onDropNewNode,
+      onDropNewEdge,
+      ...props
+   }: CanvasProps,
+   ref?: any,
+) {
    const [nodes, setNodes, onNodesChange] = useNodesState(_nodes ?? []);
    const [edges, setEdges, onEdgesChange] = useEdgesState(_edges ?? []);
    const { screenToFlowPosition } = useReactFlow();
@@ -176,7 +179,6 @@ export function Canvas({
          onNodesChange={onNodesChange}
          onEdgesChange={onEdgesChange}
          nodesConnectable={false}
-         /*panOnDrag={isSpacePressed}*/
          panOnDrag={true}
          zoomOnScroll={isCommandPressed}
          panOnScroll={!isCommandPressed}
