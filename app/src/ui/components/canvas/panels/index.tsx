@@ -35,16 +35,14 @@ export function Panels({ children, ...props }: PanelsProps) {
          )}
          <Panel unstyled position="bottom-right">
             {props.zoom && (
-               <>
-                  <Panel.Wrapper className="px-1.5">
-                     <Panel.IconButton Icon={TbPlus} round onClick={handleZoomIn} />
-                     <Panel.Text className="px-2" mono onClick={handleZoomReset}>
-                        {percent}%
-                     </Panel.Text>
-                     <Panel.IconButton Icon={TbMinus} round onClick={handleZoomOut} />
-                     <Panel.IconButton Icon={TbMaximize} round onClick={handleZoomReset} />
-                  </Panel.Wrapper>
-               </>
+               <Panel.Wrapper className="px-1.5">
+                  <Panel.IconButton Icon={TbPlus} round onClick={handleZoomIn} />
+                  <Panel.Text className="px-2" mono onClick={handleZoomReset}>
+                     {percent}%
+                  </Panel.Text>
+                  <Panel.IconButton Icon={TbMinus} round onClick={handleZoomOut} />
+                  <Panel.IconButton Icon={TbMaximize} round onClick={handleZoomReset} />
+               </Panel.Wrapper>
             )}
             {props.minimap && (
                <>
