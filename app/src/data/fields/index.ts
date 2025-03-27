@@ -53,3 +53,5 @@ export const FieldClassMap = {
    json: { schema: jsonFieldConfigSchema, field: JsonField },
    jsonschema: { schema: jsonSchemaFieldConfigSchema, field: JsonSchemaField },
 } as const;
+
+export { fieldTestSuite } from "./field-test-suite";

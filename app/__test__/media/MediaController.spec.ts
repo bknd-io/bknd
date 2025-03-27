@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { createApp, registries } from "../../src";
 import { mergeObject, randomString } from "../../src/core/utils";
 import type { TAppMediaConfig } from "../../src/media/media-schema";
-import { StorageLocalAdapter } from "../../src/media/storage/adapters/StorageLocalAdapter";
+import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 import { assetsPath, assetsTmpPath, disableConsoleLog, enableConsoleLog } from "../helper";
 
 beforeAll(() => {

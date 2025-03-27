@@ -1,9 +1,10 @@
 import { type EmitsEvents, EventManager } from "core/events";
-import { type TSchema, isFile, detectImageDimensions } from "core/utils";
+import { isFile, detectImageDimensions } from "core/utils";
 import { isMimeType } from "media/storage/mime-types-tiny";
 import * as StorageEvents from "./events";
 import type { FileUploadedEventData } from "./events";
 import { $console } from "core";
+import type { StorageAdapter } from "./StorageAdapter";
 
 export type FileListObject = {
    key: string;
@@ -18,24 +19,6 @@ export type FileUploadPayload = {
    meta: FileMeta;
    etag: string;
 };
-
-export interface StorageAdapter {
-   /**
-    * The unique name of the storage adapter
-    */
-   getName(): string;
-
-   // @todo: method requires limit/offset parameters
-   listObjects(prefix?: string): Promise<FileListObject[]>;
-   putObject(key: string, body: FileBody): Promise<string | FileUploadPayload | undefined>;
-   deleteObject(key: string): Promise<void>;
-   objectExists(key: string): Promise<boolean>;
-   getObject(key: string, headers: Headers): Promise<Response>;
-   getObjectUrl(key: string): string;
-   getObjectMeta(key: string): Promise<FileMeta>;
-   getSchema(): TSchema | undefined;
-   toJSON(secrets?: boolean): any;
-}
 
 export type StorageConfig = {
    body_max_size?: number;

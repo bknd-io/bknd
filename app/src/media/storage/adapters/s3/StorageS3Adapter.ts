@@ -9,7 +9,8 @@ import type {
 import { AwsClient, isDebug } from "core";
 import { type Static, Type, isFile, parse, pickHeaders2 } from "core/utils";
 import { transform } from "lodash-es";
-import type { FileBody, FileListObject, StorageAdapter } from "../Storage";
+import type { FileBody, FileListObject } from "../../Storage";
+import { StorageAdapter } from "../../StorageAdapter";
 
 export const s3AdapterConfig = Type.Object(
    {
@@ -32,11 +33,13 @@ export const s3AdapterConfig = Type.Object(
 
 export type S3AdapterConfig = Static<typeof s3AdapterConfig>;
 
-export class StorageS3Adapter extends AwsClient implements StorageAdapter {
+export class StorageS3Adapter extends StorageAdapter {
    readonly #config: S3AdapterConfig;
+   readonly client: AwsClient;
 
    constructor(config: S3AdapterConfig) {
-      super(
+      super();
+      this.client = new AwsClient(
          {
             accessKeyId: config.access_key,
             secretAccessKey: config.secret_access_key,
@@ -58,10 +61,10 @@ export class StorageS3Adapter extends AwsClient implements StorageAdapter {
       return s3AdapterConfig;
    }
 
-   override getUrl(path: string = "", searchParamsObj: Record<string, any> = {}): string {
+   getUrl(path: string = "", searchParamsObj: Record<string, any> = {}): string {
       let url = this.getObjectUrl("").slice(0, -1);
       if (path.length > 0) url += `/${path}`;
-      return super.getUrl(url, searchParamsObj);
+      return this.client.getUrl(url, searchParamsObj);
    }
 
    /**
@@ -82,7 +85,7 @@ export class StorageS3Adapter extends AwsClient implements StorageAdapter {
       };
 
       const url = this.getUrl("", params);
-      const res = await this.fetchJson<{ ListBucketResult: ListObjectsV2Output }>(url, {
+      const res = await this.client.fetchJson<{ ListBucketResult: ListObjectsV2Output }>(url, {
          method: "GET",
       });
 
@@ -115,7 +118,7 @@ export class StorageS3Adapter extends AwsClient implements StorageAdapter {
       params: Omit<PutObjectRequest, "Bucket" | "Key"> = {},
    ) {
       const url = this.getUrl(key, {});
-      const res = await this.fetch(url, {
+      const res = await this.client.fetch(url, {
          method: "PUT",
          body,
          headers: isFile(body)
@@ -139,7 +142,7 @@ export class StorageS3Adapter extends AwsClient implements StorageAdapter {
       params: Pick<HeadObjectRequest, "PartNumber" | "VersionId"> = {},
    ) {
       const url = this.getUrl(key, {});
-      return await this.fetch(url, {
+      return await this.client.fetch(url, {
          method: "HEAD",
          headers: {
             Range: "bytes=0-1",
@@ -175,7 +178,7 @@ export class StorageS3Adapter extends AwsClient implements StorageAdapter {
     */
    async getObject(key: string, headers: Headers): Promise<Response> {
       const url = this.getUrl(key);
-      const res = await this.fetch(url, {
+      const res = await this.client.fetch(url, {
          method: "GET",
          headers: pickHeaders2(headers, [
             "if-none-match",
@@ -201,7 +204,7 @@ export class StorageS3Adapter extends AwsClient implements StorageAdapter {
       params: Omit<DeleteObjectRequest, "Bucket" | "Key"> = {},
    ): Promise<void> {
       const url = this.getUrl(key, params);
-      const res = await this.fetch(url, {
+      const res = await this.client.fetch(url, {
          method: "DELETE",
       });
    }

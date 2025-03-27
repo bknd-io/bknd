@@ -1,7 +1,7 @@
-import { expect, test } from "bun:test";
+import type { BaseFieldConfig, Field, TActionContext } from "data";
 import type { ColumnDataType } from "kysely";
 import { omit } from "lodash-es";
-import type { BaseFieldConfig, Field, TActionContext } from "../../../../src/data";
+import type { TestRunner } from "core/test";
 
 type ConstructableField = new (name: string, config?: Partial<BaseFieldConfig>) => Field;
 
@@ -15,11 +15,13 @@ export function transformPersist(field: Field, value: any, context?: TActionCont
    return field.transformPersist(value, undefined as any, context as any);
 }
 
-export function runBaseFieldTests(
+export function fieldTestSuite(
+   testRunner: TestRunner,
    fieldClass: ConstructableField,
    config: FieldTestConfig,
    _requiredConfig: any = {},
 ) {
+   const { test, expect } = testRunner;
    const noConfigField = new fieldClass("no_config", _requiredConfig);
    const fillable = new fieldClass("fillable", { ..._requiredConfig, fillable: true });
    const required = new fieldClass("required", { ..._requiredConfig, required: true });
@@ -76,9 +78,9 @@ export function runBaseFieldTests(
       const isPrimitive = (v) => ["string", "number"].includes(typeof v);
       for (const value of config.sampleValues!) {
          // "form"
-         expect(isPrimitive(noConfigField.getValue(value, "form"))).toBeTrue();
+         expect(isPrimitive(noConfigField.getValue(value, "form"))).toBe(true);
          // "table"
-         expect(isPrimitive(noConfigField.getValue(value, "table"))).toBeTrue();
+         expect(isPrimitive(noConfigField.getValue(value, "table"))).toBe(true);
          // "read"
          // "submit"
       }

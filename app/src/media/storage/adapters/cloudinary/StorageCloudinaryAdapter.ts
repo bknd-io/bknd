@@ -1,6 +1,7 @@
-import { pickHeaders } from "core/utils";
+import { hash, pickHeaders } from "core/utils";
 import { type Static, Type, parse } from "core/utils";
-import type { FileBody, FileListObject, FileMeta, StorageAdapter } from "../Storage";
+import type { FileBody, FileListObject, FileMeta } from "../../Storage";
+import { StorageAdapter } from "../../StorageAdapter";
 
 export const cloudinaryAdapterConfig = Type.Object(
    {
@@ -53,10 +54,11 @@ type CloudinaryListObjectsResponse = {
 };
 
 // @todo: add signed uploads
-export class StorageCloudinaryAdapter implements StorageAdapter {
+export class StorageCloudinaryAdapter extends StorageAdapter {
    private config: CloudinaryConfig;
 
    constructor(config: CloudinaryConfig) {
+      super();
       this.config = parse(cloudinaryAdapterConfig, config);
    }
 
@@ -126,6 +128,11 @@ export class StorageCloudinaryAdapter implements StorageAdapter {
       };
    }
 
+   /**
+    * https://cloudinary.com/documentation/admin_api#search_for_resources
+    * Cloudinary implements eventual consistency: Search results reflect any changes made to assets within a few seconds after the change
+    * @param prefix
+    */
    async listObjects(prefix?: string): Promise<FileListObject[]> {
       const result = await fetch(
          `https://api.cloudinary.com/v1_1/${this.config.cloud_name}/resources/search`,
@@ -133,6 +140,7 @@ export class StorageCloudinaryAdapter implements StorageAdapter {
             method: "GET",
             headers: {
                Accept: "application/json",
+               "Cache-Control": "no-cache",
                ...this.getAuthorizationHeader(),
             },
          },
@@ -143,18 +151,22 @@ export class StorageCloudinaryAdapter implements StorageAdapter {
       }
 
       const data = (await result.json()) as CloudinaryListObjectsResponse;
-      return data.resources.map((item) => ({
+      const items = data.resources.map((item) => ({
          key: item.public_id,
          last_modified: new Date(item.uploaded_at),
          size: item.bytes,
       }));
+      return items;
    }
 
    private async headObject(key: string) {
       const url = this.getObjectUrl(key);
       return await fetch(url, {
-         method: "GET",
+         method: "HEAD",
          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
             Range: "bytes=0-1",
          },
       });
@@ -196,6 +208,22 @@ export class StorageCloudinaryAdapter implements StorageAdapter {
       return objectUrl;
    }
 
+   async generateSignature(params: Record<string, string | number>, secret?: string) {
+      const timestamp = params.timestamp ?? Math.floor(Date.now() / 1000);
+      const content = Object.entries({ ...params, timestamp })
+         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+         .map(([key, value]) => `${key}=${value}`)
+         .join("&");
+
+      const signature = await hash.sha1(content + (secret ?? this.config.api_secret));
+      return { signature, timestamp };
+   }
+
+   // get public_id as everything before the last "."
+   filenameToPublicId(key: string): string {
+      return key.split(".").slice(0, -1).join(".");
+   }
+
    async getObject(key: string, headers: Headers): Promise<Response> {
       const res = await fetch(this.getObjectUrl(key), {
          method: "GET",
@@ -211,13 +239,30 @@ export class StorageCloudinaryAdapter implements StorageAdapter {
 
    async deleteObject(key: string): Promise<void> {
       const type = this.guessType(key) ?? "image";
-      const formData = new FormData();
-      formData.append("public_ids[]", key);
+      const public_id = this.filenameToPublicId(key);
+      const { timestamp, signature } = await this.generateSignature({
+         public_id,
+      });
 
-      await fetch(`https://res.cloudinary.com/${this.config.cloud_name}/${type}/upload/`, {
-         method: "DELETE",
+      const formData = new FormData();
+      formData.append("public_id", public_id);
+      formData.append("timestamp", String(timestamp));
+      formData.append("signature", signature);
+      formData.append("api_key", this.config.api_key);
+
+      const url = `https://api.cloudinary.com/v1_1/${this.config.cloud_name}/${type}/destroy`;
+      const res = await fetch(url, {
+         headers: {
+            Accept: "application/json",
+            "Cache-Control": "no-cache",
+            ...this.getAuthorizationHeader(),
+         },
+         method: "POST",
          body: formData,
       });
+      if (!res.ok) {
+         throw new Error(`Failed to delete object: ${res.status} ${res.statusText}`);
+      }
    }
 
    toJSON(secrets?: boolean) {

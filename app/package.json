@@ -16,6 +16,9 @@
   "scripts": {
     "dev": "vite",
     "test": "ALL_TESTS=1 bun test --bail",
+    "test:all": "bun run test && bun run test:node",
+    "test:bun": "bun test --bail",
+    "test:node": "npx tsx --test **/*.native-spec.ts",
     "test:coverage": "ALL_TESTS=1 bun test --bail --coverage",
     "build": "NODE_ENV=production bun run build.ts --minify --types",
     "build:all": "rm -rf dist && bun run build:static && NODE_ENV=production bun run build.ts --minify --types --clean && bun run build:cli",
@@ -155,6 +158,11 @@
       "types": "./dist/types/cli/index.d.ts",
       "import": "./dist/cli/index.js",
       "require": "./dist/cli/index.cjs"
+    },
+    "./media": {
+      "types": "./dist/types/media/index.d.ts",
+      "import": "./dist/media/index.js",
+      "require": "./dist/media/index.cjs"
     },
     "./adapter/cloudflare": {
       "types": "./dist/types/adapter/cloudflare/index.d.ts",

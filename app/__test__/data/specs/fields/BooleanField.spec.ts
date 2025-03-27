@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { BooleanField } from "../../../../src/data";
-import { runBaseFieldTests, transformPersist } from "./inc";
+import { fieldTestSuite, transformPersist } from "data/fields/field-test-suite";
 
 describe("[data] BooleanField", async () => {
-   runBaseFieldTests(BooleanField, { defaultValue: true, schemaType: "boolean" });
+   fieldTestSuite({ expect, test }, BooleanField, { defaultValue: true, schemaType: "boolean" });
 
    test("transformRetrieve", async () => {
       const field = new BooleanField("test");

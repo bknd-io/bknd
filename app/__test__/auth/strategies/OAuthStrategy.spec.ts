@@ -3,8 +3,10 @@ import { OAuthStrategy } from "../../../src/auth/authenticate/strategies";
 
 const ALL_TESTS = !!process.env.ALL_TESTS;
 
+// @todo: add mock response
 describe("OAuthStrategy", async () => {
-   const strategy = new OAuthStrategy({
+   return;
+   /*const strategy = new OAuthStrategy({
       type: "oidc",
       client: {
          client_id: process.env.OAUTH_CLIENT_ID!,
@@ -21,6 +23,7 @@ describe("OAuthStrategy", async () => {
 
       const server = Bun.serve({
          fetch: async (req) => {
+            console.log("req", req.method, req.url);
             const url = new URL(req.url);
             if (url.pathname === "/auth/google/callback") {
                console.log("req", req);
@@ -42,5 +45,5 @@ describe("OAuthStrategy", async () => {
       console.log("request", request);
 
       await new Promise((resolve) => setTimeout(resolve, 100000));
-   });
+   });*/
 });
