@@ -1,5 +1,5 @@
 import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
-import { type Static, Type, isFile, parse } from "core/utils";
+import { type Static, Type, isFile, parse } from "bknd/utils";
 import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd/media";
 import { StorageAdapter, guessMimeType as guess } from "bknd/media";
 

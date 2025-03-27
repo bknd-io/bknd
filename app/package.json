@@ -22,6 +22,7 @@
     "test:coverage": "ALL_TESTS=1 bun test --bail --coverage",
     "build": "NODE_ENV=production bun run build.ts --minify --types",
     "build:all": "rm -rf dist && bun run build:static && NODE_ENV=production bun run build.ts --minify --types --clean && bun run build:cli",
+    "build:ci": "mkdir -p dist/static/.vite && echo '{}' > dist/static/.vite/manifest.json && NODE_ENV=production bun run build.ts",
     "build:cli": "bun build src/cli/index.ts --target node --outdir dist/cli --env PUBLIC_* --minify",
     "build:static": "vite build",
     "watch": "bun run build.ts --types --watch",
