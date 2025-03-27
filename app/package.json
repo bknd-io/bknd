@@ -105,6 +105,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tsc-alias": "^1.8.11",
     "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
     "vite": "^6.2.1",
     "vite-tsconfig-paths": "^5.1.4",
     "wouter": "^3.6.0"
