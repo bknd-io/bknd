@@ -27,4 +27,4 @@ jobs:
 
       - name: Run tests
         working-directory: ./app
-        run: bun run test
+        run: bun run test:all
