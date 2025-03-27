@@ -18,7 +18,7 @@
     "test": "ALL_TESTS=1 bun test --bail",
     "test:all": "bun run test && bun run test:node",
     "test:bun": "ALL_TESTS=1 bun test --bail",
-    "test:node": "npx tsx --test '**/*.native-spec.ts'",
+    "test:node": "tsx --test $(find . -type f -name '*.native-spec.ts')",
     "test:coverage": "ALL_TESTS=1 bun test --bail --coverage",
     "build": "NODE_ENV=production bun run build.ts --minify --types",
     "build:all": "rm -rf dist && bun run build:static && NODE_ENV=production bun run build.ts --minify --types --clean && bun run build:cli",
