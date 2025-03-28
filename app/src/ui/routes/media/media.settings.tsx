@@ -139,6 +139,7 @@ function Adapters() {
                <Button
                   key={i}
                   onClick={() => ctx.select(i)}
+                  id={`adapter-${schema.properties.type.const}`}
                   variant={ctx.selected === i ? "primary" : "outline"}
                   className={twMerge(
                      "flex flex-row items-center justify-center gap-3 border",

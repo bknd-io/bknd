@@ -36,6 +36,7 @@ export type BaseProps = {
    size?: keyof typeof sizes;
    variant?: keyof typeof styles;
    labelClassName?: string;
+   "data-testid"?: string;
 };
 
 const Base = ({

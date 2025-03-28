@@ -21,6 +21,7 @@ import { Link, isLinkActive } from "ui/components/wouter/Link";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate, useRouteNavigate } from "ui/lib/routes";
+import { testIds } from "ui/lib/config";
 
 export function DataRoot({ children }) {
    // @todo: settings routes should be centralized
@@ -269,6 +270,7 @@ export function DataEmpty() {
          }}
          primary={{
             children: "Create entity",
+            "data-testid": testIds.data.btnCreateEntity,
             onClick: $data.modals.createEntity,
          }}
       />

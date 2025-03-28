@@ -18,6 +18,7 @@ import { Controller } from "modules/Controller";
 import {
    MODULE_NAMES,
    type ModuleConfigs,
+   type ModuleSchemas,
    type ModuleKey,
    getDefaultConfig,
 } from "modules/ModuleManager";
@@ -36,6 +37,12 @@ export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
 export type ConfigUpdateResponse<Key extends ModuleKey = ModuleKey> =
    | ConfigUpdate<Key>
    | { success: false; type: "type-invalid" | "error" | "unknown"; error?: any; errors?: any };
+export type SchemaResponse = {
+   version: string;
+   schema: ModuleSchemas;
+   config: ModuleConfigs;
+   permissions: string[];
+};
 
 export class SystemController extends Controller {
    constructor(private readonly app: App) {

@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { showRoutes } from "hono/dev";
 import { App, registries } from "./src";
-import { StorageLocalAdapter } from "./src/media/storage/adapters/StorageLocalAdapter";
+import { StorageLocalAdapter } from "./src/adapter/node/storage/StorageLocalAdapter";
 import { EntityManager, LibsqlConnection } from "data";
 import { __bknd } from "modules/ModuleManager";
 
