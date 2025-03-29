@@ -1,8 +1,8 @@
 ---
-import { getApi } from "bknd/adapter/astro";
+import { getApi } from "../bknd";
 import Card from "../components/Card.astro";
 import Layout from "../layouts/Layout.astro";
-const api = await getApi(Astro, { mode: "dynamic" });
+const api = await getApi(Astro, { verify: true });
 
 const { data } = await api.data.readMany("todos");
 const user = api.getUser();

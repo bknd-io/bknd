@@ -1,9 +1,12 @@
 import { App } from "bknd";
 import { createRuntimeApp } from "bknd/adapter";
-import type { CloudflareBkndConfig, Context } from "../index";
+import type { CloudflareBkndConfig, Context, CloudflareEnv } from "../index";
 import { makeConfig } from "../config";
 
-export async function getCached(config: CloudflareBkndConfig, { env, ctx, ...args }: Context) {
+export async function getCached<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env>,
+   { env, ctx, ...args }: Context<Env>,
+) {
    const { kv } = config.bindings?.(env)!;
    if (!kv) throw new Error("kv namespace is not defined in cloudflare.bindings");
    const key = config.key ?? "app";
@@ -17,7 +20,7 @@ export async function getCached(config: CloudflareBkndConfig, { env, ctx, ...arg
 
    const app = await createRuntimeApp(
       {
-         ...makeConfig(config, { env, ctx, ...args }),
+         ...makeConfig(config, env),
          initialConfig,
          onBuilt: async (app) => {
             app.module.server.client.get("/__bknd/cache", async (c) => {

@@ -2,9 +2,9 @@
 import { Admin } from "bknd/ui";
 import "bknd/dist/styles.css";
 
-import { getApi } from "bknd/adapter/astro";
+import { getApi } from "../../bknd";
 
-const api = await getApi(Astro, { mode: "dynamic" });
+const api = await getApi(Astro, { verify: true });
 const user = api.getUser();
 
 export const prerender = false;

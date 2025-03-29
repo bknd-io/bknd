@@ -7,14 +7,12 @@ import { config } from "bknd/core";
 import type { ServeOptions } from "bun";
 import { serveStatic } from "hono/bun";
 
-export type BunArgs = {
-   env: Bun.Env;
-};
-export type BunBkndConfig<Args = BunArgs> = RuntimeBkndConfig<Args> & Omit<ServeOptions, "fetch">;
+type BunEnv = Bun.Env;
+export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOptions, "fetch">;
 
-export async function createApp<Args = BunArgs>(
-   { distPath, ...config }: BunBkndConfig<Args> = {},
-   args?: Args,
+export async function createApp<Env = BunEnv>(
+   { distPath, ...config }: BunBkndConfig<Env> = {},
+   args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
    const root = path.resolve(distPath ?? "./node_modules/bknd/dist", "static");
@@ -25,23 +23,23 @@ export async function createApp<Args = BunArgs>(
          ...config,
          serveStatic: serveStatic({ root }),
       },
-      args,
+      args ?? (process.env as Env),
       opts,
    );
 }
 
-export function createHandler<Args = BunArgs>(
-   config: BunBkndConfig<Args> = {},
-   args?: Args,
+export function createHandler<Env = BunEnv>(
+   config: BunBkndConfig<Env> = {},
+   args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
    return async (req: Request) => {
-      const app = await createApp(config, args ?? ({ env: process.env } as Args), opts);
+      const app = await createApp(config, args ?? (process.env as Env), opts);
       return app.fetch(req);
    };
 }
 
-export function serve<Args = BunArgs>(
+export function serve<Env = BunEnv>(
    {
       distPath,
       connection,
@@ -52,8 +50,8 @@ export function serve<Args = BunArgs>(
       buildConfig,
       adminOptions,
       ...serveOptions
-   }: BunBkndConfig<Args> = {},
-   args?: Args,
+   }: BunBkndConfig<Env> = {},
+   args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
    Bun.serve({
@@ -69,7 +67,7 @@ export function serve<Args = BunArgs>(
             adminOptions,
             distPath,
          },
-         args ?? { env: process.env },
+         args,
          opts,
       ),
    });

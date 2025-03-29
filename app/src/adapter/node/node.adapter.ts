@@ -5,10 +5,8 @@ import { registerLocalMediaAdapter } from "adapter/node/index";
 import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
 import { config as $config } from "bknd/core";
 
-export type NodeArgs = {
-   env: NodeJS.ProcessEnv;
-};
-export type NodeBkndConfig<Args = NodeArgs> = RuntimeBkndConfig<Args> & {
+type NodeEnv = NodeJS.ProcessEnv;
+export type NodeBkndConfig<Env = NodeEnv> = RuntimeBkndConfig<Env> & {
    port?: number;
    hostname?: string;
    listener?: Parameters<typeof honoServe>[1];
@@ -16,9 +14,9 @@ export type NodeBkndConfig<Args = NodeArgs> = RuntimeBkndConfig<Args> & {
    relativeDistPath?: string;
 };
 
-export async function createApp<Args = NodeArgs>(
-   { distPath, relativeDistPath, ...config }: NodeBkndConfig<Args> = {},
-   args?: Args,
+export async function createApp<Env = NodeEnv>(
+   { distPath, relativeDistPath, ...config }: NodeBkndConfig<Env> = {},
+   args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
    const root = path.relative(
@@ -41,20 +39,20 @@ export async function createApp<Args = NodeArgs>(
    );
 }
 
-export function createHandler<Args = NodeArgs>(
-   config: NodeBkndConfig<Args> = {},
-   args?: Args,
+export function createHandler<Env = NodeEnv>(
+   config: NodeBkndConfig<Env> = {},
+   args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
    return async (req: Request) => {
-      const app = await createApp(config, args ?? ({ env: process.env } as Args), opts);
+      const app = await createApp(config, args ?? (process.env as Env), opts);
       return app.fetch(req);
    };
 }
 
-export function serve<Args = NodeArgs>(
-   { port = $config.server.default_port, hostname, listener, ...config }: NodeBkndConfig<Args> = {},
-   args?: Args,
+export function serve<Env = NodeEnv>(
+   { port = $config.server.default_port, hostname, listener, ...config }: NodeBkndConfig<Env> = {},
+   args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
    honoServe(

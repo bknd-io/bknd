@@ -1,36 +1,40 @@
 import { createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
-import type { CloudflareBkndConfig, Context } from "../index";
+import type { CloudflareBkndConfig, Context, CloudflareEnv } from "../index";
 import { makeConfig } from "../config";
 
-export async function makeApp(config: CloudflareBkndConfig, ctx: Context, opts?: RuntimeOptions) {
-   return await createRuntimeApp<Context>(
+export async function makeApp<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env>,
+   args: Env = {} as Env,
+   opts?: RuntimeOptions,
+) {
+   return await createRuntimeApp<Env>(
       {
-         ...makeConfig(config, ctx),
+         ...makeConfig(config, args),
          adminOptions: config.html ? { html: config.html } : undefined,
       },
-      ctx,
+      args,
       opts,
    );
 }
 
-export async function getFresh(
-   config: CloudflareBkndConfig,
-   ctx: Context,
+export async function getFresh<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env>,
+   ctx: Context<Env>,
    opts: RuntimeOptions = {},
 ) {
-   const app = await makeApp(config, ctx, {
+   const app = await makeApp(config, ctx.env, {
       ...opts,
       force: true,
    });
    return app.fetch(ctx.request);
 }
 
-export async function getWarm(
-   config: CloudflareBkndConfig,
-   ctx: Context,
+export async function getWarm<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env>,
+   ctx: Context<Env>,
    opts: RuntimeOptions = {},
 ) {
-   const app = await makeApp(config, ctx, {
+   const app = await makeApp(config, ctx.env, {
       ...opts,
       force: false,
    });

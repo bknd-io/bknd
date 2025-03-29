@@ -37,7 +37,7 @@ export function adapterTestSuite<
       const onBuilt = mock(async () => null) as any;
 
       const config = {
-         app: ({ env }) => ({
+         app: (env) => ({
             connection: { url: env.url },
             initialConfig: {
                server: { cors: { origin: env.origin } },
@@ -50,7 +50,8 @@ export function adapterTestSuite<
       const app = await makeApp(
          config as any,
          {
-            env: { url: overrides.dbUrl ?? ":memory:", origin: "localhost" },
+            url: overrides.dbUrl ?? ":memory:",
+            origin: "localhost",
          } as any,
          { id },
       );

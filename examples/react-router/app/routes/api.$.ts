@@ -1,7 +1,7 @@
 import { getApp } from "~/bknd";
 
 const handler = async (args: { request: Request }) => {
-   const app = await getApp(args);
+   const app = await getApp();
    return app.fetch(args.request);
 };
 

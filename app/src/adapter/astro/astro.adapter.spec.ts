@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe } from "bun:test";
-import * as rr from "./react-router.adapter";
+import * as astro from "./astro.adapter";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
@@ -7,9 +7,9 @@ import { bunTestRunner } from "adapter/bun/test";
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
-describe("react-router adapter", () => {
+describe("astro adapter", () => {
    adapterTestSuite(bunTestRunner, {
-      makeApp: rr.getApp,
-      makeHandler: (c, a, o) => (request: Request) => rr.serve(c, a?.env, o)({ request }),
+      makeApp: astro.getApp,
+      makeHandler: (c, a, o) => (request: Request) => astro.serve(c, a, o)({ request }),
    });
 });

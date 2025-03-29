@@ -56,11 +56,11 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
    args?: Args,
    opts?: CreateAdapterAppOptions,
 ): Promise<App> {
-   const id = opts?.id ?? "";
+   const id = opts?.id ?? "app";
    let app = apps.get(id);
    if (!app || opts?.force) {
       app = App.create(makeConfig(config, args));
-      apps.set(id ?? app._id, app);
+      apps.set(id, app);
    }
    return app;
 }
@@ -72,18 +72,20 @@ export async function createFrameworkApp<Args = DefaultArgs>(
 ): Promise<App> {
    const app = await createAdapterApp(config, args, opts);
 
-   if (config.onBuilt) {
-      app.emgr.onEvent(
-         App.Events.AppBuiltEvent,
-         async () => {
-            await config.onBuilt?.(app);
-         },
-         "sync",
-      );
-   }
+   if (!app.isBuilt()) {
+      if (config.onBuilt) {
+         app.emgr.onEvent(
+            App.Events.AppBuiltEvent,
+            async () => {
+               await config.onBuilt?.(app);
+            },
+            "sync",
+         );
+      }
 
-   await config.beforeBuild?.(app);
-   await app.build(config.buildConfig);
+      await config.beforeBuild?.(app);
+      await app.build(config.buildConfig);
+   }
 
    return app;
 }
@@ -95,26 +97,28 @@ export async function createRuntimeApp<Args = DefaultArgs>(
 ): Promise<App> {
    const app = await createAdapterApp(config, args, opts);
 
-   app.emgr.onEvent(
-      App.Events.AppBuiltEvent,
-      async () => {
-         if (serveStatic) {
-            const [path, handler] = Array.isArray(serveStatic)
-               ? serveStatic
-               : [$config.server.assets_path + "*", serveStatic];
-            app.modules.server.get(path, handler);
-         }
+   if (!app.isBuilt()) {
+      app.emgr.onEvent(
+         App.Events.AppBuiltEvent,
+         async () => {
+            if (serveStatic) {
+               const [path, handler] = Array.isArray(serveStatic)
+                  ? serveStatic
+                  : [$config.server.assets_path + "*", serveStatic];
+               app.modules.server.get(path, handler);
+            }
 
-         await config.onBuilt?.(app);
-         if (adminOptions !== false) {
-            app.registerAdminController(adminOptions);
-         }
-      },
-      "sync",
-   );
+            await config.onBuilt?.(app);
+            if (adminOptions !== false) {
+               app.registerAdminController(adminOptions);
+            }
+         },
+         "sync",
+      );
 
-   await config.beforeBuild?.(app);
-   await app.build(config.buildConfig);
+      await config.beforeBuild?.(app);
+      await app.build(config.buildConfig);
+   }
 
    return app;
 }

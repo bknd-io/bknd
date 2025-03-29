@@ -7,9 +7,10 @@ import { getCached } from "./modes/cached";
 import { getDurable } from "./modes/durable";
 import { getFresh, getWarm } from "./modes/fresh";
 
-export type CloudflareBkndConfig<Env = any> = FrameworkBkndConfig<Context<Env>> & {
+export type CloudflareEnv = object;
+export type CloudflareBkndConfig<Env = CloudflareEnv> = FrameworkBkndConfig<Env> & {
    mode?: "warm" | "fresh" | "cache" | "durable";
-   bindings?: (args: Context<Env>) => {
+   bindings?: (args: Env) => {
       kv?: KVNamespace;
       dobj?: DurableObjectNamespace;
       db?: D1Database;
@@ -23,13 +24,15 @@ export type CloudflareBkndConfig<Env = any> = FrameworkBkndConfig<Context<Env>> 
    html?: string;
 };
 
-export type Context<Env = any> = {
+export type Context<Env = CloudflareEnv> = {
    request: Request;
    env: Env;
    ctx: ExecutionContext;
 };
 
-export function serve<Env = any>(config: CloudflareBkndConfig<Env> = {}) {
+export function serve<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env> = {},
+) {
    return {
       async fetch(request: Request, env: Env, ctx: ExecutionContext) {
          const url = new URL(request.url);
@@ -64,7 +67,7 @@ export function serve<Env = any>(config: CloudflareBkndConfig<Env> = {}) {
             }
          }
 
-         const context = { request, env, ctx } as Context;
+         const context = { request, env, ctx } as Context<Env>;
          const mode = config.mode ?? "warm";
 
          switch (mode) {
