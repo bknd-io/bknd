@@ -19,7 +19,7 @@ export function getRandomizedFilename(file: File | string, length = 16): string 
    }
 
    let ext = getExtensionFromName(filename);
-   if (isFile(file) && file.type) {
+   if (!ext && isFile(file) && file.type) {
       const _ext = extension(file.type);
       if (_ext.length > 0) ext = _ext;
    }
