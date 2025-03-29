@@ -1,39 +1,26 @@
-import type { App } from "bknd";
 import { type FrameworkBkndConfig, createFrameworkApp } from "bknd/adapter";
+import type { FrameworkOptions } from "adapter";
 
 type ReactRouterContext = {
    request: Request;
 };
 export type ReactRouterBkndConfig<Args = ReactRouterContext> = FrameworkBkndConfig<Args>;
 
-let app: App;
-let building: boolean = false;
-
 export async function getApp<Args extends ReactRouterContext = ReactRouterContext>(
    config: ReactRouterBkndConfig<Args>,
    args?: Args,
+   opts?: FrameworkOptions,
 ) {
-   if (building) {
-      while (building) {
-         await new Promise((resolve) => setTimeout(resolve, 5));
-      }
-      if (app) return app;
-   }
-
-   building = true;
-   if (!app) {
-      app = await createFrameworkApp(config, args);
-      await app.build();
-   }
-   building = false;
-   return app;
+   return await createFrameworkApp(config, args, opts);
 }
 
 export function serve<Args extends ReactRouterContext = ReactRouterContext>(
    config: ReactRouterBkndConfig<Args> = {},
+   args?: Args,
+   opts?: FrameworkOptions,
 ) {
-   return async (args: Args) => {
-      app = await getApp(config, args);
-      return app.fetch(args.request);
+   return async (fnArgs: ReactRouterContext) => {
+      // @ts-ignore
+      return (await getApp(config, args ?? fnArgs, opts)).fetch(fnArgs.request);
    };
 }

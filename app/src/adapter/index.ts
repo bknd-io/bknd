@@ -12,33 +12,65 @@ export type BkndConfig<Args = any> = CreateAppConfig & {
 
 export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;
 
+export type CreateAdapterAppOptions = {
+   force?: boolean;
+   id?: string;
+};
+export type FrameworkOptions = CreateAdapterAppOptions;
+export type RuntimeOptions = CreateAdapterAppOptions;
+
 export type RuntimeBkndConfig<Args = any> = BkndConfig<Args> & {
    distPath?: string;
    serveStatic?: MiddlewareHandler | [string, MiddlewareHandler];
    adminOptions?: AdminControllerOptions | false;
 };
 
-export function makeConfig<Args = any>(config: BkndConfig<Args>, args?: Args): CreateAppConfig {
+export type DefaultArgs = {
+   [key: string]: any;
+};
+
+export function makeConfig<Args = DefaultArgs>(
+   config: BkndConfig<Args>,
+   args?: Args,
+): CreateAppConfig {
    let additionalConfig: CreateAppConfig = {};
-   if ("app" in config && config.app) {
-      if (typeof config.app === "function") {
+   const { app, ...rest } = config;
+   if (app) {
+      if (typeof app === "function") {
          if (!args) {
             throw new Error("args is required when config.app is a function");
          }
-         additionalConfig = config.app(args);
+         additionalConfig = app(args);
       } else {
-         additionalConfig = config.app;
+         additionalConfig = app;
       }
    }
 
-   return { ...config, ...additionalConfig };
+   return { ...rest, ...additionalConfig };
 }
 
-export async function createFrameworkApp<Args = any>(
-   config: FrameworkBkndConfig,
+// a map that contains all apps by id
+const apps = new Map<string, App>();
+export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args = DefaultArgs>(
+   config: Config = {} as Config,
    args?: Args,
+   opts?: CreateAdapterAppOptions,
 ): Promise<App> {
-   const app = App.create(makeConfig(config, args));
+   const id = opts?.id ?? "";
+   let app = apps.get(id);
+   if (!app || opts?.force) {
+      app = App.create(makeConfig(config, args));
+      apps.set(id ?? app._id, app);
+   }
+   return app;
+}
+
+export async function createFrameworkApp<Args = DefaultArgs>(
+   config: FrameworkBkndConfig = {},
+   args?: Args,
+   opts?: FrameworkOptions,
+): Promise<App> {
+   const app = await createAdapterApp(config, args, opts);
 
    if (config.onBuilt) {
       app.emgr.onEvent(
@@ -56,11 +88,12 @@ export async function createFrameworkApp<Args = any>(
    return app;
 }
 
-export async function createRuntimeApp<Env = any>(
-   { serveStatic, adminOptions, ...config }: RuntimeBkndConfig,
-   env?: Env,
+export async function createRuntimeApp<Args = DefaultArgs>(
+   { serveStatic, adminOptions, ...config }: RuntimeBkndConfig<Args> = {},
+   args?: Args,
+   opts?: RuntimeOptions,
 ): Promise<App> {
-   const app = App.create(makeConfig(config, env));
+   const app = await createAdapterApp(config, args, opts);
 
    app.emgr.onEvent(
       App.Events.AppBuiltEvent,

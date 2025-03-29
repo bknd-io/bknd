@@ -60,7 +60,6 @@ export async function createApp({
 }
 
 export function serveLambda(config: AwsLambdaBkndConfig = {}) {
-   console.log("serving lambda");
    return async (event) => {
       const app = await createApp(config);
       return await handle(app.server)(event);

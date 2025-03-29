@@ -53,12 +53,14 @@ export type AppConfig = InitialModuleConfigs;
 export type LocalApiOptions = Request | ApiOptions;
 
 export class App {
-   modules: ModuleManager;
    static readonly Events = AppEvents;
+
+   modules: ModuleManager;
    adminController?: AdminController;
+   _id: string = crypto.randomUUID();
+
    private trigger_first_boot = false;
    private plugins: AppPlugin[];
-   private _id: string = crypto.randomUUID();
    private _building: boolean = false;
 
    constructor(

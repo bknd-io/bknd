@@ -7,14 +7,14 @@ export const localAdapterConfig = Type.Object(
    {
       path: Type.String({ default: "./" }),
    },
-   { title: "Local", description: "Local file system storage" },
+   { title: "Local", description: "Local file system storage", additionalProperties: false },
 );
 export type LocalAdapterConfig = Static<typeof localAdapterConfig>;
 
 export class StorageLocalAdapter extends StorageAdapter {
    private config: LocalAdapterConfig;
 
-   constructor(config: any) {
+   constructor(config: Partial<LocalAdapterConfig> = {}) {
       super();
       this.config = parse(localAdapterConfig, config);
    }

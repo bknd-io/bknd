@@ -1,36 +1,26 @@
-import type { App } from "bknd";
-import { type FrameworkBkndConfig, createFrameworkApp } from "bknd/adapter";
-import { isNode } from "core/utils";
+import {
+   createFrameworkApp,
+   type FrameworkBkndConfig,
+   type DefaultArgs,
+   type FrameworkOptions,
+} from "bknd/adapter";
+import { isNode } from "bknd/utils";
+import type { NextApiRequest } from "next";
 
-export type NextjsBkndConfig = FrameworkBkndConfig & {
+export type NextjsArgs = DefaultArgs & {
+   env: NextApiRequest["env"];
+};
+
+export type NextjsBkndConfig<Args extends NextjsArgs = NextjsArgs> = FrameworkBkndConfig<Args> & {
    cleanRequest?: { searchParams?: string[] };
 };
 
-type NextjsContext = {
-   env: Record<string, string | undefined>;
-};
-
-let app: App;
-let building: boolean = false;
-
-export async function getApp<Args extends NextjsContext = NextjsContext>(
+export async function getApp<Args extends NextjsArgs = NextjsArgs>(
    config: NextjsBkndConfig,
    args?: Args,
+   opts?: FrameworkOptions,
 ) {
-   if (building) {
-      while (building) {
-         await new Promise((resolve) => setTimeout(resolve, 5));
-      }
-      if (app) return app;
-   }
-
-   building = true;
-   if (!app) {
-      app = await createFrameworkApp(config, args);
-      await app.build();
-   }
-   building = false;
-   return app;
+   return await createFrameworkApp(config, args, opts);
 }
 
 function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequest"]) {
@@ -56,11 +46,13 @@ function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequ
    });
 }
 
-export function serve({ cleanRequest, ...config }: NextjsBkndConfig = {}) {
+export function serve(
+   { cleanRequest, ...config }: NextjsBkndConfig = {},
+   args?: NextjsArgs,
+   opts?: FrameworkOptions,
+) {
    return async (req: Request) => {
-      if (!app) {
-         app = await getApp(config, { env: process.env ?? {} });
-      }
+      const app = await getApp(config, args ?? { env: (process.env as any) ?? {} }, opts);
       const request = getCleanRequest(req, cleanRequest);
       return app.fetch(request);
    };
