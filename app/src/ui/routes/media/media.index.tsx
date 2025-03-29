@@ -1,13 +1,14 @@
 import { IconPhoto } from "@tabler/icons-react";
 import { useBknd } from "ui/client/BkndProvider";
 import { Empty } from "ui/components/display/Empty";
-import { Media } from "ui/elements";
+import { type FileState, Media } from "ui/elements";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { useLocation } from "wouter";
+import { bkndModals } from "ui/modals";
 
 export function MediaIndex() {
-   const { app, config } = useBknd();
+   const { config } = useBknd();
    const [, navigate] = useLocation();
    useBrowserTitle(["Media"]);
 
@@ -25,10 +26,16 @@ export function MediaIndex() {
       );
    }
 
+   const onClick = (file: FileState) => {
+      bkndModals.open(bkndModals.ids.mediaInfo, {
+         file,
+      });
+   };
+
    return (
       <AppShell.Scrollable>
          <div className="flex flex-1 p-3">
-            <Media.Dropzone />
+            <Media.Dropzone onClick={onClick} />
          </div>
       </AppShell.Scrollable>
    );

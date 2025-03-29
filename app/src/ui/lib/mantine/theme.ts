@@ -31,7 +31,7 @@ export function createMantineTheme(scheme: "light" | "dark"): {
    };
 
    const input =
-      "!bg-muted/40 border-transparent disabled:bg-muted/50 disabled:text-primary/50 focus:border-zinc-500";
+      "!bg-muted/40 border-transparent disabled:bg-muted/50 disabled:text-primary/50 focus:!border-zinc-500";
 
    return {
       theme: createTheme({

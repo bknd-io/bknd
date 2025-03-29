@@ -9,7 +9,7 @@ import { isDebug } from "core";
 
 export const useEvent = <Fn>(fn: Fn): Fn => {
    if (isDebug()) {
-      console.warn("useEvent() is deprecated");
+      //console.warn("useEvent() is deprecated");
    }
    return fn;
 };

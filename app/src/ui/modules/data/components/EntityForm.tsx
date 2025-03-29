@@ -15,12 +15,13 @@ import { type ComponentProps, Suspense } from "react";
 import { JsonEditor } from "ui/components/code/JsonEditor";
 import * as Formy from "ui/components/form/Formy";
 import { FieldLabel } from "ui/components/form/Formy";
-import { Media } from "ui/elements";
+import { type FileState, Media } from "ui/elements";
 import { useEvent } from "ui/hooks/use-event";
 import { EntityJsonSchemaFormField } from "./fields/EntityJsonSchemaFormField";
 import { EntityRelationalFormField } from "./fields/EntityRelationalFormField";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
 import { Alert } from "ui/components/display/Alert";
+import { bkndModals } from "ui/modals";
 
 // simplify react form types 🤦
 export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any>;
@@ -237,6 +238,11 @@ function EntityMediaFormField({
    });
 
    const key = JSON.stringify([entity, entityId, field.name, value.length]);
+   const onClick = (file: FileState) => {
+      bkndModals.open(bkndModals.ids.mediaInfo, {
+         file,
+      });
+   };
 
    return (
       <Formy.Group>
@@ -245,6 +251,7 @@ function EntityMediaFormField({
             key={key}
             maxItems={field.getMaxItems()}
             initialItems={value} /* @todo: test if better be omitted, so it fetches */
+            onClick={onClick}
             entity={{
                name: entity.name,
                id: entityId,

@@ -1,7 +1,9 @@
 import type { Api } from "Api";
-import type { FetchPromise, ModuleApi, ResponseObject } from "modules/ModuleApi";
+import { FetchPromise, type ModuleApi, type ResponseObject } from "modules/ModuleApi";
 import useSWR, { type SWRConfiguration, useSWRConfig } from "swr";
+import useSWRInfinite from "swr/infinite";
 import { useApi } from "ui/client";
+import { useState } from "react";
 
 export const useApiQuery = <
    Data,
@@ -23,6 +25,50 @@ export const useApiQuery = <
       ...swr,
       promise,
       key,
+      api,
+   };
+};
+
+/** @attention: highly experimental, use with caution! */
+export const useApiInfiniteQuery = <
+   Data,
+   RefineFn extends (data: ResponseObject<Data>) => unknown = (data: ResponseObject<Data>) => Data,
+>(
+   fn: (api: Api, page: number) => FetchPromise<Data>,
+   options?: SWRConfiguration & { refine?: RefineFn },
+) => {
+   const [endReached, setEndReached] = useState(false);
+   const api = useApi();
+   const promise = (page: number) => fn(api, page);
+   const refine = options?.refine ?? ((data: any) => data);
+
+   type RefinedData = RefineFn extends (data: ResponseObject<Data>) => infer R ? R : Data;
+
+   // @ts-ignore
+   const swr = useSWRInfinite<RefinedData>(
+      (index, previousPageData: any) => {
+         if (previousPageData && !previousPageData.length) {
+            setEndReached(true);
+            return null; // reached the end
+         }
+         return promise(index).request.url;
+      },
+      (url: string) => {
+         return new FetchPromise(new Request(url), { fetcher: api.fetcher }, refine).execute();
+      },
+      {
+         revalidateFirstPage: false,
+      },
+   );
+   // @ts-ignore
+   const data = swr.data ? [].concat(...swr.data) : [];
+   return {
+      ...swr,
+      _data: swr.data,
+      data,
+      endReached,
+      promise: promise(swr.size),
+      key: promise(swr.size).key(),
       api,
    };
 };

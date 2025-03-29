@@ -331,4 +331,15 @@ export class FetchPromise<T = ApiResponse<any>> implements Promise<T> {
          Boolean,
       );
    }
+
+   toString() {
+      return this.key({ search: true });
+   }
+
+   toJSON() {
+      return {
+         url: this.request.url,
+         method: this.request.method,
+      };
+   }
 }

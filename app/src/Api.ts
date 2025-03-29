@@ -78,6 +78,10 @@ export class Api {
       this.buildApis();
    }
 
+   get fetcher() {
+      return this.options.fetcher ?? fetch;
+   }
+
    get baseUrl() {
       return this.options.host ?? "http://localhost";
    }

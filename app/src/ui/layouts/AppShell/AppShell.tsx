@@ -99,7 +99,7 @@ export function Main({ children }) {
 export function Sidebar({ children }) {
    const open = appShellStore((store) => store.sidebarOpen);
    const close = appShellStore((store) => store.closeSidebar);
-   const ref = useClickOutside(close, null, [document.getElementById("header")]);
+   const ref = useClickOutside(close, ["mouseup", "touchend"]); //, [document.getElementById("header")]);
    const [location] = useLocation();
 
    const closeHandler = () => {

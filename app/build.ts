@@ -54,7 +54,7 @@ function banner(title: string) {
 }
 
 // collection of always-external packages
-const external = ["bun:test", "@libsql/client"] as const;
+const external = ["bun:test", "node:test", "node:assert/strict", "@libsql/client"] as const;
 
 /**
  * Building backend and general API
@@ -65,7 +65,13 @@ async function buildApi() {
       minify,
       sourcemap,
       watch,
-      entry: ["src/index.ts", "src/data/index.ts", "src/core/index.ts", "src/core/utils/index.ts"],
+      entry: [
+         "src/index.ts",
+         "src/core/index.ts",
+         "src/core/utils/index.ts",
+         "src/data/index.ts",
+         "src/media/index.ts",
+      ],
       outDir: "dist",
       external: [...external],
       metafile: true,

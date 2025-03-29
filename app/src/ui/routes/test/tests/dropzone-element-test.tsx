@@ -19,7 +19,7 @@ export default function DropzoneElementTest() {
                </Media.Dropzone>
             </div>
 
-            <div>
+            {/*<div>
                <b>Dropzone User Avatar 1 (overwrite)</b>
                <Media.Dropzone
                   entity={{ name: "users", id: 1, field: "avatar" }}
@@ -36,7 +36,7 @@ export default function DropzoneElementTest() {
             <div>
                <b>Dropzone Container blank w/ query</b>
                <Media.Dropzone query={{ limit: 2 }} />
-            </div>
+            </div>*/}
 
             <div>
                <b>Dropzone Container blank</b>

@@ -1,7 +1,8 @@
 import { registries } from "bknd";
 import { isDebug } from "bknd/core";
 import { StringEnum, Type } from "bknd/utils";
-import type { FileBody, StorageAdapter } from "media/storage/Storage";
+import type { FileBody } from "media/storage/Storage";
+import { StorageAdapter } from "media/storage/StorageAdapter";
 import { guess } from "media/storage/mime-types-tiny";
 import { getBindings } from "./bindings";
 
@@ -47,8 +48,10 @@ export function registerMedia(env: Record<string, any>) {
  * Adapter for R2 storage
  * @todo: add tests (bun tests won't work, need node native tests)
  */
-export class StorageR2Adapter implements StorageAdapter {
-   constructor(private readonly bucket: R2Bucket) {}
+export class StorageR2Adapter extends StorageAdapter {
+   constructor(private readonly bucket: R2Bucket) {
+      super();
+   }
 
    getName(): string {
       return "r2";

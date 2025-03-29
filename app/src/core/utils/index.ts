@@ -2,6 +2,7 @@ export * from "./browser";
 export * from "./objects";
 export * from "./strings";
 export * from "./perf";
+export * from "./file";
 export * from "./reqres";
 export * from "./xml";
 export type { Prettify, PrettifyRec } from "./types";

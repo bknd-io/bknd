@@ -21,6 +21,14 @@ jobs:
         working-directory: ./app
         run: bun install
 
-      - name: Run tests
+      - name: Build
         working-directory: ./app
-        run: bun run test
+        run: bun run build:ci
+
+      - name: Run Bun tests
+        working-directory: ./app
+        run: bun run test:bun
+
+      - name: Run Node tests
+        working-directory: ./app
+        run: npm run test:node

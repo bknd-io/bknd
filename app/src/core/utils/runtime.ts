@@ -47,3 +47,9 @@ export function isNode() {
       return false;
    }
 }
+
+export function invariant(condition: boolean | any, message: string) {
+   if (!condition) {
+      throw new Error(message);
+   }
+}

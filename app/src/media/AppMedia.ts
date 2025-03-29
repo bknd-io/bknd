@@ -75,13 +75,20 @@ export class AppMedia extends Module<typeof mediaConfigSchema> {
       return this._storage!;
    }
 
-   uploadedEventDataToMediaPayload(info: FileUploadedEventData) {
+   uploadedEventDataToMediaPayload(info: FileUploadedEventData): MediaFieldSchema {
+      const metadata: any = {};
+      if (info.meta.width && info.meta.height) {
+         metadata.width = info.meta.width;
+         metadata.height = info.meta.height;
+      }
+
       return {
          path: info.name,
          mime_type: info.meta.type,
          size: info.meta.size,
          etag: info.etag,
          modified_at: new Date(),
+         metadata,
       };
    }
 

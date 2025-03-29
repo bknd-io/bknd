@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { DateField } from "../../../../src/data";
-import { runBaseFieldTests } from "./inc";
+import { fieldTestSuite } from "data/fields/field-test-suite";
 
 describe("[data] DateField", async () => {
-   runBaseFieldTests(DateField, { defaultValue: new Date(), schemaType: "date" });
+   fieldTestSuite({ expect, test }, DateField, { defaultValue: new Date(), schemaType: "date" });
 
    // @todo: add datefield tests
    test("week", async () => {

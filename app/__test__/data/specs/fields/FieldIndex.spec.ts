@@ -1,19 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { Type } from "../../../../src/core/utils";
-import {
-   Entity,
-   EntityIndex,
-   type EntityManager,
-   Field,
-   type SchemaResponse,
-} from "../../../../src/data";
+import { Entity, EntityIndex, Field } from "../../../../src/data";
 
 class TestField extends Field {
    protected getSchema(): any {
       return Type.Any();
    }
 
-   schema(em: EntityManager<any>): SchemaResponse {
+   override schema() {
       return undefined as any;
    }
 }

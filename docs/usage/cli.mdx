@@ -3,8 +3,7 @@ title: 'Using the CLI'
 description: 'How to start a bknd instance using the CLI.'
 ---
 
-Instead of running **bknd** using a framework, you can also use the CLI to quickly spin up a
-full functional instance. To see all available options, run:
+The bknd package includes a command-line interface (CLI) that allows you to run a bknd instance and perform various tasks.
 
 ```
 npx bknd
@@ -15,18 +14,21 @@ Here is the output:
 $ npx bknd
 Usage: bknd [options] [command]
 
-bknd cli
+⚡ bknd cli v0.10.3-rc.1
 
 Options:
-  -V, --version     output the version number
-  -h, --help        display help for command
+  -V, --version          output the version number
+  -h, --help             display help for command
 
 Commands:
-  user <action>     create and update user (auth)
-  schema [options]  get schema
-  run [options]
-  config [options]  get default config
-  help [command]    display help for command
+  config [options]       get default config
+  copy-assets [options]  copy static assets
+  create [options]       create a new project
+  debug <subject>        debug bknd
+  run [options]          run an instance
+  schema [options]       get schema
+  user <action>          create and update user (auth)
+  help [command]         display help for command
 ```
 
 ## Starting an instance (`run`)
@@ -38,24 +40,74 @@ Usage: bknd run [options]
 
 Options:
   -p, --port <port>      port to run on (default: 1337, env: PORT)
+  -m, --memory           use in-memory database
   -c, --config <config>  config file
   --db-url <db>          database url, can be any valid libsql url
   --db-token <db>        database token
-  --server <server>      server type (choices: "node", "bun", default: "node")
+  --server <server>      server type (choices: "node", "bun", default: "bun")
+  --no-open              don't open browser window on start
   -h, --help             display help for command
 ```
 
-### In-memory database
-To start an instance with an ephemeral in-memory database, run the following:
-```
-npx bknd run
-```
-Keep in mind that the database is not persisted and will be lost when the process is terminated.
+To order in which the connection is determined is as follows:
+1. `--db-url`
+2. `--config` or reading the filesystem looking for `bknd.config.[js|ts|mjs|cjs|json]`
+3. `--memory`
+4. Environment variables `DB_URL` and `DB_TOKEN` in `.env` or `.dev.vars`
+5. Fallback to file-based database `data.db`
 
 ### File-based database
-To start an instance with a file-based database, run the following:
+By default, a file-based database `data.db` is used when running without any arguments. You can specify a different file name or path using the `--db-url` option. The database file will be created in the current working directory if it does not exist.
+
 ```
 npx bknd run --db-url file:data.db
+```
+
+### Using configuration file (`bknd.config.*`)
+You can create a configuration file on the working directory that automatically gets picked up: `bknd.config.[js|ts|mjs|cjs|json]`
+
+Here is an example of a `bknd.config.ts` file:
+
+```ts
+import type { BkndConfig } from "bknd/adapter";
+
+export default {
+   // you can either specify the connection directly
+   connection: {
+      url: "file:data.db",
+   },
+   // or use the `app` function which passes the environment variables
+   app: ({ env }) => ({
+      connection: {
+         url: env.DB_URL,
+      }
+   })
+} satisfies BkndConfig;
+```
+The `app` function is useful if you need a cross-platform way to access the environment variables. For example, on Cloudflare Workers, you can only access environment variables inside a request handler. If you're exclusively using a node-like environment, it's safe to access the environment variables directly from `process.env`.
+
+
+If you're using `npx bknd run`, make sure to create a file in a file format that `node` can load, otherwise you may run into an error that the file couldn't be found:
+
+```sh
+[INF] 2025-03-28 18:02:21 Using config from bknd.config.ts
+[ERR] 2025-03-28 18:02:21 Failed to load config: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'bknd.config.ts' imported from [...]
+    at packageResolve (node:internal/modules/esm/resolve:857:9)
+    at [...] {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+```
+
+If you still want to use a `.ts` extension, you can start the CLI e.g. using `node` (>=v22.6.0):
+
+```sh
+node --experimental-strip-types node_modules/.bin/bknd run
+```
+
+Or with `tsx`:
+
+```sh
+npx tsx node_modules/.bin/bknd run
 ```
 
 ### Turso/LibSQL database
@@ -64,3 +116,11 @@ To start an instance with a Turso/LibSQL database, run the following:
 npx bknd run --db-url libsql://your-db.turso.io --db-token <your-token>
 ```
 The `--db-token` option is optional and only required if the database is protected.
+
+
+### In-memory database
+To start an instance with an ephemeral in-memory database, run the following:
+```
+npx bknd run --memory
+```
+Keep in mind that the database is not persisted and will be lost when the process is terminated.

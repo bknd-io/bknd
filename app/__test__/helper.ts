@@ -78,6 +78,7 @@ export const assetsTmpPath = `${import.meta.dir}/_assets/tmp`;
 export async function enableFetchLogging() {
    const originalFetch = global.fetch;
 
+   // @ts-ignore
    global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       const response = await originalFetch(input, init);
       const url = input instanceof URL || typeof input === "string" ? input : input.url;

@@ -107,7 +107,7 @@ export function HeaderNavigation() {
 function SidebarToggler() {
    const toggle = appShellStore((store) => store.toggleSidebar);
    const open = appShellStore((store) => store.sidebarOpen);
-   return <IconButton size="lg" Icon={open ? TbX : TbMenu2} onClick={toggle} />;
+   return <IconButton id="toggle-sidebar" size="lg" Icon={open ? TbX : TbMenu2} onClick={toggle} />;
 }
 
 export function Header({ hasSidebar = true }) {

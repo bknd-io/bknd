@@ -88,6 +88,7 @@ export function Link({
    }
 
    const wouterOnClick = (e: any) => {
+      onClick?.(e);
       // prepared for view transition
       /*if (props.transition !== false) {
          e.preventDefault();

@@ -5,7 +5,9 @@ import { getRandomizedFilename } from "../../src/media/utils";
 
 describe("media/mime-types", () => {
    test("tiny resolves", () => {
-      const tests = [[".mp4", "video/mp4", ".jpg", "image/jpeg", ".zip", "application/zip"]];
+      const tests = [
+         [".mp4", "video/mp4", ".jpg", "image/jpeg", ".zip", "application/zip"],
+      ] as const;
 
       for (const [ext, mime] of tests) {
          expect(tiny.guess(ext)).toBe(mime);
@@ -69,7 +71,7 @@ describe("media/mime-types", () => {
          ["application/zip", "zip"],
          ["text/tab-separated-values", "tsv"],
          ["application/zip", "zip"],
-      ];
+      ] as const;
 
       for (const [mime, ext] of tests) {
          expect(tiny.extension(mime), `extension(): ${mime} should be ${ext}`).toBe(ext);
@@ -86,7 +88,7 @@ describe("media/mime-types", () => {
          ["image.jpeg", "jpeg"],
          ["-473Wx593H-466453554-black-MODEL.jpg", "jpg"],
          ["-473Wx593H-466453554-black-MODEL.avif", "avif"],
-      ];
+      ] as const;
 
       for (const [filename, ext] of tests) {
          expect(

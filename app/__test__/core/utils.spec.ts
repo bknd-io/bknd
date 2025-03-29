@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { Perf, datetimeStringUTC, isBlob, ucFirst } from "../../src/core/utils";
+import { Perf, ucFirst } from "../../src/core/utils";
 import * as utils from "../../src/core/utils";
+import { assetsPath } from "../helper";
 
 async function wait(ms: number) {
    return new Promise((resolve) => {
@@ -74,57 +75,6 @@ describe("Core Utils", async () => {
          const obj3 = { id: "123", name: { test: "test" } };
          const result3 = utils.encodeSearch(obj3, { encode: true });
          expect(result3).toBe("id=123&name=%7B%22test%22%3A%22test%22%7D");
-      });
-
-      describe("guards", () => {
-         const types = {
-            blob: new Blob(),
-            file: new File([""], "file.txt"),
-            stream: new ReadableStream(),
-            arrayBuffer: new ArrayBuffer(10),
-            arrayBufferView: new Uint8Array(new ArrayBuffer(10)),
-         };
-
-         const fns = [
-            [utils.isReadableStream, "stream"],
-            [utils.isBlob, "blob", ["stream", "arrayBuffer", "arrayBufferView"]],
-            [utils.isFile, "file", ["stream", "arrayBuffer", "arrayBufferView"]],
-            [utils.isArrayBuffer, "arrayBuffer"],
-            [utils.isArrayBufferView, "arrayBufferView"],
-         ] as const;
-
-         const additional = [0, 0.0, "", null, undefined, {}, []];
-
-         for (const [fn, type, _to_test] of fns) {
-            test(`is${ucFirst(type)}`, () => {
-               const to_test = _to_test ?? (Object.keys(types) as string[]);
-               for (const key of to_test) {
-                  const value = types[key as keyof typeof types];
-                  const result = fn(value);
-                  expect(result).toBe(key === type);
-               }
-
-               for (const value of additional) {
-                  const result = fn(value);
-                  expect(result).toBe(false);
-               }
-            });
-         }
-      });
-
-      test("getContentName", () => {
-         const name = "test.json";
-         const text = "attachment; filename=" + name;
-         const headers = new Headers({
-            "Content-Disposition": text,
-         });
-         const request = new Request("http://example.com", {
-            headers,
-         });
-
-         expect(utils.getContentName(text)).toBe(name);
-         expect(utils.getContentName(headers)).toBe(name);
-         expect(utils.getContentName(request)).toBe(name);
       });
    });
 
@@ -243,6 +193,76 @@ describe("Core Utils", async () => {
             const result = utils.getPath(obj, path, defaultValue);
             expect(result).toEqual(expected);
          }
+      });
+   });
+
+   describe("file", async () => {
+      describe("type guards", () => {
+         const types = {
+            blob: new Blob(),
+            file: new File([""], "file.txt"),
+            stream: new ReadableStream(),
+            arrayBuffer: new ArrayBuffer(10),
+            arrayBufferView: new Uint8Array(new ArrayBuffer(10)),
+         };
+
+         const fns = [
+            [utils.isReadableStream, "stream"],
+            [utils.isBlob, "blob", ["stream", "arrayBuffer", "arrayBufferView"]],
+            [utils.isFile, "file", ["stream", "arrayBuffer", "arrayBufferView"]],
+            [utils.isArrayBuffer, "arrayBuffer"],
+            [utils.isArrayBufferView, "arrayBufferView"],
+         ] as const;
+
+         const additional = [0, 0.0, "", null, undefined, {}, []];
+
+         for (const [fn, type, _to_test] of fns) {
+            test(`is${ucFirst(type)}`, () => {
+               const to_test = _to_test ?? (Object.keys(types) as string[]);
+               for (const key of to_test) {
+                  const value = types[key as keyof typeof types];
+                  const result = fn(value);
+                  expect(result).toBe(key === type);
+               }
+
+               for (const value of additional) {
+                  const result = fn(value);
+                  expect(result).toBe(false);
+               }
+            });
+         }
+      });
+
+      test("getContentName", () => {
+         const name = "test.json";
+         const text = "attachment; filename=" + name;
+         const headers = new Headers({
+            "Content-Disposition": text,
+         });
+         const request = new Request("http://example.com", {
+            headers,
+         });
+
+         expect(utils.getContentName(text)).toBe(name);
+         expect(utils.getContentName(headers)).toBe(name);
+         expect(utils.getContentName(request)).toBe(name);
+      });
+
+      test.only("detectImageDimensions", async () => {
+         // wrong
+         // @ts-expect-error
+         expect(utils.detectImageDimensions(new ArrayBuffer(), "text/plain")).rejects.toThrow();
+
+         // successful ones
+         const getFile = (name: string): File => Bun.file(`${assetsPath}/${name}`) as any;
+         expect(await utils.detectImageDimensions(getFile("image.png"))).toEqual({
+            width: 362,
+            height: 387,
+         });
+         expect(await utils.detectImageDimensions(getFile("image.jpg"))).toEqual({
+            width: 453,
+            height: 512,
+         });
       });
    });
 

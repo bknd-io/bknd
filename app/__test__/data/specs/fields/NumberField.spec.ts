@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { NumberField } from "../../../../src/data";
-import { runBaseFieldTests, transformPersist } from "./inc";
+import { fieldTestSuite, transformPersist } from "data/fields/field-test-suite";
 
 describe("[data] NumberField", async () => {
    test("transformPersist (config)", async () => {
@@ -15,5 +15,5 @@ describe("[data] NumberField", async () => {
       expect(transformPersist(field2, 10000)).resolves.toBe(10000);
    });
 
-   runBaseFieldTests(NumberField, { defaultValue: 12, schemaType: "integer" });
+   fieldTestSuite({ expect, test }, NumberField, { defaultValue: 12, schemaType: "integer" });
 });

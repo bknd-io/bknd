@@ -37,7 +37,7 @@ export type DropdownProps = {
    onClickItem?: (item: DropdownItem) => void;
    renderItem?: (
       item: DropdownItem,
-      props: { key: number; onClick: () => void },
+      props: { key: number; onClick: (e: any) => void },
    ) => DropdownClickableChild;
 };
 
@@ -65,7 +65,13 @@ export function Dropdown({
       setTimeout(() => setOpen((prev) => !prev), typeof delay === "number" ? delay : 0),
    );
 
-   const onClickHandler = openEvent === "onClick" ? toggle : undefined;
+   const onClickHandler =
+      openEvent === "onClick"
+         ? (e) => {
+              e.stopPropagation();
+              toggle();
+           }
+         : undefined;
    const onContextMenuHandler = useEvent((e) => {
       if (openEvent !== "onContextMenu") return;
       e.preventDefault();
@@ -165,10 +171,18 @@ export function Dropdown({
                style={dropdownStyle}
             >
                {title && (
-                  <div className="text-sm font-bold px-2.5 mb-1 mt-1 opacity-50">{title}</div>
+                  <div className="text-sm font-bold px-2.5 mb-1 mt-1 opacity-50 truncate">
+                     {title}
+                  </div>
                )}
                {menuItems.map((item, i) =>
-                  itemRenderer(item, { key: i, onClick: () => internalOnClickItem(item) }),
+                  itemRenderer(item, {
+                     key: i,
+                     onClick: (e) => {
+                        e.stopPropagation();
+                        internalOnClickItem(item);
+                     },
+                  }),
                )}
             </div>
          )}

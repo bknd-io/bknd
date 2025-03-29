@@ -6,6 +6,8 @@ import { CreateModal } from "ui/modules/data/components/schema/create-modal/Crea
 import { DebugModal } from "./debug/DebugModal";
 import { SchemaFormModal } from "./debug/SchemaFormModal";
 import { TestModal } from "./debug/TestModal";
+import { scaleFadeIn } from "ui/modals/transitions";
+import { MediaInfoModal } from "ui/modals/media/MediaInfoModal";
 
 const modals = {
    test: TestModal,
@@ -13,6 +15,7 @@ const modals = {
    form: SchemaFormModal,
    overlay: OverlayModal,
    dataCreate: CreateModal,
+   mediaInfo: MediaInfoModal,
 };
 
 declare module "@mantine/modals" {
@@ -38,8 +41,14 @@ function open<Modal extends keyof typeof modals>(
       ...cmpModalProps,
       modal,
       innerProps,
-   };
-   openContextModal(props);
+   } as any;
+   openContextModal({
+      transitionProps: {
+         transition: scaleFadeIn,
+         duration: 300,
+      },
+      ...props,
+   });
    return {
       close: () => close(modal),
       closeAll: $modals.closeAll,

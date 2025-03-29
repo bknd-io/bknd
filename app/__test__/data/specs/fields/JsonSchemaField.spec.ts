@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { JsonSchemaField } from "../../../../src/data";
-import { runBaseFieldTests } from "./inc";
+import { fieldTestSuite } from "data/fields/field-test-suite";
 
 describe("[data] JsonSchemaField", async () => {
-   runBaseFieldTests(JsonSchemaField, { defaultValue: {}, schemaType: "text" });
+   // @ts-ignore
+   fieldTestSuite({ expect, test }, JsonSchemaField, { defaultValue: {}, schemaType: "text" });
 
    // @todo: add JsonSchemaField tests
 });

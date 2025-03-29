@@ -1,13 +1,7 @@
 import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
-import { type Static, Type, isFile, parse } from "core/utils";
-import type {
-   FileBody,
-   FileListObject,
-   FileMeta,
-   FileUploadPayload,
-   StorageAdapter,
-} from "../../Storage";
-import { guess } from "../../mime-types-tiny";
+import { type Static, Type, isFile, parse } from "bknd/utils";
+import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd/media";
+import { StorageAdapter, guessMimeType as guess } from "bknd/media";
 
 export const localAdapterConfig = Type.Object(
    {
@@ -17,10 +11,11 @@ export const localAdapterConfig = Type.Object(
 );
 export type LocalAdapterConfig = Static<typeof localAdapterConfig>;
 
-export class StorageLocalAdapter implements StorageAdapter {
+export class StorageLocalAdapter extends StorageAdapter {
    private config: LocalAdapterConfig;
 
    constructor(config: any) {
+      super();
       this.config = parse(localAdapterConfig, config);
    }
 

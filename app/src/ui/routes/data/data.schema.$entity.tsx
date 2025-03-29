@@ -103,7 +103,7 @@ export function DataSchemaEntity({ params }) {
                   path={[{ label: "Schema", href: "/" }, { label: entity.label }]}
                   backTo="/"
                />
-               <Link to="/" className="invisible md:visible">
+               <Link to="/" className="hidden md:inline">
                   <Button IconLeft={TbSitemap}>Overview</Button>
                </Link>
             </div>

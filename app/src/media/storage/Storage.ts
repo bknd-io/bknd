@@ -1,8 +1,10 @@
 import { type EmitsEvents, EventManager } from "core/events";
-import { type TSchema, isFile } from "core/utils";
+import { isFile, detectImageDimensions } from "core/utils";
 import { isMimeType } from "media/storage/mime-types-tiny";
 import * as StorageEvents from "./events";
 import type { FileUploadedEventData } from "./events";
+import { $console } from "core";
+import type { StorageAdapter } from "./StorageAdapter";
 
 export type FileListObject = {
    key: string;
@@ -10,31 +12,13 @@ export type FileListObject = {
    size: number;
 };
 
-export type FileMeta = { type: string; size: number };
+export type FileMeta = { type: string; size: number; width?: number; height?: number };
 export type FileBody = ReadableStream | File;
 export type FileUploadPayload = {
    name: string;
    meta: FileMeta;
    etag: string;
 };
-
-export interface StorageAdapter {
-   /**
-    * The unique name of the storage adapter
-    */
-   getName(): string;
-
-   // @todo: method requires limit/offset parameters
-   listObjects(prefix?: string): Promise<FileListObject[]>;
-   putObject(key: string, body: FileBody): Promise<string | FileUploadPayload | undefined>;
-   deleteObject(key: string): Promise<void>;
-   objectExists(key: string): Promise<boolean>;
-   getObject(key: string, headers: Headers): Promise<Response>;
-   getObjectUrl(key: string): string;
-   getObjectMeta(key: string): Promise<FileMeta>;
-   getSchema(): TSchema | undefined;
-   toJSON(secrets?: boolean): any;
-}
 
 export type StorageConfig = {
    body_max_size?: number;
@@ -102,12 +86,25 @@ export class Storage implements EmitsEvents {
       }
 
       // try to get better meta info
-      if (!isMimeType(info?.meta.type, ["application/octet-stream", "application/json"])) {
+      if (!isMimeType(info.meta.type, ["application/octet-stream", "application/json"])) {
          const meta = await this.#adapter.getObjectMeta(name);
          if (!meta) {
             throw new Error("Failed to get object meta");
          }
          info.meta = meta;
+      }
+
+      // try to get width/height for images
+      if (info.meta.type.startsWith("image") && (!info.meta.width || !info.meta.height)) {
+         try {
+            const dim = await detectImageDimensions(file as File);
+            info.meta = {
+               ...info.meta,
+               ...dim,
+            };
+         } catch (e) {
+            $console.warn("Failed to get image dimensions", e);
+         }
       }
 
       const eventData = {

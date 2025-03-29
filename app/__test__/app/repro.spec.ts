@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createApp, registries } from "../../src";
 import * as proto from "../../src/data/prototype";
-import { StorageLocalAdapter } from "../../src/media/storage/adapters/StorageLocalAdapter";
+import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 
 describe("repros", async () => {
    /**

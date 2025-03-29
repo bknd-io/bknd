@@ -9,6 +9,7 @@ export const JsonViewer = ({
    expand = 0,
    showSize = false,
    showCopy = false,
+   copyIconProps = {},
    className,
 }: {
    json: object;
@@ -16,6 +17,7 @@ export const JsonViewer = ({
    expand?: number;
    showSize?: boolean;
    showCopy?: boolean;
+   copyIconProps?: any;
    className?: string;
 }) => {
    const size = showSize ? JSON.stringify(json).length : undefined;
@@ -28,7 +30,7 @@ export const JsonViewer = ({
    return (
       <div className={twMerge("bg-primary/5 py-3 relative overflow-hidden", className)}>
          {showContext && (
-            <div className="absolute right-4 top-4 font-mono text-zinc-400 flex flex-row gap-2 items-center">
+            <div className="absolute right-4 top-3 font-mono text-zinc-400 flex flex-row gap-2 items-center">
                {(title || size) && (
                   <div className="flex flex-row">
                      {title && <span>{title}</span>} {size && <span>({size} Bytes)</span>}
@@ -36,7 +38,7 @@ export const JsonViewer = ({
                )}
                {showCopy && (
                   <div>
-                     <IconButton Icon={TbCopy} onClick={onCopy} />
+                     <IconButton Icon={TbCopy} onClick={onCopy} {...copyIconProps} />
                   </div>
                )}
             </div>
