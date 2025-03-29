@@ -4,6 +4,7 @@ import { config } from "dotenv";
 // @ts-ignore
 import { assetsPath, assetsTmpPath } from "../../../../../__test__/helper";
 import { adapterTestSuite } from "media/storage/adapters/adapter-test-suite";
+import { bunTestRunner } from "adapter/bun/test";
 
 const dotenvOutput = config({ path: `${import.meta.dir}/.env` });
 const {
@@ -43,7 +44,7 @@ describe.skipIf(ALL_TESTS)("StorageCloudinaryAdapter", async () => {
       });
    });
 
-   await adapterTestSuite({ test, expect }, adapter, file, {
+   await adapterTestSuite(bunTestRunner, adapter, file, {
       // eventual consistency
       retries: 20,
       retryTimeout: 1000,

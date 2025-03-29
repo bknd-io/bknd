@@ -3,11 +3,11 @@ const handler = require("./dist/index.js").handler;
 
 const event = {
    httpMethod: "GET",
-   path: "/",
-   //path: "/api/system/config",
+   //path: "/",
+   path: "/api/system/config",
    //path: "/assets/main-B6sEDlfs.js",
    headers: {
-      //"Content-Type": "application/json",
+      "Content-Type": "application/json",
       "User-Agent": "curl/7.64.1",
       Accept: "*/*",
    },

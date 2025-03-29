@@ -1,39 +1,26 @@
-import type { App } from "bknd";
 import { type FrameworkBkndConfig, createFrameworkApp } from "bknd/adapter";
+import type { FrameworkOptions } from "adapter";
 
-type ReactRouterContext = {
+type ReactRouterEnv = NodeJS.ProcessEnv;
+type ReactRouterFunctionArgs = {
    request: Request;
 };
-export type ReactRouterBkndConfig<Args = ReactRouterContext> = FrameworkBkndConfig<Args>;
+export type ReactRouterBkndConfig<Env = ReactRouterEnv> = FrameworkBkndConfig<Env>;
 
-let app: App;
-let building: boolean = false;
-
-export async function getApp<Args extends ReactRouterContext = ReactRouterContext>(
-   config: ReactRouterBkndConfig<Args>,
-   args?: Args,
+export async function getApp<Env = ReactRouterEnv>(
+   config: ReactRouterBkndConfig<Env>,
+   args: Env = {} as Env,
+   opts?: FrameworkOptions,
 ) {
-   if (building) {
-      while (building) {
-         await new Promise((resolve) => setTimeout(resolve, 5));
-      }
-      if (app) return app;
-   }
-
-   building = true;
-   if (!app) {
-      app = await createFrameworkApp(config, args);
-      await app.build();
-   }
-   building = false;
-   return app;
+   return await createFrameworkApp(config, args ?? process.env, opts);
 }
 
-export function serve<Args extends ReactRouterContext = ReactRouterContext>(
-   config: ReactRouterBkndConfig<Args> = {},
+export function serve<Env = ReactRouterEnv>(
+   config: ReactRouterBkndConfig<Env> = {},
+   args: Env = {} as Env,
+   opts?: FrameworkOptions,
 ) {
-   return async (args: Args) => {
-      app = await getApp(config, args);
-      return app.fetch(args.request);
+   return async (fnArgs: ReactRouterFunctionArgs) => {
+      return (await getApp(config, args, opts)).fetch(fnArgs.request);
    };
 }

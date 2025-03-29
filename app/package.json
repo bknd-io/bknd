@@ -19,6 +19,7 @@
     "test:all": "bun run test && bun run test:node",
     "test:bun": "ALL_TESTS=1 bun test --bail",
     "test:node": "tsx --test $(find . -type f -name '*.native-spec.ts')",
+    "test:adapters": "bun test src/adapter/**/*.adapter.spec.ts --bail",
     "test:coverage": "ALL_TESTS=1 bun test --bail --coverage",
     "build": "NODE_ENV=production bun run build.ts --minify --types",
     "build:all": "rm -rf dist && bun run build:static && NODE_ENV=production bun run build.ts --minify --types --clean && bun run build:cli",

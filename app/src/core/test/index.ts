@@ -5,6 +5,8 @@ export type Matcher<T = unknown> = {
    toBeString: (failMsg?: string) => void;
    toBeOneOf: (expected: T | Array<T> | Iterable<T>, failMsg?: string) => void;
    toBeDefined: (failMsg?: string) => void;
+   toHaveBeenCalled: (failMsg?: string) => void;
+   toHaveBeenCalledTimes: (expected: number, failMsg?: string) => void;
 };
 export type TestFn = (() => void | Promise<unknown>) | ((done: (err?: unknown) => void) => void);
 export interface Test {
@@ -15,6 +17,7 @@ export interface Test {
 }
 export type TestRunner = {
    test: Test;
+   mock: <T extends (...args: any[]) => any>(fn: T) => T | any;
    expect: <T = unknown>(
       actual?: T,
       failMsg?: string,

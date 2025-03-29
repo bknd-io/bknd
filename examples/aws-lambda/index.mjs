@@ -1,6 +1,6 @@
-import { serveLambda } from "bknd/adapter/aws";
+import { serve } from "bknd/adapter/aws";
 
-export const handler = serveLambda({
+export const handler = serve({
    // to get local assets, run `npx bknd copy-assets`
    // this is automatically done in `deploy.sh`
    assets: {

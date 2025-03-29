@@ -2,6 +2,17 @@ import nodeAssert from "node:assert/strict";
 import { test } from "node:test";
 import type { Matcher, Test, TestFn, TestRunner } from "core/test";
 
+// Track mock function calls
+const mockCalls = new WeakMap<Function, number>();
+function createMockFunction<T extends (...args: any[]) => any>(fn: T): T {
+   const mockFn = (...args: Parameters<T>) => {
+      const currentCalls = mockCalls.get(mockFn) || 0;
+      mockCalls.set(mockFn, currentCalls + 1);
+      return fn(...args);
+   };
+   return mockFn as T;
+}
+
 const nodeTestMatcher = <T = unknown>(actual: T, parentFailMsg?: string) =>
    ({
       toEqual: (expected: T, failMsg = parentFailMsg) => {
@@ -22,6 +33,18 @@ const nodeTestMatcher = <T = unknown>(actual: T, parentFailMsg?: string) =>
       toBeOneOf: (expected: T | Array<T> | Iterable<T>, failMsg = parentFailMsg) => {
          const e = Array.isArray(expected) ? expected : [expected];
          nodeAssert.ok(e.includes(actual), failMsg);
+      },
+      toHaveBeenCalled: (failMsg = parentFailMsg) => {
+         const calls = mockCalls.get(actual as Function) || 0;
+         nodeAssert.ok(calls > 0, failMsg || "Expected function to have been called at least once");
+      },
+      toHaveBeenCalledTimes: (expected: number, failMsg = parentFailMsg) => {
+         const calls = mockCalls.get(actual as Function) || 0;
+         nodeAssert.strictEqual(
+            calls,
+            expected,
+            failMsg || `Expected function to have been called ${expected} times`,
+         );
       },
    }) satisfies Matcher<T>;
 
@@ -63,6 +86,7 @@ nodeTest.skipIf = (condition: boolean): Test => {
 
 export const nodeTestRunner: TestRunner = {
    test: nodeTest,
+   mock: createMockFunction,
    expect: <T = unknown>(actual?: T, failMsg?: string) => ({
       ...nodeTestMatcher(actual, failMsg),
       resolves: nodeTestResolverProxy(actual as Promise<T>, {

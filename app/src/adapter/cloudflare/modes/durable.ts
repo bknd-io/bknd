@@ -1,9 +1,12 @@
 import { DurableObject } from "cloudflare:workers";
 import type { App, CreateAppConfig } from "bknd";
 import { createRuntimeApp, makeConfig } from "bknd/adapter";
-import type { CloudflareBkndConfig, Context } from "../index";
+import type { CloudflareBkndConfig, Context, CloudflareEnv } from "../index";
 
-export async function getDurable(config: CloudflareBkndConfig, ctx: Context) {
+export async function getDurable<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env>,
+   ctx: Context<Env>,
+) {
    const { dobj } = config.bindings?.(ctx.env)!;
    if (!dobj) throw new Error("durable object is not defined in cloudflare.bindings");
    const key = config.key ?? "app";
@@ -17,7 +20,7 @@ export async function getDurable(config: CloudflareBkndConfig, ctx: Context) {
    const id = dobj.idFromName(key);
    const stub = dobj.get(id) as unknown as DurableBkndApp;
 
-   const create_config = makeConfig(config, ctx);
+   const create_config = makeConfig(config, ctx.env);
 
    const res = await stub.fire(ctx.request, {
       config: create_config,

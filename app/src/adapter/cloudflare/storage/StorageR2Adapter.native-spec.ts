@@ -1,7 +1,7 @@
 import { createWriteStream, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { Miniflare } from "miniflare";
-import { StorageR2Adapter } from "adapter/cloudflare/StorageR2Adapter";
+import { StorageR2Adapter } from "./StorageR2Adapter";
 import { adapterTestSuite } from "media";
 import { nodeTestRunner } from "adapter/node";
 import path from "node:path";
@@ -23,7 +23,7 @@ test("StorageR2Adapter", async () => {
    const bucket = (await mf.getR2Bucket("BUCKET")) as unknown as R2Bucket;
    const adapter = new StorageR2Adapter(bucket);
 
-   const basePath = path.resolve(import.meta.dirname, "../_assets");
+   const basePath = path.resolve(import.meta.dirname, "../../../../__test__/_assets");
    const buffer = readFileSync(path.join(basePath, "image.png"));
    const file = new File([buffer], "image.png", { type: "image/png" });
 

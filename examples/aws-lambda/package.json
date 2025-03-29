@@ -1,21 +1,21 @@
 {
-   "name": "aws-lambda",
-   "version": "1.0.0",
-   "main": "index.mjs",
-   "scripts": {
-      "test": "esbuild index.mjs --bundle --format=cjs --platform=node --external:fs --outfile=dist/index.js && node test.js",
-      "deploy": "./deploy.sh",
-      "clean": "./clean.sh"
-   },
-   "keywords": [],
-   "author": "",
-   "license": "ISC",
-   "description": "",
-   "dependencies": {
-      "bknd": "file:../../app/bknd-0.9.0-rc.1-11.tgz"
-   },
-   "devDependencies": {
-      "esbuild": "^0.25.0",
-      "dotenv": "^16.4.7"
-   }
+  "name": "aws-lambda",
+  "version": "1.0.0",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "esbuild index.mjs --bundle --format=cjs --platform=node --external:fs --outfile=dist/index.js && node test.js",
+    "deploy": "./deploy.sh",
+    "clean": "./clean.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bknd": "file:../../app"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "dotenv": "^16.4.7"
+  }
 }

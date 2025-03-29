@@ -6,5 +6,5 @@ export default serve({
    mode: "warm",
    onBuilt: async (app) => {
       app.modules.server.get("/custom", (c) => c.json({ hello: "world" }));
-   }
+   },
 });
