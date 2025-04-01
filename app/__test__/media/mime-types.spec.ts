@@ -96,5 +96,10 @@ describe("media/mime-types", () => {
             `getRandomizedFilename(): ${filename} should end with ${ext}`,
          ).toBe(ext);
       }
+
+      // make sure it keeps the extension, even if the file has a different type
+      const file = new File([""], "image.jpg", { type: "text/plain" });
+      const [, ext] = getRandomizedFilename(file).split(".");
+      expect(ext).toBe("jpg");
    });
 });
