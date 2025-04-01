@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { type FileBody, Storage, type StorageAdapter } from "../../src/media/storage/Storage";
+import { type FileBody, Storage } from "../../src/media/storage/Storage";
 import * as StorageEvents from "../../src/media/storage/events";
+import { StorageAdapter } from "media";
 
-class TestAdapter implements StorageAdapter {
+class TestAdapter extends StorageAdapter {
    files: Record<string, FileBody> = {};
 
    getName() {
@@ -61,7 +62,7 @@ describe("Storage", async () => {
    test("uploads a file", async () => {
       const {
          meta: { type, size },
-      } = await storage.uploadFile("hello", "world.txt");
+      } = await storage.uploadFile("hello" as any, "world.txt");
       expect({ type, size }).toEqual({ type: "text/plain", size: 0 });
    });
 
@@ -71,6 +72,7 @@ describe("Storage", async () => {
    });
 
    test("events were fired", async () => {
+      await storage.emgr.executeAsyncs();
       expect(events.has(StorageEvents.FileUploadedEvent.slug)).toBeTrue();
       expect(events.has(StorageEvents.FileDeletedEvent.slug)).toBeTrue();
       // @todo: file access must be tested in controllers
