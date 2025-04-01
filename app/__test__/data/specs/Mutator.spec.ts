@@ -288,14 +288,17 @@ describe("[data] Mutator (Events)", async () => {
 
    test("events were fired", async () => {
       const { data } = await mutator.insertOne({ label: "test" });
+      await mutator.emgr.executeAsyncs();
       expect(events.has(MutatorEvents.MutatorInsertBefore.slug)).toBeTrue();
       expect(events.has(MutatorEvents.MutatorInsertAfter.slug)).toBeTrue();
 
       await mutator.updateOne(data.id, { label: "test2" });
+      await mutator.emgr.executeAsyncs();
       expect(events.has(MutatorEvents.MutatorUpdateBefore.slug)).toBeTrue();
       expect(events.has(MutatorEvents.MutatorUpdateAfter.slug)).toBeTrue();
 
       await mutator.deleteOne(data.id);
+      await mutator.emgr.executeAsyncs();
       expect(events.has(MutatorEvents.MutatorDeleteBefore.slug)).toBeTrue();
       expect(events.has(MutatorEvents.MutatorDeleteAfter.slug)).toBeTrue();
    });

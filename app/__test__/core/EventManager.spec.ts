@@ -70,6 +70,9 @@ describe("EventManager", async () => {
       new SpecialEvent({ foo: "bar" });
       new InformationalEvent();
 
+      // execute asyncs
+      await emgr.executeAsyncs();
+
       expect(call).toHaveBeenCalledTimes(2);
       expect(delayed).toHaveBeenCalled();
    });
@@ -80,15 +83,11 @@ describe("EventManager", async () => {
          call();
          return Promise.all(p);
       };
-      const emgr = new EventManager(
-         { InformationalEvent },
-         {
-            asyncExecutor,
-         },
-      );
+      const emgr = new EventManager({ InformationalEvent });
 
       emgr.onEvent(InformationalEvent, async () => {});
       await emgr.emit(new InformationalEvent());
+      await emgr.executeAsyncs(asyncExecutor);
       expect(call).toHaveBeenCalled();
    });
 
@@ -125,6 +124,9 @@ describe("EventManager", async () => {
       const e2 = await emgr.emit(new ReturnEvent({ foo: "bar" }));
       expect(e2.returned).toBe(true);
       expect(e2.params.foo).toBe("bar-1-0");
+
+      await emgr.executeAsyncs();
+
       expect(onInvalidReturn).toHaveBeenCalled();
       expect(asyncEventCallback).toHaveBeenCalled();
    });

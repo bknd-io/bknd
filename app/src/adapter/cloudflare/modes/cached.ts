@@ -1,7 +1,7 @@
 import { App } from "bknd";
 import { createRuntimeApp } from "bknd/adapter";
 import type { CloudflareBkndConfig, Context, CloudflareEnv } from "../index";
-import { makeConfig } from "../config";
+import { makeConfig, registerAsyncsExecutionContext, constants } from "../config";
 
 export async function getCached<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
@@ -23,7 +23,8 @@ export async function getCached<Env extends CloudflareEnv = CloudflareEnv>(
          ...makeConfig(config, env),
          initialConfig,
          onBuilt: async (app) => {
-            app.module.server.client.get("/__bknd/cache", async (c) => {
+            registerAsyncsExecutionContext(app, ctx);
+            app.module.server.client.get(constants.cache_endpoint, async (c) => {
                await kv.delete(key);
                return c.json({ message: "Cache cleared" });
             });

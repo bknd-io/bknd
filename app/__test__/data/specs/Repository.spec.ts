@@ -198,22 +198,27 @@ describe("[data] Repository (Events)", async () => {
    });
 
    test("events were fired", async () => {
-      await em.repository(items).findId(1);
+      const repo = em.repository(items);
+      await repo.findId(1);
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindOneBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindOneAfter.slug)).toBeTrue();
       events.clear();
 
-      await em.repository(items).findOne({ id: 1 });
+      await repo.findOne({ id: 1 });
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindOneBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindOneAfter.slug)).toBeTrue();
       events.clear();
 
-      await em.repository(items).findMany({ where: { id: 1 } });
+      await repo.findMany({ where: { id: 1 } });
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindManyBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindManyAfter.slug)).toBeTrue();
       events.clear();
 
-      await em.repository(items).findManyByReference(1, "categories");
+      await repo.findManyByReference(1, "categories");
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindManyBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindManyAfter.slug)).toBeTrue();
       events.clear();

@@ -1,8 +1,16 @@
 import { registerMedia } from "./storage/StorageR2Adapter";
-import { getBinding } from "adapter/cloudflare/bindings";
-import { D1Connection } from "adapter/cloudflare/D1Connection";
+import { getBinding } from "./bindings";
+import { D1Connection } from "./D1Connection";
 import type { CloudflareBkndConfig, CloudflareEnv } from ".";
+import { App } from "bknd";
 import { makeConfig as makeAdapterConfig } from "bknd/adapter";
+import type { ExecutionContext } from "hono";
+
+export const constants = {
+   exec_async_event_id: "cf_register_waituntil",
+   cache_endpoint: "/__bknd/cache",
+   do_endpoint: "/__bknd/do",
+};
 
 let media_registered: boolean = false;
 export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
@@ -37,4 +45,20 @@ export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
    }
 
    return appConfig;
+}
+
+export function registerAsyncsExecutionContext(
+   app: App,
+   ctx: { waitUntil: ExecutionContext["waitUntil"] },
+) {
+   app.emgr.onEvent(
+      App.Events.AppBeforeResponse,
+      async (event) => {
+         ctx.waitUntil(event.params.app.emgr.executeAsyncs());
+      },
+      {
+         mode: "sync",
+         id: constants.exec_async_event_id,
+      },
+   );
 }
