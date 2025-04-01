@@ -4,9 +4,10 @@ import { Event } from "core/events";
 import { Connection, type LibSqlCredentials, LibsqlConnection } from "data";
 import type { Hono } from "hono";
 import {
+   ModuleManager,
    type InitialModuleConfigs,
    type ModuleBuildContext,
-   ModuleManager,
+   type ModuleConfigs,
    type ModuleManagerOptions,
    type Modules,
 } from "modules/ModuleManager";
@@ -16,6 +17,7 @@ import { SystemController } from "modules/server/SystemController";
 
 // biome-ignore format: must be there
 import { Api, type ApiOptions } from "Api";
+import type { ServerEnv } from "modules/Controller";
 
 export type AppPlugin = (app: App) => Promise<void> | void;
 
@@ -29,12 +31,25 @@ export class AppBuiltEvent extends AppEvent {
 export class AppFirstBoot extends AppEvent {
    static override slug = "app-first-boot";
 }
-export const AppEvents = { AppConfigUpdatedEvent, AppBuiltEvent, AppFirstBoot } as const;
+export class AppRequest extends AppEvent<{ request: Request }> {
+   static override slug = "app-request";
+}
+export class AppBeforeResponse extends AppEvent<{ request: Request; response: Response }> {
+   static override slug = "app-before-response";
+}
+export const AppEvents = {
+   AppConfigUpdatedEvent,
+   AppBuiltEvent,
+   AppFirstBoot,
+   AppRequest,
+   AppBeforeResponse,
+} as const;
 
 export type AppOptions = {
    plugins?: AppPlugin[];
    seed?: (ctx: ModuleBuildContext & { app: App }) => Promise<void>;
    manager?: Omit<ModuleManagerOptions, "initial" | "onUpdated" | "seed">;
+   asyncEventsMode?: "sync" | "async" | "none";
 };
 export type CreateAppConfig = {
    connection?:
@@ -70,35 +85,9 @@ export class App {
       this.modules = new ModuleManager(connection, {
          ...(options?.manager ?? {}),
          initial: _initialConfig,
-         onUpdated: async (key, config) => {
-            // if the EventManager was disabled, we assume we shouldn't
-            // respond to events, such as "onUpdated".
-            // this is important if multiple changes are done, and then build() is called manually
-            if (!this.emgr.enabled) {
-               $console.warn("App config updated, but event manager is disabled, skip.");
-               return;
-            }
-
-            $console.log("App config updated", key);
-            // @todo: potentially double syncing
-            await this.build({ sync: true });
-            await this.emgr.emit(new AppConfigUpdatedEvent({ app: this }));
-         },
-         onFirstBoot: async () => {
-            $console.log("App first boot");
-            this.trigger_first_boot = true;
-         },
-         onServerInit: async (server) => {
-            server.use(async (c, next) => {
-               c.set("app", this);
-               await next();
-
-               try {
-                  // gracefully add the app id
-                  c.res.headers.set("X-bknd-id", this._id);
-               } catch (e) {}
-            });
-         },
+         onUpdated: this.onUpdated.bind(this),
+         onFirstBoot: this.onFirstBoot.bind(this),
+         onServerInit: this.onServerInit.bind(this),
       });
       this.modules.ctx().emgr.registerEvents(AppEvents);
    }
@@ -212,6 +201,53 @@ export class App {
       }
 
       return new Api({ host: "http://localhost", ...(options ?? {}), fetcher });
+   }
+
+   async onUpdated<Module extends keyof Modules>(module: Module, config: ModuleConfigs[Module]) {
+      // if the EventManager was disabled, we assume we shouldn't
+      // respond to events, such as "onUpdated".
+      // this is important if multiple changes are done, and then build() is called manually
+      if (!this.emgr.enabled) {
+         $console.warn("App config updated, but event manager is disabled, skip.");
+         return;
+      }
+
+      $console.log("App config updated", module);
+      // @todo: potentially double syncing
+      await this.build({ sync: true });
+      await this.emgr.emit(new AppConfigUpdatedEvent({ app: this }));
+   }
+
+   async onFirstBoot() {
+      $console.log("App first boot");
+      this.trigger_first_boot = true;
+   }
+
+   async onServerInit(server: Hono<ServerEnv>) {
+      server.use(async (c, next) => {
+         c.set("app", this);
+         await this.emgr.emit(new AppRequest({ app: this, request: c.req.raw }));
+         await next();
+
+         try {
+            // gracefully add the app id
+            c.res.headers.set("X-bknd-id", this._id);
+         } catch (e) {}
+
+         await this.emgr.emit(
+            new AppBeforeResponse({ app: this, request: c.req.raw, response: c.res }),
+         );
+
+         // execute collected async events (async by default)
+         switch (this.options?.asyncEventsMode ?? "async") {
+            case "sync":
+               await this.emgr.executeAsyncs();
+               break;
+            case "async":
+               this.emgr.executeAsyncs();
+               break;
+         }
+      });
    }
 }
 

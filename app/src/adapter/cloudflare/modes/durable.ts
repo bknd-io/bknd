@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
-import type { App, CreateAppConfig } from "bknd";
+import { App, type CreateAppConfig } from "bknd";
 import { createRuntimeApp, makeConfig } from "bknd/adapter";
-import type { CloudflareBkndConfig, Context } from "../index";
+import { type CloudflareBkndConfig, type Context, constants } from "../index";
 
 export async function getDurable(config: CloudflareBkndConfig, ctx: Context) {
    const { dobj } = config.bindings?.(ctx.env)!;
@@ -67,7 +67,17 @@ export class DurableBkndApp extends DurableObject {
          this.app = await createRuntimeApp({
             ...config,
             onBuilt: async (app) => {
-               app.modules.server.get("/__do", async (c) => {
+               app.emgr.onEvent(
+                  App.Events.AppBeforeResponse,
+                  async (event) => {
+                     this.ctx.waitUntil(event.params.app.emgr.executeAsyncs());
+                  },
+                  {
+                     mode: "sync",
+                     id: constants.exec_async_event_id,
+                  },
+               );
+               app.modules.server.get(constants.do_endpoint, async (c) => {
                   // @ts-ignore
                   const context: any = c.req.raw.cf ? c.req.raw.cf : c.env.cf;
                   return c.json({
@@ -92,7 +102,6 @@ export class DurableBkndApp extends DurableObject {
          this.keepAlive(options.keepAliveSeconds);
       }
 
-      console.log("id", this.id);
       const res = await this.app!.fetch(request);
       const headers = new Headers(res.headers);
       headers.set("X-BuildTime", buildtime.toString());
@@ -109,16 +118,13 @@ export class DurableBkndApp extends DurableObject {
    async beforeBuild(app: App) {}
 
    protected keepAlive(seconds: number) {
-      console.log("keep alive for", seconds);
       if (this.interval) {
-         console.log("clearing, there is a new");
          clearInterval(this.interval);
       }
 
       let i = 0;
       this.interval = setInterval(() => {
          i += 1;
-         //console.log("keep-alive", i);
          if (i === seconds) {
             console.log("cleared");
             clearInterval(this.interval);

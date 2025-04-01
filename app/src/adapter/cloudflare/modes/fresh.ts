@@ -1,12 +1,25 @@
-import type { App } from "bknd";
+import { App } from "bknd";
 import { createRuntimeApp } from "bknd/adapter";
-import { type CloudflareBkndConfig, type Context, makeCfConfig } from "../index";
+import { type CloudflareBkndConfig, type Context, makeCfConfig, constants } from "../index";
 
 export async function makeApp(config: CloudflareBkndConfig, ctx: Context) {
    return await createRuntimeApp(
       {
          ...makeCfConfig(config, ctx),
          adminOptions: config.html ? { html: config.html } : undefined,
+         onBuilt: async (app) => {
+            app.emgr.onEvent(
+               App.Events.AppBeforeResponse,
+               async (event) => {
+                  ctx.ctx.waitUntil(event.params.app.emgr.executeAsyncs());
+               },
+               {
+                  mode: "sync",
+                  id: constants.exec_async_event_id,
+               },
+            );
+            await config.onBuilt?.(app);
+         },
       },
       ctx,
    );

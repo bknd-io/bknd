@@ -9,6 +9,7 @@ import { getBinding } from "./bindings";
 import { getCached } from "./modes/cached";
 import { getDurable } from "./modes/durable";
 import { getFresh, getWarm } from "./modes/fresh";
+import type { CreateAppConfig } from "App";
 
 export type CloudflareBkndConfig<Env = any> = FrameworkBkndConfig<Context<Env>> & {
    mode?: "warm" | "fresh" | "cache" | "durable";
@@ -32,8 +33,14 @@ export type Context<Env = any> = {
    ctx: ExecutionContext;
 };
 
+export const constants = {
+   exec_async_event_id: "cf_register_waituntil",
+   cache_endpoint: "/__bknd/cache",
+   do_endpoint: "/__bknd/do",
+};
+
 let media_registered: boolean = false;
-export function makeCfConfig(config: CloudflareBkndConfig, context: Context) {
+export function makeCfConfig(config: CloudflareBkndConfig, context: Context): CreateAppConfig {
    if (!media_registered) {
       registerMedia(context.env as any);
       media_registered = true;
@@ -61,7 +68,14 @@ export function makeCfConfig(config: CloudflareBkndConfig, context: Context) {
       }
    }
 
-   return appConfig;
+   return {
+      ...appConfig,
+      options: {
+         ...appConfig.options,
+         // if not specified explicitly, disable it to use ExecutionContext's waitUntil
+         asyncEventsMode: config.options?.asyncEventsMode ?? "none",
+      },
+   };
 }
 
 export function serve<Env = any>(config: CloudflareBkndConfig<Env> = {}) {
