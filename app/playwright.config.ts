@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseUrl = process.env.TEST_URL || "http://localhost:28623";
-const startCommand = process.env.START_COMMAND || "bun run dev";
+const startCommand = process.env.TEST_START_COMMAND || "bun run dev";
 
 export default defineConfig({
    testDir: "./e2e",

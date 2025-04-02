@@ -7,17 +7,12 @@ export default defineConfig({
    test: {
       globals: true,
       environment: "jsdom",
-      setupFiles: ["./src/test/setup.ts"],
+      setupFiles: ["./__test__/vitest/setup.ts"],
+      include: ["**/*.vi-test.ts"],
       coverage: {
          provider: "v8",
          reporter: ["text", "json", "html"],
-         exclude: [
-            "node_modules/",
-            "src/test/setup.ts",
-            "**/*.d.ts",
-            "**/*.test.ts",
-            "**/*.config.ts",
-         ],
+         exclude: ["node_modules/", "**/*.d.ts", "**/*.test.ts", "**/*.config.ts"],
       },
    },
 });
