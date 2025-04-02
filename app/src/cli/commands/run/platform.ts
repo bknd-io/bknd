@@ -72,7 +72,8 @@ export async function getConfigPath(filePath?: string) {
       }
    }
 
-   const paths = ["./bknd.config", "./bknd.config.ts", "./bknd.config.js"];
+   const exts = ["", ".js", ".ts", ".mjs", ".cjs", ".json"];
+   const paths = exts.map((e) => `bknd.config${e}`);
    for (const p of paths) {
       const _p = path.resolve(process.cwd(), p);
       if (await fileExists(_p)) {

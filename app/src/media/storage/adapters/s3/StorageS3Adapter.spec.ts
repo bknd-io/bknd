@@ -4,6 +4,7 @@ import { StorageS3Adapter } from "./StorageS3Adapter";
 import { config } from "dotenv";
 import { adapterTestSuite } from "media";
 import { assetsPath } from "../../../../../__test__/helper";
+import { bunTestRunner } from "adapter/bun/test";
 //import { enableFetchLogging } from "../../helper";
 const dotenvOutput = config({ path: `${import.meta.dir}/.env` });
 const { R2_ACCESS_KEY, R2_SECRET_ACCESS_KEY, R2_URL, AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_S3_URL } =
@@ -45,6 +46,6 @@ describe.skipIf(ALL_TESTS)("StorageS3Adapter", async () => {
    const file = Bun.file(`${assetsPath}/image.png`) as unknown as File;
 
    describe.each(versions)("%s", async (_name, adapter) => {
-      await adapterTestSuite({ test, expect }, adapter, file);
+      await adapterTestSuite(bunTestRunner, adapter, file);
    });
 });

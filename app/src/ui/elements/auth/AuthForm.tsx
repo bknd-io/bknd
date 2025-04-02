@@ -5,7 +5,7 @@ import { Form } from "json-schema-form-react";
 import { transform } from "lodash-es";
 import type { ComponentPropsWithoutRef } from "react";
 import { Button } from "ui/components/buttons/Button";
-import { Group, Input, Label } from "ui/components/form/Formy/components";
+import { Group, Input, Password, Label } from "ui/components/form/Formy/components";
 import { SocialLink } from "./SocialLink";
 import type { ValueError } from "@sinclair/typebox/value";
 import { type TSchema, Value } from "core/utils";
@@ -99,7 +99,7 @@ export function AuthForm({
                   </Group>
                   <Group>
                      <Label htmlFor="password">Password</Label>
-                     <Input type="password" name="password" />
+                     <Password name="password" />
                   </Group>
 
                   <Button

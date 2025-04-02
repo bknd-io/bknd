@@ -1,12 +1,9 @@
-import type { CreateAppConfig } from "App";
-import type { FrameworkBkndConfig } from "adapter";
+import type { BkndConfig } from "adapter";
 import type { Command } from "commander";
 
 export type CliCommand = (program: Command) => void;
 
-export type CliBkndConfig<Env = any> = FrameworkBkndConfig & {
-   app: CreateAppConfig | ((env: Env) => CreateAppConfig);
-   setAdminHtml?: boolean;
+export type CliBkndConfig<Env = any> = BkndConfig & {
    server?: {
       port?: number;
       platform?: "node" | "bun";

@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import type { Kysely, Transaction } from "kysely";
-import { Perf } from "../../../src/core/utils";
+import { Perf } from "core/utils";
 import {
    Entity,
    EntityManager,
@@ -8,7 +8,10 @@ import {
    ManyToOneRelation,
    RepositoryEvents,
    TextField,
-} from "../../../src/data";
+   entity as $entity,
+   text as $text,
+   em as $em,
+} from "data";
 import { getDummyConnection } from "../helper";
 
 type E = Kysely<any> | Transaction<any>;
@@ -177,6 +180,47 @@ describe("[Repository]", async () => {
       const res5 = await em.repository(items).exists({});
       expect(res5.exists).toBe(true);
    });
+
+   test("option: silent", async () => {
+      const em = $em({
+         items: $entity("items", {
+            label: $text(),
+         }),
+      }).proto.withConnection(getDummyConnection().dummyConnection);
+
+      // should throw because table doesn't exist
+      expect(em.repo("items").findMany({})).rejects.toThrow(/no such table/);
+      // should silently return empty result
+      expect(
+         em
+            .repo("items", { silent: true })
+            .findMany({})
+            .then((r) => r.data),
+      ).resolves.toEqual([]);
+   });
+
+   test("option: includeCounts", async () => {
+      const em = $em({
+         items: $entity("items", {
+            label: $text(),
+         }),
+      }).proto.withConnection(getDummyConnection().dummyConnection);
+      await em.schema().sync({ force: true });
+
+      expect(
+         em
+            .repo("items")
+            .findMany({})
+            .then((r) => [r.meta.count, r.meta.total]),
+      ).resolves.toEqual([0, 0]);
+
+      expect(
+         em
+            .repo("items", { includeCounts: false })
+            .findMany({})
+            .then((r) => [r.meta.count, r.meta.total]),
+      ).resolves.toEqual([undefined, undefined]);
+   });
 });
 
 describe("[data] Repository (Events)", async () => {
@@ -198,22 +242,27 @@ describe("[data] Repository (Events)", async () => {
    });
 
    test("events were fired", async () => {
-      await em.repository(items).findId(1);
+      const repo = em.repository(items);
+      await repo.findId(1);
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindOneBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindOneAfter.slug)).toBeTrue();
       events.clear();
 
-      await em.repository(items).findOne({ id: 1 });
+      await repo.findOne({ id: 1 });
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindOneBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindOneAfter.slug)).toBeTrue();
       events.clear();
 
-      await em.repository(items).findMany({ where: { id: 1 } });
+      await repo.findMany({ where: { id: 1 } });
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindManyBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindManyAfter.slug)).toBeTrue();
       events.clear();
 
-      await em.repository(items).findManyByReference(1, "categories");
+      await repo.findManyByReference(1, "categories");
+      await repo.emgr.executeAsyncs();
       expect(events.has(RepositoryEvents.RepositoryFindManyBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindManyAfter.slug)).toBeTrue();
       events.clear();

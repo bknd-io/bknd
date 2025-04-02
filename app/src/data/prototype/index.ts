@@ -6,6 +6,7 @@ import type { ModuleConfigs } from "modules";
 import {
    BooleanField,
    type BooleanFieldConfig,
+   type Connection,
    DateField,
    type DateFieldConfig,
    Entity,
@@ -171,8 +172,6 @@ export class FieldPrototype {
    }
 }
 
-//type Entity<Fields extends Record<string, Field<any, any>> = {}> = { name: string; fields: Fields };
-
 export function entity<
    EntityName extends string,
    Fields extends Record<string, Field<any, any, any>>,
@@ -270,6 +269,10 @@ class EntityManagerPrototype<Entities extends Record<string, Entity>> extends En
    ) {
       super(Object.values(__entities), new DummyConnection(), relations, indices);
    }
+
+   withConnection(connection: Connection): EntityManager<Schema<Entities>> {
+      return new EntityManager(this.entities, connection, this.relations.all, this.indices);
+   }
 }
 
 type Chained<R extends Record<string, (...args: any[]) => any>> = {
@@ -326,6 +329,7 @@ export function em<Entities extends Record<string, Entity>>(
       entities: e.__entities,
       relations,
       indices,
+      proto: e,
       toJSON: () =>
          e.toJSON() as unknown as Pick<ModuleConfigs["data"], "entities" | "relations" | "indices">,
    };

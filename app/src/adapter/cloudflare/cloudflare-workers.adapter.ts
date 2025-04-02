@@ -1,18 +1,16 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { type FrameworkBkndConfig, makeConfig } from "bknd/adapter";
+import type { FrameworkBkndConfig } from "bknd/adapter";
 import { Hono } from "hono";
 import { serveStatic } from "hono/cloudflare-workers";
-import { D1Connection } from "./D1Connection";
-import { registerMedia } from "./StorageR2Adapter";
-import { getBinding } from "./bindings";
 import { getCached } from "./modes/cached";
 import { getDurable } from "./modes/durable";
 import { getFresh, getWarm } from "./modes/fresh";
 
-export type CloudflareBkndConfig<Env = any> = FrameworkBkndConfig<Context<Env>> & {
+export type CloudflareEnv = object;
+export type CloudflareBkndConfig<Env = CloudflareEnv> = FrameworkBkndConfig<Env> & {
    mode?: "warm" | "fresh" | "cache" | "durable";
-   bindings?: (args: Context<Env>) => {
+   bindings?: (args: Env) => {
       kv?: KVNamespace;
       dobj?: DurableObjectNamespace;
       db?: D1Database;
@@ -26,45 +24,15 @@ export type CloudflareBkndConfig<Env = any> = FrameworkBkndConfig<Context<Env>> 
    html?: string;
 };
 
-export type Context<Env = any> = {
+export type Context<Env = CloudflareEnv> = {
    request: Request;
    env: Env;
    ctx: ExecutionContext;
 };
 
-let media_registered: boolean = false;
-export function makeCfConfig(config: CloudflareBkndConfig, context: Context) {
-   if (!media_registered) {
-      registerMedia(context.env as any);
-      media_registered = true;
-   }
-
-   const appConfig = makeConfig(config, context);
-   const bindings = config.bindings?.(context);
-   if (!appConfig.connection) {
-      let db: D1Database | undefined;
-      if (bindings?.db) {
-         console.log("Using database from bindings");
-         db = bindings.db;
-      } else if (Object.keys(context.env ?? {}).length > 0) {
-         const binding = getBinding(context.env, "D1Database");
-         if (binding) {
-            console.log(`Using database from env "${binding.key}"`);
-            db = binding.value;
-         }
-      }
-
-      if (db) {
-         appConfig.connection = new D1Connection({ binding: db });
-      } else {
-         throw new Error("No database connection given");
-      }
-   }
-
-   return appConfig;
-}
-
-export function serve<Env = any>(config: CloudflareBkndConfig<Env> = {}) {
+export function serve<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env> = {},
+) {
    return {
       async fetch(request: Request, env: Env, ctx: ExecutionContext) {
          const url = new URL(request.url);
@@ -99,7 +67,7 @@ export function serve<Env = any>(config: CloudflareBkndConfig<Env> = {}) {
             }
          }
 
-         const context = { request, env, ctx } as Context;
+         const context = { request, env, ctx } as Context<Env>;
          const mode = config.mode ?? "warm";
 
          switch (mode) {

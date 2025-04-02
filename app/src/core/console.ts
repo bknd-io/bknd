@@ -65,27 +65,53 @@ function __tty(_type: any, args: any[]) {
 }
 
 export type TConsoleSeverity = keyof typeof __consoles;
-const level = env("cli_log_level", "log");
+declare global {
+   var __consoleConfig:
+      | {
+           level: TConsoleSeverity;
+           id?: string;
+        }
+      | undefined;
+}
+
+// Ensure the config exists only once globally
+const defaultLevel = env("cli_log_level", "log") as TConsoleSeverity;
+
+// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+const config = (globalThis.__consoleConfig ??= {
+   level: defaultLevel,
+   //id: crypto.randomUUID(), // for debugging
+});
 
 const keys = Object.keys(__consoles);
-export const $console = new Proxy(
-   {},
-   {
-      get: (_, prop) => {
-         if (prop === "original") {
+export const $console = new Proxy(config as any, {
+   get: (_, prop) => {
+      switch (prop) {
+         case "original":
             return console;
-         }
+         case "setLevel":
+            return (l: TConsoleSeverity) => {
+               config.level = l;
+            };
+         case "resetLevel":
+            return () => {
+               config.level = defaultLevel;
+            };
+      }
 
-         const current = keys.indexOf(level as string);
-         const requested = keys.indexOf(prop as string);
-         if (prop in __consoles && requested <= current) {
-            return (...args: any[]) => __tty(prop, args);
-         }
-         return () => null;
-      },
+      const current = keys.indexOf(config.level);
+      const requested = keys.indexOf(prop as string);
+
+      if (prop in __consoles && requested <= current) {
+         return (...args: any[]) => __tty(prop, args);
+      }
+      return () => null;
    },
-) as typeof console & {
+}) as typeof console & {
    original: typeof console;
+} & {
+   setLevel: (l: TConsoleSeverity) => void;
+   resetLevel: () => void;
 };
 
 export function colorizeConsole(con: typeof console) {

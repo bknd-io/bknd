@@ -1,47 +1,64 @@
 /// <reference types="bun-types" />
 
 import path from "node:path";
-import type { App } from "bknd";
-import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
+import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
 import { config } from "bknd/core";
 import type { ServeOptions } from "bun";
 import { serveStatic } from "hono/bun";
 
-let app: App;
+type BunEnv = Bun.Env;
+export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOptions, "fetch">;
 
-export type BunBkndConfig = RuntimeBkndConfig & Omit<ServeOptions, "fetch">;
-
-export async function createApp({ distPath, ...config }: RuntimeBkndConfig = {}) {
+export async function createApp<Env = BunEnv>(
+   { distPath, ...config }: BunBkndConfig<Env> = {},
+   args: Env = {} as Env,
+   opts?: RuntimeOptions,
+) {
    const root = path.resolve(distPath ?? "./node_modules/bknd/dist", "static");
+   registerLocalMediaAdapter();
 
-   if (!app) {
-      registerLocalMediaAdapter();
-      app = await createRuntimeApp({
+   return await createRuntimeApp(
+      {
          ...config,
          serveStatic: serveStatic({ root }),
-      });
-   }
-
-   return app;
+      },
+      args ?? (process.env as Env),
+      opts,
+   );
 }
 
-export function serve({
-   distPath,
-   connection,
-   initialConfig,
-   options,
-   port = config.server.default_port,
-   onBuilt,
-   buildConfig,
-   adminOptions,
-   ...serveOptions
-}: BunBkndConfig = {}) {
+export function createHandler<Env = BunEnv>(
+   config: BunBkndConfig<Env> = {},
+   args: Env = {} as Env,
+   opts?: RuntimeOptions,
+) {
+   return async (req: Request) => {
+      const app = await createApp(config, args ?? (process.env as Env), opts);
+      return app.fetch(req);
+   };
+}
+
+export function serve<Env = BunEnv>(
+   {
+      distPath,
+      connection,
+      initialConfig,
+      options,
+      port = config.server.default_port,
+      onBuilt,
+      buildConfig,
+      adminOptions,
+      ...serveOptions
+   }: BunBkndConfig<Env> = {},
+   args: Env = {} as Env,
+   opts?: RuntimeOptions,
+) {
    Bun.serve({
       ...serveOptions,
       port,
-      fetch: async (request: Request) => {
-         const app = await createApp({
+      fetch: createHandler(
+         {
             connection,
             initialConfig,
             options,
@@ -49,9 +66,10 @@ export function serve({
             buildConfig,
             adminOptions,
             distPath,
-         });
-         return app.fetch(request);
-      },
+         },
+         args,
+         opts,
+      ),
    });
 
    console.log(`Server is running on http://localhost:${port}`);

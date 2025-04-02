@@ -22,6 +22,7 @@ export class EventManager<
    protected events: EventClass[] = [];
    protected listeners: EventListener[] = [];
    enabled: boolean = true;
+   protected asyncs: (() => Promise<void>)[] = [];
 
    constructor(
       events?: RegisteredEvents,
@@ -29,7 +30,6 @@ export class EventManager<
          listeners?: EventListener[];
          onError?: (event: Event, e: unknown) => void;
          onInvalidReturn?: (event: Event, e: InvalidEventReturn) => void;
-         asyncExecutor?: typeof Promise.all;
       },
    ) {
       if (events) {
@@ -176,9 +176,15 @@ export class EventManager<
       this.events.forEach((event) => this.onEvent(event, handler, config));
    }
 
-   protected executeAsyncs(promises: (() => Promise<void>)[]) {
-      const executor = this.options?.asyncExecutor ?? ((e) => Promise.all(e));
-      executor(promises.map((p) => p())).then(() => void 0);
+   protected collectAsyncs(promises: (() => Promise<void>)[]) {
+      this.asyncs.push(...promises);
+   }
+
+   async executeAsyncs(executor: typeof Promise.all = (e) => Promise.all(e)): Promise<void> {
+      if (this.asyncs.length === 0) return;
+      const asyncs = [...this.asyncs];
+      this.asyncs = [];
+      await executor(asyncs.map((p) => p()));
    }
 
    async emit<Actual extends Event<any, any>>(event: Actual): Promise<Actual> {
@@ -209,8 +215,8 @@ export class EventManager<
          return !listener.once;
       });
 
-      // execute asyncs
-      this.executeAsyncs(asyncs);
+      // collect asyncs
+      this.collectAsyncs(asyncs);
 
       // execute syncs
       let _event: Actual = event;

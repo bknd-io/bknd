@@ -1,4 +1,4 @@
-import type { Permission } from "core";
+import { $console, type Permission } from "core";
 import { patternMatch } from "core/utils";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
@@ -49,7 +49,7 @@ export const auth = (options?: {
       // make sure to only register once
       if (authCtx.registered) {
          skipped = true;
-         console.warn(`auth middleware already registered for ${getPath(c)}`);
+         $console.warn(`auth middleware already registered for ${getPath(c)}`);
       } else {
          authCtx.registered = true;
 
@@ -93,7 +93,7 @@ export const permission = (
          if (app?.module.auth.enabled) {
             throw new Error(msg);
          } else {
-            console.warn(msg);
+            $console.warn(msg);
          }
       } else if (!authCtx.skip) {
          const guard = app.modules.ctx().guard;

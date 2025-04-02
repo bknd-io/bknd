@@ -44,8 +44,7 @@ export function MediaInfoModal({
    return (
       <div className="flex flex-col md:flex-row">
          <div className="flex w-full md:w-[calc(100%-300px)] justify-center items-center bg-lightest min-w-0">
-            {/* @ts-ignore */}
-            <Media.Preview file={file} className="max-h-[70dvh]" controls muted />
+            <FilePreview file={file} />
          </div>
          <div className="w-full md:!w-[300px] flex flex-col">
             <Item title="ID" value={data?.id} copyValue={origin + mediaUrl} first>
@@ -153,6 +152,19 @@ const Item = ({
                />
             )}
          </div>
+      </div>
+   );
+};
+
+const FilePreview = ({ file }: { file: FileState }) => {
+   if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+      // @ts-ignore
+      return <Media.Preview file={file} className="max-h-[70dvh]" controls muted />;
+   }
+
+   return (
+      <div className="min-w-96 min-h-48 flex justify-center items-center h-full max-h-[70dvh]">
+         <span className="opacity-50 font-mono">No Preview Available</span>
       </div>
    );
 };

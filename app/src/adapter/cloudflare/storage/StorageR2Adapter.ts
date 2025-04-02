@@ -1,10 +1,8 @@
 import { registries } from "bknd";
 import { isDebug } from "bknd/core";
 import { StringEnum, Type } from "bknd/utils";
-import type { FileBody } from "media/storage/Storage";
-import { StorageAdapter } from "media/storage/StorageAdapter";
-import { guess } from "media/storage/mime-types-tiny";
-import { getBindings } from "./bindings";
+import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
+import { getBindings } from "../bindings";
 
 export function makeSchema(bindings: string[] = []) {
    return Type.Object(

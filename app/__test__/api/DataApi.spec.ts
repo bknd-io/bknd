@@ -5,7 +5,8 @@ import { DataApi } from "../../src/data/api/DataApi";
 import { DataController } from "../../src/data/api/DataController";
 import { dataConfigSchema } from "../../src/data/data-schema";
 import * as proto from "../../src/data/prototype";
-import { disableConsoleLog, enableConsoleLog, schemaToEm } from "../helper";
+import { schemaToEm } from "../helper";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
@@ -63,6 +64,15 @@ describe("DataApi", () => {
          expect(req.request.method).toBe("POST");
          const res = await req;
          expect(res.data).toEqual(payload as any);
+      }
+
+      {
+         // make sure sort is working
+         const req = await api.readMany("posts", {
+            select: ["title"],
+            sort: "-id",
+         });
+         expect(req.data).toEqual(payload.reverse() as any);
       }
    });
 

@@ -66,15 +66,15 @@ const Skeleton = ({ theme }: { theme?: any }) => {
                   <Logo theme={actualTheme} />
                </div>
                <nav className="hidden md:flex flex-row gap-2.5 pl-0 p-2.5 items-center">
-                  {[...new Array(5)].map((item, key) => (
+                  {[...new Array(4)].map((item, key) => (
                      <AppShell.NavLink key={key} as="span" className="active h-full opacity-50">
-                        <div className="w-10 h-3" />
+                        <div className="w-18 h-3" />
                      </AppShell.NavLink>
                   ))}
                </nav>
-               <nav className="flex md:hidden flex-row items-center">
+               <nav className="flex md:hidden flex-row gap-2.5 pl-0 p-2.5 items-center">
                   <AppShell.NavLink as="span" className="active h-full opacity-50">
-                     <div className="w-10 h-3" />
+                     <div className="w-20 h-3" />
                   </AppShell.NavLink>
                </nav>
                <div className="flex flex-grow" />
