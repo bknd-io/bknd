@@ -24,6 +24,32 @@ export async function overrideJson<File extends object = object>(
    await writeFile(pkgPath, JSON.stringify(newPkg, null, opts?.indent || 2));
 }
 
+export async function upsertEnvFile(
+   kv: Record<string, string | number>,
+   opts?: { dir?: string; file?: string },
+) {
+   const file = opts?.file ?? ".env";
+   const envPath = path.resolve(opts?.dir ?? process.cwd(), file);
+   const current: Record<string, string | number> = {};
+
+   try {
+      const values = await readFile(envPath, "utf-8");
+      const lines = values.split("\n");
+      for (const line of lines) {
+         const [key, value] = line.split("=");
+         if (key && value) {
+            current[key] = value;
+         }
+      }
+   } catch (e) {
+      await writeFile(envPath, "");
+   }
+
+   const newEnv = { ...current, ...kv };
+   const lines = Object.entries(newEnv).map(([key, value]) => `${key}=${value}`);
+   await writeFile(envPath, lines.join("\n"));
+}
+
 export async function overridePackageJson(
    fn: (pkg: TPackageJson) => Promise<TPackageJson> | TPackageJson,
    opts?: { dir?: string },

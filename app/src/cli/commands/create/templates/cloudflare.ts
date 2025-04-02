@@ -78,6 +78,12 @@ async function createD1(ctx: TemplateSetupCtx) {
       process.exit(1);
    }
 
+   await $p.stream.info(
+      (async function* () {
+         yield* typewriter("Now running wrangler to create a D1 database...");
+      })(),
+   );
+
    exec(`npx wrangler d1 create ${name}`);
    await $p.stream.info(
       (async function* () {
