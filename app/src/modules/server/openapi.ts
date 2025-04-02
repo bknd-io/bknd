@@ -1,6 +1,7 @@
 import { Type } from "core/utils";
 import type { ModuleConfigs } from "modules/ModuleManager";
 import type { OpenAPIV3 as OAS } from "openapi-types";
+import { getVersion } from "core/env";
 
 function prefixPaths(paths: OAS.PathsObject, prefix: string): OAS.PathsObject {
    const result: OAS.PathsObject = {};
@@ -85,6 +86,9 @@ function systemRoutes(config: ModuleConfigs): { paths: OAS.Document["paths"] } {
 }
 
 function dataRoutes(config: ModuleConfigs): { paths: OAS.Document["paths"] } {
+   const entities = config.data.entities ?? {};
+   const entity_names = Object.keys(entities);
+
    const schemas = {
       entityData: Type.Object({
          id: Type.Number() as any,
@@ -115,22 +119,69 @@ function dataRoutes(config: ModuleConfigs): { paths: OAS.Document["paths"] } {
          name: "entity",
          in: "path",
          required: true,
-         schema: Type.String(),
+         schema:
+            entity_names.length > 0
+               ? Type.String({
+                    enum: entity_names,
+                 })
+               : Type.String(),
       },
       entityId: {
          name: "id",
          in: "path",
          required: true,
-         schema: Type.Number() as any,
+         schema: {
+            type: "number",
+         },
       },
-   };
+   } as const;
+   const query = {
+      select: {
+         name: "select",
+         in: "query",
+         required: false,
+         schema: {
+            type: "array",
+            items: {
+               type: "string",
+            },
+         },
+      },
+      limit: {
+         name: "limit",
+         in: "query",
+         required: false,
+         schema: {
+            type: "number",
+            minimum: 0,
+         },
+      },
+      offset: {
+         name: "offset",
+         in: "query",
+         required: false,
+         schema: {
+            type: "number",
+            minimum: 0,
+         },
+      },
+      sort: {
+         name: "sort",
+         in: "query",
+         required: false,
+         schema: {
+            type: "string",
+            examples: ["id", "-id"],
+         },
+      },
+   } as const;
 
    const tags = ["data"];
    const paths: OAS.PathsObject = {
       "/entity/{entity}": {
          get: {
             summary: "List entities",
-            parameters: [params.entity],
+            parameters: [params.entity, query.select, query.limit, query.offset, query.sort],
             responses: repoManyResponses,
             tags,
          },
@@ -174,6 +225,33 @@ function dataRoutes(config: ModuleConfigs): { paths: OAS.Document["paths"] } {
             responses: {
                "200": {
                   description: "Entity deleted",
+               },
+            },
+            tags,
+         },
+      },
+      "/schemas/{entity}/{context}": {
+         get: {
+            summary: "Get entity schema",
+            parameters: [
+               params.entity,
+               {
+                  name: "context",
+                  in: "path",
+                  required: true,
+                  schema: Type.String({
+                     enum: ["create", "update"],
+                  }),
+               },
+            ],
+            responses: {
+               "200": {
+                  description: "Entity schema",
+                  content: {
+                     "application/json": {
+                        schema: Type.Object({}),
+                     },
+                  },
                },
             },
             tags,
@@ -299,9 +377,24 @@ export function generateOpenAPI(config: ModuleConfigs): OAS.Document {
 
    return {
       openapi: "3.1.0",
+      security: [
+         {
+            Bearer: [],
+         },
+      ],
+      components: {
+         securitySchemes: {
+            Bearer: {
+               type: "http",
+               scheme: "bearer",
+               bearerFormat: "JWT",
+               description: "JWT token obtained from the login endpoint",
+            },
+         },
+      },
       info: {
          title: "bknd API",
-         version: "0.0.0",
+         version: getVersion(),
       },
       paths: {
          ...system.paths,

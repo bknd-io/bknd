@@ -302,7 +302,7 @@ export class SystemController extends Controller {
       );
 
       hono.get("/openapi.json", async (c) => {
-         const config = getDefaultConfig();
+         const config = this.app.toJSON();
          return c.json(generateOpenAPI(config));
       });
 

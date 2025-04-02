@@ -1,5 +1,6 @@
 import { $ } from "bun";
 import * as tsup from "tsup";
+import pkg from "./package.json" with { type: "json" };
 
 const args = process.argv.slice(2);
 const watch = args.includes("--watch");
@@ -65,6 +66,9 @@ async function buildApi() {
       minify,
       sourcemap,
       watch,
+      define: {
+         __version: JSON.stringify(pkg.version),
+      },
       entry: [
          "src/index.ts",
          "src/core/index.ts",

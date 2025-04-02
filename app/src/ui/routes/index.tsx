@@ -10,6 +10,7 @@ import MediaRoutes from "./media";
 import { Root, RootEmpty } from "./root";
 import SettingsRoutes from "./settings";
 import { FlashMessage } from "ui/modules/server/FlashMessage";
+import SwaggerOpenAPI from "ui/modules/app/components/openapi/SwaggerOpenAPI";
 
 // @ts-ignore
 const TestRoutes = lazy(() => import("./test"));
@@ -58,6 +59,11 @@ export function Routes() {
                            <Suspense fallback={null}>
                               <SettingsRoutes />
                            </Suspense>
+                        </Route>
+                        <Route path="/openapi">
+                           <div className="w-full">
+                              <SwaggerOpenAPI />
+                           </div>
                         </Route>
 
                         <Route path="*" component={NotFound} />
