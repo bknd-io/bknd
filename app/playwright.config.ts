@@ -4,6 +4,7 @@ const baseUrl = process.env.TEST_URL || "http://localhost:28623";
 const startCommand = process.env.TEST_START_COMMAND || "bun run dev";
 
 export default defineConfig({
+   testMatch: "**/*.e2e-spec.ts",
    testDir: "./e2e",
    fullyParallel: true,
    forbidOnly: !!process.env.CI,
