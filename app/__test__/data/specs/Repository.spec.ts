@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import type { Kysely, Transaction } from "kysely";
-import { Perf } from "../../../src/core/utils";
+import { Perf } from "core/utils";
 import {
    Entity,
    EntityManager,
@@ -8,7 +8,10 @@ import {
    ManyToOneRelation,
    RepositoryEvents,
    TextField,
-} from "../../../src/data";
+   entity as $entity,
+   text as $text,
+   em as $em,
+} from "data";
 import { getDummyConnection } from "../helper";
 
 type E = Kysely<any> | Transaction<any>;
@@ -176,6 +179,47 @@ describe("[Repository]", async () => {
       // for now, allow empty filter
       const res5 = await em.repository(items).exists({});
       expect(res5.exists).toBe(true);
+   });
+
+   test("option: silent", async () => {
+      const em = $em({
+         items: $entity("items", {
+            label: $text(),
+         }),
+      }).proto.withConnection(getDummyConnection().dummyConnection);
+
+      // should throw because table doesn't exist
+      expect(em.repo("items").findMany({})).rejects.toThrow(/no such table/);
+      // should silently return empty result
+      expect(
+         em
+            .repo("items", { silent: true })
+            .findMany({})
+            .then((r) => r.data),
+      ).resolves.toEqual([]);
+   });
+
+   test("option: includeCounts", async () => {
+      const em = $em({
+         items: $entity("items", {
+            label: $text(),
+         }),
+      }).proto.withConnection(getDummyConnection().dummyConnection);
+      await em.schema().sync({ force: true });
+
+      expect(
+         em
+            .repo("items")
+            .findMany({})
+            .then((r) => [r.meta.count, r.meta.total]),
+      ).resolves.toEqual([0, 0]);
+
+      expect(
+         em
+            .repo("items", { includeCounts: false })
+            .findMany({})
+            .then((r) => [r.meta.count, r.meta.total]),
+      ).resolves.toEqual([undefined, undefined]);
    });
 });
 

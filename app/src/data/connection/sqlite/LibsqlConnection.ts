@@ -6,6 +6,7 @@ import { type DatabaseIntrospector, Kysely, ParseJSONResultsPlugin } from "kysel
 import type { QB } from "../Connection";
 import { SqliteConnection } from "./SqliteConnection";
 import { SqliteIntrospector } from "./SqliteIntrospector";
+import { $console } from "core";
 
 export const LIBSQL_PROTOCOLS = ["wss", "https", "libsql"] as const;
 export type LibSqlCredentials = Config & {
@@ -33,6 +34,7 @@ export class LibsqlConnection extends SqliteConnection {
    constructor(credentials: LibSqlCredentials);
    constructor(clientOrCredentials: Client | LibSqlCredentials) {
       let client: Client;
+      let batching_enabled = true;
       if (clientOrCredentials && "url" in clientOrCredentials) {
          let { url, authToken, protocol } = clientOrCredentials;
          if (protocol && LIBSQL_PROTOCOLS.includes(protocol)) {
@@ -42,6 +44,13 @@ export class LibsqlConnection extends SqliteConnection {
          }
 
          client = createClient({ url, authToken });
+
+         // currently there is an issue in limbo implementation
+         // that prevents batching from working correctly
+         if (/\.aws.*turso\.io$/.test(url)) {
+            $console.warn("Using an Turso AWS endpoint currently disables batching support");
+            batching_enabled = false;
+         }
       } else {
          client = clientOrCredentials;
       }
@@ -54,6 +63,7 @@ export class LibsqlConnection extends SqliteConnection {
 
       super(kysely, {}, plugins);
       this.client = client;
+      this.supported.batching = batching_enabled;
    }
 
    getClient(): Client {

@@ -222,6 +222,8 @@ export class ModuleManager {
       return this.__em.repo(__bknd, {
          // to prevent exceptions when table doesn't exist
          silent: true,
+         // disable counts for performance and compatibility
+         includeCounts: false,
       });
    }
 

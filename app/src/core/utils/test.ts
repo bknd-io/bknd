@@ -46,14 +46,6 @@ export function enableConsoleLog() {
    $console.resetLevel();
 }
 
-export function tryit(fn: () => void, fallback?: any) {
-   try {
-      return fn();
-   } catch (e) {
-      return fallback || e;
-   }
-}
-
 export function formatMemoryUsage() {
    const usage = process.memoryUsage();
    return {
