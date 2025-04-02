@@ -42,7 +42,7 @@
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lang-liquid": "^6.2.2",
     "@hello-pangea/dnd": "^18.0.1",
-    "@libsql/client": "^0.14.0",
+    "@libsql/client": "^0.15.2",
     "@mantine/core": "^7.17.1",
     "@mantine/hooks": "^7.17.1",
     "@sinclair/typebox": "^0.34.30",
