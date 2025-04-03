@@ -7,8 +7,19 @@ import { serve } from "bknd/adapter/node";
 /** @type {import("bknd/adapter/node").NodeBkndConfig} */
 const config = {
    connection: {
-      url: "file:data.db"
-   }
+      url: "file:data.db",
+   },
+   initialConfig: {
+      media: {
+         enabled: true,
+         adapter: {
+            type: "local",
+            config: {
+               path: "./uploads",
+            },
+         },
+      },
+   },
 };
 
 serve(config);

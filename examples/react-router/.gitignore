@@ -7,3 +7,6 @@
 # React Router
 /.react-router/
 /build/
+
+# Public uploads
+/public/uploads/*

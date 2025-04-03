@@ -8,6 +8,15 @@ const config: BunBkndConfig = {
    connection: {
       url: "file:data.db",
    },
+   initialConfig: {
+      media: {
+         enabled: true,
+         adapter: {
+            type: "local",
+            config: { path: "./uploads" },
+         },
+      },
+   },
 };
 
 serve(config);

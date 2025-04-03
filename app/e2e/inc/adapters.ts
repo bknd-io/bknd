@@ -1,22 +1,43 @@
 const adapter = process.env.TEST_ADAPTER;
 
 const default_config = {
-   media_adapter: "local"
+   media_adapter: "local",
+   base_path: "",
 } as const;
 
 const configs = {
    cloudflare: {
-      media_adapter: "r2"
-   }
-}
+      media_adapter: "r2",
+   },
+   "react-router": {
+      base_path: "/admin",
+   },
+   nextjs: {
+      base_path: "/admin",
+   },
+   astro: {
+      base_path: "/admin",
+   },
+   node: {
+      base_path: "",
+   },
+   bun: {
+      base_path: "",
+   },
+};
 
 export function getAdapterConfig(): typeof default_config {
    if (adapter) {
       if (!configs[adapter]) {
-         throw new Error(`Adapter "${adapter}" not found. Available adapters: ${Object.keys(configs).join(", ")}`);
+         console.warn(
+            `Adapter "${adapter}" not found. Available adapters: ${Object.keys(configs).join(", ")}`,
+         );
+      } else {
+         return {
+            ...default_config,
+            ...configs[adapter],
+         };
       }
-
-      return configs[adapter] as typeof default_config;
    }
 
    return default_config;
