@@ -51,5 +51,5 @@ test("can upload a file", async ({ page }) => {
    const fileChooserPromise = page.waitForEvent("filechooser");
    await page.getByText("Upload file").click();
    const fileChooser = await fileChooserPromise;
-   await fileChooser.setFiles("./e2e/assets/image1.png");
+   await fileChooser.setFiles("./e2e/assets/image.jpg");
 });
