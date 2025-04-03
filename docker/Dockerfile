@@ -3,8 +3,12 @@ FROM node:20 as builder
 
 WORKDIR /app
 
+# define bknd version to be used as:
+# `docker build --build-arg VERSION=<version> -t bknd .`
+ARG VERSION=0.10.2
+
 # Install & copy required cli
-RUN npm install --omit=dev bknd@0.9.1
+RUN npm install --omit=dev bknd@${VERSION}
 RUN mkdir /output && cp -r node_modules/bknd/dist /output/dist
 
 # Stage 2: Final minimal image
