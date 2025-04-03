@@ -4,6 +4,7 @@ export type TemplateSetupCtx = {
    template: Template;
    dir: string;
    name: string;
+   skip: boolean;
 };
 
 export type Integration =
