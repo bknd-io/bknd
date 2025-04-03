@@ -8,7 +8,7 @@ import { Option } from "commander";
 import { env } from "core";
 import color from "picocolors";
 import { overridePackageJson, updateBkndPackages } from "./npm";
-import { type Template, templates } from "./templates";
+import { type Template, templates, type TemplateSetupCtx } from "./templates";
 import { createScoped, flush } from "cli/utils/telemetry";
 
 const config = {
@@ -35,6 +35,8 @@ export const create: CliCommand = (program) => {
       .addOption(new Option("-i, --integration <integration>", "integration to use"))
       .addOption(new Option("-t, --template <template>", "template to use"))
       .addOption(new Option("-d --dir <directory>", "directory to create in"))
+      .addOption(new Option("-c, --clean", "cleans destination directory"))
+      .addOption(new Option("-y, --yes", "use defaults, skip skippable prompts"))
       .description("create a new project")
       .action(action);
 };
@@ -53,7 +55,7 @@ async function onExit() {
    await flush();
 }
 
-async function action(options: { template?: string; dir?: string; integration?: string }) {
+async function action(options: { template?: string; dir?: string; integration?: string, yes?: boolean, clean?: boolean }) {
    console.log("");
    const $t = createScoped("create");
    $t.capture("start", {
@@ -94,7 +96,7 @@ async function action(options: { template?: string; dir?: string; integration?: 
 
    $t.properties.at = "dir";
    if (fs.existsSync(downloadOpts.dir)) {
-      const clean = await $p.confirm({
+      const clean = options.clean ?? await $p.confirm({
          message: `Directory ${color.cyan(downloadOpts.dir)} exists. Clean it?`,
          initialValue: false,
       });
@@ -203,7 +205,7 @@ async function action(options: { template?: string; dir?: string; integration?: 
    }
 
    $t.properties.template = template.key;
-   const ctx = { template, dir: downloadOpts.dir, name };
+   const ctx: TemplateSetupCtx = { template, dir: downloadOpts.dir, name, skip: !!options.yes };
 
    {
       const ref = env("cli_create_ref", `#v${version}`, {
@@ -259,7 +261,7 @@ async function action(options: { template?: string; dir?: string; integration?: 
    $p.log.success(`Updated package name to ${color.cyan(ctx.name)}`);
 
    {
-      const install = await $p.confirm({
+      const install = options.yes ?? await $p.confirm({
          message: "Install dependencies?",
       });
 

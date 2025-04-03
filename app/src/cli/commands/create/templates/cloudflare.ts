@@ -29,7 +29,7 @@ export const cloudflare = {
          { dir: ctx.dir },
       );
 
-      const db = await $p.select({
+      const db = ctx.skip ? "d1" : await $p.select({
          message: "What database do you want to use?",
          options: [
             { label: "Cloudflare D1", value: "d1" },
@@ -63,10 +63,11 @@ export const cloudflare = {
 } as const satisfies Template;
 
 async function createD1(ctx: TemplateSetupCtx) {
-   const name = await $p.text({
+   const default_db = "data";
+   const name = ctx.skip ? default_db : await $p.text({
       message: "Enter database name",
-      initialValue: "data",
-      placeholder: "data",
+      initialValue: default_db,
+      placeholder: default_db,
       validate: (v) => {
          if (!v) {
             return "Invalid name";
@@ -84,12 +85,15 @@ async function createD1(ctx: TemplateSetupCtx) {
       })(),
    );
 
-   exec(`npx wrangler d1 create ${name}`);
-   await $p.stream.info(
-      (async function* () {
-         yield* typewriter("Please update your wrangler configuration with the output above.");
-      })(),
-   );
+   if (!ctx.skip) {
+      exec(`npx wrangler d1 create ${name}`);
+
+      await $p.stream.info(
+         (async function* () {
+            yield* typewriter("Please update your wrangler configuration with the output above.");
+         })(),
+      );
+   }
 
    await overrideJson(
       WRANGLER_FILE,
@@ -149,7 +153,7 @@ async function createLibsql(ctx: TemplateSetupCtx) {
 }
 
 async function createR2(ctx: TemplateSetupCtx) {
-   const create = await $p.confirm({
+   const create = ctx.skip ?? await $p.confirm({
       message: "Do you want to use a R2 bucket?",
       initialValue: true,
    });
@@ -168,10 +172,11 @@ async function createR2(ctx: TemplateSetupCtx) {
       return;
    }
 
-   const name = await $p.text({
+   const default_bucket = "bucket";
+   const name = ctx.skip ? default_bucket : await $p.text({
       message: "Enter bucket name",
-      initialValue: "bucket",
-      placeholder: "bucket",
+      initialValue: default_bucket,
+      placeholder: default_bucket,
       validate: (v) => {
          if (!v) {
             return "Invalid name";
@@ -183,7 +188,9 @@ async function createR2(ctx: TemplateSetupCtx) {
       process.exit(1);
    }
 
-   exec(`npx wrangler r2 bucket create ${name}`);
+   if (!ctx.skip) {
+      exec(`npx wrangler r2 bucket create ${name}`);
+   }
 
    await overrideJson(
       WRANGLER_FILE,
