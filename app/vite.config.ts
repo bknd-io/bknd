@@ -4,11 +4,13 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { devServerConfig } from "./src/adapter/vite/dev-server-config";
 import tailwindcss from "@tailwindcss/vite";
+import pkg from "./package.json" with { type: "json" };
 
 // https://vitejs.dev/config/
 export default defineConfig({
    define: {
       __isDev: process.env.NODE_ENV === "production" ? "0" : "1",
+      __version: JSON.stringify(pkg.version),
    },
    clearScreen: false,
    publicDir: "./src/ui/assets",
