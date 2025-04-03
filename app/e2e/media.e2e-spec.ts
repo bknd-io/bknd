@@ -2,8 +2,12 @@
 import { test, expect } from "@playwright/test";
 import { testIds } from "../src/ui/lib/config";
 import type { SchemaResponse } from "../src/modules/server/SystemController";
+import { getAdapterConfig } from "./inc/adapters";
+
 // Annotate entire file as serial.
 test.describe.configure({ mode: "serial" });
+
+const adapterConfig = getAdapterConfig();
 
 test("can enable media", async ({ page }) => {
    await page.goto("/media/settings");
@@ -16,9 +20,9 @@ test("can enable media", async ({ page }) => {
       await expect(enableToggle).toHaveAttribute("aria-checked", "true");
 
       // select local
-      const localAdapter = page.locator("css=button#adapter-local");
-      await expect(localAdapter).toBeVisible();
-      await localAdapter.click();
+      const adapterChoice = page.locator(`css=button#adapter-${adapterConfig.media_adapter}`);
+      await expect(adapterChoice).toBeVisible();
+      await adapterChoice.click();
 
       // save
       const saveBtn = page.getByRole("button", { name: /Update/i });
@@ -33,7 +37,7 @@ test("can enable media", async ({ page }) => {
       expect(response?.status(), "fresh config 200").toBe(200);
       const body = (await response?.json()) as SchemaResponse;
       expect(body.config.media.enabled, "media is enabled").toBe(true);
-      expect(body.config.media.adapter.type, "adapter is local").toBe("local");
+      expect(body.config.media.adapter.type, "correct adapter").toBe(adapterConfig.media_adapter);
    }
 });
 
