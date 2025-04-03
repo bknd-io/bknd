@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const baseUrl = process.env.TEST_URL || "http://localhost:28623";
 const startCommand = process.env.TEST_START_COMMAND || "bun run dev";
+const autoStart = ["1", "true", undefined].includes(process.env.TEST_AUTO_START);
 
 export default defineConfig({
    testMatch: "**/*.e2e-spec.ts",
@@ -30,9 +31,11 @@ export default defineConfig({
          use: { ...devices["Desktop Safari"] },
       }, */
    ],
-   webServer: {
-      command: startCommand,
-      url: baseUrl,
-      reuseExistingServer: !process.env.CI,
-   },
+   webServer: autoStart
+      ? {
+           command: startCommand,
+           url: baseUrl,
+           reuseExistingServer: !process.env.CI,
+        }
+      : undefined,
 });
