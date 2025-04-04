@@ -1,4 +1,4 @@
-import { type DB, Exception } from "core";
+import { type DB, Exception, type PrimaryFieldType } from "core";
 import { addFlashMessage } from "core/server/flash";
 import {
    type Static,
@@ -14,6 +14,7 @@ import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
 import type { CookieOptions } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
+import { pick } from "lodash-es";
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];
@@ -37,11 +38,10 @@ export interface Strategy {
 }
 
 export type User = {
-   id: number;
+   id: PrimaryFieldType;
    email: string;
-   username: string;
    password: string;
-   role: string;
+   role?: string | null;
 };
 
 export type ProfileExchange = {
@@ -158,13 +158,8 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    }
 
    // @todo: add jwt tests
-   async jwt(user: Omit<User, "password">): Promise<string> {
-      const prohibited = ["password"];
-      for (const prop of prohibited) {
-         if (prop in user) {
-            throw new Error(`Property "${prop}" is prohibited`);
-         }
-      }
+   async jwt(_user: Omit<User, "password">): Promise<string> {
+      const user = pick(_user, this.config.jwt.fields);
 
       const payload: JWTPayload = {
          ...user,
