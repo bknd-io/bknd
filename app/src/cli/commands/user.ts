@@ -12,7 +12,9 @@ export const user: CliCommand = (program) => {
    program
       .command("user")
       .description("create/update users, or generate a token (auth)")
-      .addArgument(new Argument("<action>", "action to perform").choices(["create", "update", "token"]))
+      .addArgument(
+         new Argument("<action>", "action to perform").choices(["create", "update", "token"]),
+      )
       .action(action);
 };
 
@@ -77,7 +79,6 @@ async function create(app: App, options: any) {
          password: await strategy.hash(password as string),
       });
       $log.success(`Created user: ${c.cyan(created.email)}`);
-
    } catch (e) {
       $log.error("Error creating user");
       $console.error(e);
@@ -171,5 +172,7 @@ async function token(app: App, options: any) {
    }
    $log.info(`User found: ${c.cyan(user.email)}`);
 
-   console.log(`\n${c.dim("Token:")}\n${c.yellow(await app.module.auth.authenticator.jwt(user))}\n`);
+   console.log(
+      `\n${c.dim("Token:")}\n${c.yellow(await app.module.auth.authenticator.jwt(user))}\n`,
+   );
 }
