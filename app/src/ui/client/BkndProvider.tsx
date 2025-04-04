@@ -101,14 +101,21 @@ export function BkndProvider({
               fallback: true,
            } as any);
 
+
       startTransition(() => {
-         document.startViewTransition(() => {
+         const commit = () => {
             setSchema(newSchema);
             setWithSecrets(_includeSecrets);
             setFetched(true);
             set_local_version((v) => v + 1);
             fetching.current = Fetching.None;
-         });
+         }
+
+         if ("startViewTransition" in document) {
+            document.startViewTransition(commit);
+         } else {
+            commit();
+         }
       });
    }
 
