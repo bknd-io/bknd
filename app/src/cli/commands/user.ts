@@ -1,4 +1,9 @@
-import { password as $password, text as $text, log as $log } from "@clack/prompts";
+import {
+   password as $password,
+   text as $text,
+   log as $log,
+   isCancel as $isCancel,
+} from "@clack/prompts";
 import type { App } from "App";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
 import { makeConfigApp } from "cli/commands/run";
@@ -58,6 +63,7 @@ async function create(app: App, options: any) {
          return;
       },
    });
+   if ($isCancel(email)) process.exit(1);
 
    const password = await $password({
       message: "Enter password",
@@ -68,10 +74,7 @@ async function create(app: App, options: any) {
          return;
       },
    });
-
-   if (typeof email !== "string" || typeof password !== "string") {
-      process.exit(1);
-   }
+   if ($isCancel(password)) process.exit(1);
 
    try {
       const created = await app.createUser({
@@ -100,9 +103,7 @@ async function update(app: App, options: any) {
          return;
       },
    })) as string;
-   if (typeof email !== "string") {
-      process.exit(1);
-   }
+   if ($isCancel(email)) process.exit(1);
 
    const { data: user } = await em.repository(users_entity).findOne({ email });
    if (!user) {
@@ -120,9 +121,7 @@ async function update(app: App, options: any) {
          return;
       },
    });
-   if (typeof password !== "string") {
-      process.exit(1);
-   }
+   if ($isCancel(password)) process.exit(1);
 
    try {
       function togglePw(visible: boolean) {
@@ -161,9 +160,7 @@ async function token(app: App, options: any) {
          return;
       },
    })) as string;
-   if (typeof email !== "string") {
-      process.exit(1);
-   }
+   if ($isCancel(email)) process.exit(1);
 
    const { data: user } = await em.repository(users_entity).findOne({ email });
    if (!user) {
