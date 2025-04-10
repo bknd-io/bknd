@@ -15,7 +15,7 @@ import * as SystemPermissions from "modules/permissions";
 import { AdminController, type AdminControllerOptions } from "modules/server/AdminController";
 import { SystemController } from "modules/server/SystemController";
 
-// biome-ignore format: must be there
+// biome-ignore format: must be here
 import { Api, type ApiOptions } from "Api";
 import type { ServerEnv } from "modules/Controller";
 

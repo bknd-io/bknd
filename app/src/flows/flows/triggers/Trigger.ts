@@ -8,12 +8,9 @@ export class Trigger<Schema extends typeof Trigger.schema = typeof Trigger.schem
    type = "manual";
    config: Static<Schema>;
 
-   static schema = Type.Object(
-      {
-         mode: StringEnum(["sync", "async"], { default: "async" }),
-      },
-      //{ additionalProperties: false }
-   );
+   static schema = Type.Object({
+      mode: StringEnum(["sync", "async"], { default: "async" }),
+   });
 
    constructor(config?: Partial<Static<Schema>>) {
       const schema = (this.constructor as typeof Trigger).schema;

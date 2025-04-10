@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Config } from "@libsql/client/node";
-import { config } from "core";
+import { $console, config } from "core";
 import type { MiddlewareHandler } from "hono";
 import open from "open";
 import { fileExists, getRelativeDistPath } from "../../utils/sys";
@@ -36,7 +36,7 @@ export async function startServer(
    options: { port: number; open?: boolean },
 ) {
    const port = options.port;
-   console.log(`Using ${server} serve`);
+   $console.log(`Using ${server} serve`);
 
    switch (server) {
       case "node": {
@@ -58,7 +58,8 @@ export async function startServer(
    }
 
    const url = `http://localhost:${port}`;
-   console.info("Server listening on", url);
+   $console.info("Server listening on", url);
+
    if (options.open) {
       await open(url);
    }

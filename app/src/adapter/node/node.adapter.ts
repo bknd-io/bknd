@@ -4,6 +4,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { registerLocalMediaAdapter } from "adapter/node/index";
 import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
 import { config as $config } from "bknd/core";
+import { $console } from "core";
 
 type NodeEnv = NodeJS.ProcessEnv;
 export type NodeBkndConfig<Env = NodeEnv> = RuntimeBkndConfig<Env> & {
@@ -62,7 +63,7 @@ export function serve<Env = NodeEnv>(
          fetch: createHandler(config, args, opts),
       },
       (connInfo) => {
-         console.log(`Server is running on http://localhost:${connInfo.port}`);
+         $console.log(`Server is running on http://localhost:${connInfo.port}`);
          listener?.(connInfo);
       },
    );

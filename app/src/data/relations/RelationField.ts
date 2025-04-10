@@ -15,11 +15,6 @@ export const relationFieldConfigSchema = Type.Composite([
       on_delete: Type.Optional(StringEnum(CASCADES, { default: "set null" })),
    }),
 ]);
-/*export const relationFieldConfigSchema = baseFieldConfigSchema.extend({
-   reference: z.string(),
-   target: z.string(),
-   target_field: z.string().catch("id"),
-});*/
 
 export type RelationFieldConfig = Static<typeof relationFieldConfigSchema>;
 export type RelationFieldBaseConfig = { label?: string };
@@ -31,16 +26,6 @@ export class RelationField extends Field<RelationFieldConfig> {
       return relationFieldConfigSchema;
    }
 
-   /*constructor(name: string, config?: Partial<RelationFieldConfig>) {
-      //relation_name = relation_name || target.name;
-      //const name = [relation_name, target.getPrimaryField().name].join("_");
-      super(name, config);
-
-      //console.log(this.config);
-      //this.relation.target = target;
-      //this.relation.name = relation_name;
-   }*/
-
    static create(
       relation: EntityRelation,
       target: EntityRelationAnchor,
@@ -50,7 +35,7 @@ export class RelationField extends Field<RelationFieldConfig> {
          target.reference ?? target.entity.name,
          target.entity.getPrimaryField().name,
       ].join("_");
-      //console.log('name', name);
+
       return new RelationField(name, {
          ...config,
          required: relation.required,

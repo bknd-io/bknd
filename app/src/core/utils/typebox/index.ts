@@ -114,7 +114,6 @@ export function parse<Schema extends TSchema = TSchema>(
    } else if (options?.onError) {
       options.onError(Errors(schema, data));
    } else {
-      //console.warn("errors", JSON.stringify([...Errors(schema, data)], null, 2));
       throw new TypeInvalidError(schema, data);
    }
 
@@ -126,13 +125,11 @@ export function parseDecode<Schema extends TSchema = TSchema>(
    schema: Schema,
    data: RecursivePartial<StaticDecode<Schema>>,
 ): StaticDecode<Schema> {
-   //console.log("parseDecode", schema, data);
    const parsed = Default(schema, data);
 
    if (Check(schema, parsed)) {
       return parsed as StaticDecode<typeof schema>;
    }
-   //console.log("errors", ...Errors(schema, data));
 
    throw new TypeInvalidError(schema, data);
 }

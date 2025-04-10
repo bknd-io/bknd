@@ -7,6 +7,7 @@ import { getFresh } from "./modes/fresh";
 import { getCached } from "./modes/cached";
 import { getDurable } from "./modes/durable";
 import type { App } from "bknd";
+import { $console } from "core";
 
 export type CloudflareEnv = object;
 export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> & {
@@ -37,7 +38,7 @@ export function serve<Env extends CloudflareEnv = CloudflareEnv>(
          const url = new URL(request.url);
 
          if (config.manifest && config.static === "assets") {
-            console.warn("manifest is not useful with static 'assets'");
+            $console.warn("manifest is not useful with static 'assets'");
          } else if (!config.manifest && config.static === "kv") {
             throw new Error("manifest is required with static 'kv'");
          }

@@ -63,7 +63,6 @@ export class RelationMutator {
       // make sure it's a primitive value
       // @todo: this is not a good way of checking primitives. Null is also an object
       if (typeof value === "object") {
-         console.log("value", value);
          throw new Error(`Invalid value for relation field "${key}" given, expected primitive.`);
       }
 

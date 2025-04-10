@@ -1,5 +1,6 @@
 import { Type } from "core/utils";
 import { Task } from "../Task";
+import { $console } from "core";
 
 export class LogTask extends Task<typeof LogTask.schema> {
    type = "log";
@@ -10,7 +11,7 @@ export class LogTask extends Task<typeof LogTask.schema> {
 
    async execute() {
       await new Promise((resolve) => setTimeout(resolve, this.params.delay));
-      console.log(`[DONE] LogTask: ${this.name}`);
+      $console.log(`[DONE] LogTask: ${this.name}`);
       return true;
    }
 }

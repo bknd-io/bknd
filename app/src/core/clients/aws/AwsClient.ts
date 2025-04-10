@@ -29,7 +29,6 @@ export class AwsClient extends Aws4fetchClient {
    }
 
    getUrl(path: string = "/", searchParamsObj: Record<string, any> = {}): string {
-      //console.log("super:getUrl", path, searchParamsObj);
       const url = new URL(path);
       const converted = this.convertParams(searchParamsObj);
       Object.entries(converted).forEach(([key, value]) => {
@@ -76,8 +75,6 @@ export class AwsClient extends Aws4fetchClient {
          }
 
          const raw = await response.text();
-         //console.log("raw", raw);
-         //console.log(JSON.stringify(xmlToObject(raw), null, 2));
          return xmlToObject(raw) as T;
       }
 
