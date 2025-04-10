@@ -88,7 +88,6 @@ export function DropzoneContainer({
          method: "POST",
       };
    });
-   console.log("header", api.media.getUploadHeaders());
 
    const refresh = useEvent(async () => {
       await invalidate($q.promise.key({ search: false }));
