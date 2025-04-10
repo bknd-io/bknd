@@ -39,8 +39,26 @@ describe("MediaApi", () => {
       // @ts-ignore tests
       const api = new MediaApi({
          token: "token",
+         token_transport: "header",
       });
       expect(api.getUploadHeaders().get("Authorization")).toBe("Bearer token");
+   });
+
+   it("should return empty headers if not using `header` transport", () => {
+      expect(
+         new MediaApi({
+            token_transport: "cookie",
+         })
+            .getUploadHeaders()
+            .has("Authorization"),
+      ).toBe(false);
+      expect(
+         new MediaApi({
+            token_transport: "none",
+         })
+            .getUploadHeaders()
+            .has("Authorization"),
+      ).toBe(false);
    });
 
    it("should get file: native", async () => {
