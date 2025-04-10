@@ -54,9 +54,12 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
    }
 
    getUploadHeaders(): Headers {
-      return new Headers({
-         Authorization: `Bearer ${this.options.token}`,
-      });
+      if (this.options.token_transport === "header" && this.options.token) {
+         return new Headers({
+            Authorization: `Bearer ${this.options.token}`,
+         });
+      }
+      return new Headers();
    }
 
    protected uploadFile(

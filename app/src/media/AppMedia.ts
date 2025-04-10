@@ -1,6 +1,6 @@
 import { $console, type PrimaryFieldType } from "core";
-import { type Entity, type EntityManager } from "data";
-import { type FileUploadedEventData, Storage, type StorageAdapter } from "media";
+import type { Entity, EntityManager } from "data";
+import { type FileUploadedEventData, Storage, type StorageAdapter, MediaPermissions } from "media";
 import { Module } from "modules/Module";
 import {
    type FieldSchema,
@@ -13,7 +13,7 @@ import {
    text,
 } from "../data/prototype";
 import { MediaController } from "./api/MediaController";
-import { ADAPTERS, buildMediaSchema, type mediaConfigSchema, registry } from "./media-schema";
+import { buildMediaSchema, type mediaConfigSchema, registry } from "./media-schema";
 
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
 declare module "core" {
@@ -46,6 +46,7 @@ export class AppMedia extends Module<typeof mediaConfigSchema> {
          this._storage = new Storage(adapter, this.config.storage, this.ctx.emgr);
          this.setBuilt();
          this.setupListeners();
+         this.ctx.guard.registerPermissions(MediaPermissions);
          this.ctx.server.route(this.basepath, new MediaController(this).getController());
 
          const media = this.getMediaEntity(true);

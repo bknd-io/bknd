@@ -1,7 +1,8 @@
 import { isDebug, tbValidator as tb } from "core";
-import { HttpStatus, Type, getFileFromContext, headersToObject } from "core/utils";
+import { HttpStatus, Type, getFileFromContext } from "core/utils";
 import type { StorageAdapter } from "media";
-import { StorageEvents, getRandomizedFilename } from "media";
+import { StorageEvents, getRandomizedFilename, MediaPermissions } from "media";
+import { DataPermissions } from "data";
 import { Controller } from "modules/Controller";
 import type { AppMedia } from "../AppMedia";
 import { MediaField } from "../MediaField";
@@ -26,18 +27,18 @@ export class MediaController extends Controller {
    override getController() {
       // @todo: multiple providers?
       // @todo: implement range requests
-      const { auth } = this.middlewares;
+      const { auth, permission } = this.middlewares;
       const hono = this.create().use(auth());
 
       // get files list (temporary)
-      hono.get("/files", async (c) => {
+      hono.get("/files", permission(MediaPermissions.listFiles), async (c) => {
          const files = await this.getStorageAdapter().listObjects();
          return c.json(files);
       });
 
       // get file by name
       // @todo: implement more aggressive cache? (configurable)
-      hono.get("/file/:filename", async (c) => {
+      hono.get("/file/:filename", permission(MediaPermissions.readFile), async (c) => {
          const { filename } = c.req.param();
          if (!filename) {
             throw new Error("No file name provided");
@@ -57,7 +58,7 @@ export class MediaController extends Controller {
       });
 
       // delete a file by name
-      hono.delete("/file/:filename", async (c) => {
+      hono.delete("/file/:filename", permission(MediaPermissions.deleteFile), async (c) => {
          const { filename } = c.req.param();
          if (!filename) {
             throw new Error("No file name provided");
@@ -82,7 +83,7 @@ export class MediaController extends Controller {
 
       // upload file
       // @todo: add required type for "upload endpoints"
-      hono.post("/upload/:filename?", async (c) => {
+      hono.post("/upload/:filename?", permission(MediaPermissions.uploadFile), async (c) => {
          const reqname = c.req.param("filename");
 
          const body = await getFileFromContext(c);
@@ -112,6 +113,7 @@ export class MediaController extends Controller {
                overwrite: Type.Optional(booleanLike),
             }),
          ),
+         permission([DataPermissions.entityCreate, MediaPermissions.uploadFile]),
          async (c) => {
             const entity_name = c.req.param("entity");
             const field_name = c.req.param("field");
