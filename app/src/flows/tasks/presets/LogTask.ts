@@ -1,5 +1,6 @@
-import { Type } from "core/utils";
 import { Task } from "../Task";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export class LogTask extends Task<typeof LogTask.schema> {
    type = "log";

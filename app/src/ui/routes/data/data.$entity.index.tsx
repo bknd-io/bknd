@@ -1,4 +1,3 @@
-import { Type } from "core/utils";
 import { type Entity, querySchema } from "data";
 import { Fragment } from "react";
 import { TbDots } from "react-icons/tb";
@@ -15,6 +14,8 @@ import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate } from "ui/lib/routes";
 import { useCreateUserModal } from "ui/modules/auth/hooks/use-create-user-modal";
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 // @todo: migrate to Typebox
 const searchSchema = Type.Composite(

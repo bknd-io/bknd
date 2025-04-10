@@ -1,8 +1,10 @@
 import { registries } from "bknd";
 import { isDebug } from "bknd/core";
-import { StringEnum, Type } from "bknd/utils";
+import { StringEnum } from "bknd/utils";
 import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
 import { getBindings } from "../bindings";
+import * as tb from "@sinclair/typebox";
+const { Type } = tb;
 
 export function makeSchema(bindings: string[] = []) {
    return Type.Object(

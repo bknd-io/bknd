@@ -1,8 +1,9 @@
 import type { StaticDecode, TSchema } from "@sinclair/typebox";
-import type { NodeProps } from "@xyflow/react";
 import { BkndError, SimpleRenderer } from "core";
-import { type Static, type TObject, Type, Value, parse, ucFirst } from "core/utils";
-import type { ExecutionEvent, InputsMap } from "../flows/Execution";
+import { type Static, type TObject, Value, parse, ucFirst } from "core/utils";
+import type { InputsMap } from "../flows/Execution";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 //type InstanceOf<T> = T extends new (...args: any) => infer R ? R : never;
 
 export type TaskResult<Output = any> = {

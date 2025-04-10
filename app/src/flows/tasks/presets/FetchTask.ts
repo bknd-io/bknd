@@ -1,6 +1,7 @@
-import { StringEnum, Type } from "core/utils";
-import type { InputsMap } from "../../flows/Execution";
+import { StringEnum } from "core/utils";
 import { Task, dynamic } from "../Task";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const FetchMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 

@@ -1,7 +1,9 @@
-import { StringEnum, Type } from "core/utils";
+import { StringEnum } from "core/utils";
 import type { Context, Hono } from "hono";
 import type { Flow } from "../Flow";
 import { Trigger } from "./Trigger";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 

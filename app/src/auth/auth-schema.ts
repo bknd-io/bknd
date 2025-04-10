@@ -1,6 +1,8 @@
 import { cookieConfig, jwtConfig } from "auth/authenticate/Authenticator";
 import { CustomOAuthStrategy, OAuthStrategy, PasswordStrategy } from "auth/authenticate/strategies";
-import { type Static, StringRecord, Type, objectTransform } from "core/utils";
+import { type Static, StringRecord, objectTransform } from "core/utils";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const Strategies = {
    password: {

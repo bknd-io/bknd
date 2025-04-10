@@ -1,6 +1,8 @@
-import { type Static, StringEnum, Type, dayjs } from "core/utils";
+import { type Static, StringEnum, dayjs } from "core/utils";
 import type { EntityManager } from "../entities";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const dateFieldConfigSchema = Type.Composite(
    [

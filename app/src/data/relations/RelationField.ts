@@ -1,8 +1,10 @@
-import { type Static, StringEnum, Type } from "core/utils";
+import { type Static, StringEnum } from "core/utils";
 import type { EntityManager } from "../entities";
 import { Field, baseFieldConfigSchema } from "../fields";
 import type { EntityRelation } from "./EntityRelation";
 import type { EntityRelationAnchor } from "./EntityRelationAnchor";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const CASCADES = ["cascade", "set null", "set default", "restrict", "no action"] as const;
 

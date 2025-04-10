@@ -1,9 +1,11 @@
 import type { Authenticator, Strategy } from "auth";
-import { isDebug, tbValidator as tb } from "core";
-import { type Static, StringEnum, Type, parse } from "core/utils";
+import { tbValidator as tb } from "core";
+import { type Static, StringEnum, parse } from "core/utils";
 import { hash } from "core/utils";
-import { type Context, Hono } from "hono";
-import { type StrategyAction, type StrategyActions, createStrategyAction } from "../Authenticator";
+import { Hono } from "hono";
+import { type StrategyActions, createStrategyAction } from "../Authenticator";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 type LoginSchema = { username: string; password: string } | { email: string; password: string };
 type RegisterSchema = { email: string; password: string; [key: string]: any };

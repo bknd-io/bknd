@@ -7,10 +7,12 @@ import type {
    PutObjectRequest,
 } from "@aws-sdk/client-s3";
 import { AwsClient, isDebug } from "core";
-import { type Static, Type, isFile, parse, pickHeaders2 } from "core/utils";
+import { type Static, isFile, parse, pickHeaders2 } from "core/utils";
 import { transform } from "lodash-es";
 import type { FileBody, FileListObject } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const s3AdapterConfig = Type.Object(
    {

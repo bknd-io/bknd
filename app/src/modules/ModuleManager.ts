@@ -6,7 +6,6 @@ import {
    Default,
    type Static,
    StringEnum,
-   Type,
    mark,
    objectEach,
    stripMark,
@@ -34,6 +33,8 @@ import { AppFlows } from "../flows/AppFlows";
 import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export type { ModuleBuildContext };
 
