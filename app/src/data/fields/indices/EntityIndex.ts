@@ -39,7 +39,6 @@ export class EntityIndex {
       return {
          entity: this.entity.name,
          fields: this.fields.map((f) => f.name),
-         //name: this.name,
          unique: this.unique,
       };
    }

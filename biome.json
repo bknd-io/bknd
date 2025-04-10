@@ -69,7 +69,8 @@
         "noExplicitAny": "off",
         "noArrayIndexKey": "off",
         "noImplicitAnyLet": "warn",
-        "noConfusingVoidType": "off"
+        "noConfusingVoidType": "off",
+        "noConsoleLog": "warn"
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"

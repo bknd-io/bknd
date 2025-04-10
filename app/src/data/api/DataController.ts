@@ -1,4 +1,4 @@
-import { isDebug, tbValidator as tb } from "core";
+import { $console, isDebug, tbValidator as tb } from "core";
 import { StringEnum, Type } from "core/utils";
 import {
    DataPermissions,
@@ -45,7 +45,6 @@ export class DataController extends Controller {
       const template = { data: res.data, meta };
 
       // @todo: this works but it breaks in FE (need to improve DataTable)
-      //return objectCleanEmpty(template) as any;
       // filter empty
       return Object.fromEntries(
          Object.entries(template).filter(([_, v]) => typeof v !== "undefined" && v !== null),
@@ -56,7 +55,6 @@ export class DataController extends Controller {
       const template = { data: res.data };
 
       // filter empty
-      //return objectCleanEmpty(template);
       return Object.fromEntries(Object.entries(template).filter(([_, v]) => v !== undefined));
    }
 
@@ -71,11 +69,6 @@ export class DataController extends Controller {
    override getController() {
       const { permission, auth } = this.middlewares;
       const hono = this.create().use(auth(), permission(SystemPermissions.accessApi));
-
-      const definedEntities = this.em.entities.map((e) => e.name);
-      const tbNumber = Type.Transform(Type.String({ pattern: "^[1-9][0-9]{0,}$" }))
-         .Decode(Number.parseInt)
-         .Encode(String);
 
       // @todo: sample implementation how to augment handler with additional info
       function handler<HH extends Handler>(name: string, h: HH): any {
@@ -141,10 +134,8 @@ export class DataController extends Controller {
             }),
          ),
          async (c) => {
-            //console.log("request", c.req.raw);
             const { entity, context } = c.req.param();
             if (!this.entityExists(entity)) {
-               console.warn("not found:", entity, definedEntities);
                return this.notFound(c);
             }
             const _entity = this.em.entity(entity);
@@ -254,7 +245,6 @@ export class DataController extends Controller {
          async (c) => {
             const { entity } = c.req.param();
             if (!this.entityExists(entity)) {
-               console.warn("not found:", entity, definedEntities);
                return this.notFound(c);
             }
             const options = c.req.valid("query") as RepoQuery;
@@ -328,7 +318,6 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const options = (await c.req.valid("json")) as RepoQuery;
-            //console.log("options", options);
             const result = await this.em.repository(entity).findMany(options);
 
             return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });

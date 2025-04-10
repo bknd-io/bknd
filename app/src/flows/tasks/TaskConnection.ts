@@ -80,7 +80,6 @@ export class Condition {
             return result.success === false;
          case "matches":
             return get(result.output, this.path) === this.value;
-         //return this.value === output[this.path];
       }
    }
 

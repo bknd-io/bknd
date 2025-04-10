@@ -1,11 +1,11 @@
 import { type Static, StringEnum, Type, dayjs } from "core/utils";
 import type { EntityManager } from "../entities";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
+import { $console } from "core";
 
 export const dateFieldConfigSchema = Type.Composite(
    [
       Type.Object({
-         //default_value: Type.Optional(Type.Date()),
          type: StringEnum(["date", "datetime", "week"] as const, { default: "date" }),
          timezone: Type.Optional(Type.String()),
          min_date: Type.Optional(Type.String()),
@@ -51,13 +51,11 @@ export class DateField<Required extends true | false = false> extends Field<
    }
 
    private parseDateFromString(value: string): Date {
-      //console.log("parseDateFromString", value);
       if (this.config.type === "week" && value.includes("-W")) {
          const [year, week] = value.split("-W").map((n) => Number.parseInt(n, 10)) as [
             number,
             number,
          ];
-         //console.log({ year, week });
          // @ts-ignore causes errors on build?
          return dayjs().year(year).week(week).toDate();
       }
@@ -67,15 +65,12 @@ export class DateField<Required extends true | false = false> extends Field<
 
    override getValue(value: string, context?: TRenderContext): string | undefined {
       if (value === null || !value) return;
-      //console.log("getValue", { value, context });
       const date = this.parseDateFromString(value);
-      //console.log("getValue.date", date);
 
       if (context === "submit") {
          try {
             return date.toISOString();
          } catch (e) {
-            //console.warn("DateField.getValue:value/submit", value, e);
             return undefined;
          }
       }
@@ -84,7 +79,7 @@ export class DateField<Required extends true | false = false> extends Field<
          try {
             return `${date.getFullYear()}-W${dayjs(date).week()}`;
          } catch (e) {
-            console.warn("error - DateField.getValue:week", value, e);
+            $console.warn("DateField.getValue:week error", value, String(e));
             return;
          }
       }
@@ -97,8 +92,7 @@ export class DateField<Required extends true | false = false> extends Field<
 
          return this.formatDate(local);
       } catch (e) {
-         console.warn("DateField.getValue:value", value);
-         console.warn("DateField.getValue:e", e);
+         $console.warn("DateField.getValue error", this.config.type, value, String(e));
          return;
       }
    }
@@ -117,7 +111,6 @@ export class DateField<Required extends true | false = false> extends Field<
    }
 
    override transformRetrieve(_value: string): Date | null {
-      //console.log("transformRetrieve DateField", _value);
       const value = super.transformRetrieve(_value);
       if (value === null) return null;
 
@@ -136,7 +129,6 @@ export class DateField<Required extends true | false = false> extends Field<
       const value = await super.transformPersist(_value, em, context);
       if (this.nullish(value)) return value;
 
-      //console.log("transformPersist DateField", value);
       switch (this.config.type) {
          case "date":
          case "week":

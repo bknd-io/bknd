@@ -1,7 +1,7 @@
-import { Const, type Static, StringEnum, StringRecord, Type } from "core/utils";
+import { Const, type Static, StringEnum, Type } from "core/utils";
 import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
-import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
+import { baseFieldConfigSchema, Field, type TActionContext, type TRenderContext } from "./Field";
 
 export const enumFieldConfigSchema = Type.Composite(
    [
@@ -53,10 +53,6 @@ export class EnumField<Required extends true | false = false, TypeOverride = str
    constructor(name: string, config: Partial<EnumFieldConfig>) {
       super(name, config);
 
-      /*if (this.config.options.values.length === 0) {
-         throw new Error(`Enum field "${this.name}" requires at least one option`);
-      }*/
-
       if (this.config.default_value && !this.isValidValue(this.config.default_value)) {
          throw new Error(`Default value "${this.config.default_value}" is not a valid option`);
       }
@@ -68,10 +64,6 @@ export class EnumField<Required extends true | false = false, TypeOverride = str
 
    getOptions(): { label: string; value: string }[] {
       const options = this.config?.options ?? { type: "strings", values: [] };
-
-      /*if (options.values?.length === 0) {
-         throw new Error(`Enum field "${this.name}" requires at least one option`);
-      }*/
 
       if (options.type === "strings") {
          return options.values?.map((option) => ({ label: option, value: option }));

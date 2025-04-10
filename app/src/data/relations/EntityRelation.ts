@@ -12,15 +12,6 @@ import type { RelationType } from "./relation-types";
 export type KyselyJsonFrom = any;
 export type KyselyQueryBuilder = SelectQueryBuilder<any, any, any>;
 
-/*export type RelationConfig = {
-   mappedBy?: string;
-   inversedBy?: string;
-   sourceCardinality?: number;
-   connectionTable?: string;
-   connectionTableMappedName?: string;
-   required?: boolean;
-};*/
-
 export type BaseRelationConfig = Static<typeof EntityRelation.schema>;
 
 // @todo: add generic type for relation config
@@ -165,7 +156,6 @@ export abstract class EntityRelation<
     * @param entity
     */
    isListableFor(entity: Entity): boolean {
-      //console.log("isListableFor", entity.name, this.source.entity.name, this.target.entity.name);
       return this.target.entity.name === entity.name;
    }
 

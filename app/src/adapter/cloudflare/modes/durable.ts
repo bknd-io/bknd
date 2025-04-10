@@ -3,6 +3,7 @@ import type { App, CreateAppConfig } from "bknd";
 import { createRuntimeApp, makeConfig } from "bknd/adapter";
 import type { CloudflareBkndConfig, Context, CloudflareEnv } from "../index";
 import { constants, registerAsyncsExecutionContext } from "../config";
+import { $console } from "core";
 
 export async function getDurable<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
@@ -13,7 +14,7 @@ export async function getDurable<Env extends CloudflareEnv = CloudflareEnv>(
    const key = config.key ?? "app";
 
    if ([config.onBuilt, config.beforeBuild].some((x) => x)) {
-      console.log("onBuilt and beforeBuild are not supported with DurableObject mode");
+      $console.warn("onBuilt and beforeBuild are not supported with DurableObject mode");
    }
 
    const start = performance.now();

@@ -1,5 +1,4 @@
 export { UserExistsException, UserNotFoundException, InvalidCredentialsException } from "./errors";
-export { sha256 } from "./utils/hash";
 export {
    type ProfileExchange,
    type Strategy,

@@ -1,14 +1,6 @@
-import { type DB, Exception, type PrimaryFieldType } from "core";
+import { $console, type DB, Exception, type PrimaryFieldType } from "core";
 import { addFlashMessage } from "core/server/flash";
-import {
-   type Static,
-   StringEnum,
-   type TObject,
-   Type,
-   parse,
-   runtimeSupports,
-   transformObject,
-} from "core/utils";
+import { parse, runtimeSupports, type Static, StringEnum, type TObject, Type } from "core/utils";
 import type { Context, Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
@@ -129,7 +121,6 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       identifier: string,
       profile: ProfileExchange,
    ): Promise<AuthResponse> {
-      //console.log("resolve", { action, strategy: strategy.getName(), profile });
       const user = await this.userResolver(action, strategy, identifier, profile);
 
       if (user) {
@@ -225,7 +216,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
          return token;
       } catch (e: any) {
          if (e instanceof Error) {
-            console.error("[Error:getAuthCookie]", e.message);
+            $console.error("[getAuthCookie]", e.message);
          }
 
          return undefined;
@@ -262,7 +253,6 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
 
    // @todo: move this to a server helper
    isJsonRequest(c: Context): boolean {
-      //return c.req.header("Content-Type") === "application/x-www-form-urlencoded";
       return c.req.header("Content-Type") === "application/json";
    }
 
@@ -289,7 +279,6 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    async respond(c: Context, data: AuthResponse | Error | any, redirect?: string) {
       const successUrl = this.getSafeUrl(c, redirect ?? this.config.cookie.pathSuccess ?? "/");
       const referer = redirect ?? c.req.header("Referer") ?? successUrl;
-      //console.log("auth respond", { redirect, successUrl, successPath });
 
       if ("token" in data) {
          await this.setAuthCookie(c, data.token);
@@ -299,7 +288,6 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
          }
 
          // can't navigate to "/" – doesn't work on nextjs
-         //console.log("auth success, redirecting to", successUrl);
          return c.redirect(successUrl);
       }
 
@@ -313,7 +301,6 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       }
 
       await addFlashMessage(c, message, "error");
-      //console.log("auth failed, redirecting to", referer);
       return c.redirect(referer);
    }
 

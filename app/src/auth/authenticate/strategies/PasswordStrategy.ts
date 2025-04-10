@@ -1,21 +1,17 @@
 import type { Authenticator, Strategy } from "auth";
-import { isDebug, tbValidator as tb } from "core";
-import { type Static, StringEnum, Type, parse } from "core/utils";
-import { hash } from "core/utils";
-import { type Context, Hono } from "hono";
-import { type StrategyAction, type StrategyActions, createStrategyAction } from "../Authenticator";
+import { tbValidator as tb } from "core";
+import { hash, parse, type Static, StringEnum, Type } from "core/utils";
+import { Hono } from "hono";
+import { createStrategyAction, type StrategyActions } from "../Authenticator";
 
 type LoginSchema = { username: string; password: string } | { email: string; password: string };
 type RegisterSchema = { email: string; password: string; [key: string]: any };
 
 const schema = Type.Object({
-   hashing: StringEnum(["plain", "sha256" /*, "bcrypt"*/] as const, { default: "sha256" }),
+   hashing: StringEnum(["plain", "sha256"] as const, { default: "sha256" }),
 });
 
 export type PasswordStrategyOptions = Static<typeof schema>;
-/*export type PasswordStrategyOptions2 = {
-   hashing?: "plain" | "bcrypt" | "sha256";
-};*/
 
 export class PasswordStrategy implements Strategy {
    private options: PasswordStrategyOptions;

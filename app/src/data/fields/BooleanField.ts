@@ -47,7 +47,6 @@ export class BooleanField<Required extends true | false = false> extends Field<
    }
 
    override transformRetrieve(value: unknown): boolean | null {
-      //console.log("Boolean:transformRetrieve:value", value);
       if (typeof value === "undefined" || value === null) {
          if (this.isRequired()) return false;
          if (this.hasDefault()) return this.getDefault();
