@@ -54,7 +54,6 @@ export function DropzoneContainer({
       sort: "-id",
    });
    const entity_name = (media?.entity_name ?? "media") as "media";
-   //console.log("dropzone:baseUrl", baseUrl);
 
    const selectApi = (api: Api, page: number = 0) =>
       entity
@@ -89,6 +88,7 @@ export function DropzoneContainer({
          method: "POST",
       };
    });
+   console.log("header", api.media.getUploadHeaders());
 
    const refresh = useEvent(async () => {
       await invalidate($q.promise.key({ search: false }));
