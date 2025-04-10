@@ -5,6 +5,7 @@ import { type Context, Hono } from "hono";
 import { getSignedCookie, setSignedCookie } from "hono/cookie";
 import * as oauth from "oauth4webapi";
 import * as issuers from "./issuers";
+import { pick } from "lodash-es";
 
 type ConfiguredIssuers = keyof typeof issuers;
 type SupportedTypes = "oauth2" | "oidc";
@@ -338,7 +339,17 @@ export class OAuthStrategy implements Strategy {
          });
 
          try {
-            const data = await auth.resolve(state.action, this, profile.sub, profile);
+            // for now, only add email, but prepare to add more
+            const user = await auth.resolve(state.action, this, {
+               email: profile.email,
+               strategy_value: profile.sub,
+            });
+
+            if (profile.sub !== user.strategy_value) {
+               throw new Exception("Invalid credentials");
+            }
+
+            const data = await auth.safeAuthResponse(user);
 
             if (state.mode === "cookie") {
                return await auth.respond(c, data, state.redirect);
@@ -347,7 +358,7 @@ export class OAuthStrategy implements Strategy {
             return c.json(data);
          } catch (e) {
             if (state.mode === "cookie") {
-               return await auth.respond(c, e, state.redirect);
+               return await auth.respond(c, e as Error, state.redirect);
             }
 
             throw e;

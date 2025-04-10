@@ -1,15 +1,32 @@
-import type { Authenticator, Strategy } from "auth";
-import { tbValidator as tb } from "core";
+import type { Authenticator, ProfileExchange, Strategy, User } from "auth";
+import { Exception, tbValidator as tb } from "core";
 import { hash, parse, type Static, StringEnum, Type } from "core/utils";
 import { Hono } from "hono";
 import { createStrategyAction, type StrategyActions } from "../Authenticator";
+import { genSalt as bcryptGenSalt, hash as bcryptHash, compare as bcryptCompare } from "bcryptjs";
 
 type LoginSchema = { username: string; password: string } | { email: string; password: string };
 type RegisterSchema = { email: string; password: string; [key: string]: any };
 
-const schema = Type.Object({
-   hashing: StringEnum(["plain", "sha256"] as const, { default: "sha256" }),
-});
+const schema = Type.Union([
+   Type.Object(
+      {
+         hashing: StringEnum(["plain", "sha256"]),
+      },
+      {
+         additionalProperties: false,
+      },
+   ),
+   Type.Object(
+      {
+         hashing: Type.Const("bcrypt"),
+         rounds: Type.Number({ minimum: 1, maximum: 10 }),
+      },
+      {
+         additionalProperties: false,
+      },
+   ),
+]);
 
 export type PasswordStrategyOptions = Static<typeof schema>;
 
@@ -29,13 +46,13 @@ export class PasswordStrategy implements Strategy {
       }
    }
 
-   async login(input: LoginSchema) {
-      if (!("email" in input) || !("password" in input)) {
-         throw new Error("Invalid input: Email and password must be provided");
+   async compare(user: ProfileExchange, compare: string): Promise<boolean> {
+      switch (this.options.hashing) {
+         case "sha256":
+            return user.password === (await this.hash(compare));
       }
 
-      const hashedPassword = await this.hash(input.password);
-      return { ...input, password: hashedPassword };
+      return false;
    }
 
    async register(input: RegisterSchema) {
@@ -44,8 +61,8 @@ export class PasswordStrategy implements Strategy {
       }
 
       return {
-         ...input,
-         password: await this.hash(input.password),
+         email: input.email,
+         strategy_value: await this.hash(input.password),
       };
    }
 
@@ -66,17 +83,20 @@ export class PasswordStrategy implements Strategy {
                const { redirect } = c.req.valid("query");
 
                try {
-                  const payload = await this.login(body);
-                  const data = await authenticator.resolve(
-                     "login",
-                     this,
-                     payload.password,
-                     payload,
-                  );
+                  if (!("email" in body) || !("password" in body)) {
+                     throw new Error("Invalid input: Email and password must be provided");
+                  }
+                  const user = await authenticator.resolve("login", this, body);
 
+                  // compare
+                  if (!this.compare(user, body.password)) {
+                     throw new Exception("Invalid credentials");
+                  }
+
+                  const data = await authenticator.safeAuthResponse(user);
                   return await authenticator.respond(c, data, redirect);
                } catch (e) {
-                  return await authenticator.respond(c, e);
+                  return await authenticator.respond(c, e as Error);
                }
             },
          )
@@ -89,16 +109,19 @@ export class PasswordStrategy implements Strategy {
                }),
             ),
             async (c) => {
-               const body = await authenticator.getBody(c);
                const { redirect } = c.req.valid("query");
+               const { password, email, ...body } = await authenticator.getBody(c);
+               if (!email || !password) {
+                  throw new Error("Invalid input: Email and password must be provided");
+               }
 
-               const payload = await this.register(body);
-               const data = await authenticator.resolve(
-                  "register",
-                  this,
-                  payload.password,
-                  payload,
-               );
+               const user = await authenticator.resolve("register", this, {
+                  //...body, // for now, don't add body, but prepare
+                  email,
+                  strategy_value: await this.hash(password),
+               });
+
+               const data = await authenticator.safeAuthResponse(user);
 
                return await authenticator.respond(c, data, redirect);
             },

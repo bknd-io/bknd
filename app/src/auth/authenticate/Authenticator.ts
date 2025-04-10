@@ -7,6 +7,7 @@ import { sign, verify } from "hono/jwt";
 import type { CookieOptions } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
+import type { UserFieldSchema } from "auth";
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];
@@ -20,6 +21,7 @@ export type StrategyAction<S extends TObject = TObject> = {
 export type StrategyActions = Partial<Record<StrategyActionName, StrategyAction>>;
 
 // @todo: add schema to interface to ensure proper inference
+// @todo: add tests (e.g. invalid strategy_value)
 export interface Strategy {
    getController: (auth: Authenticator) => Hono<any>;
    getType: () => string;
@@ -29,18 +31,12 @@ export interface Strategy {
    getActions?: () => StrategyActions;
 }
 
-export type User = {
-   id: PrimaryFieldType;
-   email: string;
-   password: string;
-   role?: string | null;
-};
+export type User = UserFieldSchema;
 
 export type ProfileExchange = {
    email?: string;
-   username?: string;
-   sub?: string;
-   password?: string;
+   strategy?: string;
+   strategy_value?: string;
    [key: string]: any;
 };
 
@@ -92,12 +88,15 @@ export const authenticatorConfig = Type.Object({
 
 type AuthConfig = Static<typeof authenticatorConfig>;
 export type AuthAction = "login" | "register";
+export type AuthResolveOptions = {
+   identifier: "email" | string;
+};
 export type AuthUserResolver = (
    action: AuthAction,
    strategy: Strategy,
-   identifier: string,
    profile: ProfileExchange,
-) => Promise<SafeUser | undefined>;
+   opts?: AuthResolveOptions,
+) => Promise<ProfileExchange | undefined>;
 type AuthClaims = SafeUser & {
    iat: number;
    iss?: string;
@@ -109,8 +108,8 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    private readonly config: AuthConfig;
    private readonly userResolver: AuthUserResolver;
 
-   constructor(strategies: Strategies, userResolver?: AuthUserResolver, config?: AuthConfig) {
-      this.userResolver = userResolver ?? (async (a, s, i, p) => p as any);
+   constructor(strategies: Strategies, userResolver: AuthUserResolver, config?: AuthConfig) {
+      this.userResolver = userResolver;
       this.strategies = strategies as Strategies;
       this.config = parse(authenticatorConfig, config ?? {});
    }
@@ -118,19 +117,15 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    async resolve(
       action: AuthAction,
       strategy: Strategy,
-      identifier: string,
       profile: ProfileExchange,
-   ): Promise<AuthResponse> {
-      const user = await this.userResolver(action, strategy, identifier, profile);
-
-      if (user) {
-         return {
-            user,
-            token: await this.jwt(user),
-         };
+      opts?: AuthResolveOptions,
+   ): Promise<ProfileExchange> {
+      const user = await this.userResolver(action, strategy, profile, opts);
+      if (!user) {
+         throw new Error("User could not be resolved");
       }
 
-      throw new Error("User could not be resolved");
+      return user;
    }
 
    getStrategies(): Strategies {
@@ -149,7 +144,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    }
 
    // @todo: add jwt tests
-   async jwt(_user: Omit<User, "password">): Promise<string> {
+   async jwt(_user: SafeUser | ProfileExchange): Promise<string> {
       const user = pick(_user, this.config.jwt.fields);
 
       const payload: JWTPayload = {
@@ -173,6 +168,14 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       }
 
       return sign(payload, secret, this.config.jwt?.alg ?? "HS256");
+   }
+
+   async safeAuthResponse(_user: ProfileExchange): Promise<AuthResponse> {
+      const user = pick(_user, this.config.jwt.fields) as SafeUser;
+      return {
+         user,
+         token: await this.jwt(user),
+      };
    }
 
    async verify(jwt: string): Promise<AuthClaims | undefined> {
@@ -276,7 +279,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       return p;
    }
 
-   async respond(c: Context, data: AuthResponse | Error | any, redirect?: string) {
+   async respond(c: Context, data: AuthResponse | Error, redirect?: string) {
       const successUrl = this.getSafeUrl(c, redirect ?? this.config.cookie.pathSuccess ?? "/");
       const referer = redirect ?? c.req.header("Referer") ?? successUrl;
 

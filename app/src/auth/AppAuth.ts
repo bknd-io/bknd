@@ -8,13 +8,14 @@ import {
 } from "auth";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
 import { $console, type DB, Exception, type PrimaryFieldType } from "core";
-import { type Static, secureRandomString, transformObject } from "core/utils";
+import { secureRandomString, transformObject } from "core/utils";
 import type { Entity, EntityManager } from "data";
 import { type FieldSchema, em, entity, enumm, text } from "data/prototype";
 import { pick } from "lodash-es";
 import { Module } from "modules/Module";
 import { AuthController } from "./api/AuthController";
 import { type AppAuthSchema, STRATEGIES, authConfigSchema } from "./auth-schema";
+import type { AuthResolveOptions } from "auth/authenticate/Authenticator";
 
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
 declare module "core" {
@@ -23,7 +24,6 @@ declare module "core" {
    }
 }
 
-type AuthSchema = Static<typeof authConfigSchema>;
 export type CreateUserPayload = { email: string; password: string; [key: string]: any };
 
 export class AppAuth extends Module<typeof authConfigSchema> {
@@ -31,7 +31,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
    cache: Record<string, any> = {};
    _controller!: AuthController;
 
-   override async onBeforeUpdate(from: AuthSchema, to: AuthSchema) {
+   override async onBeforeUpdate(from: AppAuthSchema, to: AppAuthSchema) {
       const defaultSecret = authConfigSchema.properties.jwt.properties.secret.default;
 
       if (!from.enabled && to.enabled) {
@@ -125,25 +125,26 @@ export class AppAuth extends Module<typeof authConfigSchema> {
    private async resolveUser(
       action: AuthAction,
       strategy: Strategy,
-      identifier: string,
       profile: ProfileExchange,
+      opts?: AuthResolveOptions,
    ): Promise<any> {
       if (!this.config.allow_register && action === "register") {
          throw new Exception("Registration is not allowed", 403);
       }
 
-      const fields = this.getUsersEntity()
-         .getFillableFields("create")
-         .map((f) => f.name);
-      const filteredProfile = Object.fromEntries(
-         Object.entries(profile).filter(([key]) => fields.includes(key)),
-      );
+      const identifier = opts?.identifier || "email";
+      if (typeof identifier !== "string" || identifier.length === 0) {
+         throw new Exception("Identifier must be a string");
+      }
+      if (!(identifier in profile)) {
+         throw new Exception(`Profile must have identifier "${identifier}"`);
+      }
 
       switch (action) {
          case "login":
-            return this.login(strategy, identifier, filteredProfile);
+            return this.login(strategy, profile, { identifier });
          case "register":
-            return this.register(strategy, identifier, filteredProfile);
+            return this.register(strategy, profile, { identifier });
       }
    }
 
@@ -151,19 +152,12 @@ export class AppAuth extends Module<typeof authConfigSchema> {
       return pick(user, this.config.jwt.fields);
    }
 
-   private async login(strategy: Strategy, identifier: string, profile: ProfileExchange) {
-      if (!("email" in profile)) {
-         throw new Exception("Profile must have email");
-      }
-      if (typeof identifier !== "string" || identifier.length === 0) {
-         throw new Exception("Identifier must be a string");
-      }
-
+   private async login(strategy: Strategy, profile: ProfileExchange, opts: AuthResolveOptions) {
       const users = this.getUsersEntity();
       this.toggleStrategyValueVisibility(true);
       const result = await this.em
          .repo(users as unknown as "users")
-         .findOne({ email: profile.email! });
+         .findOne({ [opts.identifier]: profile[opts.identifier]! });
       this.toggleStrategyValueVisibility(false);
       if (!result.data) {
          throw new Exception("User not found", 404);
@@ -174,23 +168,18 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          throw new Exception("User registered with different strategy");
       }
 
-      if (result.data.strategy_value !== identifier) {
-         throw new Exception("Invalid credentials");
-      }
-
-      return this.filterUserData(result.data);
+      return result.data;
    }
 
-   private async register(strategy: Strategy, identifier: string, profile: ProfileExchange) {
-      if (!("email" in profile)) {
-         throw new Exception("Profile must have an email");
-      }
-      if (typeof identifier !== "string" || identifier.length === 0) {
-         throw new Exception("Identifier must be a string");
+   private async register(strategy: Strategy, profile: ProfileExchange, opts: AuthResolveOptions) {
+      if (!("strategy_value" in profile)) {
+         throw new Exception("Profile must have a strategy value");
       }
 
       const users = this.getUsersEntity();
-      const { data } = await this.em.repo(users).findOne({ email: profile.email! });
+      const { data } = await this.em
+         .repo(users)
+         .findOne({ [opts.identifier]: profile[opts.identifier]! });
       if (data) {
          throw new Exception("User already exists");
       }
@@ -198,7 +187,6 @@ export class AppAuth extends Module<typeof authConfigSchema> {
       const payload: any = {
          ...profile,
          strategy: strategy.getName(),
-         strategy_value: identifier,
       };
 
       const mutator = this.em.mutator(users);
@@ -211,7 +199,8 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          throw new Error("Could not create user");
       }
 
-      return this.filterUserData(createResult.data);
+      //return this.filterUserData(createResult.data);
+      return createResult.data;
    }
 
    private toggleStrategyValueVisibility(visible: boolean) {
@@ -287,7 +276,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          throw new Error("Cannot create user, auth not enabled");
       }
 
-      const strategy = "password";
+      const strategy = "password" as const;
       const pw = this.authenticator.strategy(strategy) as PasswordStrategy;
       const strategy_value = await pw.hash(password);
       const mutator = this.em.mutator(this.config.entity_name as "users");
