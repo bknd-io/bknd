@@ -1,7 +1,8 @@
 // eslint-disable-next-line import/no-unresolved
 import { describe, expect, test } from "bun:test";
 import { isEqual } from "lodash-es";
-import { type Static, Type, _jsonp, withDisabledConsole } from "../../src/core/utils";
+import { _jsonp, withDisabledConsole } from "../../src/core/utils";
+import { type Static, Type } from "@sinclair/typebox";
 import { Condition, ExecutionEvent, FetchTask, Flow, LogTask, Task } from "../../src/flows";
 
 /*beforeAll(disableConsoleLog);
