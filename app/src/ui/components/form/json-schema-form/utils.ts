@@ -138,3 +138,10 @@ export function omitSchema<Given extends JSONSchema>(_schema: Given, keys: strin
 export function isTypeSchema(schema?: JsonSchema): schema is JsonSchema {
    return typeof schema === "object" && "type" in schema && !isType(schema.type, "error");
 }
+
+export function firstDefined<T>(...args: T[]): T | undefined {
+   for (const arg of args) {
+      if (typeof arg !== "undefined") return arg;
+   }
+   return undefined;
+}
