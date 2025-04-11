@@ -339,30 +339,28 @@ export class OAuthStrategy implements Strategy {
             state: state.state,
          });
 
-         try {
-            // for now, only add email, but prepare to add more
-            const user = await auth.resolve(state.action, this, {
-               email: profile.email,
-               strategy_value: profile.sub,
-            });
+         const safeProfile = {
+            email: profile.email,
+            strategy_value: profile.sub,
+         } as const;
 
-            if (profile.sub !== user.strategy_value) {
+         const verify = async (user) => {
+            if (user.strategy_value !== profile.sub) {
                throw new Exception("Invalid credentials");
             }
+         };
+         const opts = {
+            redirect: state.redirect,
+            forceJsonResponse: state.mode !== "cookie",
+         } as const;
 
-            const data = await auth.safeAuthResponse(user);
-
-            if (state.mode === "cookie") {
-               return await auth.respond(c, data, state.redirect);
-            }
-
-            return c.json(data);
-         } catch (e) {
-            if (state.mode === "cookie") {
-               return await auth.respond(c, e as Error, state.redirect);
-            }
-
-            throw e;
+         switch (state.action) {
+            case "login":
+               return auth.resolveLogin(c, this, safeProfile, verify, opts);
+            case "register":
+               return auth.resolveRegister(c, this, safeProfile, verify, opts);
+            default:
+               throw new Error("Invalid action");
          }
       });
 

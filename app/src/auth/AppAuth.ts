@@ -1,21 +1,13 @@
-import {
-   type AuthAction,
-   AuthPermissions,
-   Authenticator,
-   type ProfileExchange,
-   Role,
-   type Strategy,
-} from "auth";
+import { Authenticator, AuthPermissions, Role, type Strategy } from "auth";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
-import { $console, type DB, Exception, type PrimaryFieldType } from "core";
+import { $console, type DB, type PrimaryFieldType } from "core";
 import { secureRandomString, transformObject } from "core/utils";
 import type { Entity, EntityManager } from "data";
-import { type FieldSchema, em, entity, enumm, text } from "data/prototype";
-import { pick } from "lodash-es";
+import { em, entity, enumm, type FieldSchema, text } from "data/prototype";
 import { Module } from "modules/Module";
 import { AuthController } from "./api/AuthController";
-import { type AppAuthSchema, STRATEGIES, authConfigSchema } from "./auth-schema";
-import type { AuthResolveOptions } from "auth/authenticate/Authenticator";
+import { type AppAuthSchema, authConfigSchema, STRATEGIES } from "./auth-schema";
+import { AppUserPool } from "auth/AppUserPool";
 
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
 declare module "core" {
@@ -80,7 +72,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          }
       });
 
-      this._authenticator = new Authenticator(strategies, this.resolveUser.bind(this), {
+      this._authenticator = new Authenticator(strategies, new AppUserPool(this), {
          jwt: this.config.jwt,
          cookie: this.config.cookie,
       });
@@ -120,108 +112,6 @@ export class AppAuth extends Module<typeof authConfigSchema> {
 
    get em(): EntityManager {
       return this.ctx.em as any;
-   }
-
-   private async resolveUser(
-      action: AuthAction,
-      strategy: Strategy,
-      profile: ProfileExchange,
-      opts?: AuthResolveOptions,
-   ): Promise<any> {
-      if (!this.config.allow_register && action === "register") {
-         throw new Exception("Registration is not allowed", 403);
-      }
-
-      const identifier = opts?.identifier || "email";
-      if (typeof identifier !== "string" || identifier.length === 0) {
-         throw new Exception("Identifier must be a string");
-      }
-      if (!(identifier in profile)) {
-         throw new Exception(`Profile must have identifier "${identifier}"`);
-      }
-
-      switch (action) {
-         case "login":
-            return this.login(strategy, profile, { identifier });
-         case "register":
-            return this.register(strategy, profile, { identifier });
-      }
-   }
-
-   private filterUserData(user: any) {
-      return pick(user, this.config.jwt.fields);
-   }
-
-   private async login(strategy: Strategy, profile: ProfileExchange, opts: AuthResolveOptions) {
-      const users = this.getUsersEntity();
-      this.toggleStrategyValueVisibility(true);
-      const result = await this.em
-         .repo(users as unknown as "users")
-         .findOne({ [opts.identifier]: profile[opts.identifier]! });
-      this.toggleStrategyValueVisibility(false);
-      if (!result.data) {
-         throw new Exception("User not found", 404);
-      }
-
-      // compare strategy and identifier
-      if (result.data.strategy !== strategy.getName()) {
-         throw new Exception("User registered with different strategy");
-      }
-
-      return result.data;
-   }
-
-   private async register(strategy: Strategy, profile: ProfileExchange, opts: AuthResolveOptions) {
-      if (!("strategy_value" in profile)) {
-         throw new Exception("Profile must have a strategy value");
-      }
-
-      const users = this.getUsersEntity();
-      const { data } = await this.em
-         .repo(users)
-         .findOne({ [opts.identifier]: profile[opts.identifier]! });
-      if (data) {
-         throw new Exception("User already exists");
-      }
-
-      const payload: any = {
-         ...profile,
-         strategy: strategy.getName(),
-      };
-
-      const mutator = this.em.mutator(users);
-      mutator.__unstable_toggleSystemEntityCreation(false);
-      this.toggleStrategyValueVisibility(true);
-      const createResult = await mutator.insertOne(payload);
-      mutator.__unstable_toggleSystemEntityCreation(true);
-      this.toggleStrategyValueVisibility(false);
-      if (!createResult.data) {
-         throw new Error("Could not create user");
-      }
-
-      //return this.filterUserData(createResult.data);
-      return createResult.data;
-   }
-
-   private toggleStrategyValueVisibility(visible: boolean) {
-      const toggle = (name: string, visible: boolean) => {
-         const field = this.getUsersEntity().field(name)!;
-
-         if (visible) {
-            field.config.hidden = false;
-            field.config.fillable = true;
-         } else {
-            // reset to normal
-            const template = AppAuth.usersFields.strategy_value.config;
-            field.config.hidden = template.hidden;
-            field.config.fillable = template.fillable;
-         }
-      };
-
-      toggle("strategy_value", visible);
-      toggle("strategy", visible);
-
-      // @todo: think about a PasswordField that automatically hashes on save?
    }
 
    getUsersEntity(forceCreate?: boolean): Entity<"users", typeof AppAuth.usersFields> {

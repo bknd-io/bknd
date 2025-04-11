@@ -1,35 +1,16 @@
-import type { Authenticator, ProfileExchange, Strategy, User } from "auth";
-import { Exception, tbValidator as tb } from "core";
-import { type Static, StringEnum, parse } from "core/utils";
-import { hash } from "core/utils";
+import { type Authenticator, InvalidCredentialsException, type Strategy, type User } from "auth";
+import { $console, tbValidator as tb } from "core";
+import { Const, hash, parse, type Static, StrictObject, StringEnum } from "core/utils";
 import { Hono } from "hono";
-import { type StrategyActions, createStrategyAction } from "../Authenticator";
-import { genSalt as bcryptGenSalt, hash as bcryptHash, compare as bcryptCompare } from "bcryptjs";
+import { createStrategyAction, type StrategyActions } from "../Authenticator";
+import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;
 
-type LoginSchema = { username: string; password: string } | { email: string; password: string };
-type RegisterSchema = { email: string; password: string; [key: string]: any };
-
-const schema = Type.Union([
-   Type.Object(
-      {
-         hashing: StringEnum(["plain", "sha256"]),
-      },
-      {
-         additionalProperties: false,
-      },
-   ),
-   Type.Object(
-      {
-         hashing: Type.Const("bcrypt"),
-         rounds: Type.Number({ minimum: 1, maximum: 10 }),
-      },
-      {
-         additionalProperties: false,
-      },
-   ),
-]);
+const schema = StrictObject({
+   hashing: StringEnum(["plain", "sha256", "bcrypt"]),
+   rounds: Type.Optional(Type.Number({ minimum: 1, maximum: 10 })),
+});
 
 export type PasswordStrategyOptions = Static<typeof schema>;
 
@@ -40,115 +21,104 @@ export class PasswordStrategy implements Strategy {
       this.options = parse(schema, options);
    }
 
+   private getPayloadSchema() {
+      return Type.Object({
+         email: Type.String({
+            pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+         }),
+         password: Type.String({
+            minLength: 8, // @todo: this should be configurable
+         }),
+      });
+   }
+
    async hash(password: string) {
       switch (this.options.hashing) {
          case "sha256":
             return hash.sha256(password);
+         case "bcrypt": {
+            const salt = await bcryptGenSalt(this.options.rounds ?? 4);
+            return bcryptHash(password, salt);
+         }
          default:
             return password;
       }
    }
 
-   async compare(user: ProfileExchange, compare: string): Promise<boolean> {
+   async compare(actual: string, compare: string): Promise<boolean> {
       switch (this.options.hashing) {
-         case "sha256":
-            return user.password === (await this.hash(compare));
+         case "sha256": {
+            const compareHashed = await this.hash(compare);
+            return actual === compareHashed;
+         }
+         case "bcrypt":
+            return await bcryptCompare(compare, actual);
       }
 
       return false;
    }
 
-   async register(input: RegisterSchema) {
-      if (!input.email || !input.password) {
-         throw new Error("Invalid input: Email and password must be provided");
-      }
-
-      return {
-         email: input.email,
-         strategy_value: await this.hash(input.password),
+   verify(password: string) {
+      return async (user: User) => {
+         const compare = await this.compare(user?.strategy_value!, password);
+         if (compare !== true) {
+            throw new InvalidCredentialsException();
+         }
       };
    }
 
    getController(authenticator: Authenticator): Hono<any> {
       const hono = new Hono();
+      const redirectQuerySchema = Type.Object({
+         redirect: Type.Optional(Type.String()),
+      });
+      const payloadSchema = this.getPayloadSchema();
 
-      return hono
-         .post(
-            "/login",
-            tb(
-               "query",
-               Type.Object({
-                  redirect: Type.Optional(Type.String()),
-               }),
-            ),
-            async (c) => {
-               const body = await authenticator.getBody(c);
-               const { redirect } = c.req.valid("query");
-
-               try {
-                  if (!("email" in body) || !("password" in body)) {
-                     throw new Error("Invalid input: Email and password must be provided");
-                  }
-                  const user = await authenticator.resolve("login", this, body);
-
-                  // compare
-                  if (!this.compare(user, body.password)) {
-                     throw new Exception("Invalid credentials");
-                  }
-
-                  const data = await authenticator.safeAuthResponse(user);
-                  return await authenticator.respond(c, data, redirect);
-               } catch (e) {
-                  return await authenticator.respond(c, e as Error);
-               }
+      hono.post("/login", tb("query", redirectQuerySchema), async (c) => {
+         const body = parse(payloadSchema, await authenticator.getBody(c), {
+            onError: (errors) => {
+               $console.error("Invalid login payload", [...errors]);
+               throw new InvalidCredentialsException();
             },
-         )
-         .post(
-            "/register",
-            tb(
-               "query",
-               Type.Object({
-                  redirect: Type.Optional(Type.String()),
-               }),
-            ),
-            async (c) => {
-               const { redirect } = c.req.valid("query");
-               const { password, email, ...body } = await authenticator.getBody(c);
-               if (!email || !password) {
-                  throw new Error("Invalid input: Email and password must be provided");
-               }
+         });
+         const { redirect } = c.req.valid("query");
 
-               const user = await authenticator.resolve("register", this, {
-                  //...body, // for now, don't add body, but prepare
-                  email,
-                  strategy_value: await this.hash(password),
-               });
+         return await authenticator.resolveLogin(c, this, body, this.verify(body.password), {
+            redirect,
+         });
+      });
 
-               const data = await authenticator.safeAuthResponse(user);
-
-               return await authenticator.respond(c, data, redirect);
+      hono.post("/register", tb("query", redirectQuerySchema), async (c) => {
+         const { redirect } = c.req.valid("query");
+         const { password, email, ...body } = parse(payloadSchema, await authenticator.getBody(c), {
+            onError: (errors) => {
+               $console.error("Invalid register payload", [...errors]);
+               throw new InvalidCredentialsException();
             },
-         );
+         });
+
+         const profile = {
+            ...body,
+            email,
+            strategy_value: await this.hash(password),
+         };
+
+         return await authenticator.resolveRegister(c, this, profile, async () => void 0, {
+            redirect,
+         });
+      });
+
+      return hono;
    }
 
    getActions(): StrategyActions {
       return {
-         create: createStrategyAction(
-            Type.Object({
-               email: Type.String({
-                  pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-               }),
-               password: Type.String({
-                  minLength: 8, // @todo: this should be configurable
-               }),
-            }),
-            async ({ password, ...input }) => {
-               return {
-                  ...input,
-                  strategy_value: await this.hash(password),
-               };
-            },
-         ),
+         create: createStrategyAction(this.getPayloadSchema(), async ({ password, ...input }) => {
+            return {
+               ...input,
+               strategy_value: await this.hash(password),
+            };
+         }),
       };
    }
 
