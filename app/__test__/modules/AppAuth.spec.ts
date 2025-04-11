@@ -69,7 +69,7 @@ describe("AppAuth", () => {
             },
             body: JSON.stringify({
                email: "some@body.com",
-               password: "123456",
+               password: "12345678",
             }),
          });
          enableConsoleLog();
