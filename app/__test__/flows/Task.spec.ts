@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Type } from "../../src/core/utils";
+import { Type } from "@sinclair/typebox";
 import { Task } from "../../src/flows";
 import { dynamic } from "../../src/flows/tasks/Task";
 

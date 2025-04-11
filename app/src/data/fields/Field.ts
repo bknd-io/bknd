@@ -4,13 +4,14 @@ import {
    type Static,
    StringEnum,
    type TSchema,
-   Type,
    TypeInvalidError,
 } from "core/utils";
 import type { HTMLInputTypeAttribute, InputHTMLAttributes } from "react";
 import type { EntityManager } from "../entities";
 import { InvalidFieldConfigException, TransformPersistFailedException } from "../errors";
 import type { FieldSpec } from "data/connection/Connection";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 // @todo: contexts need to be reworked
 // e.g. "table" is irrelevant, because if read is not given, it fails

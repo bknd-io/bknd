@@ -1,7 +1,9 @@
-import { type Static, Type } from "core/utils";
+import type { Static } from "core/utils";
 import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
+import * as tb from "@sinclair/typebox";
+const { Type } = tb;
 
 export const booleanFieldConfigSchema = Type.Composite([
    Type.Object({

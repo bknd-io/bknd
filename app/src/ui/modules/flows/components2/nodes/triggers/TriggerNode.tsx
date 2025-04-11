@@ -1,20 +1,9 @@
 import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { TextInput } from "@mantine/core";
-import { TypeRegistry } from "@sinclair/typebox";
-import { Clean } from "@sinclair/typebox/value";
-import { type Node, type NodeProps, Position } from "@xyflow/react";
-import {
-   Const,
-   type Static,
-   StringEnum,
-   Type,
-   registerCustomTypeboxKinds,
-   transformObject,
-} from "core/utils";
+import type { Node, NodeProps } from "@xyflow/react";
+import { Const, type Static, registerCustomTypeboxKinds, transformObject } from "core/utils";
 import { TriggerMap } from "flows";
 import type { TAppFlowTriggerSchema } from "flows/AppFlows";
-import { isEqual } from "lodash-es";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { JsonViewer } from "ui/components/code/JsonViewer";
 import { MantineSegmentedControl } from "ui/components/form/hook-form-mantine/MantineSegmentedControl";
@@ -22,6 +11,8 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import { useFlowCanvas, useFlowSelector } from "../../../hooks/use-flow";
 import { BaseNode } from "../BaseNode";
 import { Handle } from "../Handle";
+import * as tb from "@sinclair/typebox";
+const { Type, TypeRegistry } = tb;
 
 // @todo: check if this could become an issue
 registerCustomTypeboxKinds(TypeRegistry);

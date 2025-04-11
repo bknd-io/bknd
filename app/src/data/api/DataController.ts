@@ -1,5 +1,6 @@
 import { $console, isDebug, tbValidator as tb } from "core";
-import { StringEnum, Type } from "core/utils";
+import { StringEnum } from "core/utils";
+import * as tbbox from "@sinclair/typebox";
 import {
    DataPermissions,
    type EntityData,
@@ -14,6 +15,7 @@ import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
+const { Type } = tbbox;
 
 export class DataController extends Controller {
    constructor(

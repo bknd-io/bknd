@@ -1,8 +1,9 @@
 import type { EventManager } from "core/events";
-import { Type } from "core/utils";
 import type { Flow } from "../Flow";
 import { Trigger } from "./Trigger";
 import { $console } from "core";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export class EventTrigger extends Trigger<typeof EventTrigger.schema> {
    override type = "event";

@@ -1,6 +1,12 @@
 import { $console, type DB, Exception, type PrimaryFieldType } from "core";
 import { addFlashMessage } from "core/server/flash";
-import { parse, runtimeSupports, type Static, StringEnum, type TObject, Type } from "core/utils";
+import {
+   type Static,
+   StringEnum,
+   type TObject,
+   parse,
+   runtimeSupports,
+} from "core/utils";
 import type { Context, Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
@@ -8,6 +14,8 @@ import type { CookieOptions } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import type { UserFieldSchema } from "auth";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];

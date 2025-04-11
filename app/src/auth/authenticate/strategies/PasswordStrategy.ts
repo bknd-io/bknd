@@ -1,9 +1,12 @@
 import type { Authenticator, ProfileExchange, Strategy, User } from "auth";
 import { Exception, tbValidator as tb } from "core";
-import { hash, parse, type Static, StringEnum, Type } from "core/utils";
+import { type Static, StringEnum, parse } from "core/utils";
+import { hash } from "core/utils";
 import { Hono } from "hono";
-import { createStrategyAction, type StrategyActions } from "../Authenticator";
+import { type StrategyActions, createStrategyAction } from "../Authenticator";
 import { genSalt as bcryptGenSalt, hash as bcryptHash, compare as bcryptCompare } from "bcryptjs";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 type LoginSchema = { username: string; password: string } | { email: string; password: string };
 type RegisterSchema = { email: string; password: string; [key: string]: any };

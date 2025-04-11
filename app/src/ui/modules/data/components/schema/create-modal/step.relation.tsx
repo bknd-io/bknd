@@ -2,15 +2,9 @@ import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Switch, TextInput } from "@mantine/core";
 import { TypeRegistry } from "@sinclair/typebox";
 import { IconDatabase } from "@tabler/icons-react";
-import {
-   type Static,
-   StringEnum,
-   StringIdentifier,
-   Type,
-   registerCustomTypeboxKinds,
-} from "core/utils";
+import { type Static, StringEnum, StringIdentifier, registerCustomTypeboxKinds } from "core/utils";
 import { ManyToOneRelation, type RelationType, RelationTypes } from "data";
-import { type ReactNode, startTransition, useEffect } from "react";
+import type { ReactNode } from "react";
 import { type Control, type FieldValues, type UseFormRegister, useForm } from "react-hook-form";
 import { TbRefresh } from "react-icons/tb";
 import { useBknd } from "ui/client/bknd";
@@ -20,6 +14,8 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import { useStepContext } from "ui/components/steps/Steps";
 import { useEvent } from "ui/hooks/use-event";
 import { ModalBody, ModalFooter, type TCreateModalSchema } from "./CreateModal";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 // @todo: check if this could become an issue
 registerCustomTypeboxKinds(TypeRegistry);

@@ -2,12 +2,13 @@ import { $console, config } from "core";
 import {
    type Static,
    StringEnum,
-   Type,
    parse,
    snakeToPascalWithSpaces,
    transformObject,
 } from "core/utils";
 import { type Field, PrimaryField, type TActionContext, type TRenderContext } from "../fields";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 // @todo: entity must be migrated to typebox
 export const entityConfigSchema = Type.Object(

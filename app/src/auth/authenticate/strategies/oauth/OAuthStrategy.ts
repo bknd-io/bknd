@@ -1,11 +1,12 @@
 import type { AuthAction, Authenticator, Strategy } from "auth";
 import { Exception, isDebug } from "core";
-import { type Static, StringEnum, Type, filterKeys } from "core/utils";
+import { type Static, StringEnum, filterKeys } from "core/utils";
 import { type Context, Hono } from "hono";
 import { getSignedCookie, setSignedCookie } from "hono/cookie";
 import * as oauth from "oauth4webapi";
 import * as issuers from "./issuers";
-import { pick } from "lodash-es";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 type ConfiguredIssuers = keyof typeof issuers;
 type SupportedTypes = "oauth2" | "oidc";

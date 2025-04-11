@@ -1,7 +1,9 @@
-import { Const, type Static, StringEnum, Type } from "core/utils";
+import { Const, type Static, StringEnum } from "core/utils";
 import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { baseFieldConfigSchema, Field, type TActionContext, type TRenderContext } from "./Field";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const enumFieldConfigSchema = Type.Composite(
    [

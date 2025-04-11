@@ -1,6 +1,7 @@
-import { Type } from "core/utils";
 import { Flow } from "../../flows/Flow";
 import { Task, dynamic } from "../Task";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export class SubFlowTask<Output extends Record<string, any>> extends Task<
    typeof SubFlowTask.schema,
