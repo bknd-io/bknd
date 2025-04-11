@@ -20,7 +20,7 @@ export class AppUserPool implements UserPool {
    }
 
    async findBy(strategy: string, prop: keyof SafeUser, value: any) {
-      $console.log("[AppUserPool:findBy]", { strategy, prop, value });
+      $console.debug("[AppUserPool:findBy]", { strategy, prop, value });
       this.toggleStrategyValueVisibility(true);
       const result = await this.em.repo(this.users).findOne({ [prop]: value, strategy });
       this.toggleStrategyValueVisibility(false);
@@ -34,7 +34,7 @@ export class AppUserPool implements UserPool {
    }
 
    async create(strategy: string, payload: CreateUser & Partial<Omit<User, "id">>) {
-      $console.log("[AppUserPool:create]", { strategy, payload });
+      $console.debug("[AppUserPool:create]", { strategy, payload });
       if (!("strategy_value" in payload)) {
          throw new InvalidConditionsException("Profile must have a strategy_value value");
       }
