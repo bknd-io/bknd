@@ -4,7 +4,6 @@ import { useToggle } from "@mantine/hooks";
 import { IconMinus, IconPlus, IconWorld } from "@tabler/icons-react";
 import type { Node, NodeProps } from "@xyflow/react";
 import type { Static } from "core/utils";
-import { Type } from "core/utils";
 import { FetchTask } from "flows";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,6 +14,8 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import { type TFlowNodeData, useFlowSelector } from "../../../hooks/use-flow";
 import { KeyValueInput } from "../../form/KeyValueInput";
 import { BaseNode } from "../BaseNode";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const schema = Type.Composite([
    FetchTask.schema,

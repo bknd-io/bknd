@@ -1,4 +1,4 @@
-import { type Static, Type } from "core/utils";
+import type { Static } from "core/utils";
 import type { ExpressionBuilder } from "kysely";
 import { Entity, type EntityManager } from "../entities";
 import { type Field, PrimaryField } from "../fields";
@@ -7,6 +7,8 @@ import { EntityRelation, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField } from "./RelationField";
 import { type RelationType, RelationTypes } from "./relation-types";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export type ManyToManyRelationConfig = Static<typeof ManyToManyRelation.schema>;
 

@@ -1,6 +1,8 @@
-import { type Static, StringEnum, Type, parse } from "core/utils";
+import { type Static, StringEnum, parse } from "core/utils";
 import type { Execution } from "../Execution";
 import type { Flow } from "../Flow";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export class Trigger<Schema extends typeof Trigger.schema = typeof Trigger.schema> {
    // @todo: remove this

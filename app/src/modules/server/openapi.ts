@@ -1,6 +1,7 @@
-import { Type } from "core/utils";
 import type { ModuleConfigs } from "modules/ModuleManager";
 import type { OpenAPIV3 as OAS } from "openapi-types";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 function prefixPaths(paths: OAS.PathsObject, prefix: string): OAS.PathsObject {
    const result: OAS.PathsObject = {};

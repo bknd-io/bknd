@@ -1,7 +1,10 @@
 import type { StaticDecode, TSchema } from "@sinclair/typebox";
 import { BkndError, SimpleRenderer } from "core";
-import { parse, type Static, type TObject, Type, ucFirst, Value } from "core/utils";
+import { type Static, type TObject, Value, parse, ucFirst } from "core/utils";
 import type { InputsMap } from "../flows/Execution";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
+//type InstanceOf<T> = T extends new (...args: any) => infer R ? R : never;
 
 export type TaskResult<Output = any> = {
    start: Date;

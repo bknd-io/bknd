@@ -1,13 +1,6 @@
 import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Radio, TextInput } from "@mantine/core";
-import {
-   Default,
-   type Static,
-   StringEnum,
-   StringIdentifier,
-   Type,
-   transformObject,
-} from "core/utils";
+import { Default, type Static, StringEnum, StringIdentifier, transformObject } from "core/utils";
 import type { MediaFieldConfig } from "media/MediaField";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -22,6 +15,8 @@ import {
    type TFieldCreate,
    useStepContext,
 } from "../../CreateModal";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const schema = Type.Object({
    entity: StringIdentifier,
