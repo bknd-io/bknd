@@ -4,7 +4,7 @@ import type { Static } from "core/utils";
 import type { ExpressionBuilder } from "kysely";
 import type { Entity, EntityManager } from "../entities";
 import type { RepoQuery } from "../server/data-query-impl";
-import { EntityRelation, type KyselyJsonFrom, type KyselyQueryBuilder } from "./EntityRelation";
+import { EntityRelation, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField, type RelationFieldBaseConfig } from "./RelationField";
 import type { MutationInstructionResponse } from "./RelationMutator";
@@ -127,7 +127,6 @@ export class ManyToOneRelation extends EntityRelation<typeof ManyToOneRelation.s
       }
 
       const groupBy = `${entity.name}.${entity.getPrimaryField().name}`;
-      //console.log("queryInfo", entity.name, { reference, side, relationRef, entityRef, otherRef });
 
       return {
          other,

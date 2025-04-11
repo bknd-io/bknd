@@ -11,13 +11,10 @@ type LoginSchema = { username: string; password: string } | { email: string; pas
 type RegisterSchema = { email: string; password: string; [key: string]: any };
 
 const schema = Type.Object({
-   hashing: StringEnum(["plain", "sha256" /*, "bcrypt"*/] as const, { default: "sha256" }),
+   hashing: StringEnum(["plain", "sha256"] as const, { default: "sha256" }),
 });
 
 export type PasswordStrategyOptions = Static<typeof schema>;
-/*export type PasswordStrategyOptions2 = {
-   hashing?: "plain" | "bcrypt" | "sha256";
-};*/
 
 export class PasswordStrategy implements Strategy {
    private options: PasswordStrategyOptions;

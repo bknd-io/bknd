@@ -55,7 +55,7 @@ export default function BaseInputTemplate<
       ...getInputProps<T, S, F>(schema, type, options),
    };
 
-   let inputValue;
+   let inputValue: any;
    if (inputProps.type === "number" || inputProps.type === "integer") {
       inputValue = value || value === 0 ? value : "";
    } else {
@@ -68,11 +68,11 @@ export default function BaseInputTemplate<
       [onChange, options],
    );
    const _onBlur = useCallback(
-      ({ target }: FocusEvent<HTMLInputElement>) => onBlur(id, target && target.value),
+      ({ target }: FocusEvent<HTMLInputElement>) => onBlur(id, target?.value),
       [onBlur, id],
    );
    const _onFocus = useCallback(
-      ({ target }: FocusEvent<HTMLInputElement>) => onFocus(id, target && target.value),
+      ({ target }: FocusEvent<HTMLInputElement>) => onFocus(id, target?.value),
       [onFocus, id],
    );
 

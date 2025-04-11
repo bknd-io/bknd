@@ -1,4 +1,4 @@
-import type { DB as DefaultDB } from "core";
+import { $console, type DB as DefaultDB } from "core";
 import { EventManager } from "core/events";
 import { sql } from "kysely";
 import { Connection } from "../connection/Connection";
@@ -55,7 +55,6 @@ export class EntityManager<TBD extends object = DefaultDB> {
 
       this.connection = connection;
       this.emgr = emgr ?? new EventManager();
-      //console.log("registering events", EntityManager.Events);
       this.emgr.registerEvents(EntityManager.Events);
    }
 
@@ -90,7 +89,9 @@ export class EntityManager<TBD extends object = DefaultDB> {
       if (existing) {
          // @todo: for now adding a graceful method
          if (JSON.stringify(existing) === JSON.stringify(entity)) {
-            //console.warn(`Entity "${entity.name}" already exists, but it's the same, so skipping.`);
+            $console.warn(
+               `Entity "${entity.name}" already exists, but it's the same, skipping adding it.`,
+            );
             return;
          }
 
@@ -108,7 +109,6 @@ export class EntityManager<TBD extends object = DefaultDB> {
       }
 
       this._entities[entityIndex] = entity;
-
       // caused issues because this.entity() was using a reference (for when initial config was given)
    }
 
@@ -295,7 +295,6 @@ export class EntityManager<TBD extends object = DefaultDB> {
       return {
          entities: Object.fromEntries(this.entities.map((e) => [e.name, e.toJSON()])),
          relations: Object.fromEntries(this.relations.all.map((r) => [r.getName(), r.toJSON()])),
-         //relations: this.relations.all.map((r) => r.toJSON()),
          indices: Object.fromEntries(this.indices.map((i) => [i.name, i.toJSON()])),
       };
    }

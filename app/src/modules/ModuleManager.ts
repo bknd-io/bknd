@@ -561,7 +561,7 @@ export class ModuleManager {
             }
 
             return async (...args) => {
-               console.log("[Safe Mutate]", name);
+               $console.log("[Safe Mutate]", name);
                try {
                   // overwrite listener to run build inside this try/catch
                   module.setListener(async () => {
@@ -583,12 +583,12 @@ export class ModuleManager {
 
                   return result;
                } catch (e) {
-                  console.error("[Safe Mutate] failed", e);
+                  $console.error("[Safe Mutate] failed", e);
 
                   // revert to previous config & rebuild using original listener
                   this.setConfigs(copy);
                   await this.onModuleConfigUpdated(name, module.config as any);
-                  console.log("[Safe Mutate] reverted");
+                  $console.warn("[Safe Mutate] reverted");
 
                   // make sure to throw the error
                   throw e;

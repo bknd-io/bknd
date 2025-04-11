@@ -35,7 +35,6 @@ export type TAppDataField = Static<typeof fieldsSchema>;
 export type TAppDataEntityFields = Static<typeof entityFields>;
 
 export const entitiesSchema = tb.Type.Object({
-   //name: Type.String(),
    type: tb.Type.Optional(
       tb.Type.String({ enum: entityTypes, default: "regular", readOnly: true }),
    ),
@@ -63,7 +62,6 @@ export const indicesSchema = tb.Type.Object(
    {
       entity: tb.Type.String(),
       fields: tb.Type.Array(tb.Type.String(), { minItems: 1 }),
-      //name: Type.Optional(Type.String()),
       unique: tb.Type.Optional(tb.Type.Boolean({ default: false })),
    },
    {

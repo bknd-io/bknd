@@ -1,5 +1,6 @@
 import { type Event, type EventClass, InvalidEventReturn } from "./Event";
 import { EventListener, type ListenerHandler, type ListenerMode } from "./EventListener";
+import { $console } from "core";
 
 export type RegisterListenerConfig =
    | ListenerMode
@@ -83,10 +84,6 @@ export class EventManager<
       } else {
          // @ts-expect-error
          slug = eventOrSlug.constructor?.slug ?? eventOrSlug.slug;
-         /*eventOrSlug instanceof Event
-               ? // @ts-expect-error slug is static
-                 eventOrSlug.constructor.slug
-               : eventOrSlug.slug;*/
       }
 
       return !!this.events.find((e) => slug === e.slug);
@@ -128,8 +125,7 @@ export class EventManager<
       if (listener.id) {
          const existing = this.listeners.find((l) => l.id === listener.id);
          if (existing) {
-            // @todo: add a verbose option?
-            //console.warn(`Listener with id "${listener.id}" already exists.`);
+            $console.debug(`Listener with id "${listener.id}" already exists.`);
             return this;
          }
       }
@@ -191,7 +187,7 @@ export class EventManager<
       // @ts-expect-error slug is static
       const slug = event.constructor.slug;
       if (!this.enabled) {
-         console.log("EventManager disabled, not emitting", slug);
+         $console.debug("EventManager disabled, not emitting", slug);
          return event;
       }
 
@@ -240,7 +236,7 @@ export class EventManager<
          } catch (e) {
             if (e instanceof InvalidEventReturn) {
                this.options?.onInvalidReturn?.(_event, e);
-               console.warn(`Invalid return of event listener for "${slug}": ${e.message}`);
+               $console.warn(`Invalid return of event listener for "${slug}": ${e.message}`);
             } else if (this.options?.onError) {
                this.options.onError(_event, e);
             } else {

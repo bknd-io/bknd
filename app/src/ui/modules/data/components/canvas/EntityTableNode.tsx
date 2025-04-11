@@ -1,4 +1,4 @@
-import { Handle, type Node, type NodeProps, Position, useReactFlow } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 
 import type { TAppDataEntity } from "data/data-schema";
 import { useState } from "react";
@@ -24,8 +24,6 @@ function NodeComponent(props: NodeProps<Node<TAppDataEntity & { label: string }>
    const { data } = props;
    const fields = props.data.fields ?? {};
    const field_count = Object.keys(fields).length;
-   //const flow = useReactFlow();
-   //const flow = useTestContext();
 
    return (
       <DefaultNode selected={props.selected}>
@@ -92,15 +90,13 @@ const TableRow = ({
          <div className="flex opacity-60">{field.type}</div>
 
          {handles && (
-            <>
-               <Handle
-                  type="target"
-                  title={handleId}
-                  id={handleId}
-                  position={Position.Right}
-                  style={{ top: handleTop, right: -5, ...handleStyle }}
-               />
-            </>
+            <Handle
+               type="target"
+               title={handleId}
+               id={handleId}
+               position={Position.Right}
+               style={{ top: handleTop, right: -5, ...handleStyle }}
+            />
          )}
       </div>
    );

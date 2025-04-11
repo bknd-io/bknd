@@ -2,6 +2,7 @@ import { extension, guess, isMimeType } from "media/storage/mime-types-tiny";
 import { randomString } from "core/utils/strings";
 import type { Context } from "hono";
 import { invariant } from "core/utils/runtime";
+import { $console } from "../console";
 
 export function getContentName(request: Request): string | undefined;
 export function getContentName(contentDisposition: string): string | undefined;
@@ -130,7 +131,7 @@ export async function getFileFromContext(c: Context<any>): Promise<File> {
             return await blobToFile(v);
          }
       } catch (e) {
-         console.warn("Error parsing form data", e);
+         $console.warn("Error parsing form data", e);
       }
    } else {
       try {
@@ -141,7 +142,7 @@ export async function getFileFromContext(c: Context<any>): Promise<File> {
             return await blobToFile(blob, { name: getContentName(c.req.raw), type: contentType });
          }
       } catch (e) {
-         console.warn("Error parsing blob", e);
+         $console.warn("Error parsing blob", e);
       }
    }
 

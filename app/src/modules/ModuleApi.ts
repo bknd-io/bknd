@@ -1,4 +1,4 @@
-import type { PrimaryFieldType } from "core";
+import { $console, type PrimaryFieldType } from "core";
 import { isDebug } from "core/env";
 import { encodeSearch } from "core/utils/reqres";
 
@@ -87,7 +87,6 @@ export abstract class ModuleApi<Options extends BaseModuleApiOptions = BaseModul
 
       // only add token if initial headers not provided
       if (this.options.token && this.options.token_transport === "header") {
-         //console.log("setting token", this.options.token);
          headers.set("Authorization", `Bearer ${this.options.token}`);
       }
 
@@ -245,7 +244,7 @@ export class FetchPromise<T = ApiResponse<any>> implements Promise<T> {
 
       const fetcher = this.options?.fetcher ?? fetch;
       if (this.verbose) {
-         console.log("[FetchPromise] Request", {
+         $console.debug("[FetchPromise] Request", {
             method: this.request.method,
             url: this.request.url,
          });
@@ -253,7 +252,7 @@ export class FetchPromise<T = ApiResponse<any>> implements Promise<T> {
 
       const res = await fetcher(this.request);
       if (this.verbose) {
-         console.log("[FetchPromise] Response", {
+         $console.debug("[FetchPromise] Response", {
             res: res,
             ok: res.ok,
             status: res.status,

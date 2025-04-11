@@ -84,7 +84,6 @@ export class JsonField<Required extends true | false = false, TypeOverride = obj
       context: TActionContext,
    ): Promise<string | undefined> {
       const value = await super.transformPersist(_value, em, context);
-      //console.log("value", value);
       if (this.nullish(value)) return value;
 
       if (!this.isSerializable(value)) {

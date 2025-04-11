@@ -5,6 +5,7 @@ import type { CloudflareBkndConfig, CloudflareEnv } from ".";
 import { App } from "bknd";
 import { makeConfig as makeAdapterConfig } from "bknd/adapter";
 import type { ExecutionContext } from "hono";
+import { $console } from "core";
 
 export const constants = {
    exec_async_event_id: "cf_register_waituntil",
@@ -27,12 +28,12 @@ export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
    if (!appConfig.connection) {
       let db: D1Database | undefined;
       if (bindings?.db) {
-         console.log("Using database from bindings");
+         $console.log("Using database from bindings");
          db = bindings.db;
       } else if (Object.keys(args).length > 0) {
          const binding = getBinding(args, "D1Database");
          if (binding) {
-            console.log(`Using database from env "${binding.key}"`);
+            $console.log(`Using database from env "${binding.key}"`);
             db = binding.value;
          }
       }

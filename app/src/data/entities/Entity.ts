@@ -1,4 +1,4 @@
-import { config } from "core";
+import { $console, config } from "core";
 import {
    type Static,
    StringEnum,
@@ -184,9 +184,9 @@ export class Entity<
       if (existing) {
          // @todo: for now adding a graceful method
          if (JSON.stringify(existing) === JSON.stringify(field)) {
-            /*console.warn(
+            $console.warn(
                `Field "${field.name}" already exists on entity "${this.name}", but it's the same, so skipping.`,
-            );*/
+            );
             return;
          }
 
@@ -233,7 +233,13 @@ export class Entity<
 
       for (const field of fields) {
          if (!field.isValid(data[field.name], context)) {
-            console.log("Entity.isValidData:invalid", context, field.name, data[field.name]);
+            $console.warn(
+               "invalid data given for",
+               this.name,
+               context,
+               field.name,
+               data[field.name],
+            );
             if (options?.explain) {
                throw new Error(`Field "${field.name}" has invalid data: "${data[field.name]}"`);
             }
@@ -259,7 +265,6 @@ export class Entity<
       const _fields = Object.fromEntries(fields.map((field) => [field.name, field]));
       const schema = Type.Object(
          transformObject(_fields, (field) => {
-            //const hidden = field.isHidden(options?.context);
             const fillable = field.isFillable(options?.context);
             return {
                title: field.config.label,
@@ -277,9 +282,7 @@ export class Entity<
 
    toJSON() {
       return {
-         //name: this.name,
          type: this.type,
-         //fields: transformObject(this.fields, (field) => field.toJSON()),
          fields: Object.fromEntries(this.fields.map((field) => [field.name, field.toJSON()])),
          config: this.config,
       };

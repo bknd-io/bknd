@@ -124,12 +124,10 @@ export class StorageR2Adapter extends StorageAdapter {
          }
       }
 
-      //console.log("response headers:before", headersToObject(responseHeaders));
       this.writeHttpMetadata(responseHeaders, object);
       responseHeaders.set("etag", object.httpEtag);
       responseHeaders.set("Content-Length", String(object.size));
       responseHeaders.set("Last-Modified", object.uploaded.toUTCString());
-      //console.log("response headers:after", headersToObject(responseHeaders));
 
       return new Response(object.body, {
          status: object.range ? 206 : 200,

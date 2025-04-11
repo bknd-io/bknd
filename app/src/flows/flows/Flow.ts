@@ -5,6 +5,7 @@ import { Condition, TaskConnection } from "../tasks/TaskConnection";
 import { Execution } from "./Execution";
 import { FlowTaskConnector } from "./FlowTaskConnector";
 import { Trigger } from "./triggers/Trigger";
+import { $console } from "core";
 
 type Jsoned<T extends { toJSON: () => object }> = ReturnType<T["toJSON"]>;
 
@@ -53,8 +54,6 @@ export class Flow {
    }
 
    getSequence(sequence: Task[][] = []): Task[][] {
-      //console.log("queue", queue.map((step) => step.map((t) => t.name)));
-
       // start task
       if (sequence.length === 0) {
          sequence.push([this.startTask]);
@@ -69,7 +68,6 @@ export class Flow {
             // check if task already in one of queue steps
             // this is when we have a circle back
             if (sequence.some((step) => step.includes(outTask))) {
-               //console.log("Task already in queue", outTask.name);
                return;
             }
             nextStep.push(outTask);
@@ -109,14 +107,6 @@ export class Flow {
       this.respondingTask = task;
       return this;
    }
-
-   /*getResponse() {
-      if (!this.respondingTask) {
-         return;
-      }
-
-      return this.respondingTask.log.output;
-   }*/
 
    // @todo: check for existence
    addConnection(connection: TaskConnection) {
@@ -179,7 +169,7 @@ export class Flow {
             // @ts-ignore
             return new cls(name, obj.params);
          } catch (e: any) {
-            console.log("Error creating task", name, obj.type, obj, taskClass);
+            $console.error("Error creating task", name, obj.type, obj, taskClass);
             throw new Error(`Error creating task ${obj.type}: ${e.message}`);
          }
       });

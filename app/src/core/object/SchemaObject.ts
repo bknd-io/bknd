@@ -73,6 +73,7 @@ export class SchemaObject<Schema extends TObject> {
          forceParse: true,
          skipMark: this.isForceParse(),
       });
+
       // regardless of "noEmit" – this should always be triggered
       const updatedConfig = await this.onBeforeUpdate(this._config, valid);
 
@@ -122,19 +123,15 @@ export class SchemaObject<Schema extends TObject> {
       const partial = path.length > 0 ? (set({}, path, value) as Partial<Static<Schema>>) : value;
 
       this.throwIfRestricted(partial);
-      //console.log(getFullPathKeys(value).map((k) => path + "." + k));
 
       // overwrite arrays and primitives, only deep merge objects
       // @ts-ignore
-      //console.log("---alt:new", _jsonp(mergeObject(current, partial)));
       const config = mergeObjectWith(current, partial, (objValue, srcValue) => {
          if (Array.isArray(objValue) && Array.isArray(srcValue)) {
             return srcValue;
          }
       });
-      //console.log("---new", _jsonp(config));
 
-      //console.log("overwritePaths", this.options?.overwritePaths);
       if (this.options?.overwritePaths) {
          const keys = getFullPathKeys(value).map((k) => {
             // only prepend path if given
@@ -149,7 +146,6 @@ export class SchemaObject<Schema extends TObject> {
                }
             });
          });
-         //console.log("overwritePaths", keys, overwritePaths);
 
          if (overwritePaths.length > 0) {
             // filter out less specific paths (but only if more than 1)
@@ -157,20 +153,16 @@ export class SchemaObject<Schema extends TObject> {
                overwritePaths.length > 1
                   ? overwritePaths.filter((k) =>
                        overwritePaths.some((k2) => {
-                          //console.log("keep?", { k, k2 }, k2 !== k && k2.startsWith(k));
                           return k2 !== k && k2.startsWith(k);
                        }),
                     )
                   : overwritePaths;
-            //console.log("specific", specific);
 
             for (const p of specific) {
                set(config, p, get(partial, p));
             }
          }
       }
-
-      //console.log("patch", _jsonp({ path, value, partial, config, current }));
 
       const newConfig = await this.set(config);
       return [partial, newConfig];
@@ -181,13 +173,10 @@ export class SchemaObject<Schema extends TObject> {
       const partial = path.length > 0 ? (set({}, path, value) as Partial<Static<Schema>>) : value;
 
       this.throwIfRestricted(partial);
-      //console.log(getFullPathKeys(value).map((k) => path + "." + k));
 
       // overwrite arrays and primitives, only deep merge objects
       // @ts-ignore
       const config = set(current, path, value);
-
-      //console.log("overwrite", { path, value, partial, config, current });
 
       const newConfig = await this.set(config);
       return [partial, newConfig];
@@ -198,7 +187,6 @@ export class SchemaObject<Schema extends TObject> {
       if (p.length > 1) {
          const parent = p.slice(0, -1).join(".");
          if (!has(this._config, parent)) {
-            //console.log("parent", parent, JSON.stringify(this._config, null, 2));
             throw new Error(`Parent path "${parent}" does not exist`);
          }
       }

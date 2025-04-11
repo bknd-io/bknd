@@ -12,14 +12,11 @@ export class HttpTrigger extends Trigger<typeof HttpTrigger.schema> {
 
    static override schema = Type.Composite([
       Trigger.schema,
-      Type.Object(
-         {
-            path: Type.String({ pattern: "^/.*$" }),
-            method: StringEnum(httpMethods, { default: "GET" }),
-            response_type: StringEnum(["json", "text", "html"], { default: "json" }),
-         },
-         //{ additionalProperties: false }
-      ),
+      Type.Object({
+         path: Type.String({ pattern: "^/.*$" }),
+         method: StringEnum(httpMethods, { default: "GET" }),
+         response_type: StringEnum(["json", "text", "html"], { default: "json" }),
+      }),
    ]);
 
    override async register(flow: Flow, hono: Hono<any>) {
@@ -45,7 +42,5 @@ export class HttpTrigger extends Trigger<typeof HttpTrigger.schema> {
          execution.start(params);
          return c.json({ success: true });
       });
-
-      //console.log("--registered flow", flow.name, "on", method, this.config.path);
    }
 }

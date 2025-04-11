@@ -14,10 +14,6 @@ export type TaskResult<Output = any> = {
    params: any;
 };
 
-/*export type TaskRenderProps<T extends Task = Task> = NodeProps<{
-   task: T;
-   state: { i: number; isStartTask: boolean; isRespondingTask; event: ExecutionEvent | undefined };
-}>;*/
 export type TaskRenderProps<T extends Task = Task> = any;
 
 export function dynamic<Type extends TSchema>(
@@ -94,21 +90,6 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
 
       // @todo: string enums fail to validate
       this._params = parse(schema, params || {});
-
-      /*const validator = new Validator(schema as any);
-      const _params = Default(schema, params || {});
-      const result = validator.validate(_params);
-      if (!result.valid) {
-         //console.log("---errors", result, { params, _params });
-         const error = result.errors[0]!;
-         throw new Error(
-            `Invalid params for task "${name}.${error.keyword}": "${
-               error.error
-            }". Params given: ${JSON.stringify(params)}`
-         );
-      }
-
-      this._params = _params as Static<Params>;*/
    }
 
    get params() {
@@ -127,11 +108,8 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
       const newParams: any = {};
       const renderer = new SimpleRenderer(inputs, { strictVariables: true, renderKeys: true });
 
-      //console.log("--resolveParams", params);
-
       for (const [key, value] of Object.entries(params)) {
          if (value && SimpleRenderer.hasMarkup(value)) {
-            //console.log("--- has markup", value);
             try {
                newParams[key] = await renderer.render(value as string);
             } catch (e: any) {
@@ -151,29 +129,21 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
                throw e;
             }
             continue;
-         } else {
-            //console.log("-- no markup", key, value);
          }
 
          newParams[key] = value;
       }
 
-      //console.log("--beforeDecode", newParams);
-      const v = Value.Decode(schema, newParams);
-      //console.log("--afterDecode", v);
-      //process.exit();
-      return v;
+      return Value.Decode(schema, newParams);
    }
 
    private async cloneWithResolvedParams(_inputs: Map<string, any>) {
       const inputs = Object.fromEntries(_inputs.entries());
-      //console.log("--clone:inputs", inputs, this.params);
       const newParams = await Task.resolveParams(
          (this.constructor as any).schema,
          this._params,
          inputs,
       );
-      //console.log("--clone:newParams", this.name, newParams);
 
       return this.clone(this.name, newParams as any);
    }
@@ -201,7 +171,6 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
          success = true;
       } catch (e: any) {
          success = false;
-         //status.output = undefined;
 
          if (e instanceof BkndError) {
             error = e.toJSON();

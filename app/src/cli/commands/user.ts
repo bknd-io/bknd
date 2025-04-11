@@ -169,6 +169,7 @@ async function token(app: App, options: any) {
    }
    $log.info(`User found: ${c.cyan(user.email)}`);
 
+   // biome-ignore lint/suspicious/noConsoleLog:
    console.log(
       `\n${c.dim("Token:")}\n${c.yellow(await app.module.auth.authenticator.jwt(user))}\n`,
    );
