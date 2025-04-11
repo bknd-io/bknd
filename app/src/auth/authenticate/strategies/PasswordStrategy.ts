@@ -1,10 +1,11 @@
 import { type Authenticator, InvalidCredentialsException, type Strategy, type User } from "auth";
 import { $console, tbValidator as tb } from "core";
-import { Const, hash, parse, type Static, StrictObject, StringEnum } from "core/utils";
+import { hash, parse, type Static, StrictObject, StringEnum } from "core/utils";
 import { Hono } from "hono";
 import { createStrategyAction, type StrategyActions } from "../Authenticator";
 import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
 import * as tbbox from "@sinclair/typebox";
+
 const { Type } = tbbox;
 
 const schema = StrictObject({
@@ -24,7 +25,7 @@ export class PasswordStrategy implements Strategy {
    private getPayloadSchema() {
       return Type.Object({
          email: Type.String({
-            pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+            pattern: "^[\\w-\\.\\+_]+@([\\w-]+\\.)+[\\w-]{2,4}$",
          }),
          password: Type.String({
             minLength: 8, // @todo: this should be configurable
