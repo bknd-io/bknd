@@ -1,25 +1,34 @@
-import { type Authenticator, InvalidCredentialsException, type Strategy, type User } from "auth";
+import { type Authenticator, InvalidCredentialsException, type User } from "auth";
 import { $console, tbValidator as tb } from "core";
 import { hash, parse, type Static, StrictObject, StringEnum } from "core/utils";
 import { Hono } from "hono";
-import { createStrategyAction, type StrategyActions } from "../Authenticator";
 import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
 import * as tbbox from "@sinclair/typebox";
+import { Strategy } from "./Strategy";
 
 const { Type } = tbbox;
 
 const schema = StrictObject({
-   hashing: StringEnum(["plain", "sha256", "bcrypt"]),
+   hashing: StringEnum(["plain", "sha256", "bcrypt"], { default: "sha256" }),
    rounds: Type.Optional(Type.Number({ minimum: 1, maximum: 10 })),
 });
 
 export type PasswordStrategyOptions = Static<typeof schema>;
 
-export class PasswordStrategy implements Strategy {
-   private options: PasswordStrategyOptions;
+export class PasswordStrategy extends Strategy<typeof schema> {
+   constructor(config: Partial<PasswordStrategyOptions> = {}) {
+      super(config as any, "password", "password", "form");
 
-   constructor(options: Partial<PasswordStrategyOptions> = {}) {
-      this.options = parse(schema, options);
+      this.registerAction("create", this.getPayloadSchema(), async ({ password, ...input }) => {
+         return {
+            ...input,
+            strategy_value: await this.hash(password),
+         };
+      });
+   }
+
+   getSchema() {
+      return schema;
    }
 
    private getPayloadSchema() {
@@ -34,11 +43,11 @@ export class PasswordStrategy implements Strategy {
    }
 
    async hash(password: string) {
-      switch (this.options.hashing) {
+      switch (this.config.hashing) {
          case "sha256":
             return hash.sha256(password);
          case "bcrypt": {
-            const salt = await bcryptGenSalt(this.options.rounds ?? 4);
+            const salt = await bcryptGenSalt(this.config.rounds ?? 4);
             return bcryptHash(password, salt);
          }
          default:
@@ -47,7 +56,7 @@ export class PasswordStrategy implements Strategy {
    }
 
    async compare(actual: string, compare: string): Promise<boolean> {
-      switch (this.options.hashing) {
+      switch (this.config.hashing) {
          case "sha256": {
             const compareHashed = await this.hash(compare);
             return actual === compareHashed;
@@ -110,36 +119,5 @@ export class PasswordStrategy implements Strategy {
       });
 
       return hono;
-   }
-
-   getActions(): StrategyActions {
-      return {
-         create: createStrategyAction(this.getPayloadSchema(), async ({ password, ...input }) => {
-            return {
-               ...input,
-               strategy_value: await this.hash(password),
-            };
-         }),
-      };
-   }
-
-   getSchema() {
-      return schema;
-   }
-
-   getType() {
-      return "password";
-   }
-
-   getMode() {
-      return "form" as const;
-   }
-
-   getName() {
-      return "password" as const;
-   }
-
-   toJSON(secrets?: boolean) {
-      return secrets ? this.options : undefined;
    }
 }

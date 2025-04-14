@@ -25,7 +25,7 @@ export const strategyActions = ["create", "change"] as const;
 export type StrategyActionName = (typeof strategyActions)[number];
 export type StrategyAction<S extends TObject = TObject> = {
    schema: S;
-   preprocess: (input: unknown) => Promise<Omit<DB["users"], "id" | "strategy">>;
+   preprocess: (input: Static<S>) => Promise<Omit<DB["users"], "id" | "strategy">>;
 };
 export type StrategyActions = Partial<Record<StrategyActionName, StrategyAction>>;
 
@@ -404,14 +404,4 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
          jwt: secrets ? this.config.jwt : undefined,
       };
    }
-}
-
-export function createStrategyAction<S extends TObject>(
-   schema: S,
-   preprocess: (input: Static<S>) => Promise<Partial<DB["users"]>>,
-) {
-   return {
-      schema,
-      preprocess,
-   } as StrategyAction<S>;
 }

@@ -1,11 +1,12 @@
-import type { AuthAction, Authenticator, Strategy } from "auth";
+import type { AuthAction, Authenticator } from "auth";
 import { Exception, isDebug } from "core";
-import { type Static, StringEnum, filterKeys } from "core/utils";
+import { type Static, StringEnum, filterKeys, StrictObject } from "core/utils";
 import { type Context, Hono } from "hono";
 import { getSignedCookie, setSignedCookie } from "hono/cookie";
 import * as oauth from "oauth4webapi";
 import * as issuers from "./issuers";
 import * as tbbox from "@sinclair/typebox";
+import { Strategy } from "auth/authenticate/strategies/Strategy";
 const { Type } = tbbox;
 
 type ConfiguredIssuers = keyof typeof issuers;
@@ -16,15 +17,11 @@ type RequireKeys<T extends object, K extends keyof T> = Required<Pick<T, K>> & O
 const schemaProvided = Type.Object(
    {
       name: StringEnum(Object.keys(issuers) as ConfiguredIssuers[]),
-      client: Type.Object(
-         {
-            client_id: Type.String(),
-            client_secret: Type.String(),
-         },
-         {
-            additionalProperties: false,
-         },
-      ),
+      type: StringEnum(["oidc", "oauth2"] as const, { default: "oauth2" }),
+      client: StrictObject({
+         client_id: Type.String(),
+         client_secret: Type.String(),
+      }),
    },
    { title: "OAuth" },
 );
@@ -72,11 +69,13 @@ export class OAuthCallbackException extends Exception {
    }
 }
 
-export class OAuthStrategy implements Strategy {
-   constructor(private _config: OAuthConfig) {}
+export class OAuthStrategy extends Strategy<typeof schemaProvided> {
+   constructor(config: ProvidedOAuthConfig) {
+      super(config, "oauth", config.name, "external");
+   }
 
-   get config() {
-      return this._config;
+   getSchema() {
+      return schemaProvided;
    }
 
    getIssuerConfig(): IssuerConfig {
@@ -104,7 +103,7 @@ export class OAuthStrategy implements Strategy {
          type: info.type,
          client: {
             ...info.client,
-            ...this._config.client,
+            ...this.config.client,
          },
       };
    }
@@ -431,28 +430,15 @@ export class OAuthStrategy implements Strategy {
       return hono;
    }
 
-   getType() {
-      return "oauth";
-   }
-
-   getMode() {
-      return "external" as const;
-   }
-
-   getName() {
-      return this.config.name;
-   }
-
-   getSchema() {
-      return schemaProvided;
-   }
-
-   toJSON(secrets?: boolean) {
+   override toJSON(secrets?: boolean) {
       const config = secrets ? this.config : filterKeys(this.config, ["secret", "client_id"]);
 
       return {
-         type: this.getIssuerConfig().type,
-         ...config,
+         ...super.toJSON(secrets),
+         config: {
+            ...config,
+            type: this.getIssuerConfig().type,
+         },
       };
    }
 }

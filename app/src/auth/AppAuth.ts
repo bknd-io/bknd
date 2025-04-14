@@ -193,8 +193,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          ...this.authenticator.toJSON(secrets),
          strategies: transformObject(strategies, (strategy) => ({
             enabled: this.isStrategyEnabled(strategy),
-            type: strategy.getType(),
-            config: strategy.toJSON(secrets),
+            ...strategy.toJSON(secrets),
          })),
       };
    }
