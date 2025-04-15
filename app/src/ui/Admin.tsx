@@ -1,6 +1,6 @@
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
-import React from "react";
+import React, { type ReactNode } from "react";
 import { BkndProvider, type BkndAdminOptions } from "ui/client/bknd";
 import { useTheme } from "ui/client/use-theme";
 import { Logo } from "ui/components/display/Logo";
@@ -34,7 +34,7 @@ export default function Admin({
          children
       );
 
-   const BkndWrapper = ({ children }: any) => (
+   const BkndWrapper = ({ children }: { children: ReactNode }) => (
       <BkndProvider options={config} fallback={<Skeleton theme={config?.theme} />}>
          {children}
       </BkndProvider>
