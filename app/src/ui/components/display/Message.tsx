@@ -16,9 +16,11 @@ const MissingPermission = ({
       {...props}
    />
 );
+const NotEnabled = (props: Partial<EmptyProps>) => <Empty title="Not Enabled" {...props} />;
 
 export const Message = {
    NotFound,
    NotAllowed,
+   NotEnabled,
    MissingPermission,
 };

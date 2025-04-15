@@ -10,6 +10,7 @@ import MediaRoutes from "./media";
 import { Root, RootEmpty } from "./root";
 import SettingsRoutes from "./settings";
 import { FlashMessage } from "ui/modules/server/FlashMessage";
+import { AuthRegister } from "ui/routes/auth/auth.register";
 
 // @ts-ignore
 const TestRoutes = lazy(() => import("./test"));
@@ -24,6 +25,7 @@ export function Routes() {
          <Router base={app.options.basepath}>
             <Switch>
                <Route path="/auth/login" component={AuthLogin} />
+               <Route path="/auth/register" component={AuthRegister} />
                <Route path="/" nest>
                   <Root>
                      <Switch>
