@@ -134,7 +134,7 @@ export function Header({ hasSidebar = true }) {
             <SidebarToggler />
             <UserMenu />
          </div>
-         <div className="hidden lg:flex flex-row items-center px-4 gap-2">
+         <div className="hidden md:flex flex-row items-center px-4 gap-2">
             <UserMenu />
          </div>
       </header>

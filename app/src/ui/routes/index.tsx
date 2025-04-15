@@ -1,5 +1,4 @@
-import React, { Suspense, lazy } from "react";
-import { useBknd } from "ui/client/bknd";
+import { Suspense, lazy, type ComponentType, type ReactNode } from "react";
 import { useTheme } from "ui/client/use-theme";
 import { Route, Router, Switch } from "wouter";
 import AuthRoutes from "./auth";
@@ -15,57 +14,62 @@ import { AuthRegister } from "ui/routes/auth/auth.register";
 // @ts-ignore
 const TestRoutes = lazy(() => import("./test"));
 
-export function Routes() {
-   const { app } = useBknd();
+export function Routes({
+   BkndWrapper,
+   basePath = "",
+}: { BkndWrapper: ComponentType<{ children: ReactNode }>; basePath?: string }) {
    const { theme } = useTheme();
 
    return (
       <div id="bknd-admin" className={theme + " antialiased"}>
          <FlashMessage />
-         <Router base={app.options.basepath}>
+         <Router base={basePath}>
             <Switch>
                <Route path="/auth/login" component={AuthLogin} />
                <Route path="/auth/register" component={AuthRegister} />
-               <Route path="/" nest>
-                  <Root>
-                     <Switch>
-                        <Route path="/test*" nest>
-                           <Suspense fallback={null}>
-                              <TestRoutes />
-                           </Suspense>
-                        </Route>
 
-                        <Route path="/" component={RootEmpty} />
-                        <Route path="/data" nest>
-                           <Suspense fallback={null}>
-                              <DataRoutes />
-                           </Suspense>
-                        </Route>
-                        <Route path="/flows" nest>
-                           <Suspense fallback={null}>
-                              <FlowRoutes />
-                           </Suspense>
-                        </Route>
-                        <Route path="/auth" nest>
-                           <Suspense fallback={null}>
-                              <AuthRoutes />
-                           </Suspense>
-                        </Route>
-                        <Route path="/media" nest>
-                           <Suspense fallback={null}>
-                              <MediaRoutes />
-                           </Suspense>
-                        </Route>
-                        <Route path="/settings" nest>
-                           <Suspense fallback={null}>
-                              <SettingsRoutes />
-                           </Suspense>
-                        </Route>
+               <BkndWrapper>
+                  <Route path="/" nest>
+                     <Root>
+                        <Switch>
+                           <Route path="/test*" nest>
+                              <Suspense fallback={null}>
+                                 <TestRoutes />
+                              </Suspense>
+                           </Route>
 
-                        <Route path="*" component={NotFound} />
-                     </Switch>
-                  </Root>
-               </Route>
+                           <Route path="/" component={RootEmpty} />
+                           <Route path="/data" nest>
+                              <Suspense fallback={null}>
+                                 <DataRoutes />
+                              </Suspense>
+                           </Route>
+                           <Route path="/flows" nest>
+                              <Suspense fallback={null}>
+                                 <FlowRoutes />
+                              </Suspense>
+                           </Route>
+                           <Route path="/auth" nest>
+                              <Suspense fallback={null}>
+                                 <AuthRoutes />
+                              </Suspense>
+                           </Route>
+                           <Route path="/media" nest>
+                              <Suspense fallback={null}>
+                                 <MediaRoutes />
+                              </Suspense>
+                           </Route>
+                           <Route path="/settings" nest>
+                              <Suspense fallback={null}>
+                                 <SettingsRoutes />
+                              </Suspense>
+                           </Route>
+
+                           <Route path="*" component={NotFound} />
+                        </Switch>
+                     </Root>
+                  </Route>
+               </BkndWrapper>
             </Switch>
          </Router>
       </div>
