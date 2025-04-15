@@ -21,33 +21,34 @@ export default function Admin({
    withProvider = false,
    config,
 }: BkndAdminProps) {
-   const Component = (
+   const { theme } = useTheme();
+   const Provider = ({ children }: any) =>
+      withProvider ? (
+         <ClientProvider
+            baseUrl={baseUrlOverride}
+            {...(typeof withProvider === "object" ? withProvider : {})}
+         >
+            {children}
+         </ClientProvider>
+      ) : (
+         children
+      );
+
+   const BkndWrapper = ({ children }: any) => (
       <BkndProvider options={config} fallback={<Skeleton theme={config?.theme} />}>
-         <AdminInternal />
+         {children}
       </BkndProvider>
    );
-   return withProvider ? (
-      <ClientProvider
-         baseUrl={baseUrlOverride}
-         {...(typeof withProvider === "object" ? withProvider : {})}
-      >
-         {Component}
-      </ClientProvider>
-   ) : (
-      Component
-   );
-}
-
-function AdminInternal() {
-   const { theme } = useTheme();
 
    return (
-      <MantineProvider {...createMantineTheme(theme as any)}>
-         <Notifications position="top-right" />
-         <BkndModalsProvider>
-            <Routes />
-         </BkndModalsProvider>
-      </MantineProvider>
+      <Provider>
+         <MantineProvider {...createMantineTheme(theme as any)}>
+            <Notifications position="top-right" />
+            <BkndModalsProvider>
+               <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath} />
+            </BkndModalsProvider>
+         </MantineProvider>
+      </Provider>
    );
 }
 

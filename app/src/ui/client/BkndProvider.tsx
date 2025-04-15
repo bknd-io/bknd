@@ -5,6 +5,8 @@ import { useApi } from "ui/client";
 import { type TSchemaActions, getSchemaActions } from "./schema/actions";
 import { AppReduced } from "./utils/AppReduced";
 import type { AppTheme } from "ui/client/use-theme";
+import { Message } from "ui/components/display/Message";
+import { useNavigate } from "ui/lib/routes";
 
 export type BkndAdminOptions = {
    logo_return_path?: string;
@@ -101,7 +103,6 @@ export function BkndProvider({
               fallback: true,
            } as any);
 
-
       startTransition(() => {
          const commit = () => {
             setSchema(newSchema);
@@ -109,7 +110,7 @@ export function BkndProvider({
             setFetched(true);
             set_local_version((v) => v + 1);
             fetching.current = Fetching.None;
-         }
+         };
 
          if ("startViewTransition" in document) {
             document.startViewTransition(commit);
@@ -139,19 +140,21 @@ export function BkndProvider({
          value={{ ...schema, actions, requireSecrets, app, options: app.options, hasSecrets }}
          key={local_version}
       >
-         {/*{error && (
-            <Alert.Exception className="gap-2">
-               <IconAlertHexagon />
-               You attempted to load system configuration with secrets without having proper
-               permission.
-               <a href={schema.config.server.admin.basepath || "/"}>
-                  <Button variant="red">Reload</Button>
-               </a>
-            </Alert.Exception>
-         )}*/}
-
-         {children}
+         {error ? <AccessDenied /> : children}
       </BkndContext.Provider>
+   );
+}
+
+function AccessDenied() {
+   const [navigate] = useNavigate();
+   return (
+      <Message.MissingPermission
+         what="the Admin UI"
+         primary={{
+            children: "Login",
+            onClick: () => navigate("/auth/login"),
+         }}
+      />
    );
 }
 
