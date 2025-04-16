@@ -1,4 +1,5 @@
-enum Change {
+// biome-ignore lint/suspicious/noConstEnum: <explanation>
+export const enum DiffChange {
    Add = "a",
    Remove = "r",
    Edit = "e",
@@ -7,8 +8,8 @@ enum Change {
 type Object = object;
 type Primitive = string | number | boolean | null | object | any[] | undefined;
 
-interface DiffEntry {
-   t: Change | string;
+export interface DiffEntry {
+   t: DiffChange | string;
    p: (string | number)[];
    o: Primitive;
    n: Primitive;
@@ -47,7 +48,7 @@ function diff(oldObj: Object, newObj: Object): DiffEntry[] {
 
       if (typeof oldValue !== typeof newValue) {
          diffs.push({
-            t: Change.Edit,
+            t: DiffChange.Edit,
             p: path,
             o: oldValue,
             n: newValue,
@@ -57,14 +58,14 @@ function diff(oldObj: Object, newObj: Object): DiffEntry[] {
          for (let i = 0; i < maxLength; i++) {
             if (i >= oldValue.length) {
                diffs.push({
-                  t: Change.Add,
+                  t: DiffChange.Add,
                   p: [...path, i],
                   o: undefined,
                   n: newValue[i],
                });
             } else if (i >= newValue.length) {
                diffs.push({
-                  t: Change.Remove,
+                  t: DiffChange.Remove,
                   p: [...path, i],
                   o: oldValue[i],
                   n: undefined,
@@ -80,14 +81,14 @@ function diff(oldObj: Object, newObj: Object): DiffEntry[] {
          for (const key of allKeys) {
             if (!(key in oldValue)) {
                diffs.push({
-                  t: Change.Add,
+                  t: DiffChange.Add,
                   p: [...path, key],
                   o: undefined,
                   n: newValue[key],
                });
             } else if (!(key in newValue)) {
                diffs.push({
-                  t: Change.Remove,
+                  t: DiffChange.Remove,
                   p: [...path, key],
                   o: oldValue[key],
                   n: undefined,
@@ -98,7 +99,7 @@ function diff(oldObj: Object, newObj: Object): DiffEntry[] {
          }
       } else {
          diffs.push({
-            t: Change.Edit,
+            t: DiffChange.Edit,
             p: path,
             o: oldValue,
             n: newValue,
@@ -136,9 +137,9 @@ function applyChange(obj: Object, diff: DiffEntry) {
    const parent = getParent(obj, path.slice(0, -1));
    const key = path[path.length - 1]!;
 
-   if (type === Change.Add || type === Change.Edit) {
+   if (type === DiffChange.Add || type === DiffChange.Edit) {
       parent[key] = newValue;
-   } else if (type === Change.Remove) {
+   } else if (type === DiffChange.Remove) {
       if (Array.isArray(parent)) {
          parent.splice(key as number, 1);
       } else {
@@ -152,13 +153,13 @@ function revertChange(obj: Object, diff: DiffEntry) {
    const parent = getParent(obj, path.slice(0, -1));
    const key = path[path.length - 1]!;
 
-   if (type === Change.Add) {
+   if (type === DiffChange.Add) {
       if (Array.isArray(parent)) {
          parent.splice(key as number, 1);
       } else {
          delete parent[key];
       }
-   } else if (type === Change.Remove || type === Change.Edit) {
+   } else if (type === DiffChange.Remove || type === DiffChange.Edit) {
       parent[key] = oldValue;
    }
 }

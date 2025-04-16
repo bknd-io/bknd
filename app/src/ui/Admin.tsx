@@ -44,9 +44,7 @@ export default function Admin({
       <Provider>
          <MantineProvider {...createMantineTheme(theme as any)}>
             <Notifications position="top-right" />
-            <BkndModalsProvider>
-               <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath} />
-            </BkndModalsProvider>
+            <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath} />
          </MantineProvider>
       </Provider>
    );

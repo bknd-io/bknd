@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { Type, disableConsoleLog, enableConsoleLog, stripMark } from "../../src/core/utils";
-import { entity, text } from "../../src/data";
+import { disableConsoleLog, enableConsoleLog, stripMark, Type } from "../../src/core/utils";
+import { Connection, entity, text } from "../../src/data";
 import { Module } from "../../src/modules/Module";
-import { ModuleManager, getDefaultConfig } from "../../src/modules/ModuleManager";
+import { type ConfigTable, getDefaultConfig, ModuleManager } from "../../src/modules/ModuleManager";
 import { CURRENT_VERSION, TABLE_NAME } from "../../src/modules/migrations";
 import { getDummyConnection } from "../helper";
+import { diff } from "core/object/diff";
+import type { Static } from "@sinclair/typebox";
 
 describe("ModuleManager", async () => {
    test("s1: no config, no build", async () => {
@@ -378,6 +380,130 @@ describe("ModuleManager", async () => {
          expect(() => f.get()).toThrow();
          // @ts-expect-error
          expect(() => f.default()).toThrow();
+      });
+   });
+
+   async function getRawConfig(c: Connection) {
+      return (await c.kysely
+         .selectFrom(TABLE_NAME)
+         .selectAll()
+         .where("type", "=", "config")
+         .orderBy("version", "desc")
+         .executeTakeFirstOrThrow()) as unknown as ConfigTable;
+   }
+
+   async function getDiffs(c: Connection, opts?: { dir?: "asc" | "desc"; limit?: number }) {
+      return await c.kysely
+         .selectFrom(TABLE_NAME)
+         .selectAll()
+         .where("type", "=", "diff")
+         .orderBy("version", opts?.dir ?? "desc")
+         .$if(!!opts?.limit, (b) => b.limit(opts!.limit!))
+         .execute();
+   }
+
+   describe("diffs", () => {
+      test("never empty", async () => {
+         const { dummyConnection: c } = getDummyConnection();
+         const mm = new ModuleManager(c);
+         await mm.build();
+         await mm.save();
+         expect(await getDiffs(c)).toHaveLength(0);
+      });
+
+      test("has timestamps", async () => {
+         const { dummyConnection: c } = getDummyConnection();
+         const mm = new ModuleManager(c);
+         await mm.build();
+
+         await mm.get("data").schema().patch("basepath", "/api/data2");
+         await mm.save();
+
+         const config = await getRawConfig(c);
+         const diffs = await getDiffs(c);
+
+         expect(config.json.data.basepath).toBe("/api/data2");
+         expect(diffs).toHaveLength(1);
+         expect(diffs[0]!.created_at).toBeDefined();
+         expect(diffs[0]!.updated_at).toBeDefined();
+      });
+   });
+
+   describe("validate & revert", () => {
+      const schema = Type.Object({
+         value: Type.Array(Type.Number(), { default: [] }),
+      });
+      type SampleSchema = Static<typeof schema>;
+      class Sample extends Module<typeof schema> {
+         getSchema() {
+            return schema;
+         }
+         override async build() {
+            this.setBuilt();
+         }
+         override async onBeforeUpdate(from: SampleSchema, to: SampleSchema) {
+            if (to.value.length > 3) {
+               throw new Error("too many values");
+            }
+            if (to.value.includes(7)) {
+               throw new Error("contains 7");
+            }
+
+            return to;
+         }
+      }
+      class TestModuleManager extends ModuleManager {
+         constructor(...args: ConstructorParameters<typeof ModuleManager>) {
+            super(...args);
+            this.modules["module1"] = new Sample({}, this.ctx());
+         }
+      }
+      test("respects module onBeforeUpdate", async () => {
+         const { dummyConnection: c } = getDummyConnection();
+         const mm = new TestModuleManager(c);
+         await mm.build();
+
+         const m = mm.get("module1" as any) as Sample;
+
+         {
+            expect(async () => {
+               await m.schema().set({ value: [1, 2, 3, 4, 5] });
+               return mm.save();
+            }).toThrow(/too many values/);
+
+            expect(m.config.value).toHaveLength(0);
+            expect((mm.configs() as any).module1.value).toHaveLength(0);
+         }
+
+         {
+            expect(async () => {
+               await mm.mutateConfigSafe("module1" as any).set({ value: [1, 2, 3, 4, 5] });
+               return mm.save();
+            }).toThrow(/too many values/);
+
+            expect(m.config.value).toHaveLength(0);
+            expect((mm.configs() as any).module1.value).toHaveLength(0);
+         }
+
+         {
+            expect(async () => {
+               await m.schema().set({ value: [1, 7, 5] });
+               return mm.save();
+            }).toThrow(/contains 7/);
+
+            expect(m.config.value).toHaveLength(0);
+            expect((mm.configs() as any).module1.value).toHaveLength(0);
+         }
+
+         {
+            expect(async () => {
+               await mm.mutateConfigSafe("module1" as any).set({ value: [1, 7, 5] });
+               return mm.save();
+            }).toThrow(/contains 7/);
+
+            expect(m.config.value).toHaveLength(0);
+            expect((mm.configs() as any).module1.value).toHaveLength(0);
+         }
       });
    });
 });
