@@ -1,7 +1,7 @@
 import { Guard } from "auth";
 import { $console, BkndError, DebugLogger, env } from "core";
 import { EventManager } from "core/events";
-import { clone, diff } from "core/object/diff";
+import * as $diff from "core/object/diff";
 import {
    Default,
    type Static,
@@ -95,7 +95,7 @@ export type ModuleManagerOptions = {
    verbosity?: Verbosity;
 };
 
-type ConfigTable<Json = ModuleConfigs> = {
+export type ConfigTable<Json = ModuleConfigs> = {
    id?: number;
    version: number;
    type: "config" | "diff" | "backup";
@@ -144,6 +144,7 @@ export class ModuleManager {
    private _version: number = 0;
    private _built = false;
    private readonly _booted_with?: "provided" | "partial";
+   private _stable_configs: ModuleConfigs | undefined;
 
    private logger: DebugLogger;
 
@@ -310,7 +311,7 @@ export class ModuleManager {
 
       try {
          const state = await this.fetch();
-         if (!state) throw new BkndError("save: no config found");
+         if (!state) throw new BkndError("no config found");
          this.logger.log("fetched version", state.version);
 
          if (state.version !== version) {
@@ -330,15 +331,21 @@ export class ModuleManager {
             this.logger.log("version matches", state.version);
 
             // clean configs because of Diff() function
-            const diffs = diff(state.json, clone(configs));
+            const diffs = $diff.diff(state.json, $diff.clone(configs));
             this.logger.log("checking diff", [diffs.length]);
 
-            if (diff.length > 0) {
+            if (diffs.length > 0) {
+               // validate diffs, it'll throw on invalid
+               this.validateDiffs(diffs);
+
+               const date = new Date();
                // store diff
                await this.mutator().insertOne({
                   version,
                   type: "diff",
-                  json: clone(diffs),
+                  json: $diff.clone(diffs),
+                  created_at: date,
+                  updated_at: date,
                });
 
                // store new version
@@ -346,7 +353,7 @@ export class ModuleManager {
                   {
                      version,
                      json: configs,
-                     updated_at: new Date(),
+                     updated_at: date,
                   } as any,
                   {
                      type: "config",
@@ -358,7 +365,7 @@ export class ModuleManager {
             }
          }
       } catch (e) {
-         if (e instanceof BkndError) {
+         if (e instanceof BkndError && e.message === "no config found") {
             this.logger.log("no config, just save fresh");
             // no config, just save
             await this.mutator().insertOne({
@@ -369,10 +376,12 @@ export class ModuleManager {
                updated_at: new Date(),
             });
          } else if (e instanceof TransformPersistFailedException) {
-            console.error("Cannot save invalid config");
+            $console.error("ModuleManager: Cannot save invalid config");
+            this.revertModules();
             throw e;
          } else {
-            console.error("Aborting");
+            $console.error("ModuleManager: Aborting");
+            this.revertModules();
             throw e;
          }
       }
@@ -384,6 +393,52 @@ export class ModuleManager {
 
       this.logger.clear();
       return this;
+   }
+
+   private revertModules() {
+      if (this._stable_configs) {
+         $console.warn("ModuleManager: Reverting modules");
+         this.setConfigs(this._stable_configs as any);
+      } else {
+         $console.error("ModuleManager: No stable configs to revert to");
+      }
+   }
+
+   /**
+    * Validates received diffs for an additional security control.
+    * Checks:
+    *   - check if module is registered
+    *   - run modules onBeforeUpdate() for added protection
+    *
+    * **Important**: Throw `Error` so it won't get catched.
+    *
+    * @param diffs
+    * @private
+    */
+   private validateDiffs(diffs: $diff.DiffEntry[]): void {
+      // check top level paths, and only allow a single module to be modified in a single transaction
+      const modules = [...new Set(diffs.map((d) => d.p[0]))];
+      if (modules.length === 0) {
+         return;
+      }
+
+      for (const moduleName of modules) {
+         const name = moduleName as ModuleKey;
+         const module = this.get(name) as Module;
+         if (!module) {
+            const msg = "validateDiffs: module not registered";
+            // biome-ignore format: ...
+            $console.error(msg, JSON.stringify({ module: name, diffs }, null, 2));
+            throw new Error(msg);
+         }
+
+         // pass diffs to the module to allow it to throw
+         if (this._stable_configs?.[name]) {
+            const current = $diff.clone(this._stable_configs?.[name]);
+            const modified = $diff.apply({ [name]: current }, diffs)[name];
+            module.onBeforeUpdate(current, modified);
+         }
+      }
    }
 
    private setConfigs(configs: ModuleConfigs): void {
@@ -519,6 +574,9 @@ export class ModuleManager {
       this.logger.log("resetting flags");
       ctx.flags = Module.ctx_flags;
 
+      // storing last stable config version
+      this._stable_configs = $diff.clone(this.configs());
+
       this.logger.clear();
       return state;
    }
@@ -551,7 +609,6 @@ export class ModuleManager {
       name: Module,
    ): Pick<ReturnType<Modules[Module]["schema"]>, "set" | "patch" | "overwrite" | "remove"> {
       const module = this.modules[name];
-      const copy = structuredClone(this.configs());
 
       return new Proxy(module.schema(), {
          get: (target, prop: string) => {
@@ -560,7 +617,7 @@ export class ModuleManager {
             }
 
             return async (...args) => {
-               console.log("[Safe Mutate]", name);
+               $console.log("[Safe Mutate]", name);
                try {
                   // overwrite listener to run build inside this try/catch
                   module.setListener(async () => {
@@ -582,12 +639,12 @@ export class ModuleManager {
 
                   return result;
                } catch (e) {
-                  console.error("[Safe Mutate] failed", e);
+                  $console.error(`[Safe Mutate] failed "${name}":`, String(e));
 
                   // revert to previous config & rebuild using original listener
-                  this.setConfigs(copy);
+                  this.revertModules();
                   await this.onModuleConfigUpdated(name, module.config as any);
-                  console.log("[Safe Mutate] reverted");
+                  $console.log(`[Safe Mutate] reverted "${name}":`);
 
                   // make sure to throw the error
                   throw e;

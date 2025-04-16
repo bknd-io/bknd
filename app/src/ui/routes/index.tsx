@@ -10,6 +10,7 @@ import { Root, RootEmpty } from "./root";
 import SettingsRoutes from "./settings";
 import { FlashMessage } from "ui/modules/server/FlashMessage";
 import { AuthRegister } from "ui/routes/auth/auth.register";
+import { BkndModalsProvider } from "ui/modals";
 
 // @ts-ignore
 const TestRoutes = lazy(() => import("./test"));
@@ -29,46 +30,48 @@ export function Routes({
                <Route path="/auth/register" component={AuthRegister} />
 
                <BkndWrapper>
-                  <Route path="/" nest>
-                     <Root>
-                        <Switch>
-                           <Route path="/test*" nest>
-                              <Suspense fallback={null}>
-                                 <TestRoutes />
-                              </Suspense>
-                           </Route>
+                  <BkndModalsProvider>
+                     <Route path="/" nest>
+                        <Root>
+                           <Switch>
+                              <Route path="/test*" nest>
+                                 <Suspense fallback={null}>
+                                    <TestRoutes />
+                                 </Suspense>
+                              </Route>
 
-                           <Route path="/" component={RootEmpty} />
-                           <Route path="/data" nest>
-                              <Suspense fallback={null}>
-                                 <DataRoutes />
-                              </Suspense>
-                           </Route>
-                           <Route path="/flows" nest>
-                              <Suspense fallback={null}>
-                                 <FlowRoutes />
-                              </Suspense>
-                           </Route>
-                           <Route path="/auth" nest>
-                              <Suspense fallback={null}>
-                                 <AuthRoutes />
-                              </Suspense>
-                           </Route>
-                           <Route path="/media" nest>
-                              <Suspense fallback={null}>
-                                 <MediaRoutes />
-                              </Suspense>
-                           </Route>
-                           <Route path="/settings" nest>
-                              <Suspense fallback={null}>
-                                 <SettingsRoutes />
-                              </Suspense>
-                           </Route>
+                              <Route path="/" component={RootEmpty} />
+                              <Route path="/data" nest>
+                                 <Suspense fallback={null}>
+                                    <DataRoutes />
+                                 </Suspense>
+                              </Route>
+                              <Route path="/flows" nest>
+                                 <Suspense fallback={null}>
+                                    <FlowRoutes />
+                                 </Suspense>
+                              </Route>
+                              <Route path="/auth" nest>
+                                 <Suspense fallback={null}>
+                                    <AuthRoutes />
+                                 </Suspense>
+                              </Route>
+                              <Route path="/media" nest>
+                                 <Suspense fallback={null}>
+                                    <MediaRoutes />
+                                 </Suspense>
+                              </Route>
+                              <Route path="/settings" nest>
+                                 <Suspense fallback={null}>
+                                    <SettingsRoutes />
+                                 </Suspense>
+                              </Route>
 
-                           <Route path="*" component={NotFound} />
-                        </Switch>
-                     </Root>
-                  </Route>
+                              <Route path="*" component={NotFound} />
+                           </Switch>
+                        </Root>
+                     </Route>
+                  </BkndModalsProvider>
                </BkndWrapper>
             </Switch>
          </Router>

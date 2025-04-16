@@ -160,7 +160,6 @@ export class SystemController extends Controller {
          if (this.app.modules.get(module).schema().has(path)) {
             return c.json({ success: false, path, error: "Path already exists" }, { status: 400 });
          }
-         console.log("-- add", module, path, value);
 
          return await handleConfigUpdateResponse(c, async () => {
             await this.app.mutateConfig(module).patch(path, value);
