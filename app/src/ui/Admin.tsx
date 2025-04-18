@@ -1,6 +1,6 @@
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
-import React from "react";
+import React, { type ReactNode } from "react";
 import { BkndProvider, type BkndAdminOptions } from "ui/client/bknd";
 import { useTheme } from "ui/client/use-theme";
 import { Logo } from "ui/components/display/Logo";
@@ -21,33 +21,32 @@ export default function Admin({
    withProvider = false,
    config,
 }: BkndAdminProps) {
-   const Component = (
+   const { theme } = useTheme();
+   const Provider = ({ children }: any) =>
+      withProvider ? (
+         <ClientProvider
+            baseUrl={baseUrlOverride}
+            {...(typeof withProvider === "object" ? withProvider : {})}
+         >
+            {children}
+         </ClientProvider>
+      ) : (
+         children
+      );
+
+   const BkndWrapper = ({ children }: { children: ReactNode }) => (
       <BkndProvider options={config} fallback={<Skeleton theme={config?.theme} />}>
-         <AdminInternal />
+         {children}
       </BkndProvider>
    );
-   return withProvider ? (
-      <ClientProvider
-         baseUrl={baseUrlOverride}
-         {...(typeof withProvider === "object" ? withProvider : {})}
-      >
-         {Component}
-      </ClientProvider>
-   ) : (
-      Component
-   );
-}
-
-function AdminInternal() {
-   const { theme } = useTheme();
 
    return (
-      <MantineProvider {...createMantineTheme(theme as any)}>
-         <Notifications position="top-right" />
-         <BkndModalsProvider>
-            <Routes />
-         </BkndModalsProvider>
-      </MantineProvider>
+      <Provider>
+         <MantineProvider {...createMantineTheme(theme as any)}>
+            <Notifications position="top-right" />
+            <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath} />
+         </MantineProvider>
+      </Provider>
    );
 }
 

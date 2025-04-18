@@ -77,12 +77,12 @@ async function makeApp(config: MakeAppConfig) {
    app.emgr.onEvent(
       App.Events.AppBuiltEvent,
       async () => {
-         await attachServeStatic(app, config.server?.platform ?? "node");
-         app.registerAdminController();
-
          if (config.onBuilt) {
             await config.onBuilt(app);
          }
+
+         await attachServeStatic(app, config.server?.platform ?? "node");
+         app.registerAdminController();
       },
       "sync",
    );
@@ -92,7 +92,7 @@ async function makeApp(config: MakeAppConfig) {
 }
 
 export async function makeConfigApp(_config: CliBkndConfig, platform?: Platform) {
-   const config = makeConfig(_config, { env: process.env });
+   const config = makeConfig(_config, process.env);
    return makeApp({
       ...config,
       server: { platform },

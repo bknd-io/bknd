@@ -61,6 +61,19 @@ export class AppData extends Module<typeof dataConfigSchema> {
       this.setBuilt();
    }
 
+   override async onBeforeUpdate(from: AppDataConfig, to: AppDataConfig): Promise<AppDataConfig> {
+      // this is not 100% yet, since it could be legit
+      const entities = {
+         from: Object.keys(from.entities ?? {}),
+         to: Object.keys(to.entities ?? {}),
+      };
+      if (entities.from.length - entities.to.length > 1) {
+         throw new Error("Cannot remove more than one entity at a time");
+      }
+
+      return to;
+   }
+
    getSchema() {
       return dataConfigSchema;
    }

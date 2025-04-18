@@ -72,6 +72,7 @@ export class AdminController extends Controller {
          success: configs.auth.cookie.pathSuccess ?? this.withAdminBasePath("/"),
          loggedOut: configs.auth.cookie.pathLoggedOut ?? this.withAdminBasePath("/"),
          login: this.withAdminBasePath("/auth/login"),
+         register: this.withAdminBasePath("/auth/register"),
          logout: this.withAdminBasePath("/auth/logout"),
       };
 
@@ -92,8 +93,7 @@ export class AdminController extends Controller {
       });
 
       if (auth_enabled) {
-         hono.get(
-            authRoutes.login,
+         const redirectRouteParams = [
             permission([SystemPermissions.accessAdmin, SystemPermissions.schemaRead], {
                // @ts-ignore
                onGranted: async (c) => {
@@ -107,7 +107,10 @@ export class AdminController extends Controller {
             async (c) => {
                return c.html(c.get("html")!);
             },
-         );
+         ] as const;
+
+         hono.get(authRoutes.login, ...redirectRouteParams);
+         hono.get(authRoutes.register, ...redirectRouteParams);
 
          hono.get(authRoutes.logout, async (c) => {
             await auth.authenticator?.logout(c);
