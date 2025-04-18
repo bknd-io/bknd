@@ -44,8 +44,10 @@ export const layoutWithDagre = ({ nodes, edges, graph }: LayoutProps) => {
          const position = dagreGraph.node(node.id);
          return {
             ...node,
-            x: position.x - (node.width ?? 0) / 2,
-            y: position.y - (node.height ?? 0) / 2,
+            position: {
+               x: position.x - (node.width ?? 0) / 2,
+               y: position.y - (node.height ?? 0) / 2,
+            },
          };
       }),
       edges,
