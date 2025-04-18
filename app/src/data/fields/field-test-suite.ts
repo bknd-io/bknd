@@ -98,12 +98,9 @@ export function fieldTestSuite(
    test("toJSON", async () => {
       const _config = {
          ..._requiredConfig,
-         //order: 1,
          fillable: true,
          required: false,
          hidden: false,
-         //virtual: false,
-         //default_value: undefined
       };
 
       function fieldJson(field: Field) {
@@ -115,19 +112,16 @@ export function fieldTestSuite(
       }
 
       expect(fieldJson(noConfigField)).toEqual({
-         //name: "no_config",
          type: noConfigField.type,
          config: _config,
       });
 
       expect(fieldJson(fillable)).toEqual({
-         //name: "fillable",
          type: noConfigField.type,
          config: _config,
       });
 
       expect(fieldJson(required)).toEqual({
-         //name: "required",
          type: required.type,
          config: {
             ..._config,
@@ -136,7 +130,6 @@ export function fieldTestSuite(
       });
 
       expect(fieldJson(hidden)).toEqual({
-         //name: "hidden",
          type: required.type,
          config: {
             ..._config,
@@ -145,7 +138,6 @@ export function fieldTestSuite(
       });
 
       expect(fieldJson(dflt)).toEqual({
-         //name: "dflt",
          type: dflt.type,
          config: {
             ..._config,
@@ -154,7 +146,6 @@ export function fieldTestSuite(
       });
 
       expect(fieldJson(requiredAndDefault)).toEqual({
-         //name: "full",
          type: requiredAndDefault.type,
          config: {
             ..._config,

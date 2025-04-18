@@ -1,5 +1,6 @@
-import { Type } from "core/utils";
 import { Task } from "../Task";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export class RenderTask<Output extends Record<string, any>> extends Task<
    typeof RenderTask.schema,

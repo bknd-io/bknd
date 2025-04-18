@@ -1,14 +1,16 @@
 import type { PrimaryFieldType } from "core";
 import { snakeToPascalWithSpaces } from "core/utils";
-import { type Static, Type } from "core/utils";
+import type { Static } from "core/utils";
 import type { ExpressionBuilder } from "kysely";
 import type { Entity, EntityManager } from "../entities";
 import type { RepoQuery } from "../server/data-query-impl";
-import { EntityRelation, type KyselyJsonFrom, type KyselyQueryBuilder } from "./EntityRelation";
+import { EntityRelation, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField, type RelationFieldBaseConfig } from "./RelationField";
 import type { MutationInstructionResponse } from "./RelationMutator";
 import { type RelationType, RelationTypes } from "./relation-types";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 /**
  * Source entity receives the mapping field
@@ -125,7 +127,6 @@ export class ManyToOneRelation extends EntityRelation<typeof ManyToOneRelation.s
       }
 
       const groupBy = `${entity.name}.${entity.getPrimaryField().name}`;
-      //console.log("queryInfo", entity.name, { reference, side, relationRef, entityRef, otherRef });
 
       return {
          other,

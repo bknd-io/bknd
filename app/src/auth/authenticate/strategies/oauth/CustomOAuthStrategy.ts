@@ -1,6 +1,8 @@
-import { type Static, StringEnum, Type } from "core/utils";
+import { type Static, StringEnum } from "core/utils";
+import * as tbbox from "@sinclair/typebox";
 import type * as oauth from "oauth4webapi";
 import { OAuthStrategy } from "./OAuthStrategy";
+const { Type } = tbbox;
 
 type SupportedTypes = "oauth2" | "oidc";
 

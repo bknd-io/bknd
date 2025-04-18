@@ -1,4 +1,4 @@
-import { Type, TypeInvalidError, parse, transformObject } from "core/utils";
+import { TypeInvalidError, parse, transformObject } from "core/utils";
 import { constructEntity } from "data";
 import {
    type TAppDataEntity,
@@ -13,6 +13,8 @@ import {
 import { useBknd } from "ui/client/bknd";
 import type { TSchemaActions } from "ui/client/schema/actions";
 import { bkndModals } from "ui/modals";
+import * as tb from "@sinclair/typebox";
+const { Type } = tb;
 
 export function useBkndData() {
    const { config, app, schema, actions: bkndActions } = useBknd();

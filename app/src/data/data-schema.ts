@@ -1,4 +1,5 @@
-import { type Static, StringRecord, Type, objectTransform } from "core/utils";
+import { type Static, StringRecord, objectTransform } from "core/utils";
+import * as tb from "@sinclair/typebox";
 import {
    FieldClassMap,
    RelationClassMap,
@@ -18,36 +19,37 @@ export type FieldType = keyof typeof FIELDS;
 export const RELATIONS = RelationClassMap;
 
 export const fieldsSchemaObject = objectTransform(FIELDS, (field, name) => {
-   return Type.Object(
+   return tb.Type.Object(
       {
-         type: Type.Const(name, { default: name, readOnly: true }),
-         config: Type.Optional(field.schema),
+         type: tb.Type.Const(name, { default: name, readOnly: true }),
+         config: tb.Type.Optional(field.schema),
       },
       {
          title: name,
       },
    );
 });
-export const fieldsSchema = Type.Union(Object.values(fieldsSchemaObject));
+export const fieldsSchema = tb.Type.Union(Object.values(fieldsSchemaObject));
 export const entityFields = StringRecord(fieldsSchema);
 export type TAppDataField = Static<typeof fieldsSchema>;
 export type TAppDataEntityFields = Static<typeof entityFields>;
 
-export const entitiesSchema = Type.Object({
-   //name: Type.String(),
-   type: Type.Optional(Type.String({ enum: entityTypes, default: "regular", readOnly: true })),
-   config: Type.Optional(entityConfigSchema),
-   fields: Type.Optional(entityFields),
+export const entitiesSchema = tb.Type.Object({
+   type: tb.Type.Optional(
+      tb.Type.String({ enum: entityTypes, default: "regular", readOnly: true }),
+   ),
+   config: tb.Type.Optional(entityConfigSchema),
+   fields: tb.Type.Optional(entityFields),
 });
 export type TAppDataEntity = Static<typeof entitiesSchema>;
 
 export const relationsSchema = Object.entries(RelationClassMap).map(([name, relationClass]) => {
-   return Type.Object(
+   return tb.Type.Object(
       {
-         type: Type.Const(name, { default: name, readOnly: true }),
-         source: Type.String(),
-         target: Type.String(),
-         config: Type.Optional(relationClass.schema),
+         type: tb.Type.Const(name, { default: name, readOnly: true }),
+         source: tb.Type.String(),
+         target: tb.Type.String(),
+         config: tb.Type.Optional(relationClass.schema),
       },
       {
          title: name,
@@ -56,24 +58,23 @@ export const relationsSchema = Object.entries(RelationClassMap).map(([name, rela
 });
 export type TAppDataRelation = Static<(typeof relationsSchema)[number]>;
 
-export const indicesSchema = Type.Object(
+export const indicesSchema = tb.Type.Object(
    {
-      entity: Type.String(),
-      fields: Type.Array(Type.String(), { minItems: 1 }),
-      //name: Type.Optional(Type.String()),
-      unique: Type.Optional(Type.Boolean({ default: false })),
+      entity: tb.Type.String(),
+      fields: tb.Type.Array(tb.Type.String(), { minItems: 1 }),
+      unique: tb.Type.Optional(tb.Type.Boolean({ default: false })),
    },
    {
       additionalProperties: false,
    },
 );
 
-export const dataConfigSchema = Type.Object(
+export const dataConfigSchema = tb.Type.Object(
    {
-      basepath: Type.Optional(Type.String({ default: "/api/data" })),
-      entities: Type.Optional(StringRecord(entitiesSchema, { default: {} })),
-      relations: Type.Optional(StringRecord(Type.Union(relationsSchema), { default: {} })),
-      indices: Type.Optional(StringRecord(indicesSchema, { default: {} })),
+      basepath: tb.Type.Optional(tb.Type.String({ default: "/api/data" })),
+      entities: tb.Type.Optional(StringRecord(entitiesSchema, { default: {} })),
+      relations: tb.Type.Optional(StringRecord(tb.Type.Union(relationsSchema), { default: {} })),
+      indices: tb.Type.Optional(StringRecord(indicesSchema, { default: {} })),
    },
    {
       additionalProperties: false,

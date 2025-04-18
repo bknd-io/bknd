@@ -1,9 +1,11 @@
 import { type AppAuth, AuthPermissions, type SafeUser, type Strategy } from "auth";
 import { tbValidator as tb } from "core";
-import { Type, TypeInvalidError, parse, transformObject } from "core/utils";
+import { TypeInvalidError, parse, transformObject } from "core/utils";
 import { DataPermissions } from "data";
 import type { Hono } from "hono";
 import { Controller, type ServerEnv } from "modules/Controller";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export type AuthActionResponse = {
    success: boolean;

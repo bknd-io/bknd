@@ -2,6 +2,7 @@
   "compilerOptions": {
     "types": ["bun-types", "@cloudflare/workers-types"],
     "composite": false,
+    "incremental": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",

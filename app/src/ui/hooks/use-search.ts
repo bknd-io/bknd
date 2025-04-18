@@ -2,7 +2,6 @@ import {
    type Static,
    type StaticDecode,
    type TSchema,
-   Type,
    decodeSearch,
    encodeSearch,
    parseDecode,

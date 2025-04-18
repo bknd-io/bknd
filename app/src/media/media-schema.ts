@@ -1,6 +1,8 @@
-import { Const, type Static, Type, objectTransform } from "core/utils";
+import { Const, type Static, objectTransform } from "core/utils";
 import { Adapters } from "media";
 import { registries } from "modules/registries";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const ADAPTERS = {
    ...Adapters,

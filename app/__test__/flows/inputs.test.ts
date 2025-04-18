@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { Hono } from "hono";
 import { Event, EventManager } from "../../src/core/events";
-import { type Static, type StaticDecode, Type, parse } from "../../src/core/utils";
+import { parse } from "../../src/core/utils";
+import { type Static, type StaticDecode, Type } from "@sinclair/typebox";
 import { EventTrigger, Flow, HttpTrigger, type InputsMap, Task } from "../../src/flows";
 import { dynamic } from "../../src/flows/tasks/Task";
 

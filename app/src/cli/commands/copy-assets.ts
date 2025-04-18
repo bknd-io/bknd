@@ -32,5 +32,6 @@ async function action(options: { out?: string; clean?: boolean }) {
    // delete ".vite" directory in out
    await fs.rm(path.resolve(out, ".vite"), { recursive: true });
 
+   // biome-ignore lint/suspicious/noConsoleLog:
    console.log(c.green(`Assets copied to: ${c.bold(out)}`));
 }

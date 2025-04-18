@@ -1,10 +1,12 @@
 import type { AuthAction, Authenticator, Strategy } from "auth";
 import { Exception, isDebug } from "core";
-import { type Static, StringEnum, type TSchema, Type, filterKeys, parse } from "core/utils";
+import { type Static, StringEnum, filterKeys } from "core/utils";
 import { type Context, Hono } from "hono";
 import { getSignedCookie, setSignedCookie } from "hono/cookie";
 import * as oauth from "oauth4webapi";
 import * as issuers from "./issuers";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 type ConfiguredIssuers = keyof typeof issuers;
 type SupportedTypes = "oauth2" | "oidc";
@@ -13,7 +15,6 @@ type RequireKeys<T extends object, K extends keyof T> = Required<Pick<T, K>> & O
 
 const schemaProvided = Type.Object(
    {
-      //type: StringEnum(["oidc", "oauth2"] as const, { default: "oidc" }),
       name: StringEnum(Object.keys(issuers) as ConfiguredIssuers[]),
       client: Type.Object(
          {
@@ -172,8 +173,7 @@ export class OAuthStrategy implements Strategy {
    ) {
       const config = await this.getConfig();
       const { client, as, type } = config;
-      //console.log("config", config);
-      console.log("callbackParams", callbackParams, options);
+
       const parameters = oauth.validateAuthResponse(
          as,
          client, // no client_secret required
@@ -181,13 +181,9 @@ export class OAuthStrategy implements Strategy {
          oauth.expectNoState,
       );
       if (oauth.isOAuth2Error(parameters)) {
-         //console.log("callback.error", parameters);
          throw new OAuthCallbackException(parameters, "validateAuthResponse");
       }
-      /*console.log(
-         "callback.parameters",
-         JSON.stringify(Object.fromEntries(parameters.entries()), null, 2),
-      );*/
+
       const response = await oauth.authorizationCodeGrantRequest(
          as,
          client,
@@ -195,13 +191,9 @@ export class OAuthStrategy implements Strategy {
          options.redirect_uri,
          options.state,
       );
-      //console.log("callback.response", response);
 
       const challenges = oauth.parseWwwAuthenticateChallenges(response);
       if (challenges) {
-         for (const challenge of challenges) {
-            //console.log("callback.challenge", challenge);
-         }
          // @todo: Handle www-authenticate challenges as needed
          throw new OAuthCallbackException(challenges, "www-authenticate");
       }
@@ -216,20 +208,13 @@ export class OAuthStrategy implements Strategy {
          expectedNonce,
       );
       if (oauth.isOAuth2Error(result)) {
-         console.log("callback.error", result);
          // @todo: Handle OAuth 2.0 response body error
          throw new OAuthCallbackException(result, "processAuthorizationCodeOpenIDResponse");
       }
 
-      //console.log("callback.result", result);
-
       const claims = oauth.getValidatedIdTokenClaims(result);
-      //console.log("callback.IDTokenClaims", claims);
-
       const infoRequest = await oauth.userInfoRequest(as, client, result.access_token!);
-
       const resultUser = await oauth.processUserInfoResponse(as, client, claims.sub, infoRequest);
-      //console.log("callback.resultUser", resultUser);
 
       return await config.profile(resultUser, config, claims); // @todo: check claims
    }
@@ -240,8 +225,7 @@ export class OAuthStrategy implements Strategy {
    ) {
       const config = await this.getConfig();
       const { client, type, as, profile } = config;
-      console.log("config", { client, as, type });
-      console.log("callbackParams", callbackParams, options);
+
       const parameters = oauth.validateAuthResponse(
          as,
          client, // no client_secret required
@@ -249,13 +233,9 @@ export class OAuthStrategy implements Strategy {
          oauth.expectNoState,
       );
       if (oauth.isOAuth2Error(parameters)) {
-         console.log("callback.error", parameters);
          throw new OAuthCallbackException(parameters, "validateAuthResponse");
       }
-      console.log(
-         "callback.parameters",
-         JSON.stringify(Object.fromEntries(parameters.entries()), null, 2),
-      );
+
       const response = await oauth.authorizationCodeGrantRequest(
          as,
          client,
@@ -266,9 +246,6 @@ export class OAuthStrategy implements Strategy {
 
       const challenges = oauth.parseWwwAuthenticateChallenges(response);
       if (challenges) {
-         for (const challenge of challenges) {
-            //console.log("callback.challenge", challenge);
-         }
          // @todo: Handle www-authenticate challenges as needed
          throw new OAuthCallbackException(challenges, "www-authenticate");
       }
@@ -279,19 +256,15 @@ export class OAuthStrategy implements Strategy {
       try {
          result = await oauth.processAuthorizationCodeOAuth2Response(as, client, response);
          if (oauth.isOAuth2Error(result)) {
-            console.log("error", result);
             throw new Error(); // Handle OAuth 2.0 response body error
          }
       } catch (e) {
          result = (await copy.json()) as any;
-         console.log("failed", result);
       }
 
       const res2 = await oauth.userInfoRequest(as, client, result.access_token!);
       const user = await res2.json();
-      console.log("res2", res2, user);
 
-      console.log("result", result);
       return await config.profile(user, config, result);
    }
 
@@ -301,7 +274,6 @@ export class OAuthStrategy implements Strategy {
    ): Promise<UserProfile> {
       const type = this.getIssuerConfig().type;
 
-      console.log("type", type);
       switch (type) {
          case "oidc":
             return await this.oidc(callbackParams, options);
@@ -325,7 +297,6 @@ export class OAuthStrategy implements Strategy {
       };
 
       const setState = async (c: Context, config: TState): Promise<void> => {
-         console.log("--- setting state", config);
          await setSignedCookie(c, cookie_name, JSON.stringify(config), secret, {
             secure: true,
             httpOnly: true,
@@ -356,7 +327,6 @@ export class OAuthStrategy implements Strategy {
          const params = new URLSearchParams(url.search);
 
          const state = await getState(c);
-         console.log("state", state);
 
          // @todo: add config option to determine if state.action is allowed
          const redirect_uri =
@@ -369,21 +339,28 @@ export class OAuthStrategy implements Strategy {
             state: state.state,
          });
 
-         try {
-            const data = await auth.resolve(state.action, this, profile.sub, profile);
-            console.log("******** RESOLVED ********", data);
+         const safeProfile = {
+            email: profile.email,
+            strategy_value: profile.sub,
+         } as const;
 
-            if (state.mode === "cookie") {
-               return await auth.respond(c, data, state.redirect);
+         const verify = async (user) => {
+            if (user.strategy_value !== profile.sub) {
+               throw new Exception("Invalid credentials");
             }
+         };
+         const opts = {
+            redirect: state.redirect,
+            forceJsonResponse: state.mode !== "cookie",
+         } as const;
 
-            return c.json(data);
-         } catch (e) {
-            if (state.mode === "cookie") {
-               return await auth.respond(c, e, state.redirect);
-            }
-
-            throw e;
+         switch (state.action) {
+            case "login":
+               return auth.resolveLogin(c, this, safeProfile, verify, opts);
+            case "register":
+               return auth.resolveRegister(c, this, safeProfile, verify, opts);
+            default:
+               throw new Error("Invalid action");
          }
       });
 
@@ -412,10 +389,8 @@ export class OAuthStrategy implements Strategy {
             redirect_uri,
             state,
          });
-         //console.log("_state", state);
 
          await setState(c, { state, action, redirect: referer.toString(), mode: "cookie" });
-         console.log("--redirecting to", response.url);
 
          return c.redirect(response.url);
       });

@@ -24,6 +24,7 @@ import {
    Form,
    FormContextOverride,
    FormDebug,
+   HiddenField,
    ObjectField,
    Subscribe,
    useDerivedFieldContext,
@@ -36,9 +37,16 @@ import * as AppShell from "../../layouts/AppShell/AppShell";
 export function AuthStrategiesList(props) {
    useBrowserTitle(["Auth", "Strategies"]);
 
-   const { hasSecrets } = useBknd({ withSecrets: true });
+   const {
+      hasSecrets,
+      config: {
+         auth: { enabled },
+      },
+   } = useBknd({ withSecrets: true });
    if (!hasSecrets) {
       return <Message.MissingPermission what="Auth Strategies" />;
+   } else if (!enabled) {
+      return <Message.NotEnabled description="Enable Auth first." />;
    }
 
    return <AuthStrategiesListInternal {...props} />;
@@ -62,7 +70,6 @@ function AuthStrategiesListInternal() {
    );
 
    async function handleSubmit(data: any) {
-      console.log("submit", { strategies: data });
       await $auth.actions.config.set({ strategies: data });
    }
 
@@ -152,7 +159,7 @@ const Strategy = ({ type, name, unavailable }: StrategyProps) => {
                   <span className="leading-none">{autoFormatString(name)}</span>
                </div>
                <div className="flex flex-row gap-4 items-center">
-                  <StrategyToggle />
+                  <StrategyToggle type={type} />
                   <IconButton
                      Icon={TbSettings}
                      size="lg"
@@ -168,7 +175,7 @@ const Strategy = ({ type, name, unavailable }: StrategyProps) => {
                      "flex flex-col border-t border-t-muted px-4 pt-3 pb-4 bg-lightest/50 gap-4",
                   )}
                >
-                  <StrategyForm type={type} />
+                  <StrategyForm type={type} name={name} />
                </div>
             )}
          </div>
@@ -176,7 +183,7 @@ const Strategy = ({ type, name, unavailable }: StrategyProps) => {
    );
 };
 
-const StrategyToggle = () => {
+const StrategyToggle = ({ type }: { type: StrategyProps["type"] }) => {
    const ctx = useDerivedFieldContext("");
    const { value } = useFormValue("");
 
@@ -219,8 +226,10 @@ const OAUTH_BRANDS = {
    discord: TbBrandDiscordFilled,
 };
 
-const StrategyForm = ({ type }: Pick<StrategyProps, "type">) => {
-   let Component = () => <ObjectField path="" wrapperProps={{ wrapper: "group", label: false }} />;
+const StrategyForm = ({ type, name }: Pick<StrategyProps, "type" | "name">) => {
+   let Component = (p: any) => (
+      <ObjectField path="" wrapperProps={{ wrapper: "group", label: false }} />
+   );
    switch (type) {
       case "password":
          Component = StrategyPasswordForm;
@@ -230,16 +239,22 @@ const StrategyForm = ({ type }: Pick<StrategyProps, "type">) => {
          break;
    }
 
-   return <Component />;
+   return (
+      <>
+         <HiddenField name="type" inputProps={{ disabled: true, defaultValue: type }} />
+         <Component type={type} name={name} />
+      </>
+   );
 };
 
 const StrategyPasswordForm = () => {
    return <ObjectField path="config" wrapperProps={{ wrapper: "group", label: false }} />;
 };
 
-const StrategyOAuthForm = () => {
+const StrategyOAuthForm = ({ type, name }: Pick<StrategyProps, "type" | "name">) => {
    return (
       <>
+         <HiddenField name="config.name" inputProps={{ disabled: true, defaultValue: name }} />
          <Field name="config.client.client_id" required inputProps={{ type: "password" }} />
          <Field name="config.client.client_secret" required inputProps={{ type: "password" }} />
       </>

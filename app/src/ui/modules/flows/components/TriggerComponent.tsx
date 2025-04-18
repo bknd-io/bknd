@@ -1,9 +1,11 @@
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
-import { Const, Type, transformObject } from "core/utils";
+import { Const, transformObject } from "core/utils";
 import { type Trigger, TriggerMap } from "flows";
 import type { IconType } from "react-icons";
 import { TbCircleLetterT } from "react-icons/tb";
 import { JsonSchemaForm } from "ui/components/form/json-schema";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export type TaskComponentProps = NodeProps<Node<{ trigger: Trigger }>> & {
    Icon?: IconType;

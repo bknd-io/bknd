@@ -18,7 +18,6 @@ export function getChangeSet(
    data: EntityData,
    fields: Field[],
 ): EntityData {
-   //console.log("getChangeSet", formData, data);
    return transform(
       formData,
       (acc, _value, key) => {
@@ -32,17 +31,6 @@ export function getChangeSet(
          // @todo: add typing for "action"
          if (action === "create" || newValue !== data[key]) {
             acc[key] = newValue;
-            /*console.log("changed", {
-               key,
-               value,
-               valueType: typeof value,
-               prev: data[key],
-               newValue,
-               new: value,
-               sent: acc[key]
-            });*/
-         } else {
-            //console.log("no change", key, value, data[key]);
          }
       },
       {} as typeof formData,

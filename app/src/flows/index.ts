@@ -23,13 +23,9 @@ export {
 } from "./flows/triggers";
 
 import { Task } from "./tasks/Task";
-export { type TaskResult, type TaskRenderProps } from "./tasks/Task";
+export type { TaskResult, TaskRenderProps } from "./tasks/Task";
 export { TaskConnection, Condition } from "./tasks/TaskConnection";
 
-// test
-//export { simpleFetch } from "./examples/simple-fetch";
-
-//export type TaskMapType = { [key: string]: { cls: typeof Task<any> } };
 export const TaskMap = {
    fetch: { cls: FetchTask },
    log: { cls: LogTask },

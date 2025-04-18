@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { TObject, TString } from "@sinclair/typebox";
-import { Registry } from "../../src/core/registry/Registry";
-import { type TSchema, Type } from "../../src/core/utils";
+import { type TObject, type TString, Type } from "@sinclair/typebox";
+import { Registry } from "core";
 
 type Constructor<T> = new (...args: any[]) => T;
 

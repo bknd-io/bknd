@@ -5,8 +5,8 @@ import { OAuthCallbackException, OAuthStrategy } from "./oauth/OAuthStrategy";
 export * as issuers from "./oauth/issuers";
 
 export {
-   PasswordStrategy,
    type PasswordStrategyOptions,
+   PasswordStrategy,
    OAuthStrategy,
    OAuthCallbackException,
    CustomOAuthStrategy,

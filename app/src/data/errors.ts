@@ -1,26 +1,26 @@
 import { Exception } from "core";
-import type { TypeInvalidError } from "core/utils";
+import { HttpStatus, type TypeInvalidError } from "core/utils";
 import type { Entity } from "./entities";
 import type { Field } from "./fields";
 
 export class UnableToConnectException extends Exception {
    override name = "UnableToConnectException";
-   override code = 500;
+   override code = HttpStatus.INTERNAL_SERVER_ERROR;
 }
 
 export class InvalidSearchParamsException extends Exception {
    override name = "InvalidSearchParamsException";
-   override code = 422;
+   override code = HttpStatus.UNPROCESSABLE_ENTITY;
 }
 
 export class TransformRetrieveFailedException extends Exception {
    override name = "TransformRetrieveFailedException";
-   override code = 422;
+   override code = HttpStatus.UNPROCESSABLE_ENTITY;
 }
 
 export class TransformPersistFailedException extends Exception {
    override name = "TransformPersistFailedException";
-   override code = 422;
+   override code = HttpStatus.UNPROCESSABLE_ENTITY;
 
    static invalidType(property: string, expected: string, given: any) {
       const givenValue = typeof given === "object" ? JSON.stringify(given) : given;
@@ -37,7 +37,7 @@ export class TransformPersistFailedException extends Exception {
 
 export class InvalidFieldConfigException extends Exception {
    override name = "InvalidFieldConfigException";
-   override code = 400;
+   override code = HttpStatus.BAD_REQUEST;
 
    constructor(
       field: Field<any, any, any>,
@@ -54,7 +54,7 @@ export class InvalidFieldConfigException extends Exception {
 
 export class EntityNotDefinedException extends Exception {
    override name = "EntityNotDefinedException";
-   override code = 400;
+   override code = HttpStatus.BAD_REQUEST;
 
    constructor(entity?: Entity | string) {
       if (!entity) {
@@ -67,7 +67,7 @@ export class EntityNotDefinedException extends Exception {
 
 export class EntityNotFoundException extends Exception {
    override name = "EntityNotFoundException";
-   override code = 404;
+   override code = HttpStatus.NOT_FOUND;
 
    constructor(entity: Entity | string, id: any) {
       super(

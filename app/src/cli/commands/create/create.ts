@@ -43,10 +43,12 @@ export const create: CliCommand = (program) => {
 
 function errorOutro() {
    $p.outro(color.red("Failed to create project."));
+   // biome-ignore lint/suspicious/noConsoleLog:
    console.log(
       color.yellow("Sorry that this happened. If you think this is a bug, please report it at: ") +
          color.cyan("https://github.com/bknd-io/bknd/issues"),
    );
+   // biome-ignore lint/suspicious/noConsoleLog:
    console.log("");
    process.exit(1);
 }
@@ -55,7 +57,14 @@ async function onExit() {
    await flush();
 }
 
-async function action(options: { template?: string; dir?: string; integration?: string, yes?: boolean, clean?: boolean }) {
+async function action(options: {
+   template?: string;
+   dir?: string;
+   integration?: string;
+   yes?: boolean;
+   clean?: boolean;
+}) {
+   // biome-ignore lint/suspicious/noConsoleLog:
    console.log("");
    const $t = createScoped("create");
    $t.capture("start", {
@@ -96,10 +105,12 @@ async function action(options: { template?: string; dir?: string; integration?: 
 
    $t.properties.at = "dir";
    if (fs.existsSync(downloadOpts.dir)) {
-      const clean = options.clean ?? await $p.confirm({
-         message: `Directory ${color.cyan(downloadOpts.dir)} exists. Clean it?`,
-         initialValue: false,
-      });
+      const clean =
+         options.clean ??
+         (await $p.confirm({
+            message: `Directory ${color.cyan(downloadOpts.dir)} exists. Clean it?`,
+            initialValue: false,
+         }));
       if ($p.isCancel(clean)) {
          await onExit();
          process.exit(1);
@@ -173,8 +184,6 @@ async function action(options: { template?: string; dir?: string; integration?: 
          $p.log.error("No integration selected");
          process.exit(1);
       }
-
-      //console.log("integration", { type, integration });
 
       const choices = templates.filter((t) => t.integration === integration);
       if (choices.length === 0) {
@@ -261,9 +270,11 @@ async function action(options: { template?: string; dir?: string; integration?: 
    $p.log.success(`Updated package name to ${color.cyan(ctx.name)}`);
 
    {
-      const install = options.yes ?? await $p.confirm({
-         message: "Install dependencies?",
-      });
+      const install =
+         options.yes ??
+         (await $p.confirm({
+            message: "Install dependencies?",
+         }));
 
       if ($p.isCancel(install)) {
          await onExit();

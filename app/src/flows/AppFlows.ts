@@ -25,7 +25,6 @@ export class AppFlows extends Module<typeof flowsConfigSchema> {
    }
 
    override async build() {
-      //console.log("building flows", this.config);
       const flows = transformObject(this.config.flows, (flowConfig, name) => {
          return Flow.fromObject(name, flowConfig as any, TASKS);
       });

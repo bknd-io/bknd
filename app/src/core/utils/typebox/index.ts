@@ -1,18 +1,11 @@
-import {
-   Kind,
-   type ObjectOptions,
-   type SchemaOptions,
-   type Static,
-   type StaticDecode,
-   type StringOptions,
-   type TLiteral,
-   type TLiteralValue,
-   type TObject,
-   type TRecord,
-   type TSchema,
-   type TString,
-   Type,
+import * as tb from "@sinclair/typebox";
+import type {
    TypeRegistry,
+   Static,
+   StaticDecode,
+   TSchema,
+   SchemaOptions,
+   TObject,
 } from "@sinclair/typebox";
 import {
    DefaultErrorFunction,
@@ -43,7 +36,7 @@ const validationSymbol = Symbol("tb-parse-validation");
 export class TypeInvalidError extends Error {
    errors: ValueError[];
    constructor(
-      public schema: TSchema,
+      public schema: tb.TSchema,
       public data: unknown,
       message?: string,
    ) {
@@ -92,29 +85,28 @@ export function mark(obj: any, validated = true) {
    }
 }
 
-export function parse<Schema extends TSchema = TSchema>(
+export function parse<Schema extends tb.TSchema = tb.TSchema>(
    schema: Schema,
-   data: RecursivePartial<Static<Schema>>,
+   data: RecursivePartial<tb.Static<Schema>>,
    options?: ParseOptions,
-): Static<Schema> {
+): tb.Static<Schema> {
    if (!options?.forceParse && typeof data === "object" && validationSymbol in data) {
       if (options?.useDefaults === false) {
-         return data as Static<typeof schema>;
+         return data as tb.Static<typeof schema>;
       }
 
       // this is important as defaults are expected
-      return Default(schema, data as any) as Static<Schema>;
+      return Default(schema, data as any) as tb.Static<Schema>;
    }
 
    const parsed = options?.useDefaults === false ? data : Default(schema, data);
 
    if (Check(schema, parsed)) {
       options?.skipMark !== true && mark(parsed, true);
-      return parsed as Static<typeof schema>;
+      return parsed as tb.Static<typeof schema>;
    } else if (options?.onError) {
       options.onError(Errors(schema, data));
    } else {
-      //console.warn("errors", JSON.stringify([...Errors(schema, data)], null, 2));
       throw new TypeInvalidError(schema, data);
    }
 
@@ -122,26 +114,24 @@ export function parse<Schema extends TSchema = TSchema>(
    return undefined as any;
 }
 
-export function parseDecode<Schema extends TSchema = TSchema>(
+export function parseDecode<Schema extends tb.TSchema = tb.TSchema>(
    schema: Schema,
-   data: RecursivePartial<StaticDecode<Schema>>,
-): StaticDecode<Schema> {
-   //console.log("parseDecode", schema, data);
+   data: RecursivePartial<tb.StaticDecode<Schema>>,
+): tb.StaticDecode<Schema> {
    const parsed = Default(schema, data);
 
    if (Check(schema, parsed)) {
-      return parsed as StaticDecode<typeof schema>;
+      return parsed as tb.StaticDecode<typeof schema>;
    }
-   //console.log("errors", ...Errors(schema, data));
 
    throw new TypeInvalidError(schema, data);
 }
 
-export function strictParse<Schema extends TSchema = TSchema>(
+export function strictParse<Schema extends tb.TSchema = tb.TSchema>(
    schema: Schema,
-   data: Static<Schema>,
+   data: tb.Static<Schema>,
    options?: ParseOptions,
-): Static<Schema> {
+): tb.Static<Schema> {
    return parse(schema, data as any, options);
 }
 
@@ -150,11 +140,14 @@ export function registerCustomTypeboxKinds(registry: typeof TypeRegistry) {
       return typeof value === "string" && schema.enum.includes(value);
    });
 }
-registerCustomTypeboxKinds(TypeRegistry);
+registerCustomTypeboxKinds(tb.TypeRegistry);
 
-export const StringEnum = <const T extends readonly string[]>(values: T, options?: StringOptions) =>
-   Type.Unsafe<T[number]>({
-      [Kind]: "StringEnum",
+export const StringEnum = <const T extends readonly string[]>(
+   values: T,
+   options?: tb.StringOptions,
+) =>
+   tb.Type.Unsafe<T[number]>({
+      [tb.Kind]: "StringEnum",
       type: "string",
       enum: values,
       ...options,
@@ -162,45 +155,47 @@ export const StringEnum = <const T extends readonly string[]>(values: T, options
 
 // key value record compatible with RJSF and typebox inference
 // acting like a Record, but using an Object with additionalProperties
-export const StringRecord = <T extends TSchema>(properties: T, options?: ObjectOptions) =>
-   Type.Object({}, { ...options, additionalProperties: properties }) as unknown as TRecord<
-      TString,
+export const StringRecord = <T extends tb.TSchema>(properties: T, options?: tb.ObjectOptions) =>
+   tb.Type.Object({}, { ...options, additionalProperties: properties }) as unknown as tb.TRecord<
+      tb.TString,
       typeof properties
    >;
 
 // fixed value that only be what is given + prefilled
-export const Const = <T extends TLiteralValue = TLiteralValue>(value: T, options?: SchemaOptions) =>
-   Type.Literal(value, { ...options, default: value, const: value, readOnly: true }) as TLiteral<T>;
+export const Const = <T extends tb.TLiteralValue = tb.TLiteralValue>(
+   value: T,
+   options?: tb.SchemaOptions,
+) =>
+   tb.Type.Literal(value, {
+      ...options,
+      default: value,
+      const: value,
+      readOnly: true,
+   }) as tb.TLiteral<T>;
 
-export const StringIdentifier = Type.String({
+export const StringIdentifier = tb.Type.String({
    pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$",
    minLength: 2,
    maxLength: 150,
 });
+
+export const StrictObject = <T extends tb.TProperties>(
+   properties: T,
+   options?: tb.ObjectOptions,
+): tb.TObject<T> => tb.Type.Object(properties, { ...options, additionalProperties: false });
 
 SetErrorFunction((error) => {
    if (error?.schema?.errorMessage) {
       return error.schema.errorMessage;
    }
 
-   if (error?.schema?.[Kind] === "StringEnum") {
+   if (error?.schema?.[tb.Kind] === "StringEnum") {
       return `Expected: ${error.schema.enum.map((e) => `"${e}"`).join(", ")}`;
    }
 
    return DefaultErrorFunction(error);
 });
 
-export {
-   Type,
-   type Static,
-   type StaticDecode,
-   type TSchema,
-   Kind,
-   type TObject,
-   type ValueError,
-   type SchemaOptions,
-   Value,
-   Default,
-   Errors,
-   Check,
-};
+export type { Static, StaticDecode, TSchema, TObject, ValueError, SchemaOptions };
+
+export { Value, Default, Errors, Check };

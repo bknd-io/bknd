@@ -1,6 +1,6 @@
 import type { ModalProps } from "@mantine/core";
 import type { ContextModalProps } from "@mantine/modals";
-import { type Static, StringEnum, StringIdentifier, Type } from "core/utils";
+import { type Static, StringEnum, StringIdentifier } from "core/utils";
 import { entitiesSchema, fieldsSchema, relationsSchema } from "data/data-schema";
 import { useState } from "react";
 import { type Modal2Ref, ModalBody, ModalFooter, ModalTitle } from "ui/components/modal/Modal2";
@@ -11,6 +11,8 @@ import { StepEntityFields } from "./step.entity.fields";
 import { StepRelation } from "./step.relation";
 import { StepSelect } from "./step.select";
 import Templates from "./templates/register";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export type CreateModalRef = Modal2Ref;
 

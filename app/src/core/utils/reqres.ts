@@ -1,7 +1,3 @@
-import { randomString } from "core/utils/strings";
-import type { Context } from "hono";
-import { extension, guess, isMimeType } from "media/storage/mime-types-tiny";
-
 export function headersToObject(headers: Headers): Record<string, string> {
    if (!headers) return {};
    return { ...Object.fromEntries(headers.entries()) };
@@ -102,7 +98,7 @@ export function decodeSearch(str) {
 export const enum HttpStatus {
    // Informational responses (100–199)
    CONTINUE = 100,
-   SWITCHING_PROTOCOLS = 101,
+   //SWITCHING_PROTOCOLS = 101,
    PROCESSING = 102,
    EARLY_HINTS = 103,
 
@@ -111,8 +107,8 @@ export const enum HttpStatus {
    CREATED = 201,
    ACCEPTED = 202,
    NON_AUTHORITATIVE_INFORMATION = 203,
-   NO_CONTENT = 204,
-   RESET_CONTENT = 205,
+   //NO_CONTENT = 204,
+   //RESET_CONTENT = 205,
    PARTIAL_CONTENT = 206,
    MULTI_STATUS = 207,
    ALREADY_REPORTED = 208,
@@ -123,7 +119,7 @@ export const enum HttpStatus {
    MOVED_PERMANENTLY = 301,
    FOUND = 302,
    SEE_OTHER = 303,
-   NOT_MODIFIED = 304,
+   //NOT_MODIFIED = 304,
    USE_PROXY = 305,
    TEMPORARY_REDIRECT = 307,
    PERMANENT_REDIRECT = 308,
@@ -171,4 +167,14 @@ export const enum HttpStatus {
    LOOP_DETECTED = 508,
    NOT_EXTENDED = 510,
    NETWORK_AUTHENTICATION_REQUIRED = 511,
+}
+// biome-ignore lint/suspicious/noConstEnum: <explanation>
+export const enum HttpStatusEmpty {
+   // Informational responses (100–199)
+   SWITCHING_PROTOCOLS = 101,
+   // Successful responses (200–299)
+   NO_CONTENT = 204,
+   RESET_CONTENT = 205,
+   // Redirection messages (300–399)
+   NOT_MODIFIED = 304,
 }

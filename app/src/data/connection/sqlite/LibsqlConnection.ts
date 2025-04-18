@@ -38,7 +38,7 @@ export class LibsqlConnection extends SqliteConnection {
       if (clientOrCredentials && "url" in clientOrCredentials) {
          let { url, authToken, protocol } = clientOrCredentials;
          if (protocol && LIBSQL_PROTOCOLS.includes(protocol)) {
-            console.log("changing protocol to", protocol);
+            $console.log("changing protocol to", protocol);
             const [, rest] = url.split("://");
             url = `${protocol}://${rest}`;
          }

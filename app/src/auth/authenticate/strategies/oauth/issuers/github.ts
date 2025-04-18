@@ -34,8 +34,6 @@ export const github: IssuerConfig<GithubUserInfo> = {
       config: Omit<IssuerConfig, "profile">,
       tokenResponse: any,
    ) => {
-      console.log("github info", info, config, tokenResponse);
-
       try {
          const res = await fetch("https://api.github.com/user/emails", {
             headers: {
@@ -45,7 +43,6 @@ export const github: IssuerConfig<GithubUserInfo> = {
             },
          });
          const data = (await res.json()) as GithubUserEmailResponse;
-         console.log("data", data);
          const email = data.find((e: any) => e.primary)?.email;
          if (!email) {
             throw new Error("No primary email found");

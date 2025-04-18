@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { Type, disableConsoleLog, enableConsoleLog, stripMark } from "../../src/core/utils";
+import { disableConsoleLog, enableConsoleLog, stripMark } from "../../src/core/utils";
+import { Type } from "@sinclair/typebox";
 import { entity, text } from "../../src/data";
 import { Module } from "../../src/modules/Module";
 import { ModuleManager, getDefaultConfig } from "../../src/modules/ModuleManager";

@@ -50,7 +50,7 @@ if (example) {
 }
 
 let app: App;
-const recreate = import.meta.env.VITE_APP_DISABLE_FRESH !== "1";
+const recreate = import.meta.env.VITE_APP_FRESH === "1";
 let firstStart = true;
 export default {
    async fetch(request: Request) {

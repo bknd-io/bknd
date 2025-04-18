@@ -1,4 +1,4 @@
-import type { DB as DefaultDB, PrimaryFieldType } from "core";
+import { $console, type DB as DefaultDB, type PrimaryFieldType } from "core";
 import { type EmitsEvents, EventManager } from "core/events";
 import type { DeleteQueryBuilder, InsertQueryBuilder, UpdateQueryBuilder } from "kysely";
 import { type TActionContext, WhereBuilder } from "..";
@@ -72,7 +72,6 @@ export class Mutator<
 
             // if relation field (include key and value in validatedData)
             if (Array.isArray(result)) {
-               //console.log("--- (instructions)", result);
                const [relation_key, relation_value] = result;
                validatedData[relation_key] = relation_value;
             }
@@ -122,7 +121,7 @@ export class Mutator<
          };
       } catch (e) {
          // @todo: redact
-         console.log("[Error in query]", sql);
+         $console.error("[Error in query]", sql);
          throw e;
       }
    }

@@ -1,14 +1,8 @@
 import type { TThis } from "@sinclair/typebox";
-import {
-   type SchemaOptions,
-   type Static,
-   type StaticDecode,
-   StringEnum,
-   Type,
-   Value,
-   isObject,
-} from "core/utils";
+import { type SchemaOptions, type StaticDecode, StringEnum, Value, isObject } from "core/utils";
 import { WhereBuilder, type WhereQuery } from "../entities";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const NumberOrString = (options: SchemaOptions = {}) =>
    Type.Transform(Type.Union([Type.Number(), Type.String()], options))
