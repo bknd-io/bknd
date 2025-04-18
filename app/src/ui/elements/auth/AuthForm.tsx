@@ -1,6 +1,5 @@
 import type { AppAuthOAuthStrategy, AppAuthSchema } from "auth/auth-schema";
 import clsx from "clsx";
-import { Type } from "core/utils";
 import { Form } from "json-schema-form-react";
 import { transform } from "lodash-es";
 import type { ComponentPropsWithoutRef } from "react";
@@ -11,6 +10,8 @@ import type { ValueError } from "@sinclair/typebox/value";
 import { type TSchema, Value } from "core/utils";
 import type { Validator } from "json-schema-form-react";
 import { useTheme } from "ui/client/use-theme";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 class TypeboxValidator implements Validator<ValueError> {
    async validate(schema: TSchema, data: any) {

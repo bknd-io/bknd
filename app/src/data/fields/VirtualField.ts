@@ -1,5 +1,7 @@
-import { type Static, Type } from "core/utils";
+import type { Static } from "core/utils";
 import { Field, baseFieldConfigSchema } from "./Field";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const virtualFieldConfigSchema = Type.Composite([baseFieldConfigSchema, Type.Object({})]);
 

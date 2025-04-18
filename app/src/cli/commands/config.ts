@@ -8,6 +8,8 @@ export const config: CliCommand = (program) => {
       .option("--pretty", "pretty print")
       .action((options) => {
          const config = getDefaultConfig();
+
+         // biome-ignore lint/suspicious/noConsoleLog:
          console.log(options.pretty ? JSON.stringify(config, null, 2) : JSON.stringify(config));
       });
 };

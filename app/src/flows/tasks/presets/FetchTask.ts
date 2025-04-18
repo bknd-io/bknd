@@ -1,6 +1,7 @@
-import { StringEnum, Type } from "core/utils";
-import type { InputsMap } from "../../flows/Execution";
+import { StringEnum } from "core/utils";
 import { Task, dynamic } from "../Task";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const FetchMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
@@ -14,8 +15,6 @@ export class FetchTask<Output extends Record<string, any>> extends Task<
       url: Type.String({
          pattern: "^(http|https)://",
       }),
-      //method: Type.Optional(Type.Enum(FetchMethodsEnum)),
-      //method: Type.Optional(dynamic(Type.String({ enum: FetchMethods, default: "GET" }))),
       method: Type.Optional(dynamic(StringEnum(FetchMethods, { default: "GET" }))),
       headers: Type.Optional(
          dynamic(
@@ -42,7 +41,6 @@ export class FetchTask<Output extends Record<string, any>> extends Task<
    }
 
    async execute() {
-      //console.log(`method: (${this.params.method})`);
       if (!FetchMethods.includes(this.params.method ?? "GET")) {
          throw this.error("Invalid method", {
             given: this.params.method,
@@ -53,19 +51,12 @@ export class FetchTask<Output extends Record<string, any>> extends Task<
       const body = this.getBody();
       const headers = new Headers(this.params.headers?.map((h) => [h.key, h.value]));
 
-      /*console.log("[FETCH]", {
-         url: this.params.url,
-         method: this.params.method ?? "GET",
-         headers,
-         body
-      });*/
       const result = await fetch(this.params.url, {
          method: this.params.method ?? "GET",
          headers,
          body,
       });
 
-      //console.log("fetch:response", result);
       if (!result.ok) {
          throw this.error("Failed to fetch", {
             status: result.status,
@@ -74,8 +65,6 @@ export class FetchTask<Output extends Record<string, any>> extends Task<
       }
 
       const data = (await result.json()) as Output;
-      //console.log("fetch:response:data", data);
-
       return data;
    }
 }

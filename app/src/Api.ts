@@ -117,8 +117,6 @@ export class Api {
             this.updateToken(token);
          }
       }
-
-      //console.warn("Couldn't extract token");
    }
 
    updateToken(token?: string, rebuild?: boolean) {

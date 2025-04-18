@@ -1,7 +1,9 @@
-import { Exception, isDebug } from "core";
-import { type Static, StringEnum, Type } from "core/utils";
+import { Exception, isDebug, $console } from "core";
+import { type Static, StringEnum } from "core/utils";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"];
 
@@ -29,8 +31,6 @@ export const serverConfigSchema = Type.Object(
 export type AppServerConfig = Static<typeof serverConfigSchema>;
 
 export class AppServer extends Module<typeof serverConfigSchema> {
-   //private admin_html?: string;
-
    override getRestrictedPaths() {
       return [];
    }
@@ -70,14 +70,13 @@ export class AppServer extends Module<typeof serverConfigSchema> {
 
       this.client.onError((err, c) => {
          //throw err;
-         console.error(err);
+         $console.error(err);
 
          if (err instanceof Response) {
             return err;
          }
 
          if (err instanceof Exception) {
-            console.log("---is exception", err.code);
             return c.json(err.toJSON(), err.code as any);
          }
 

@@ -1,8 +1,10 @@
 import { type Schema as JsonSchema, Validator } from "@cfworker/json-schema";
-import { Default, FromSchema, type Static, Type } from "core/utils";
+import { Default, FromSchema, type Static } from "core/utils";
 import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const jsonSchemaFieldConfigSchema = Type.Composite(
    [
@@ -46,22 +48,16 @@ export class JsonSchemaField<
 
    override isValid(value: any, context: TActionContext = "update"): boolean {
       const parentValid = super.isValid(value, context);
-      //console.log("jsonSchemaField:isValid", this.getJsonSchema(), this.name, value, parentValid);
 
       if (parentValid) {
          // already checked in parent
          if (!this.isRequired() && (!value || typeof value !== "object")) {
-            //console.log("jsonschema:valid: not checking", this.name, value, context);
             return true;
          }
 
          const result = this.validator.validate(value);
-         //console.log("jsonschema:errors", this.name, result.errors);
          return result.valid;
-      } else {
-         //console.log("jsonschema:invalid", this.name, value, context);
       }
-      //console.log("jsonschema:invalid:fromParent", this.name, value, context);
 
       return false;
    }
@@ -89,7 +85,6 @@ export class JsonSchemaField<
             try {
                return Default(FromSchema(this.getJsonSchema()), {});
             } catch (e) {
-               //console.error("jsonschema:transformRetrieve", e);
                return null;
             }
          } else if (this.hasDefault()) {
@@ -107,13 +102,9 @@ export class JsonSchemaField<
    ): Promise<string | undefined> {
       const value = await super.transformPersist(_value, em, context);
       if (this.nullish(value)) return value;
-      //console.log("jsonschema:transformPersist", this.name, _value, context);
 
       if (!this.isValid(value)) {
-         //console.error("jsonschema:transformPersist:invalid", this.name, value);
          throw new TransformPersistFailedException(this.name, value);
-      } else {
-         //console.log("jsonschema:transformPersist:valid", this.name, value);
       }
 
       if (!value || typeof value !== "object") return this.getDefault();

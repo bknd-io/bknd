@@ -22,7 +22,6 @@ export class SimpleRenderer {
    }
 
    static hasMarkup(template: string | object): boolean {
-      //console.log("has markup?", template);
       let flat: string = "";
 
       if (Array.isArray(template) || typeof template === "object") {
@@ -34,12 +33,8 @@ export class SimpleRenderer {
          flat = String(template);
       }
 
-      //console.log("** flat", flat);
-
       const checks = ["{{", "{%", "{#", "{:"];
-      const hasMarkup = checks.some((check) => flat.includes(check));
-      //console.log("--has markup?", hasMarkup);
-      return hasMarkup;
+      return checks.some((check) => flat.includes(check));
    }
 
    async render<Given extends TemplateTypes>(template: Given): Promise<Given> {
@@ -75,7 +70,6 @@ export class SimpleRenderer {
    }
 
    async renderString(template: string): Promise<string> {
-      //console.log("*** renderString", template, this.variables);
       return this.engine.parseAndRender(template, this.variables, this.options);
    }
 

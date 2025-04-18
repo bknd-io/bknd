@@ -2,13 +2,7 @@ import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { TextInput } from "@mantine/core";
 import { useFocusTrap } from "@mantine/hooks";
 import { TypeRegistry } from "@sinclair/typebox";
-import {
-   type Static,
-   StringEnum,
-   StringIdentifier,
-   Type,
-   registerCustomTypeboxKinds,
-} from "core/utils";
+import { type Static, StringEnum, StringIdentifier, registerCustomTypeboxKinds } from "core/utils";
 import { TRIGGERS } from "flows/flows-schema";
 import { forwardRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -22,6 +16,8 @@ import {
    ModalTitle,
 } from "../../../components/modal/Modal2";
 import { Step, Steps, useStepContext } from "../../../components/steps/Steps";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 registerCustomTypeboxKinds(TypeRegistry);
 

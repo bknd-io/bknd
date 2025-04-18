@@ -2,6 +2,7 @@ import { Event, EventManager, type ListenerHandler } from "core/events";
 import type { EmitsEvents } from "core/events";
 import type { Task, TaskResult } from "../tasks/Task";
 import type { Flow } from "./Flow";
+import { $console } from "core";
 
 export type TaskLog = TaskResult & {
    task: Task;
@@ -185,10 +186,9 @@ export class Execution implements EmitsEvents {
          await Promise.all(promises);
          return this.run();
       } catch (e) {
-         console.log("RuntimeExecutor: error", e);
+         $console.error("RuntimeExecutor: error", e);
 
          // for now just throw
-         // biome-ignore lint/complexity/noUselessCatch: @todo: add error task on flow
          throw e;
       }
    }

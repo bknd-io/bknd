@@ -1,7 +1,9 @@
 import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
-import { type Static, Type, isFile, parse } from "bknd/utils";
+import { type Static, isFile, parse } from "bknd/utils";
 import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd/media";
 import { StorageAdapter, guessMimeType as guess } from "bknd/media";
+import * as tb from "@sinclair/typebox";
+const { Type } = tb;
 
 export const localAdapterConfig = Type.Object(
    {

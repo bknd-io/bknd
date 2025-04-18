@@ -9,13 +9,11 @@ export class DebugLogger {
    }
 
    context(context: string) {
-      //console.log("[ settings context ]", context, this._context);
       this._context.push(context);
       return this;
    }
 
    clear() {
-      //console.log("[ clear context ]", this._context.pop(), this._context);
       this._context.pop();
       return this;
    }
@@ -33,6 +31,8 @@ export class DebugLogger {
       const indents = "  ".repeat(Math.max(this._context.length - 1, 0));
       const context =
          this._context.length > 0 ? `[${this._context[this._context.length - 1]}]` : "";
+
+      // biome-ignore lint/suspicious/noConsoleLog: <explanation>
       console.log(indents, context, time, ...args);
 
       this.last = now;

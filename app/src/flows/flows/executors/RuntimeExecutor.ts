@@ -1,4 +1,5 @@
 import type { Task } from "../../tasks/Task";
+import { $console } from "core";
 
 export class RuntimeExecutor {
    async run(
@@ -10,7 +11,6 @@ export class RuntimeExecutor {
          return;
       }
 
-      //const promises = tasks.map((t) => t.run());
       const promises = tasks.map(async (t) => {
          const result = await t.run();
          onDone?.(t, result);
@@ -20,7 +20,7 @@ export class RuntimeExecutor {
       try {
          await Promise.all(promises);
       } catch (e) {
-         console.log("RuntimeExecutor: error", e);
+         $console.error("RuntimeExecutor: error", e);
       }
 
       return this.run(nextTasks, onDone);

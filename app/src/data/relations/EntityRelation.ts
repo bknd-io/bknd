@@ -1,4 +1,4 @@
-import { type Static, Type, parse } from "core/utils";
+import { type Static, parse } from "core/utils";
 import type { ExpressionBuilder, SelectQueryBuilder } from "kysely";
 import type { Entity, EntityData, EntityManager } from "../entities";
 import {
@@ -8,18 +8,11 @@ import {
 } from "../relations";
 import type { RepoQuery } from "../server/data-query-impl";
 import type { RelationType } from "./relation-types";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export type KyselyJsonFrom = any;
 export type KyselyQueryBuilder = SelectQueryBuilder<any, any, any>;
-
-/*export type RelationConfig = {
-   mappedBy?: string;
-   inversedBy?: string;
-   sourceCardinality?: number;
-   connectionTable?: string;
-   connectionTableMappedName?: string;
-   required?: boolean;
-};*/
 
 export type BaseRelationConfig = Static<typeof EntityRelation.schema>;
 
@@ -165,7 +158,6 @@ export abstract class EntityRelation<
     * @param entity
     */
    isListableFor(entity: Entity): boolean {
-      //console.log("isListableFor", entity.name, this.source.entity.name, this.target.entity.name);
       return this.target.entity.name === entity.name;
    }
 

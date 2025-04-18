@@ -73,18 +73,16 @@ export default function AppShellAccordionsTest() {
       <div className="flex flex-col h-full">
          <AppShell.SectionHeader
             right={
-               <>
-                  <Dropdown
-                     items={[
-                        {
-                           label: "Settings",
-                        },
-                     ]}
-                     position="bottom-end"
-                  >
-                     <IconButton Icon={TbDots} />
-                  </Dropdown>
-               </>
+               <Dropdown
+                  items={[
+                     {
+                        label: "Settings",
+                     },
+                  ]}
+                  position="bottom-end"
+               >
+                  <IconButton Icon={TbDots} />
+               </Dropdown>
             }
             className="pl-3"
          >

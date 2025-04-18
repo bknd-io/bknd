@@ -1,5 +1,7 @@
-import { type Static, Type } from "core/utils";
+import type { Static } from "core/utils";
 import { Field, baseFieldConfigSchema } from "data";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const mediaFieldConfigSchema = Type.Composite([
    Type.Object({

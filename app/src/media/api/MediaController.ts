@@ -1,10 +1,12 @@
 import { isDebug, tbValidator as tb } from "core";
-import { HttpStatus, Type, getFileFromContext, headersToObject } from "core/utils";
+import { HttpStatus, getFileFromContext } from "core/utils";
 import type { StorageAdapter } from "media";
 import { StorageEvents, getRandomizedFilename } from "media";
 import { Controller } from "modules/Controller";
 import type { AppMedia } from "../AppMedia";
 import { MediaField } from "../MediaField";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const booleanLike = Type.Transform(Type.String())
    .Decode((v) => v === "1")

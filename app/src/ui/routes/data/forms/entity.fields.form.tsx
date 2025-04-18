@@ -5,7 +5,6 @@ import {
    Default,
    type Static,
    StringIdentifier,
-   Type,
    objectCleanEmpty,
    ucFirstAllSnakeToPascalWithSpaces,
 } from "core/utils";
@@ -27,6 +26,8 @@ import { type SortableItemProps, SortableList } from "ui/components/list/Sortabl
 import { Popover } from "ui/components/overlay/Popover";
 import { type TFieldSpec, fieldSpecs } from "ui/modules/data/components/fields-specs";
 import { dataFieldsUiSchema } from "../../settings/routes/data.settings";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
 const fieldsSchema = Type.Union(Object.values(fieldsSchemaObject));

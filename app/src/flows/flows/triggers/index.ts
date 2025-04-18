@@ -4,7 +4,6 @@ import { Trigger } from "./Trigger";
 
 export { Trigger, EventTrigger, HttpTrigger };
 
-//export type TriggerMapType = { [key: string]: { cls: typeof Trigger } };
 export const TriggerMap = {
    manual: { cls: Trigger },
    event: { cls: EventTrigger },

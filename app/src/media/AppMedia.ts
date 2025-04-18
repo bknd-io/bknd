@@ -1,5 +1,5 @@
-import type { PrimaryFieldType } from "core";
-import { type Entity, EntityIndex, type EntityManager } from "data";
+import { $console, type PrimaryFieldType } from "core";
+import { type Entity, type EntityManager } from "data";
 import { type FileUploadedEventData, Storage, type StorageAdapter } from "media";
 import { Module } from "modules/Module";
 import {
@@ -145,11 +145,10 @@ export class AppMedia extends Module<typeof mediaConfigSchema> {
             // simple file deletion sync
             const { data } = await em.repo(media).findOne({ path: e.params.name });
             if (data) {
-               console.log("item.data", data);
                await em.mutator(media).deleteOne(data.id);
             }
 
-            console.log("App:storage:file deleted", e);
+            $console.log("App:storage:file deleted", e.params);
          },
          { mode: "sync", id: "delete-data-media" },
       );

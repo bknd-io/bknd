@@ -1,7 +1,6 @@
-import { _jsonp, transformObject } from "core/utils";
-import { type Kysely, sql } from "kysely";
+import { transformObject } from "core/utils";
+import type { Kysely } from "kysely";
 import { set } from "lodash-es";
-import type { InitialModuleConfigs } from "modules/ModuleManager";
 
 export type MigrationContext = {
    db: Kysely<any>;
@@ -17,7 +16,6 @@ export type Migration = {
 export const migrations: Migration[] = [
    {
       version: 1,
-      //schema: true,
       up: async (config) => config,
    },
    {
@@ -28,7 +26,6 @@ export const migrations: Migration[] = [
    },
    {
       version: 3,
-      //schema: true,
       up: async (config) => config,
    },
    {
@@ -46,7 +43,6 @@ export const migrations: Migration[] = [
    {
       version: 5,
       up: async (config, { db }) => {
-         //console.log("config", _jsonp(config));
          const cors = config.server.cors?.allow_methods ?? [];
          set(config.server, "cors.allow_methods", [...new Set([...cors, "PATCH"])]);
          return config;
@@ -114,15 +110,12 @@ export async function migrateTo(
    config: GenericConfigObject,
    ctx: MigrationContext,
 ): Promise<[number, GenericConfigObject]> {
-   //console.log("migrating from", current, "to", CURRENT_VERSION, config);
    const todo = migrations.filter((m) => m.version > current && m.version <= to);
-   //console.log("todo", todo.length);
    let updated = Object.assign({}, config);
 
    let i = 0;
    let version = current;
    for (const migration of todo) {
-      //console.log("-- running migration", i + 1, "of", todo.length, { version: migration.version });
       try {
          updated = await migration.up(updated, ctx);
          version = migration.version;

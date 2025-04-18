@@ -36,7 +36,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
 
       if (!from.enabled && to.enabled) {
          if (to.jwt.secret === defaultSecret) {
-            console.warn("No JWT secret provided, generating a random one");
+            $console.warn("No JWT secret provided, generating a random one");
             to.jwt.secret = secureRandomString(64);
          }
       }
@@ -171,7 +171,6 @@ export class AppAuth extends Module<typeof authConfigSchema> {
 
       // compare strategy and identifier
       if (result.data.strategy !== strategy.getName()) {
-         //console.log("!!! User registered with different strategy");
          throw new Exception("User registered with different strategy");
       }
 

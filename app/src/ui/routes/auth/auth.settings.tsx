@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { isDebug } from "core";
-import { TbAlertCircle, TbChevronDown, TbChevronUp } from "react-icons/tb";
+import { TbChevronDown, TbChevronUp } from "react-icons/tb";
 import { useBknd } from "ui/client/BkndProvider";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { Button } from "ui/components/buttons/Button";

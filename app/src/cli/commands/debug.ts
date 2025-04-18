@@ -17,6 +17,7 @@ export const debug: CliCommand = (program) => {
 
 const subjects = {
    paths: async () => {
+      // biome-ignore lint/suspicious/noConsoleLog:
       console.log("[PATHS]", {
          rootpath: getRootPath(),
          distPath: getDistPath(),
@@ -27,6 +28,7 @@ const subjects = {
       });
    },
    routes: async () => {
+      // biome-ignore lint/suspicious/noConsoleLog:
       console.log("[APP ROUTES]");
       const credentials = getConnectionCredentialsFromEnv();
       const app = createApp({ connection: credentials });

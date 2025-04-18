@@ -31,37 +31,11 @@ export class FlowTaskConnector {
          }
       }
 
-      /*const targetDepth = this.task(target).getDepth();
-      console.log("depth", ownDepth, targetDepth);
-
-      // if target has a lower depth
-      if (targetDepth > 0 && ownDepth >= targetDepth) {
-         // check for unique out conditions
-         console.log(
-            "out conditions",
-            this.source.name,
-            this.getOutConnections().map((c) => [c.target.name, c.condition])
-         );
-         if (
-            this.getOutConnections().some(
-               (c) =>
-                  c.condition[0] === condition[0] &&
-                  c.condition[1] === condition[1]
-            )
-         ) {
-            throw new Error(
-               "Task cannot be connected to a deeper task with the same condition"
-            );
-         }
-      }*/
-
       this.flow.addConnection(new TaskConnection(this.source, target, { condition, max_retries }));
    }
 
    asOutputFor(target: Task, condition?: Condition) {
       this.task(target).asInputFor(this.source, condition);
-      //new FlowTaskConnector(this.flow, target).asInputFor(this.source);
-      //this.flow.addConnection(new TaskConnection(target, this.source));
    }
 
    getNext() {
@@ -107,12 +81,4 @@ export class FlowTaskConnector {
    getOutTasks(result?: TaskResult): Task[] {
       return this.getOutConnections(result).map((c) => c.target);
    }
-
-   /*getNextRunnableConnections() {
-      return this.getOutConnections().filter((c) => c.source.log.success);
-   }
-
-   getNextRunnableTasks() {
-      return this.getNextRunnableConnections().map((c) => c.target);
-   }*/
 }

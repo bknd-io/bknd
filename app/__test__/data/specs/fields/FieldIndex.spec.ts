@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Type } from "../../../../src/core/utils";
+import { Type } from "@sinclair/typebox";
 import { Entity, EntityIndex, Field } from "../../../../src/data";
 
 class TestField extends Field {

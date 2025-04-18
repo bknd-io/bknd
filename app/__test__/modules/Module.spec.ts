@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { type TSchema, Type, stripMark } from "../../src/core/utils";
+import { stripMark } from "../../src/core/utils";
+import { type TSchema, Type } from "@sinclair/typebox";
 import { EntityManager, em, entity, index, text } from "../../src/data";
 import { DummyConnection } from "../../src/data/connection/DummyConnection";
 import { Module } from "../../src/modules/Module";
@@ -9,10 +10,10 @@ function createModule<Schema extends TSchema>(schema: Schema) {
       getSchema() {
          return schema;
       }
-      toJSON() {
+      override toJSON() {
          return this.config;
       }
-      useForceParse() {
+      override useForceParse() {
          return true;
       }
    }

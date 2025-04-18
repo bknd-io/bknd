@@ -1,7 +1,7 @@
 /** @jsxImportSource hono/jsx */
 
 import type { App } from "App";
-import { config, isDebug } from "core";
+import { $console, config, isDebug } from "core";
 import { addFlashMessage } from "core/server/flash";
 import { html } from "hono/html";
 import { Fragment } from "hono/jsx";
@@ -99,7 +99,7 @@ export class AdminController extends Controller {
                onGranted: async (c) => {
                   // @todo: add strict test to permissions middleware?
                   if (c.get("auth")?.user) {
-                     console.log("redirecting to success");
+                     $console.log("redirecting to success");
                      return c.redirect(authRoutes.success);
                   }
                },
@@ -122,7 +122,7 @@ export class AdminController extends Controller {
             onDenied: async (c) => {
                addFlashMessage(c, "You are not authorized to access the Admin UI", "error");
 
-               console.log("redirecting");
+               $console.log("redirecting");
                return c.redirect(authRoutes.login);
             },
          }),
@@ -150,7 +150,7 @@ export class AdminController extends Controller {
             );
          }
 
-         console.warn(
+         $console.warn(
             `Custom HTML needs to include '${htmlBkndContextReplace}' to inject BKND context`,
          );
          return this.options.html as string;

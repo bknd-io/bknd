@@ -1,7 +1,9 @@
 import { hash, pickHeaders } from "core/utils";
-import { type Static, Type, parse } from "core/utils";
+import { type Static, parse } from "core/utils";
 import type { FileBody, FileListObject, FileMeta } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const cloudinaryAdapterConfig = Type.Object(
    {

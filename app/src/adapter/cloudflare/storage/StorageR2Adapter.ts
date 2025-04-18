@@ -1,8 +1,10 @@
 import { registries } from "bknd";
 import { isDebug } from "bknd/core";
-import { StringEnum, Type } from "bknd/utils";
+import { StringEnum } from "bknd/utils";
 import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
 import { getBindings } from "../bindings";
+import * as tb from "@sinclair/typebox";
+const { Type } = tb;
 
 export function makeSchema(bindings: string[] = []) {
    return Type.Object(
@@ -122,12 +124,10 @@ export class StorageR2Adapter extends StorageAdapter {
          }
       }
 
-      //console.log("response headers:before", headersToObject(responseHeaders));
       this.writeHttpMetadata(responseHeaders, object);
       responseHeaders.set("etag", object.httpEtag);
       responseHeaders.set("Content-Length", String(object.size));
       responseHeaders.set("Last-Modified", object.uploaded.toUTCString());
-      //console.log("response headers:after", headersToObject(responseHeaders));
 
       return new Response(object.body, {
          status: object.range ? 206 : 200,
