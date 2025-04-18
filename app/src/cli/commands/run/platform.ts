@@ -4,6 +4,7 @@ import { config } from "core";
 import type { MiddlewareHandler } from "hono";
 import open from "open";
 import { fileExists, getRelativeDistPath } from "../../utils/sys";
+import type { App } from "App";
 
 export const PLATFORMS = ["node", "bun"] as const;
 export type Platform = (typeof PLATFORMS)[number];
@@ -32,7 +33,7 @@ export async function attachServeStatic(app: any, platform: Platform) {
 
 export async function startServer(
    server: Platform,
-   app: any,
+   app: App,
    options: { port: number; open?: boolean },
 ) {
    const port = options.port;

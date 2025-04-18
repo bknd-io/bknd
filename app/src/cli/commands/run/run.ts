@@ -77,12 +77,12 @@ async function makeApp(config: MakeAppConfig) {
    app.emgr.onEvent(
       App.Events.AppBuiltEvent,
       async () => {
-         await attachServeStatic(app, config.server?.platform ?? "node");
-         app.registerAdminController();
-
          if (config.onBuilt) {
             await config.onBuilt(app);
          }
+
+         await attachServeStatic(app, config.server?.platform ?? "node");
+         app.registerAdminController();
       },
       "sync",
    );
