@@ -1,12 +1,12 @@
-import { Admin } from "bknd/ui";
-import "bknd/dist/styles.css";
+import { AdminComponent } from "./Admin";
 import { getApi } from "@/bknd";
+import "bknd/dist/styles.css";
 
 export default async function AdminPage() {
    const api = await getApi({ verify: true });
 
    return (
-      <Admin
+      <AdminComponent
          withProvider={{ user: api.getUser() }}
          config={{
             basepath: "/admin",

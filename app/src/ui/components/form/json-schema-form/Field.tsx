@@ -129,6 +129,7 @@ export const Pre = ({ children }) => (
 export type FieldComponentProps = {
    schema: JsonSchema;
    render?: (props: Omit<FieldComponentProps, "render">) => ReactNode;
+   "data-testId"?: string;
 } & ComponentPropsWithoutRef<"input">;
 
 export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProps) => {
