@@ -1,5 +1,7 @@
-import { Const, type Static, StringRecord, Type, transformObject } from "core/utils";
+import { Const, type Static, StringRecord, transformObject } from "core/utils";
 import { TaskMap, TriggerMap } from "flows";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 export const TASKS = {
    ...TaskMap,

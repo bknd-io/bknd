@@ -4,7 +4,6 @@ import type { App } from "App";
 import { $console, tbValidator as tb } from "core";
 import {
    StringEnum,
-   Type,
    TypeInvalidError,
    datetimeStringLocal,
    datetimeStringUTC,
@@ -14,6 +13,8 @@ import {
 import { getRuntimeKey } from "core/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
+import * as tbbox from "@sinclair/typebox";
+const { Type } = tbbox;
 
 import {
    MODULE_NAMES,
