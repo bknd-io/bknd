@@ -121,4 +121,11 @@ export class TextField<Required extends true | false = false> extends Field<
          }),
       );
    }
+
+   override toType() {
+      return {
+         ...super.toType(),
+         type: "string",
+      };
+   }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Entity, NumberField, TextField } from "../../../src/data";
+import { Entity, NumberField, TextField } from "data";
+import * as p from "data/prototype";
 
 describe("[data] Entity", async () => {
    const entity = new Entity("test", [
@@ -47,14 +48,7 @@ describe("[data] Entity", async () => {
       expect(entity.getField("new_field")).toBe(field);
    });
 
-   // @todo: move this to ClientApp
-   /*test("serialize and deserialize", async () => {
-      const json = entity.toJSON();
-      //sconsole.log("json", json.fields);
-      const newEntity = Entity.deserialize(json);
-      //console.log("newEntity", newEntity.toJSON().fields);
-      expect(newEntity).toBeInstanceOf(Entity);
-      expect(json).toEqual(newEntity.toJSON());
-      expect(json.fields).toEqual(newEntity.toJSON().fields);
-   });*/
+   test.only("types", async () => {
+      console.log(entity.toTypes());
+   });
 });

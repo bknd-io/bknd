@@ -88,4 +88,11 @@ export class BooleanField<Required extends true | false = false> extends Field<
    override toJsonSchema() {
       return this.toSchemaWrapIfRequired(Type.Boolean({ default: this.getDefault() }));
    }
+
+   override toType() {
+      return {
+         ...super.toType(),
+         type: "boolean",
+      };
+   }
 }

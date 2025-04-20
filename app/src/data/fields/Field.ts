@@ -11,6 +11,7 @@ import type { EntityManager } from "../entities";
 import { InvalidFieldConfigException, TransformPersistFailedException } from "../errors";
 import type { FieldSpec } from "data/connection/Connection";
 import * as tbbox from "@sinclair/typebox";
+import type { TFieldTSType } from "data/entities/EntityTypescript";
 const { Type } = tbbox;
 
 // @todo: contexts need to be reworked
@@ -231,6 +232,14 @@ export abstract class Field<
 
    toJsonSchema(): TSchema {
       return this.toSchemaWrapIfRequired(Type.Any());
+   }
+
+   toType(): TFieldTSType {
+      return {
+         required: this.isRequired(),
+         comment: this.getDescription(),
+         type: "any",
+      };
    }
 
    toJSON() {
