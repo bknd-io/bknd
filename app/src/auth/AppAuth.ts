@@ -90,7 +90,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
 
       this._controller = new AuthController(this);
       this.ctx.server.route(this.config.basepath, this._controller.getController());
-      this.ctx.guard.registerPermissions(Object.values(AuthPermissions));
+      this.ctx.guard.registerPermissions(AuthPermissions);
    }
 
    isStrategyEnabled(strategy: Strategy | string) {

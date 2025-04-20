@@ -14,7 +14,7 @@
     "url": "https://github.com/bknd-io/bknd/issues"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "BKND_CLI_LOG_LEVEL=debug vite",
     "build": "NODE_ENV=production bun run build.ts --minify --types",
     "build:all": "rm -rf dist && bun run build:static && NODE_ENV=production bun run build.ts --minify --types --clean && bun run build:cli",
     "build:ci": "mkdir -p dist/static/.vite && echo '{}' > dist/static/.vite/manifest.json && NODE_ENV=production bun run build.ts",

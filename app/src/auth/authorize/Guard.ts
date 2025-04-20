@@ -81,8 +81,12 @@ export class Guard {
       return this;
    }
 
-   registerPermissions(permissions: Permission[]) {
-      for (const permission of permissions) {
+   registerPermissions(permissions: Record<string, Permission>);
+   registerPermissions(permissions: Permission[]);
+   registerPermissions(permissions: Permission[] | Record<string, Permission>) {
+      const p = Array.isArray(permissions) ? permissions : Object.values(permissions);
+
+      for (const permission of p) {
          this.registerPermission(permission);
       }
 
@@ -93,14 +97,13 @@ export class Guard {
       if (user && typeof user.role === "string") {
          const role = this.roles?.find((role) => role.name === user?.role);
          if (role) {
-            $console.debug("guard: role found", [user.role]);
+            $console.debug(`guard: role "${user.role}" found`);
             return role;
          }
       }
 
       $console.debug("guard: role not found", {
-         user: user,
-         role: user?.role,
+         user,
       });
       return this.getDefaultRole();
    }
@@ -121,6 +124,10 @@ export class Guard {
       }
 
       const name = typeof permissionOrName === "string" ? permissionOrName : permissionOrName.name;
+      $console.debug("guard: checking permission", {
+         name,
+         user: { id: user?.id, role: user?.role },
+      });
       const exists = this.permissionExists(name);
       if (!exists) {
          throw new Error(`Permission ${name} does not exist`);
@@ -129,10 +136,10 @@ export class Guard {
       const role = this.getUserRole(user);
 
       if (!role) {
-         $console.debug("guard: role not found, denying");
+         $console.debug("guard: user has no role, denying");
          return false;
       } else if (role.implicit_allow === true) {
-         $console.debug("guard: role implicit allow, allowing");
+         $console.debug(`guard: role "${role.name}" has implicit allow, allowing`);
          return true;
       }
 
