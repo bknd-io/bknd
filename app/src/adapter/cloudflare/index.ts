@@ -4,6 +4,7 @@ export * from "./cloudflare-workers.adapter";
 export { makeApp, getFresh } from "./modes/fresh";
 export { getCached } from "./modes/cached";
 export { DurableBkndApp, getDurable } from "./modes/durable";
+export { registerR2MediaAdapter, StorageR2Adapter } from "./storage/StorageR2Adapter";
 export { D1Connection, type D1ConnectionConfig };
 export {
    getBinding,
