@@ -14,7 +14,7 @@
     "url": "https://github.com/bknd-io/bknd/issues"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "BKND_CLI_LOG_LEVEL=debug vite",
     "build": "NODE_ENV=production bun run build.ts --minify --types",
     "build:all": "rm -rf dist && bun run build:static && NODE_ENV=production bun run build.ts --minify --types --clean && bun run build:cli",
     "build:ci": "mkdir -p dist/static/.vite && echo '{}' > dist/static/.vite/manifest.json && NODE_ENV=production bun run build.ts",
@@ -58,6 +58,7 @@
     "@uiw/react-codemirror": "^4.23.10",
     "@xyflow/react": "^12.4.4",
     "aws4fetch": "^1.0.20",
+    "bcryptjs": "^3.0.2",
     "dayjs": "^1.11.13",
     "fast-xml-parser": "^5.0.8",
     "hono": "^4.7.4",

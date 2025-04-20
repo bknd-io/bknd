@@ -3,6 +3,7 @@ import { type Static, StringEnum } from "core/utils";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
 import * as tbbox from "@sinclair/typebox";
+import { AuthException } from "auth/errors";
 const { Type } = tbbox;
 
 const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"];
@@ -70,10 +71,14 @@ export class AppServer extends Module<typeof serverConfigSchema> {
 
       this.client.onError((err, c) => {
          //throw err;
-         $console.error(err);
+         $console.error("[AppServer:onError]", err);
 
          if (err instanceof Response) {
             return err;
+         }
+
+         if (err instanceof AuthException) {
+            return c.json(err.toJSON(), err.getSafeErrorAndCode().code);
          }
 
          if (err instanceof Exception) {

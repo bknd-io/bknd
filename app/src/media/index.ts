@@ -1,7 +1,6 @@
 import type { TObject } from "@sinclair/typebox";
 import { type Constructor, Registry } from "core";
 
-//export { MIME_TYPES } from "./storage/mime-types";
 export { guess as guessMimeType } from "./storage/mime-types-tiny";
 export {
    Storage,
@@ -22,6 +21,7 @@ export { StorageAdapter };
 export { StorageS3Adapter, type S3AdapterConfig, StorageCloudinaryAdapter, type CloudinaryConfig };
 
 export * as StorageEvents from "./storage/events";
+export * as MediaPermissions from "./media-permissions";
 export type { FileUploadedEventData } from "./storage/events";
 export * from "./utils";
 

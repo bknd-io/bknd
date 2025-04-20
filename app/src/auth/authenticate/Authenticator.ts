@@ -1,4 +1,4 @@
-import { $console, type DB, Exception, type PrimaryFieldType } from "core";
+import { $console, type DB, Exception } from "core";
 import { addFlashMessage } from "core/server/flash";
 import {
    type Static,
@@ -6,6 +6,7 @@ import {
    type TObject,
    parse,
    runtimeSupports,
+   truncate,
 } from "core/utils";
 import type { Context, Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
@@ -14,6 +15,7 @@ import type { CookieOptions } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import * as tbbox from "@sinclair/typebox";
+import { InvalidConditionsException } from "auth/errors";
 const { Type } = tbbox;
 
 type Input = any; // workaround
@@ -23,11 +25,12 @@ export const strategyActions = ["create", "change"] as const;
 export type StrategyActionName = (typeof strategyActions)[number];
 export type StrategyAction<S extends TObject = TObject> = {
    schema: S;
-   preprocess: (input: unknown) => Promise<Omit<DB["users"], "id" | "strategy">>;
+   preprocess: (input: Static<S>) => Promise<Omit<DB["users"], "id" | "strategy">>;
 };
 export type StrategyActions = Partial<Record<StrategyActionName, StrategyAction>>;
 
 // @todo: add schema to interface to ensure proper inference
+// @todo: add tests (e.g. invalid strategy_value)
 export interface Strategy {
    getController: (auth: Authenticator) => Hono<any>;
    getType: () => string;
@@ -37,28 +40,22 @@ export interface Strategy {
    getActions?: () => StrategyActions;
 }
 
-export type User = {
-   id: PrimaryFieldType;
-   email: string;
-   password: string;
-   role?: string | null;
-};
+export type User = DB["users"];
 
 export type ProfileExchange = {
    email?: string;
-   username?: string;
-   sub?: string;
-   password?: string;
+   strategy?: string;
+   strategy_value?: string;
    [key: string]: any;
 };
 
-export type SafeUser = Omit<User, "password">;
+export type SafeUser = Omit<User, "strategy_value">;
 export type CreateUser = Pick<User, "email"> & { [key: string]: any };
 export type AuthResponse = { user: SafeUser; token: string };
 
-export interface UserPool<Fields = "id" | "email" | "username"> {
-   findBy: (prop: Fields, value: string | number) => Promise<User | undefined>;
-   create: (user: CreateUser) => Promise<User | undefined>;
+export interface UserPool {
+   findBy: (strategy: string, prop: keyof SafeUser, value: string | number) => Promise<User>;
+   create: (strategy: string, user: CreateUser) => Promise<User>;
 }
 
 const defaultCookieExpires = 60 * 60 * 24 * 7; // 1 week in seconds
@@ -100,12 +97,17 @@ export const authenticatorConfig = Type.Object({
 
 type AuthConfig = Static<typeof authenticatorConfig>;
 export type AuthAction = "login" | "register";
+export type AuthResolveOptions = {
+   identifier?: "email" | string;
+   redirect?: string;
+   forceJsonResponse?: boolean;
+};
 export type AuthUserResolver = (
    action: AuthAction,
    strategy: Strategy,
-   identifier: string,
    profile: ProfileExchange,
-) => Promise<SafeUser | undefined>;
+   opts?: AuthResolveOptions,
+) => Promise<ProfileExchange | undefined>;
 type AuthClaims = SafeUser & {
    iat: number;
    iss?: string;
@@ -113,32 +115,117 @@ type AuthClaims = SafeUser & {
 };
 
 export class Authenticator<Strategies extends Record<string, Strategy> = Record<string, Strategy>> {
-   private readonly strategies: Strategies;
    private readonly config: AuthConfig;
-   private readonly userResolver: AuthUserResolver;
 
-   constructor(strategies: Strategies, userResolver?: AuthUserResolver, config?: AuthConfig) {
-      this.userResolver = userResolver ?? (async (a, s, i, p) => p as any);
-      this.strategies = strategies as Strategies;
+   constructor(
+      private readonly strategies: Strategies,
+      private readonly userPool: UserPool,
+      config?: AuthConfig,
+   ) {
       this.config = parse(authenticatorConfig, config ?? {});
    }
 
-   async resolve(
-      action: AuthAction,
+   async resolveLogin(
+      c: Context,
       strategy: Strategy,
-      identifier: string,
-      profile: ProfileExchange,
-   ): Promise<AuthResponse> {
-      const user = await this.userResolver(action, strategy, identifier, profile);
+      profile: Partial<SafeUser>,
+      verify: (user: User) => Promise<void>,
+      opts?: AuthResolveOptions,
+   ) {
+      try {
+         // @todo: centralize identifier and checks
+         // @todo: check identifier value (if allowed)
+         const identifier = opts?.identifier || "email";
+         if (typeof identifier !== "string" || identifier.length === 0) {
+            throw new InvalidConditionsException("Identifier must be a string");
+         }
+         if (!(identifier in profile)) {
+            throw new InvalidConditionsException(`Profile must have identifier "${identifier}"`);
+         }
 
-      if (user) {
-         return {
-            user,
-            token: await this.jwt(user),
-         };
+         const user = await this.userPool.findBy(
+            strategy.getName(),
+            identifier as any,
+            profile[identifier],
+         );
+
+         if (!user.strategy_value) {
+            throw new InvalidConditionsException("User must have a strategy value");
+         } else if (user.strategy !== strategy.getName()) {
+            throw new InvalidConditionsException("User signed up with a different strategy");
+         }
+
+         await verify(user);
+         const data = await this.safeAuthResponse(user);
+         return this.respondWithUser(c, data, opts);
+      } catch (e) {
+         return this.respondWithError(c, e as Error, opts);
+      }
+   }
+
+   async resolveRegister(
+      c: Context,
+      strategy: Strategy,
+      profile: CreateUser,
+      verify: (user: User) => Promise<void>,
+      opts?: AuthResolveOptions,
+   ) {
+      try {
+         const identifier = opts?.identifier || "email";
+         if (typeof identifier !== "string" || identifier.length === 0) {
+            throw new InvalidConditionsException("Identifier must be a string");
+         }
+         if (!(identifier in profile)) {
+            throw new InvalidConditionsException(`Profile must have identifier "${identifier}"`);
+         }
+         if (!("strategy_value" in profile)) {
+            throw new InvalidConditionsException("Profile must have a strategy value");
+         }
+
+         const user = await this.userPool.create(strategy.getName(), {
+            ...profile,
+            strategy_value: profile.strategy_value,
+         });
+
+         await verify(user);
+         const data = await this.safeAuthResponse(user);
+         return this.respondWithUser(c, data, opts);
+      } catch (e) {
+         return this.respondWithError(c, e as Error, opts);
+      }
+   }
+
+   private async respondWithUser(c: Context, data: AuthResponse, opts?: AuthResolveOptions) {
+      const successUrl = this.getSafeUrl(
+         c,
+         opts?.redirect ?? this.config.cookie.pathSuccess ?? "/",
+      );
+
+      if ("token" in data) {
+         await this.setAuthCookie(c, data.token);
+
+         if (this.isJsonRequest(c) || opts?.forceJsonResponse) {
+            return c.json(data);
+         }
+
+         // can't navigate to "/" – doesn't work on nextjs
+         return c.redirect(successUrl);
       }
 
-      throw new Error("User could not be resolved");
+      throw new Exception("Invalid response");
+   }
+
+   private async respondWithError(c: Context, error: Error, opts?: AuthResolveOptions) {
+      $console.error("respondWithError", error);
+      if (this.isJsonRequest(c) || opts?.forceJsonResponse) {
+         // let the server handle it
+         throw error;
+      }
+
+      await addFlashMessage(c, String(error), "error");
+
+      const referer = opts?.redirect ?? c.req.header("Referer") ?? "/";
+      return c.redirect(referer);
    }
 
    getStrategies(): Strategies {
@@ -157,7 +244,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    }
 
    // @todo: add jwt tests
-   async jwt(_user: Omit<User, "password">): Promise<string> {
+   async jwt(_user: SafeUser | ProfileExchange): Promise<string> {
       const user = pick(_user, this.config.jwt.fields);
 
       const payload: JWTPayload = {
@@ -181,6 +268,14 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       }
 
       return sign(payload, secret, this.config.jwt?.alg ?? "HS256");
+   }
+
+   async safeAuthResponse(_user: User): Promise<AuthResponse> {
+      const user = pick(_user, this.config.jwt.fields) as SafeUser;
+      return {
+         user,
+         token: await this.jwt(user),
+      };
    }
 
    async verify(jwt: string): Promise<AuthClaims | undefined> {
@@ -241,11 +336,13 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    }
 
    private async setAuthCookie(c: Context<ServerEnv>, token: string) {
+      $console.debug("setting auth cookie", truncate(token));
       const secret = this.config.jwt.secret;
       await setSignedCookie(c, "auth", token, secret, this.cookieOptions);
    }
 
    private async deleteAuthCookie(c: Context) {
+      $console.debug("deleting auth cookie");
       await deleteCookie(c, "auth", this.cookieOptions);
    }
 
@@ -284,34 +381,6 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       return p;
    }
 
-   async respond(c: Context, data: AuthResponse | Error | any, redirect?: string) {
-      const successUrl = this.getSafeUrl(c, redirect ?? this.config.cookie.pathSuccess ?? "/");
-      const referer = redirect ?? c.req.header("Referer") ?? successUrl;
-
-      if ("token" in data) {
-         await this.setAuthCookie(c, data.token);
-
-         if (this.isJsonRequest(c)) {
-            return c.json(data);
-         }
-
-         // can't navigate to "/" – doesn't work on nextjs
-         return c.redirect(successUrl);
-      }
-
-      if (this.isJsonRequest(c)) {
-         return c.json(data, 400);
-      }
-
-      let message = "An error occured";
-      if (data instanceof Exception) {
-         message = data.message;
-      }
-
-      await addFlashMessage(c, message, "error");
-      return c.redirect(referer);
-   }
-
    // @todo: don't extract user from token, but from the database or cache
    async resolveAuthFromRequest(c: Context): Promise<SafeUser | undefined> {
       let token: string | undefined;
@@ -335,14 +404,4 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
          jwt: secrets ? this.config.jwt : undefined,
       };
    }
-}
-
-export function createStrategyAction<S extends TObject>(
-   schema: S,
-   preprocess: (input: Static<S>) => Promise<Partial<DB["users"]>>,
-) {
-   return {
-      schema,
-      preprocess,
-   } as StrategyAction<S>;
 }

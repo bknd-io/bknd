@@ -69,7 +69,7 @@ describe("AppAuth", () => {
             },
             body: JSON.stringify({
                email: "some@body.com",
-               password: "123456",
+               password: "12345678",
             }),
          });
          enableConsoleLog();
@@ -78,6 +78,65 @@ describe("AppAuth", () => {
          const { data: users } = await ctx.em.repository("users").findMany();
          expect(users.length).toBe(1);
          expect(users[0]?.email).toBe("some@body.com");
+      }
+   });
+
+   test("creates user on register (bcrypt)", async () => {
+      const auth = new AppAuth(
+         {
+            enabled: true,
+            strategies: {
+               password: {
+                  type: "password",
+                  config: {
+                     hashing: "bcrypt",
+                  },
+               },
+            },
+            // @ts-ignore
+            jwt: {
+               secret: "123456",
+            },
+         },
+         ctx,
+      );
+
+      await auth.build();
+      await ctx.em.schema().sync({ force: true });
+
+      // expect no users, but the query to pass
+      const res = await ctx.em.repository("users").findMany();
+      expect(res.data.length).toBe(0);
+
+      const app = new AuthController(auth).getController();
+
+      {
+         disableConsoleLog();
+         const res = await app.request("/password/register", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+               email: "some@body.com",
+               password: "12345678",
+            }),
+         });
+         enableConsoleLog();
+         expect(res.status).toBe(200);
+
+         const { data: users } = await ctx.em.repository("users").findMany();
+         expect(users.length).toBe(1);
+         expect(users[0]?.email).toBe("some@body.com");
+      }
+
+      {
+         // check user in database
+         const rawUser = await ctx.connection.kysely
+            .selectFrom("users")
+            .selectAll()
+            .executeTakeFirstOrThrow();
+         expect(rawUser.strategy_value).toStartWith("$");
       }
    });
 
