@@ -24,6 +24,7 @@ export type FieldwrapperProps = {
    errorPlacement?: "top" | "bottom";
    description?: string;
    descriptionPlacement?: "top" | "bottom";
+   fieldId?: string;
 };
 
 export function FieldWrapper({
@@ -36,6 +37,7 @@ export function FieldWrapper({
    errorPlacement = "bottom",
    descriptionPlacement = "bottom",
    children,
+   fieldId,
    ...props
 }: FieldwrapperProps) {
    const errors = useFormError(name, { strict: true });
@@ -66,7 +68,7 @@ export function FieldWrapper({
          {label && (
             <Formy.Label
                as={wrapper === "fieldset" ? "legend" : "label"}
-               htmlFor={name}
+               htmlFor={fieldId}
                className="self-start"
             >
                {label} {required && <span className="font-medium opacity-30">*</span>}

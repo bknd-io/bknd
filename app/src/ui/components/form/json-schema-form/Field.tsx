@@ -1,5 +1,12 @@
 import type { JsonSchema } from "json-schema-library";
-import type { ChangeEvent, ComponentPropsWithoutRef, ReactNode } from "react";
+import {
+   type ChangeEvent,
+   type ComponentPropsWithoutRef,
+   type ElementType,
+   type ReactNode,
+   useEffect,
+   useId,
+} from "react";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
 import * as Formy from "ui/components/form/Formy";
 import { useEvent } from "ui/hooks/use-event";
@@ -7,7 +14,7 @@ import { ArrayField } from "./ArrayField";
 import { FieldWrapper, type FieldwrapperProps } from "./FieldWrapper";
 import { useDerivedFieldContext, useFormValue } from "./Form";
 import { ObjectField } from "./ObjectField";
-import { coerce, isType, isTypeSchema } from "./utils";
+import { coerce, firstDefined, isType, isTypeSchema } from "./utils";
 
 export type FieldProps = {
    onChange?: (e: ChangeEvent<any>) => void;
@@ -21,6 +28,19 @@ export const Field = (props: FieldProps) => {
       <ErrorBoundary fallback={fieldErrorBoundary(props)}>
          <FieldImpl {...props} />
       </ErrorBoundary>
+   );
+};
+
+export const HiddenField = ({
+   as = "div",
+   className,
+   ...props
+}: FieldProps & { as?: ElementType; className?: string }) => {
+   const Component = as;
+   return (
+      <Component className={[className, "hidden"].filter(Boolean).join(" ")}>
+         <Field {...props} />
+      </Component>
    );
 };
 
@@ -41,8 +61,9 @@ const FieldImpl = ({
    ...props
 }: FieldProps) => {
    const { path, setValue, schema, ...ctx } = useDerivedFieldContext(name);
+   const id = `${name}-${useId()}`;
    const required = typeof _required === "boolean" ? _required : ctx.required;
-   //console.log("Field", { name, path, schema });
+
    if (!isTypeSchema(schema))
       return (
          <Pre>
@@ -58,7 +79,21 @@ const FieldImpl = ({
       return <ArrayField path={name} />;
    }
 
-   const disabled = props.disabled ?? schema.readOnly ?? "const" in schema ?? false;
+   // account for `defaultValue`
+   // like <Field name="name" inputProps={{ defaultValue: "oauth" }} />
+   useEffect(() => {
+      if (inputProps?.defaultValue) {
+         setValue(path, inputProps.defaultValue);
+      }
+   }, [inputProps?.defaultValue]);
+
+   const disabled = firstDefined(
+      inputProps?.disabled,
+      props.disabled,
+      schema.readOnly,
+      "const" in schema,
+      false,
+   );
 
    const handleChange = useEvent((e: ChangeEvent<HTMLInputElement>) => {
       const value = coerce(e.target.value, schema as any, { required });
@@ -70,9 +105,10 @@ const FieldImpl = ({
    });
 
    return (
-      <FieldWrapper name={name} required={required} schema={schema} {...props}>
+      <FieldWrapper name={name} required={required} schema={schema} fieldId={id} {...props}>
          <FieldComponent
             {...inputProps}
+            id={id}
             schema={schema}
             name={name}
             required={required}
@@ -93,6 +129,7 @@ export const Pre = ({ children }) => (
 export type FieldComponentProps = {
    schema: JsonSchema;
    render?: (props: Omit<FieldComponentProps, "render">) => ReactNode;
+   "data-testId"?: string;
 } & ComponentPropsWithoutRef<"input">;
 
 export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProps) => {
@@ -111,7 +148,7 @@ export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProp
    if (render) return render({ schema, ...props });
 
    if (schema.enum) {
-      return <Formy.Select id={props.name} options={schema.enum} {...(props as any)} />;
+      return <Formy.Select options={schema.enum} {...(props as any)} />;
    }
 
    if (isType(schema.type, ["number", "integer"])) {
@@ -121,26 +158,17 @@ export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProp
          step: schema.multipleOf,
       };
 
-      return (
-         <Formy.Input
-            type="number"
-            id={props.name}
-            {...props}
-            value={props.value ?? ""}
-            {...additional}
-         />
-      );
+      return <Formy.Input type="number" {...props} value={props.value ?? ""} {...additional} />;
    }
 
    if (isType(schema.type, "boolean")) {
-      return <Formy.Switch id={props.name} {...(props as any)} checked={value === true} />;
+      return <Formy.Switch {...(props as any)} checked={value === true} />;
    }
 
    if (isType(schema.type, "string") && schema.format === "date-time") {
       const value = props.value ? new Date(props.value as string).toISOString().slice(0, 16) : "";
       return (
          <Formy.DateInput
-            id={props.name}
             {...props}
             value={value}
             type="datetime-local"
@@ -156,7 +184,7 @@ export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProp
    }
 
    if (isType(schema.type, "string") && schema.format === "date") {
-      return <Formy.DateInput id={props.name} {...props} value={props.value ?? ""} />;
+      return <Formy.DateInput {...props} value={props.value ?? ""} />;
    }
 
    const additional = {
@@ -171,7 +199,5 @@ export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProp
       }
    }
 
-   return (
-      <Formy.TypeAwareInput id={props.name} {...props} value={props.value ?? ""} {...additional} />
-   );
+   return <Formy.TypeAwareInput {...props} value={props.value ?? ""} {...additional} />;
 };

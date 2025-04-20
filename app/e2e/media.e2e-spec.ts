@@ -13,7 +13,7 @@ test("can enable media", async ({ page }) => {
    await page.goto(`${config.base_path}/media/settings`);
 
    // enable
-   const enableToggle = page.locator("css=button#enabled");
+   const enableToggle = page.getByTestId(testIds.media.switchEnabled);
    if ((await enableToggle.getAttribute("aria-checked")) !== "true") {
       await expect(enableToggle).toBeVisible();
       await enableToggle.click();

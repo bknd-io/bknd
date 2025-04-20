@@ -20,6 +20,7 @@ import {
 } from "ui/components/form/json-schema-form";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
+import { testIds } from "ui/lib/config";
 
 export function MediaSettings(props) {
    useBrowserTitle(["Media", "Settings"]);
@@ -79,7 +80,10 @@ function MediaSettingsInternal() {
             <AppShell.Scrollable>
                <RootFormError />
                <div className="flex flex-col gap-3 p-3">
-                  <Field name="enabled" />
+                  <Field
+                     name="enabled"
+                     inputProps={{ "data-testId": testIds.media.switchEnabled }}
+                  />
                   <div className="flex flex-col gap-3 relative">
                      <Overlay />
                      <Field name="storage.body_max_size" label="Storage Body Max Size" />

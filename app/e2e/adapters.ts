@@ -186,7 +186,8 @@ const adapters = {
    },
 } as const;
 
-for (const [name, config] of Object.entries(adapters)) {
+async function testAdapter(name: keyof typeof adapters) {
+   const config = adapters[name];
    console.log("adapter", c.cyan(name));
    await config.clean();
 
@@ -202,5 +203,12 @@ for (const [name, config] of Object.entries(adapters)) {
       await Bun.sleep(250);
       console.log("Waiting for process to exit...");
    }
-   //process.exit(0);
+}
+
+if (process.env.TEST_ADAPTER) {
+   await testAdapter(process.env.TEST_ADAPTER as any);
+} else {
+   for (const [name] of Object.entries(adapters)) {
+      await testAdapter(name as any);
+   }
 }
