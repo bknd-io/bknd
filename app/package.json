@@ -58,6 +58,7 @@
     "@uiw/react-codemirror": "^4.23.10",
     "@xyflow/react": "^12.4.4",
     "aws4fetch": "^1.0.20",
+    "bcryptjs": "^3.0.2",
     "dayjs": "^1.11.13",
     "fast-xml-parser": "^5.0.8",
     "hono": "^4.7.4",

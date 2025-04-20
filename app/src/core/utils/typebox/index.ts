@@ -179,6 +179,11 @@ export const StringIdentifier = tb.Type.String({
    maxLength: 150,
 });
 
+export const StrictObject = <T extends tb.TProperties>(
+   properties: T,
+   options?: tb.ObjectOptions,
+): tb.TObject<T> => tb.Type.Object(properties, { ...options, additionalProperties: false });
+
 SetErrorFunction((error) => {
    if (error?.schema?.errorMessage) {
       return error.schema.errorMessage;

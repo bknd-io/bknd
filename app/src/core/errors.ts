@@ -1,9 +1,12 @@
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { HttpStatus } from "./utils/reqres";
+
 export class Exception extends Error {
-   code = 400;
+   code: ContentfulStatusCode = HttpStatus.BAD_REQUEST;
    override name = "Exception";
    protected _context = undefined;
 
-   constructor(message: string, code?: number) {
+   constructor(message: string, code?: ContentfulStatusCode) {
       super(message);
       if (code) {
          this.code = code;

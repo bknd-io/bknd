@@ -1,20 +1,13 @@
-import {
-   type AuthAction,
-   AuthPermissions,
-   Authenticator,
-   type ProfileExchange,
-   Role,
-   type Strategy,
-} from "auth";
+import { Authenticator, AuthPermissions, Role, type Strategy } from "auth";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
-import { $console, type DB, Exception, type PrimaryFieldType } from "core";
-import { type Static, secureRandomString, transformObject } from "core/utils";
+import { $console, type DB, type PrimaryFieldType } from "core";
+import { secureRandomString, transformObject } from "core/utils";
 import type { Entity, EntityManager } from "data";
-import { type FieldSchema, em, entity, enumm, text } from "data/prototype";
-import { pick } from "lodash-es";
+import { em, entity, enumm, type FieldSchema, text } from "data/prototype";
 import { Module } from "modules/Module";
 import { AuthController } from "./api/AuthController";
-import { type AppAuthSchema, STRATEGIES, authConfigSchema } from "./auth-schema";
+import { type AppAuthSchema, authConfigSchema, STRATEGIES } from "./auth-schema";
+import { AppUserPool } from "auth/AppUserPool";
 
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
 declare module "core" {
@@ -23,7 +16,6 @@ declare module "core" {
    }
 }
 
-type AuthSchema = Static<typeof authConfigSchema>;
 export type CreateUserPayload = { email: string; password: string; [key: string]: any };
 
 export class AppAuth extends Module<typeof authConfigSchema> {
@@ -31,7 +23,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
    cache: Record<string, any> = {};
    _controller!: AuthController;
 
-   override async onBeforeUpdate(from: AuthSchema, to: AuthSchema) {
+   override async onBeforeUpdate(from: AppAuthSchema, to: AppAuthSchema) {
       const defaultSecret = authConfigSchema.properties.jwt.properties.secret.default;
 
       if (!from.enabled && to.enabled) {
@@ -80,7 +72,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          }
       });
 
-      this._authenticator = new Authenticator(strategies, this.resolveUser.bind(this), {
+      this._authenticator = new Authenticator(strategies, new AppUserPool(this), {
          jwt: this.config.jwt,
          cookie: this.config.cookie,
       });
@@ -120,119 +112,6 @@ export class AppAuth extends Module<typeof authConfigSchema> {
 
    get em(): EntityManager {
       return this.ctx.em as any;
-   }
-
-   private async resolveUser(
-      action: AuthAction,
-      strategy: Strategy,
-      identifier: string,
-      profile: ProfileExchange,
-   ): Promise<any> {
-      if (!this.config.allow_register && action === "register") {
-         throw new Exception("Registration is not allowed", 403);
-      }
-
-      const fields = this.getUsersEntity()
-         .getFillableFields("create")
-         .map((f) => f.name);
-      const filteredProfile = Object.fromEntries(
-         Object.entries(profile).filter(([key]) => fields.includes(key)),
-      );
-
-      switch (action) {
-         case "login":
-            return this.login(strategy, identifier, filteredProfile);
-         case "register":
-            return this.register(strategy, identifier, filteredProfile);
-      }
-   }
-
-   private filterUserData(user: any) {
-      return pick(user, this.config.jwt.fields);
-   }
-
-   private async login(strategy: Strategy, identifier: string, profile: ProfileExchange) {
-      if (!("email" in profile)) {
-         throw new Exception("Profile must have email");
-      }
-      if (typeof identifier !== "string" || identifier.length === 0) {
-         throw new Exception("Identifier must be a string");
-      }
-
-      const users = this.getUsersEntity();
-      this.toggleStrategyValueVisibility(true);
-      const result = await this.em
-         .repo(users as unknown as "users")
-         .findOne({ email: profile.email! });
-      this.toggleStrategyValueVisibility(false);
-      if (!result.data) {
-         throw new Exception("User not found", 404);
-      }
-
-      // compare strategy and identifier
-      if (result.data.strategy !== strategy.getName()) {
-         throw new Exception("User registered with different strategy");
-      }
-
-      if (result.data.strategy_value !== identifier) {
-         throw new Exception("Invalid credentials");
-      }
-
-      return this.filterUserData(result.data);
-   }
-
-   private async register(strategy: Strategy, identifier: string, profile: ProfileExchange) {
-      if (!("email" in profile)) {
-         throw new Exception("Profile must have an email");
-      }
-      if (typeof identifier !== "string" || identifier.length === 0) {
-         throw new Exception("Identifier must be a string");
-      }
-
-      const users = this.getUsersEntity();
-      const { data } = await this.em.repo(users).findOne({ email: profile.email! });
-      if (data) {
-         throw new Exception("User already exists");
-      }
-
-      const payload: any = {
-         ...profile,
-         strategy: strategy.getName(),
-         strategy_value: identifier,
-      };
-
-      const mutator = this.em.mutator(users);
-      mutator.__unstable_toggleSystemEntityCreation(false);
-      this.toggleStrategyValueVisibility(true);
-      const createResult = await mutator.insertOne(payload);
-      mutator.__unstable_toggleSystemEntityCreation(true);
-      this.toggleStrategyValueVisibility(false);
-      if (!createResult.data) {
-         throw new Error("Could not create user");
-      }
-
-      return this.filterUserData(createResult.data);
-   }
-
-   private toggleStrategyValueVisibility(visible: boolean) {
-      const toggle = (name: string, visible: boolean) => {
-         const field = this.getUsersEntity().field(name)!;
-
-         if (visible) {
-            field.config.hidden = false;
-            field.config.fillable = true;
-         } else {
-            // reset to normal
-            const template = AppAuth.usersFields.strategy_value.config;
-            field.config.hidden = template.hidden;
-            field.config.fillable = template.fillable;
-         }
-      };
-
-      toggle("strategy_value", visible);
-      toggle("strategy", visible);
-
-      // @todo: think about a PasswordField that automatically hashes on save?
    }
 
    getUsersEntity(forceCreate?: boolean): Entity<"users", typeof AppAuth.usersFields> {
@@ -287,7 +166,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          throw new Error("Cannot create user, auth not enabled");
       }
 
-      const strategy = "password";
+      const strategy = "password" as const;
       const pw = this.authenticator.strategy(strategy) as PasswordStrategy;
       const strategy_value = await pw.hash(password);
       const mutator = this.em.mutator(this.config.entity_name as "users");
@@ -314,8 +193,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
          ...this.authenticator.toJSON(secrets),
          strategies: transformObject(strategies, (strategy) => ({
             enabled: this.isStrategyEnabled(strategy),
-            type: strategy.getType(),
-            config: strategy.toJSON(secrets),
+            ...strategy.toJSON(secrets),
          })),
       };
    }

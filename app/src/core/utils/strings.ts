@@ -132,3 +132,8 @@ export function slugify(str: string): string {
          .replace(/-+/g, "-") // remove consecutive hyphens
    );
 }
+
+export function truncate(str: string, length = 50, end = "..."): string {
+   if (str.length <= length) return str;
+   return str.substring(0, length) + end;
+}
