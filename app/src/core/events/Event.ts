@@ -14,6 +14,10 @@ export abstract class Event<Params = any, Returning = void> {
    params: Params;
    returned: boolean = false;
 
+   /**
+    * Shallow validation of the event return
+    * It'll be deeply validated on the place where it is called
+    */
    validate(value: Returning): Event<Params, Returning> | void {
       throw new EventReturnedWithoutValidation(this as any, value);
    }
