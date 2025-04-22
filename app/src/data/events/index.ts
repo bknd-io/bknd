@@ -1,4 +1,4 @@
-import type { PrimaryFieldType } from "core";
+import { $console, type PrimaryFieldType } from "core";
 import { Event, InvalidEventReturn } from "core/events";
 import type { Entity, EntityData } from "../entities";
 import type { RepoQuery } from "../server/data-query-impl";
@@ -9,6 +9,10 @@ export class MutatorInsertBefore extends Event<{ entity: Entity; data: EntityDat
    override validate(data: EntityData) {
       const { entity } = this.params;
       if (!entity.isValidData(data, "create")) {
+         $console.warn("MutatorInsertBefore.validate: invalid", {
+            entity: entity.name,
+            data,
+         });
          throw new InvalidEventReturn("EntityData", "invalid");
       }
 
@@ -36,13 +40,18 @@ export class MutatorUpdateBefore extends Event<
    static override slug = "mutator-update-before";
 
    override validate(data: EntityData) {
-      const { entity, ...rest } = this.params;
+      const { entity, entityId } = this.params;
       if (!entity.isValidData(data, "update")) {
+         $console.warn("MutatorUpdateBefore.validate: invalid", {
+            entity: entity.name,
+            entityId,
+            data,
+         });
          throw new InvalidEventReturn("EntityData", "invalid");
       }
 
       return this.clone({
-         ...rest,
+         entityId,
          entity,
          data,
       });

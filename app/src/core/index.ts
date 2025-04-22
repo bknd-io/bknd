@@ -27,6 +27,7 @@ export {
 export { Registry, type Constructor } from "./registry/Registry";
 
 export * from "./console";
+export * from "./events";
 
 // compatibility
 export type Middleware = MiddlewareHandler<any, any, any>;
