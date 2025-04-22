@@ -109,10 +109,12 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          filename?: string;
          _init?: Omit<RequestInit, "body">;
          path?: TInput;
+         fetcher?: typeof fetch;
       } = {},
    ) {
       if (item instanceof Request || typeof item === "string") {
-         const res = await this.fetcher(item);
+         const fetcher = opts.fetcher ?? fetch;
+         const res = await fetcher(item);
          if (!res.ok || !res.body) {
             throw new Error("Failed to fetch file");
          }
@@ -143,6 +145,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
       item: Request | Response | string | File | ReadableStream,
       opts?: {
          _init?: Omit<RequestInit, "body">;
+         fetcher?: typeof fetch;
       },
    ) {
       return this.upload(item, {
