@@ -6,13 +6,17 @@ import {
    type TInput,
 } from "modules/ModuleApi";
 import type { FileWithPath } from "ui/elements/media/file-selector";
+import type { ApiFetcher } from "Api";
 
-export type MediaApiOptions = BaseModuleApiOptions & {};
+export type MediaApiOptions = BaseModuleApiOptions & {
+   upload_fetcher: ApiFetcher;
+};
 
 export class MediaApi extends ModuleApi<MediaApiOptions> {
    protected override getDefaultOptions(): Partial<MediaApiOptions> {
       return {
          basepath: "/api/media",
+         upload_fetcher: fetch,
       };
    }
 
@@ -109,11 +113,11 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          filename?: string;
          _init?: Omit<RequestInit, "body">;
          path?: TInput;
-         fetcher?: typeof fetch;
+         fetcher?: ApiFetcher;
       } = {},
    ) {
       if (item instanceof Request || typeof item === "string") {
-         const fetcher = opts.fetcher ?? fetch;
+         const fetcher = opts.fetcher ?? this.options.upload_fetcher;
          const res = await fetcher(item);
          if (!res.ok || !res.body) {
             throw new Error("Failed to fetch file");
