@@ -3,7 +3,7 @@
   "type": "module",
   "sideEffects": false,
   "bin": "./dist/cli/index.js",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Lightweight Firebase/Supabase alternative built to run anywhere — incl. Next.js, React Router, Astro, Cloudflare, Bun, Node, AWS Lambda & more.",
   "homepage": "https://bknd.io",
   "repository": {
