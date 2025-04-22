@@ -1,6 +1,7 @@
 import { $console, type PrimaryFieldType } from "core";
 import { isDebug } from "core/env";
 import { encodeSearch } from "core/utils/reqres";
+import type { ApiFetcher } from "Api";
 
 export type { PrimaryFieldType };
 export type BaseModuleApiOptions = {
@@ -24,11 +25,11 @@ export type ApiResponse<Data = any> = {
 export type TInput = string | (string | number | PrimaryFieldType)[];
 
 export abstract class ModuleApi<Options extends BaseModuleApiOptions = BaseModuleApiOptions> {
-   protected fetcher: typeof fetch;
+   protected fetcher: ApiFetcher;
 
    constructor(
       protected readonly _options: Partial<Options> = {},
-      fetcher?: typeof fetch,
+      fetcher?: ApiFetcher,
    ) {
       this.fetcher = fetcher ?? fetch;
    }
@@ -221,7 +222,7 @@ export class FetchPromise<T = ApiResponse<any>> implements Promise<T> {
    constructor(
       public request: Request,
       protected options?: {
-         fetcher?: typeof fetch;
+         fetcher?: ApiFetcher;
          verbose?: boolean;
       },
       // keep "any" here, it gets inferred correctly with the "refine" fn

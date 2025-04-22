@@ -1,8 +1,8 @@
 /// <reference types="@types/bun" />
 import { describe, expect, it } from "bun:test";
 import { Hono } from "hono";
-import { getFileFromContext, isFile, isReadableStream } from "../../src/core/utils";
-import { MediaApi } from "../../src/media/api/MediaApi";
+import { getFileFromContext, isFile, isReadableStream } from "core/utils";
+import { MediaApi } from "media/api/MediaApi";
 import { assetsPath, assetsTmpPath } from "../helper";
 
 const mockedBackend = new Hono()
@@ -121,8 +121,12 @@ describe("MediaApi", () => {
    });
 
    it("should upload file in various ways", async () => {
-      // @ts-ignore tests
-      const api = new MediaApi({}, mockedBackend.request);
+      const api = new MediaApi(
+         {
+            upload_fetcher: mockedBackend.request,
+         },
+         mockedBackend.request,
+      );
       const file = Bun.file(`${assetsPath}/image.png`);
 
       async function matches(req: Promise<any>, filename: string) {
