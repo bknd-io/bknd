@@ -85,37 +85,49 @@ export class PasswordStrategy extends Strategy<typeof schema> {
       const payloadSchema = this.getPayloadSchema();
 
       hono.post("/login", tb("query", redirectQuerySchema), async (c) => {
-         const body = parse(payloadSchema, await authenticator.getBody(c), {
-            onError: (errors) => {
-               $console.error("Invalid login payload", [...errors]);
-               throw new InvalidCredentialsException();
-            },
-         });
-         const { redirect } = c.req.valid("query");
+         try {
+            const body = parse(payloadSchema, await authenticator.getBody(c), {
+               onError: (errors) => {
+                  $console.error("Invalid login payload", [...errors]);
+                  throw new InvalidCredentialsException();
+               },
+            });
+            const { redirect } = c.req.valid("query");
 
-         return await authenticator.resolveLogin(c, this, body, this.verify(body.password), {
-            redirect,
-         });
+            return await authenticator.resolveLogin(c, this, body, this.verify(body.password), {
+               redirect,
+            });
+         } catch (e) {
+            return authenticator.respondWithError(c, e as any);
+         }
       });
 
       hono.post("/register", tb("query", redirectQuerySchema), async (c) => {
-         const { redirect } = c.req.valid("query");
-         const { password, email, ...body } = parse(payloadSchema, await authenticator.getBody(c), {
-            onError: (errors) => {
-               $console.error("Invalid register payload", [...errors]);
-               throw new InvalidCredentialsException();
-            },
-         });
+         try {
+            const { redirect } = c.req.valid("query");
+            const { password, email, ...body } = parse(
+               payloadSchema,
+               await authenticator.getBody(c),
+               {
+                  onError: (errors) => {
+                     $console.error("Invalid register payload", [...errors]);
+                     new InvalidCredentialsException();
+                  },
+               },
+            );
 
-         const profile = {
-            ...body,
-            email,
-            strategy_value: await this.hash(password),
-         };
+            const profile = {
+               ...body,
+               email,
+               strategy_value: await this.hash(password),
+            };
 
-         return await authenticator.resolveRegister(c, this, profile, async () => void 0, {
-            redirect,
-         });
+            return await authenticator.resolveRegister(c, this, profile, async () => void 0, {
+               redirect,
+            });
+         } catch (e) {
+            return authenticator.respondWithError(c, e as any);
+         }
       });
 
       return hono;
