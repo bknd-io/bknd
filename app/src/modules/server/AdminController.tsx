@@ -8,8 +8,15 @@ import { Fragment } from "hono/jsx";
 import { css, Style } from "hono/css";
 import { Controller } from "modules/Controller";
 import * as SystemPermissions from "modules/permissions";
+import type { TApiUser } from "Api";
 
 const htmlBkndContextReplace = "<!-- BKND_CONTEXT -->";
+
+export type AdminBkndWindowContext = {
+   user?: TApiUser;
+   logout_route: string;
+   admin_basepath: string;
+};
 
 // @todo: add migration to remove admin path from config
 export type AdminControllerOptions = {
@@ -80,6 +87,7 @@ export class AdminController extends Controller {
          const obj = {
             user: c.get("auth")?.user,
             logout_route: this.withAdminBasePath(authRoutes.logout),
+            admin_basepath: this.options.adminBasepath,
          };
          const html = await this.getHtml(obj);
          if (!html) {
@@ -142,7 +150,7 @@ export class AdminController extends Controller {
       return hono;
    }
 
-   private async getHtml(obj: any = {}) {
+   private async getHtml(obj: AdminBkndWindowContext) {
       const bknd_context = `window.__BKND__ = JSON.parse('${JSON.stringify(obj)}');`;
 
       if (this.options.html) {

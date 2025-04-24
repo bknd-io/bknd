@@ -7,7 +7,6 @@ import { Logo } from "ui/components/display/Logo";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { ClientProvider, type ClientProviderProps } from "./client";
 import { createMantineTheme } from "./lib/mantine/theme";
-import { BkndModalsProvider } from "./modals";
 import { Routes } from "./routes";
 
 export type BkndAdminProps = {
