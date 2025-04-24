@@ -28,6 +28,7 @@ export type NativeFormProps = {
       ctx: { event: FormEvent<HTMLFormElement> },
    ) => Promise<void> | void;
    onError?: (errors: InputError[]) => void;
+   disableSubmitOnError?: boolean;
    onChange?: (
       data: any,
       ctx: { event: ChangeEvent<HTMLFormElement>; key: string; value: any; errors: InputError[] },
@@ -50,6 +51,7 @@ export function NativeForm({
    onSubmitInvalid,
    onError,
    clean,
+   disableSubmitOnError = true,
    ...props
 }: NativeFormProps) {
    const formRef = useRef<HTMLFormElement>(null);
@@ -74,7 +76,7 @@ export function NativeForm({
       onError?.(errors);
    }, [errors]);
 
-   const validateElement = useEvent((el: InputElement | null, opts?: { report?: boolean }) => {
+   const validateElement = (el: InputElement | null, opts?: { report?: boolean }) => {
       if (props.noValidate || !el || !("name" in el)) return;
       const errorElement = formRef.current?.querySelector(
          errorFieldSelector?.(el.name) ?? `[data-role="input-error"][data-name="${el.name}"]`,
@@ -104,9 +106,9 @@ export function NativeForm({
       }
 
       return;
-   });
+   };
 
-   const validate = useEvent((opts?: { report?: boolean }) => {
+   const validate = (opts?: { report?: boolean }) => {
       if (!formRef.current || props.noValidate) return [];
 
       const errors: InputError[] = [];
@@ -118,10 +120,20 @@ export function NativeForm({
          }
       });
 
-      return errors;
-   });
+      if (disableSubmitOnError) {
+         formRef.current.querySelectorAll("[type=submit]").forEach((submit) => {
+            if (errors.length > 0) {
+               submit.setAttribute("disabled", "disabled");
+            } else {
+               submit.removeAttribute("disabled");
+            }
+         });
+      }
 
-   const getFormValues = useEvent(() => {
+      return errors;
+   };
+
+   const getFormValues = () => {
       if (!formRef.current) return {};
 
       const formData = new FormData(formRef.current);
@@ -148,15 +160,15 @@ export function NativeForm({
 
       if (typeof clean === "undefined") return obj;
       return cleanObject(obj, clean === true ? undefined : clean);
-   });
+   };
 
-   const handleChange = useEvent(async (e: ChangeEvent<HTMLFormElement>) => {
+   const handleChange = async (e: ChangeEvent<HTMLFormElement>) => {
       const form = formRef.current;
       if (!form) return;
       const target = getFormTarget(e);
       if (!target) return;
 
-      if (validateOn === "change") {
+      if (validateOn === "change" || errors.length > 0) {
          validateElement(target, { report: true });
       }
 
@@ -168,9 +180,9 @@ export function NativeForm({
             errors,
          });
       }
-   });
+   };
 
-   const handleSubmit = useEvent(async (e: FormEvent<HTMLFormElement>) => {
+   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const form = formRef.current;
       if (!form) return;
@@ -186,9 +198,9 @@ export function NativeForm({
       } else {
          form.submit();
       }
-   });
+   };
 
-   const handleKeyDown = useEvent((e: KeyboardEvent) => {
+   const handleKeyDown = (e: KeyboardEvent) => {
       if (!formRef.current) return;
 
       // if is enter key, submit is disabled, report errors
@@ -198,7 +210,7 @@ export function NativeForm({
             formRef.current.reportValidity();
          }
       }
-   });
+   };
 
    return (
       <form
