@@ -215,7 +215,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       throw new Exception("Invalid response");
    }
 
-   private async respondWithError(c: Context, error: Error, opts?: AuthResolveOptions) {
+   async respondWithError(c: Context, error: Error, opts?: AuthResolveOptions) {
       $console.error("respondWithError", error);
       if (this.isJsonRequest(c) || opts?.forceJsonResponse) {
          // let the server handle it
@@ -224,7 +224,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
 
       await addFlashMessage(c, String(error), "error");
 
-      const referer = opts?.redirect ?? c.req.header("Referer") ?? "/";
+      const referer = this.getSafeUrl(c, opts?.redirect ?? c.req.header("Referer") ?? "/");
       return c.redirect(referer);
    }
 
