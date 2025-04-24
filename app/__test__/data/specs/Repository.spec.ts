@@ -266,5 +266,12 @@ describe("[data] Repository (Events)", async () => {
       expect(events.has(RepositoryEvents.RepositoryFindManyBefore.slug)).toBeTrue();
       expect(events.has(RepositoryEvents.RepositoryFindManyAfter.slug)).toBeTrue();
       events.clear();
+
+      // check find one on findMany with limit 1
+      await repo.findMany({ where: { id: 1 }, limit: 1 });
+      await repo.emgr.executeAsyncs();
+      expect(events.has(RepositoryEvents.RepositoryFindOneBefore.slug)).toBeTrue();
+      expect(events.has(RepositoryEvents.RepositoryFindOneAfter.slug)).toBeTrue();
+      events.clear();
    });
 });
