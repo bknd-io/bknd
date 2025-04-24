@@ -25,6 +25,7 @@ export {
    isBooleanLike,
 } from "./object/query/query";
 export { Registry, type Constructor } from "./registry/Registry";
+export { getFlashMessage } from "./server/flash";
 
 export * from "./console";
 export * from "./events";
