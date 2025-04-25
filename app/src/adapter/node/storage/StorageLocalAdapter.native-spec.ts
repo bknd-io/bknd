@@ -1,5 +1,6 @@
 import { describe } from "node:test";
-import { StorageLocalAdapter, nodeTestRunner } from "adapter/node";
+import { nodeTestRunner } from "adapter/node/test";
+import { StorageLocalAdapter } from "adapter/node";
 import { adapterTestSuite } from "media/storage/adapters/adapter-test-suite";
 import { readFileSync } from "node:fs";
 import path from "node:path";
