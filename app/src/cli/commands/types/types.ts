@@ -11,7 +11,7 @@ export const types: CliCommand = (program) => {
       .description("generate types")
       .addOption(new Option("-o, --outfile <outfile>", "output file").default("bknd-types.d.ts"))
       .addOption(
-         new Option("-s, --style <style>", "style to use")
+         new Option("-s, --style <style>", "use type or interface style")
             .choices(["type", "interface"])
             .default("type"),
       )

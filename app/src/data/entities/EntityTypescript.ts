@@ -127,9 +127,7 @@ export class EntityTypescript {
    toString() {
       const strings: string[] = [];
       const tables: Record<string, string> = {};
-      const imports: Record<string, string[]> = {
-         //"bknd/core": ["DB"],
-      };
+      const imports: Record<string, string[]> = {};
 
       for (const entity of this.em.entities) {
          const type = entity.toTypes();
@@ -154,8 +152,8 @@ export class EntityTypescript {
          for (const rel_type of rel_types) {
             s += this.fieldTypesToString(rel_type);
          }
-
          s += "}";
+
          strings.push(s);
       }
 
@@ -174,7 +172,6 @@ export class EntityTypescript {
       strings.push(merge);
 
       const final = [this.importsToString(imports).join("\n"), strings.join("\n\n")];
-
       return final.join("\n\n");
    }
 }
