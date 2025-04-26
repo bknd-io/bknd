@@ -8,6 +8,11 @@ import { omitKeys } from "core/utils";
 
 export type TApiUser = SafeUser;
 
+export type ApiFetcher = (
+   input: RequestInfo | URL,
+   init?: RequestInit,
+) => Response | Promise<Response>;
+
 declare global {
    interface Window {
       __BKND__: {
@@ -21,7 +26,7 @@ export type ApiOptions = {
    headers?: Headers;
    key?: string;
    localStorage?: boolean;
-   fetcher?: typeof fetch;
+   fetcher?: ApiFetcher;
    verbose?: boolean;
    verified?: boolean;
 } & (

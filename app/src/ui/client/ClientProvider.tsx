@@ -1,6 +1,7 @@
 import { Api, type ApiOptions, type TApiUser } from "Api";
 import { isDebug } from "core";
 import { createContext, type ReactNode, useContext } from "react";
+import type { AdminBkndWindowContext } from "modules/server/AdminController";
 
 const ClientContext = createContext<{ baseUrl: string; api: Api }>({
    baseUrl: undefined,
@@ -68,16 +69,18 @@ export const useBaseUrl = () => {
    return context.baseUrl;
 };
 
-type BkndWindowContext = {
-   user?: TApiUser;
-   logout_route: string;
-};
-export function useBkndWindowContext(): BkndWindowContext {
+export function useBkndWindowContext(): AdminBkndWindowContext {
+   const defaults = {
+      logout_route: "/api/auth/logout",
+      admin_basepath: "",
+   };
+
    if (typeof window !== "undefined" && window.__BKND__) {
-      return window.__BKND__ as any;
-   } else {
       return {
-         logout_route: "/api/auth/logout",
+         ...defaults,
+         ...window.__BKND__,
       };
    }
+
+   return defaults;
 }

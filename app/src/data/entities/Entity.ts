@@ -232,7 +232,7 @@ export class Entity<
       }
 
       for (const field of fields) {
-         if (!field.isValid(data[field.name], context)) {
+         if (!field.isValid(data?.[field.name], context)) {
             $console.warn(
                "invalid data given for",
                this.name,

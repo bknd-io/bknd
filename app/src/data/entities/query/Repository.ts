@@ -302,24 +302,38 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       }
    }
 
+   private async triggerFindBefore(entity: Entity, options: RepoQuery): Promise<void> {
+      const event =
+         options.limit === 1
+            ? Repository.Events.RepositoryFindOneBefore
+            : Repository.Events.RepositoryFindManyBefore;
+      await this.emgr.emit(new event({ entity, options }));
+   }
+
+   private async triggerFindAfter(
+      entity: Entity,
+      options: RepoQuery,
+      data: EntityData[],
+   ): Promise<void> {
+      if (options.limit === 1) {
+         await this.emgr.emit(
+            new Repository.Events.RepositoryFindOneAfter({ entity, options, data: data[0]! }),
+         );
+      } else {
+         await this.emgr.emit(
+            new Repository.Events.RepositoryFindManyAfter({ entity, options, data }),
+         );
+      }
+   }
+
    protected async single(
       qb: RepositoryQB,
       options: RepoQuery,
    ): Promise<RepositoryResponse<EntityData>> {
-      await this.emgr.emit(
-         new Repository.Events.RepositoryFindOneBefore({ entity: this.entity, options }),
-      );
-
+      this.triggerFindBefore(this.entity, options);
       const { data, ...response } = await this.performQuery(qb);
 
-      await this.emgr.emit(
-         new Repository.Events.RepositoryFindOneAfter({
-            entity: this.entity,
-            options,
-            data: data[0]!,
-         }),
-      );
-
+      this.triggerFindAfter(this.entity, options, data);
       return { ...response, data: data[0]! };
    }
 
@@ -425,21 +439,11 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
 
    async findMany(_options?: Partial<RepoQuery>): Promise<RepositoryResponse<TBD[TB][]>> {
       const { qb, options } = this.buildQuery(_options);
-
-      await this.emgr.emit(
-         new Repository.Events.RepositoryFindManyBefore({ entity: this.entity, options }),
-      );
+      this.triggerFindBefore(this.entity, options);
 
       const res = await this.performQuery(qb);
 
-      await this.emgr.emit(
-         new Repository.Events.RepositoryFindManyAfter({
-            entity: this.entity,
-            options,
-            data: res.data,
-         }),
-      );
-
+      this.triggerFindAfter(this.entity, options, res.data);
       return res as any;
    }
 

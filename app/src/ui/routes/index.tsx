@@ -11,6 +11,7 @@ import SettingsRoutes from "./settings";
 import { FlashMessage } from "ui/modules/server/FlashMessage";
 import { AuthRegister } from "ui/routes/auth/auth.register";
 import { BkndModalsProvider } from "ui/modals";
+import { useBkndWindowContext } from "ui/client";
 
 // @ts-ignore
 const TestRoutes = lazy(() => import("./test"));
@@ -20,11 +21,13 @@ export function Routes({
    basePath = "",
 }: { BkndWrapper: ComponentType<{ children: ReactNode }>; basePath?: string }) {
    const { theme } = useTheme();
+   const ctx = useBkndWindowContext();
+   const actualBasePath = basePath || ctx.admin_basepath;
 
    return (
       <div id="bknd-admin" className={theme + " antialiased"}>
          <FlashMessage />
-         <Router base={basePath}>
+         <Router base={actualBasePath}>
             <Switch>
                <Route path="/auth/login" component={AuthLogin} />
                <Route path="/auth/register" component={AuthRegister} />

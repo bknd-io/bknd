@@ -186,12 +186,14 @@ export abstract class Field<
       };
    }
 
+   // @todo: add field level validation
    isValid(value: any, context: TActionContext): boolean {
-      if (value) {
+      if (typeof value !== "undefined") {
          return this.isFillable(context);
-      } else {
+      } else if (context === "create") {
          return !this.isRequired();
       }
+      return true;
    }
 
    /**

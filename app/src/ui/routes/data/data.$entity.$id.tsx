@@ -164,26 +164,36 @@ export function DataEntityUpdate({ params }) {
                ]}
             />
          </AppShell.SectionHeader>
-         <AppShell.Scrollable>
-            {error && (
-               <div className="flex flex-row dark:bg-red-950 bg-red-100 p-4">
-                  <b className="mr-2">Update failed: </b> {error}
-               </div>
-            )}
-            <EntityForm
-               entity={entity}
-               entityId={entityId}
-               handleSubmit={handleSubmit}
-               fieldsDisabled={fieldsDisabled}
-               data={data ?? undefined}
-               Form={Form}
-               action="update"
-               className="flex flex-grow flex-col gap-3 p-3"
-            />
-            {targetRelations.length > 0 ? (
-               <EntityDetailRelations id={entityId} entity={entity} relations={targetRelations} />
-            ) : null}
-         </AppShell.Scrollable>
+         {$q.isLoading ? (
+            <div className="w-full h-full flex justify-center items-center font-mono opacity-30">
+               Loading...
+            </div>
+         ) : (
+            <AppShell.Scrollable>
+               {error && (
+                  <div className="flex flex-row dark:bg-red-950 bg-red-100 p-4">
+                     <b className="mr-2">Update failed: </b> {error}
+                  </div>
+               )}
+               <EntityForm
+                  entity={entity}
+                  entityId={entityId}
+                  handleSubmit={handleSubmit}
+                  fieldsDisabled={fieldsDisabled}
+                  data={data ?? undefined}
+                  Form={Form}
+                  action="update"
+                  className="flex flex-grow flex-col gap-3 p-3"
+               />
+               {targetRelations.length > 0 ? (
+                  <EntityDetailRelations
+                     id={entityId}
+                     entity={entity}
+                     relations={targetRelations}
+                  />
+               ) : null}
+            </AppShell.Scrollable>
+         )}
       </Fragment>
    );
 }
