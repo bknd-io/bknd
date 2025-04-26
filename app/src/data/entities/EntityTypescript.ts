@@ -146,7 +146,7 @@ export class EntityTypescript {
       const min_indent = Math.max(0, indent - 1);
 
       let s = this.commentString(type.comment, min_indent, this.options.entityCommentMultiline);
-      s += `${opts?.export ? "export" : ""} interface ${name} {\n`;
+      s += `${opts?.export ? "export " : ""}interface ${name} {\n`;
       s += this.fieldTypesToString(type, opts);
 
       // add listable relations
