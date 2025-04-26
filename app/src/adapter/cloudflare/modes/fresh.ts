@@ -20,7 +20,7 @@ export async function getFresh<Env extends CloudflareEnv = CloudflareEnv>(
          ...config,
          onBuilt: async (app) => {
             registerAsyncsExecutionContext(app, ctx.ctx);
-            config.onBuilt?.(app);
+            await config.onBuilt?.(app);
          },
       },
       ctx.env,

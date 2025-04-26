@@ -330,10 +330,10 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       qb: RepositoryQB,
       options: RepoQuery,
    ): Promise<RepositoryResponse<EntityData>> {
-      this.triggerFindBefore(this.entity, options);
+      await this.triggerFindBefore(this.entity, options);
       const { data, ...response } = await this.performQuery(qb);
 
-      this.triggerFindAfter(this.entity, options, data);
+      await this.triggerFindAfter(this.entity, options, data);
       return { ...response, data: data[0]! };
    }
 
@@ -434,16 +434,16 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          limit: 1,
       });
 
-      return this.single(qb, options) as any;
+      return (await this.single(qb, options)) as any;
    }
 
    async findMany(_options?: Partial<RepoQuery>): Promise<RepositoryResponse<TBD[TB][]>> {
       const { qb, options } = this.buildQuery(_options);
-      this.triggerFindBefore(this.entity, options);
+      await this.triggerFindBefore(this.entity, options);
 
       const res = await this.performQuery(qb);
 
-      this.triggerFindAfter(this.entity, options, res.data);
+      await this.triggerFindAfter(this.entity, options, res.data);
       return res as any;
    }
 
