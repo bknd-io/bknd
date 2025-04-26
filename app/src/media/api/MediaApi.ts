@@ -48,7 +48,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
       return (await res.blob()) as File;
    }
 
-   getFileUploadUrl(file?: FileWithPath): string {
+   getFileUploadUrl(file?: { path: string }): string {
       if (!file) return this.getUrl("/upload");
       return this.getUrl(`/upload/${file.path}`);
    }
