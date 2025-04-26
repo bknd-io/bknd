@@ -359,3 +359,88 @@ export function getPath(
       throw new Error(`Invalid path: ${path.join(".")}`);
    }
 }
+
+export function jsonToJsObjectString(
+   json: string,
+   indent = 2, // spaces per level
+): string {
+   const data = JSON.parse(json);
+
+   const isId = (k: string) => /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(k);
+
+   const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n");
+
+   const recur = (val: unknown, depth: number): string => {
+      const pad = " ".repeat(depth * indent);
+
+      if (Array.isArray(val)) {
+         if (val.length === 0) return "[]";
+         return `[\n${val
+            .map((v) => pad + " ".repeat(indent) + recur(v, depth + 1))
+            .join(",\n")}\n${pad}]`;
+      }
+
+      if (val && typeof val === "object") {
+         const entries = Object.entries(val as Record<string, unknown>);
+         if (entries.length === 0) return "{}";
+         return `{\n${entries
+            .map(([k, v]) => {
+               const key = isId(k) ? k : `'${esc(k)}'`;
+               return pad + " ".repeat(indent) + key + ": " + recur(v, depth + 1);
+            })
+            .join(",\n")}\n${pad}}`;
+      }
+
+      if (typeof val === "string") return `'${esc(val)}'`;
+      return String(val);
+   };
+
+   return recur(data, 0);
+}
+
+export function objectToJsLiteral(value: object, indent: number = 0, _level: number = 0): string {
+   const nl = indent ? "\n" : "";
+   const pad = (lvl: number) => (indent ? " ".repeat(indent * lvl) : "");
+   const openPad = pad(_level + 1);
+   const closePad = pad(_level);
+
+   // primitives
+   if (value === null) return "null";
+   if (value === undefined) return "undefined";
+   const t = typeof value;
+   if (t === "string") return JSON.stringify(value); // handles escapes
+   if (t === "number" || t === "boolean") return String(value);
+
+   // arrays
+   if (Array.isArray(value)) {
+      const out = value
+         .map((v) => objectToJsLiteral(v, indent, _level + 1))
+         .join(", " + (indent ? nl + openPad : ""));
+      return (
+         "[" +
+         (indent && value.length ? nl + openPad : "") +
+         out +
+         (indent && value.length ? nl + closePad : "") +
+         "]"
+      );
+   }
+
+   // objects
+   if (t === "object") {
+      const entries = Object.entries(value).map(([k, v]) => {
+         const idOk = /^[A-Za-z_$][\w$]*$/.test(k); // valid identifier?
+         const key = idOk ? k : JSON.stringify(k); // quote if needed
+         return key + ": " + objectToJsLiteral(v, indent, _level + 1);
+      });
+      const out = entries.join(", " + (indent ? nl + openPad : ""));
+      return (
+         "{" +
+         (indent && entries.length ? nl + openPad : "") +
+         out +
+         (indent && entries.length ? nl + closePad : "") +
+         "}"
+      );
+   }
+
+   throw new TypeError(`Unsupported data type: ${t}`);
+}

@@ -3,6 +3,7 @@ import type { EntityManager } from "../entities";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
 import { $console } from "core";
 import * as tbbox from "@sinclair/typebox";
+import type { TFieldTSType } from "data/entities/EntityTypescript";
 const { Type } = tbbox;
 
 export const dateFieldConfigSchema = Type.Composite(
@@ -143,5 +144,12 @@ export class DateField<Required extends true | false = false> extends Field<
    // @todo: check this
    override toJsonSchema() {
       return this.toSchemaWrapIfRequired(Type.String({ default: this.getDefault() }));
+   }
+
+   override toType(): TFieldTSType {
+      return {
+         ...super.toType(),
+         type: "Date | string",
+      };
    }
 }

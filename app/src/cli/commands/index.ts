@@ -5,3 +5,4 @@ export { debug } from "./debug";
 export { user } from "./user";
 export { create } from "./create";
 export { copyAssets } from "./copy-assets";
+export { types } from "./types";

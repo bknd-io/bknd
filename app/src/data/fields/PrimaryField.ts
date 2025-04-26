@@ -54,7 +54,8 @@ export class PrimaryField<Required extends true | false = false> extends Field<
       return {
          ...super.toType(),
          required: true,
-         type: "PrimaryFieldType",
+         import: [{ package: "kysely", name: "Generated" }],
+         type: "Generated<number>",
       };
    }
 }

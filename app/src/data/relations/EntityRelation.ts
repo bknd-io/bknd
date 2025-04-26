@@ -11,6 +11,9 @@ import type { RelationType } from "./relation-types";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;
 
+const directions = ["source", "target"] as const;
+export type TDirection = (typeof directions)[number];
+
 export type KyselyJsonFrom = any;
 export type KyselyQueryBuilder = SelectQueryBuilder<any, any, any>;
 
@@ -27,7 +30,7 @@ export abstract class EntityRelation<
 
    // @todo: add unit tests
    // allowed directions, used in RelationAccessor for visibility
-   directions: ("source" | "target")[] = ["source", "target"];
+   directions: TDirection[] = ["source", "target"];
 
    static schema = Type.Object({
       mappedBy: Type.Optional(Type.String()),
@@ -100,6 +103,10 @@ export abstract class EntityRelation<
          `Entity "${entity_name}" is not part of the relation ` +
             `"${this.source.entity.name} <-> ${this.target.entity.name}"`,
       );
+   }
+
+   self(entity: Entity | string): EntityRelationAnchor {
+      return this.other(entity).entity.name === this.source.entity.name ? this.target : this.source;
    }
 
    ref(reference: string): EntityRelationAnchor {

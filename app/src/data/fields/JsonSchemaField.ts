@@ -1,9 +1,10 @@
 import { type Schema as JsonSchema, Validator } from "@cfworker/json-schema";
-import { Default, FromSchema, type Static } from "core/utils";
+import { Default, FromSchema, objectToJsLiteral, type Static } from "core/utils";
 import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
 import * as tbbox from "@sinclair/typebox";
+import type { TFieldTSType } from "data/entities/EntityTypescript";
 const { Type } = tbbox;
 
 export const jsonSchemaFieldConfigSchema = Type.Composite(
@@ -120,5 +121,13 @@ export class JsonSchemaField<
             ...schema,
          }),
       );
+   }
+
+   override toType(): TFieldTSType {
+      return {
+         ...super.toType(),
+         import: [{ package: "json-schema-to-ts", name: "FromSchema" }],
+         type: `FromSchema<typeof ${objectToJsLiteral(this.getJsonSchema(), 2, 1)} as const>`,
+      };
    }
 }
