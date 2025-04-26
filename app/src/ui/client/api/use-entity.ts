@@ -112,8 +112,8 @@ export const useEntityQuery = <
       ...options,
    });
 
-   const mutateAll = async () => {
-      const entityKey = makeKey(api, entity as string);
+   const mutateFn = async (id?: PrimaryFieldType) => {
+      const entityKey = makeKey(api, entity as string, id);
       return mutate((key) => typeof key === "string" && key.startsWith(entityKey), undefined, {
          revalidate: true,
       });
@@ -126,7 +126,7 @@ export const useEntityQuery = <
 
          // mutate all keys of entity by default
          if (options?.revalidateOnMutate !== false) {
-            await mutateAll();
+            await mutateFn();
          }
          return res;
       };
@@ -135,7 +135,7 @@ export const useEntityQuery = <
    return {
       ...swr,
       ...mapped,
-      mutate: mutateAll,
+      mutate: mutateFn,
       mutateRaw: swr.mutate,
       api,
       key,

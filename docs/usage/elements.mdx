@@ -52,7 +52,7 @@ export default function UserAvatar() {
 You can also customize the rendering of the media items and its uploading by passing a react element as a child. Here is an example of a custom `Media.Dropzone` that renders an user avatar (styled using tailwind):
 
 ```tsx
-import { Media, useMediaDropzone } from "bknd/elements";
+import { Media, useMediaDropzone, useMediaDropzoneState } from "bknd/elements";
 
 export default function CustomUserAvatar() {
    return <Media.Dropzone
@@ -68,11 +68,10 @@ function CustomUserAvatar() {
    const {
       wrapperRef,
       inputProps,
-      state: { files, isOver, isOverAccepted, showPlaceholder },
+      showPlaceholder,
       actions: { openFileInput }
    } = useMediaDropzone();
-   
-   const file = files[0];
+   const { files: [ file ], isOver, isOverAccepted } = useMediaDropzoneState();
 
    return (
       <div
