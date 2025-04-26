@@ -1,5 +1,6 @@
-import { type Entity, type EntityManager, EntityRelation, type TEntityType } from "data";
+import type { Entity, EntityManager, EntityRelation, TEntityType } from "data";
 import { autoFormatString } from "core/utils";
+import { AppAuth, AppMedia } from "modules";
 
 export type TEntityTSType = {
    name: string;
@@ -25,9 +26,14 @@ export type TFieldTSType = {
 export type EntityTypescriptOptions = {
    indentWidth?: number;
    indentChar?: string;
-   definition?: "type" | "interface";
    entityCommentMultiline?: boolean;
    fieldCommentMultiline?: boolean;
+};
+
+// keep a local copy here until properties have a type
+const systemEntities = {
+   users: AppAuth.usersFields,
+   media: AppMedia.mediaFields,
 };
 
 export class EntityTypescript {
@@ -41,7 +47,6 @@ export class EntityTypescript {
          ...this._options,
          indentWidth: 2,
          indentChar: " ",
-         definition: "type",
          entityCommentMultiline: true,
          fieldCommentMultiline: false,
       };
@@ -78,14 +83,16 @@ export class EntityTypescript {
       return autoFormatString(name);
    }
 
-   fieldTypesToString(type: TEntityTSType) {
+   fieldTypesToString(type: TEntityTSType, opts?: { ignore_fields?: string[]; indent?: number }) {
       let string = "";
       const coment_multiline = this.options.fieldCommentMultiline;
-
+      const indent = opts?.indent ?? 1;
       for (const [field_name, field_type] of Object.entries(type.fields)) {
+         if (opts?.ignore_fields?.includes(field_name)) continue;
+
          let f = "";
-         f += this.commentString(field_type.comment, 1, coment_multiline);
-         f += `${this.getTab(1)}${field_name}${field_type.required ? "" : "?"}: `;
+         f += this.commentString(field_type.comment, indent, coment_multiline);
+         f += `${this.getTab(indent)}${field_name}${field_type.required ? "" : "?"}: `;
          f += field_type.type + ";";
          f += "\n";
          string += f;
@@ -99,11 +106,16 @@ export class EntityTypescript {
       const listable = relation.isListableFor(entity);
       const name = this.typeName(other.entity.name);
 
+      let type = name;
+      if (other.entity.type === "system") {
+         type = `DB["${other.entity.name}"]`;
+      }
+
       return {
          fields: {
             [other.reference]: {
                required: false,
-               type: `${name}${listable ? "[]" : ""}`,
+               type: `${type}${listable ? "[]" : ""}`,
             },
          },
       };
@@ -124,42 +136,58 @@ export class EntityTypescript {
       return `${indent}/**\n${indent} * ${comment}\n${indent} */\n`;
    }
 
+   entityToTypeString(
+      entity: Entity,
+      opts?: { ignore_fields?: string[]; indent?: number; export?: boolean },
+   ) {
+      const type = entity.toTypes();
+      const name = this.typeName(type.name);
+      const indent = opts?.indent ?? 1;
+      const min_indent = Math.max(0, indent - 1);
+
+      let s = this.commentString(type.comment, min_indent, this.options.entityCommentMultiline);
+      s += `${opts?.export ? "export" : ""} interface ${name} {\n`;
+      s += this.fieldTypesToString(type, opts);
+
+      // add listable relations
+      const relations = this.em.relations.relationsOf(entity);
+      const rel_types = relations.map((r) =>
+         this.relationToFieldType(r, entity),
+      ) as TEntityTSType[];
+      for (const rel_type of rel_types) {
+         s += this.fieldTypesToString(rel_type, {
+            indent,
+         });
+      }
+      s += `${this.getTab(min_indent)}}`;
+
+      return s;
+   }
+
    toString() {
       const strings: string[] = [];
       const tables: Record<string, string> = {};
-      const imports: Record<string, string[]> = {};
+      const imports: Record<string, string[]> = {
+         "bknd/core": ["DB"],
+      };
+      const system_entities = this.em.entities.filter((e) => e.type === "system");
 
       for (const entity of this.em.entities) {
+         // skip system entities, declare addtional props in the DB interface
+         if (system_entities.includes(entity)) continue;
+
          const type = entity.toTypes();
          if (!type) continue;
-         const name = this.typeName(type.name);
-         tables[type.name] = name;
          this.collectImports(type, imports);
-
-         let s = this.commentString(type.comment, 0, this.options.entityCommentMultiline);
-         if (this.options.definition === "interface") {
-            s += `interface ${name} {\n`;
-         } else {
-            s += `type ${name} = {\n`;
-         }
-         s += this.fieldTypesToString(type);
-
-         // add listable relations
-         const relations = this.em.relations.relationsOf(entity);
-         const rel_types = relations.map((r) =>
-            this.relationToFieldType(r, entity),
-         ) as TEntityTSType[];
-         for (const rel_type of rel_types) {
-            s += this.fieldTypesToString(rel_type);
-         }
-         s += "}";
-
+         tables[type.name] = this.typeName(type.name);
+         const s = this.entityToTypeString(entity, {
+            export: true,
+         });
          strings.push(s);
       }
 
       // write tables
-      let tables_string =
-         this.options.definition === "interface" ? "interface Database {\n" : "type Database = {\n";
+      let tables_string = "interface Database {\n";
       for (const [name, type] of Object.entries(tables)) {
          tables_string += `${this.getTab(1)}${name}: ${type};\n`;
       }
@@ -168,6 +196,19 @@ export class EntityTypescript {
 
       // merge
       let merge = `declare module "bknd/core" {\n`;
+      for (const systemEntity of system_entities) {
+         const system_fields = Object.keys(systemEntities[systemEntity.name]);
+         const additional_fields = systemEntity.fields
+            .filter((f) => !system_fields.includes(f.name) && f.type !== "primary")
+            .map((f) => f.name);
+         if (additional_fields.length === 0) continue;
+
+         merge += `${this.getTab(1)}${this.entityToTypeString(systemEntity, {
+            ignore_fields: ["id", ...system_fields],
+            indent: 2,
+         })}\n\n`;
+      }
+
       merge += `${this.getTab(1)}interface DB extends Database {}\n}`;
       strings.push(merge);
 

@@ -10,22 +10,15 @@ export const types: CliCommand = (program) => {
       .command("types")
       .description("generate types")
       .addOption(new Option("-o, --outfile <outfile>", "output file").default("bknd-types.d.ts"))
-      .addOption(
-         new Option("-s, --style <style>", "use type or interface style")
-            .choices(["type", "interface"])
-            .default("type"),
-      )
       .addOption(new Option("--no-write", "do not write to file").default(true))
       .action(action);
 };
 
 async function action({
    outfile,
-   style,
    write,
 }: {
    outfile: string;
-   style: "type" | "interface";
    write: boolean;
 }) {
    const app = await makeAppFromEnv({
@@ -33,9 +26,7 @@ async function action({
    });
    await app.build();
 
-   const et = new EntityTypescript(app.em, {
-      definition: style,
-   });
+   const et = new EntityTypescript(app.em);
 
    if (write) {
       await writeFile(outfile, et.toString());

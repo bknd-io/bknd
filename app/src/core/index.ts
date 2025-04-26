@@ -3,7 +3,7 @@ import type { Hono, MiddlewareHandler } from "hono";
 export { tbValidator } from "./server/lib/tbValidator";
 export { Exception, BkndError } from "./errors";
 export { isDebug, env } from "./env";
-export { type PrimaryFieldType, config, type DB } from "./config";
+export { type PrimaryFieldType, config, type DB, type AppEntity } from "./config";
 export { AwsClient } from "./clients/aws/AwsClient";
 export {
    SimpleRenderer,

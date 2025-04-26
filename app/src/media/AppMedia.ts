@@ -1,4 +1,4 @@
-import { $console, type PrimaryFieldType } from "core";
+import { $console, type AppEntity } from "core";
 import type { Entity, EntityManager } from "data";
 import { type FileUploadedEventData, Storage, type StorageAdapter, MediaPermissions } from "media";
 import { Module } from "modules/Module";
@@ -17,8 +17,9 @@ import { buildMediaSchema, type mediaConfigSchema, registry } from "./media-sche
 
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
 declare module "core" {
+   interface Media extends AppEntity, MediaFieldSchema {}
    interface DB {
-      media: { id: PrimaryFieldType } & MediaFieldSchema;
+      media: Media;
    }
 }
 
