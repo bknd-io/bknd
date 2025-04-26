@@ -127,7 +127,7 @@ export class JsonSchemaField<
       return {
          ...super.toType(),
          import: [{ package: "json-schema-to-ts", name: "FromSchema" }],
-         type: `FromSchema<typeof ${objectToJsLiteral(this.getJsonSchema(), 2, 1)} as const>`,
+         type: `FromSchema<${objectToJsLiteral(this.getJsonSchema(), 2, 1)}>`,
       };
    }
 }
