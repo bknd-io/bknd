@@ -1,12 +1,12 @@
 import { default as CodeMirror, type ReactCodeMirrorProps } from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
-import { type LiquidCompletionConfig, liquid } from "@codemirror/lang-liquid";
+import { html } from "@codemirror/lang-html";
 import { useTheme } from "ui/client/use-theme";
 
 export type CodeEditorProps = ReactCodeMirrorProps & {
    _extensions?: Partial<{
       json: boolean;
-      liquid: LiquidCompletionConfig;
+      html: boolean;
    }>;
 };
 
@@ -31,7 +31,8 @@ export default function CodeEditor({
             case "json":
                return json();
             case "liquid":
-               return liquid(config);
+            case "html":
+               return html(config);
          }
          return undefined;
       })

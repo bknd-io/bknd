@@ -1,17 +1,13 @@
-import { Liquid, LiquidError } from "liquidjs";
-import type { RenderOptions } from "liquidjs/dist/liquid-options";
-import { BkndError } from "../errors";
+import { get } from "lodash-es";
 
 export type TemplateObject = Record<string, string | Record<string, string>>;
-export type TemplateTypes = string | TemplateObject;
+export type TemplateTypes = string | TemplateObject | any;
 
-export type SimpleRendererOptions = RenderOptions & {
+export type SimpleRendererOptions = {
    renderKeys?: boolean;
 };
 
 export class SimpleRenderer {
-   private engine = new Liquid();
-
    constructor(
       private variables: Record<string, any> = {},
       private options: SimpleRendererOptions = {},
@@ -33,44 +29,29 @@ export class SimpleRenderer {
          flat = String(template);
       }
 
-      const checks = ["{{", "{%", "{#", "{:"];
+      const checks = ["{{"];
       return checks.some((check) => flat.includes(check));
    }
 
-   async render<Given extends TemplateTypes>(template: Given): Promise<Given> {
-      try {
-         if (typeof template === "string") {
-            return (await this.renderString(template)) as unknown as Given;
-         } else if (Array.isArray(template)) {
-            return (await Promise.all(
-               template.map((item) => this.render(item)),
-            )) as unknown as Given;
-         } else if (typeof template === "object") {
-            return (await this.renderObject(template)) as unknown as Given;
-         }
-      } catch (e) {
-         if (e instanceof LiquidError) {
-            const details = {
-               name: e.name,
-               token: {
-                  kind: e.token.kind,
-                  input: e.token.input,
-                  begin: e.token.begin,
-                  end: e.token.end,
-               },
-            };
+   async render<Given extends TemplateTypes = TemplateTypes>(template: Given): Promise<Given> {
+      if (typeof template === "undefined" || template === null) return template;
 
-            throw new BkndError(e.message, details, "liquid");
-         }
-
-         throw e;
+      if (typeof template === "string") {
+         return (await this.renderString(template)) as unknown as Given;
+      } else if (Array.isArray(template)) {
+         return (await Promise.all(template.map((item) => this.render(item)))) as unknown as Given;
+      } else if (typeof template === "object") {
+         return (await this.renderObject(template as any)) as unknown as Given;
       }
 
       throw new Error("Invalid template type");
    }
 
    async renderString(template: string): Promise<string> {
-      return this.engine.parseAndRender(template, this.variables, this.options);
+      return template.replace(/{{\s*([^{}]+?)\s*}}/g, (_, expr: string) => {
+         const value = get(this.variables, expr.trim());
+         return value == null ? "" : String(value);
+      });
    }
 
    async renderObject(template: TemplateObject): Promise<TemplateObject> {
