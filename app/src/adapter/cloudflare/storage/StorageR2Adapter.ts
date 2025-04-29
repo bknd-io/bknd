@@ -15,13 +15,13 @@ export function makeSchema(bindings: string[] = []) {
    );
 }
 
-export function registerMedia(env: Record<string, any>) {
+export function registerR2MediaAdapter(env: Record<string, any>) {
    const r2_bindings = getBindings(env, "R2Bucket");
 
    registries.media.register(
       "r2",
       class extends StorageR2Adapter {
-         constructor(private config: any) {
+         constructor(private config: { binding: string }) {
             const binding = r2_bindings.find((b) => b.key === config.binding);
             if (!binding) {
                throw new Error(`No R2Bucket found with key ${config.binding}`);
@@ -42,6 +42,10 @@ export function registerMedia(env: Record<string, any>) {
          }
       },
    );
+
+   return (config: { binding: string }) => {
+      return config;
+   };
 }
 
 /**

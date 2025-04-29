@@ -1,4 +1,4 @@
-import { registerMedia } from "./storage/StorageR2Adapter";
+import { registerR2MediaAdapter } from "./storage/StorageR2Adapter";
 import { getBinding } from "./bindings";
 import { D1Connection } from "./D1Connection";
 import type { CloudflareBkndConfig, CloudflareEnv } from ".";
@@ -19,7 +19,7 @@ export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
    args: Env = {} as Env,
 ) {
    if (!media_registered) {
-      registerMedia(args as any);
+      registerR2MediaAdapter(args as any);
       media_registered = true;
    }
 
