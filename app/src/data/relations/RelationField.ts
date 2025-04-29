@@ -88,8 +88,7 @@ export class RelationField extends Field<RelationFieldConfig> {
    override toType(): TFieldTSType {
       return {
          ...super.toType(),
-         import: [{ package: "kysely", name: "Generated" }],
-         type: "Generated<number>",
+         type: "number",
       };
    }
 }
