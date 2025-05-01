@@ -1,5 +1,6 @@
 import type { DB } from "core";
 import type { EntityData, RepoQueryIn, RepositoryResponse } from "data";
+import type { Insertable, Selectable, Updateable } from "kysely";
 import { type BaseModuleApiOptions, ModuleApi, type PrimaryFieldType } from "modules";
 import type { FetchPromise, ResponseObject } from "modules/ModuleApi";
 
@@ -25,21 +26,23 @@ export class DataApi extends ModuleApi<DataApiOptions> {
       }
    }
 
-   readOne<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
+   readOne<E extends keyof DB | string>(
       entity: E,
       id: PrimaryFieldType,
       query: Omit<RepoQueryIn, "where" | "limit" | "offset"> = {},
    ) {
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       return this.get<Pick<RepositoryResponse<Data>, "meta" | "data">>(
          ["entity", entity as any, id],
          query,
       );
    }
 
-   readOneBy<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
+   readOneBy<E extends keyof DB | string>(
       entity: E,
       query: Omit<RepoQueryIn, "limit" | "offset" | "sort"> = {},
    ) {
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       type T = Pick<RepositoryResponse<Data>, "meta" | "data">;
       return this.readMany(entity, {
          ...query,
@@ -48,10 +51,8 @@ export class DataApi extends ModuleApi<DataApiOptions> {
       }).refine((data) => data[0]) as unknown as FetchPromise<ResponseObject<T>>;
    }
 
-   readMany<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
-      entity: E,
-      query: RepoQueryIn = {},
-   ) {
+   readMany<E extends keyof DB | string>(entity: E, query: RepoQueryIn = {}) {
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       type T = Pick<RepositoryResponse<Data[]>, "meta" | "data">;
 
       const input = query ?? this.options.defaultQuery;
@@ -64,68 +65,70 @@ export class DataApi extends ModuleApi<DataApiOptions> {
       return this.post<T>(["entity", entity as any, "query"], input);
    }
 
-   readManyByReference<
-      E extends keyof DB | string,
-      R extends keyof DB | string,
-      Data = R extends keyof DB ? DB[R] : EntityData,
-   >(entity: E, id: PrimaryFieldType, reference: R, query: RepoQueryIn = {}) {
+   readManyByReference<E extends keyof DB | string, R extends keyof DB | string>(
+      entity: E,
+      id: PrimaryFieldType,
+      reference: R,
+      query: RepoQueryIn = {},
+   ) {
+      type Data = R extends keyof DB ? Selectable<DB[R]> : EntityData;
       return this.get<Pick<RepositoryResponse<Data[]>, "meta" | "data">>(
          ["entity", entity as any, id, reference],
          query ?? this.options.defaultQuery,
       );
    }
 
-   createOne<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
+   createOne<E extends keyof DB | string, Input = E extends keyof DB ? DB[E] : EntityData>(
       entity: E,
-      input: Omit<Data, "id">,
+      input: Insertable<Input>,
    ) {
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       return this.post<RepositoryResponse<Data>>(["entity", entity as any], input);
    }
 
-   createMany<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
+   createMany<E extends keyof DB | string, Input = E extends keyof DB ? DB[E] : EntityData>(
       entity: E,
-      input: Omit<Data, "id">[],
+      input: Insertable<Input>[],
    ) {
       if (!input || !Array.isArray(input) || input.length === 0) {
          throw new Error("input is required");
       }
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       return this.post<RepositoryResponse<Data[]>>(["entity", entity as any], input);
    }
 
-   updateOne<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
+   updateOne<E extends keyof DB | string, Input = E extends keyof DB ? DB[E] : EntityData>(
       entity: E,
       id: PrimaryFieldType,
-      input: Partial<Omit<Data, "id">>,
+      input: Updateable<Input>,
    ) {
       if (!id) throw new Error("ID is required");
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       return this.patch<RepositoryResponse<Data>>(["entity", entity as any, id], input);
    }
 
-   updateMany<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
+   updateMany<E extends keyof DB | string, Input = E extends keyof DB ? DB[E] : EntityData>(
       entity: E,
       where: RepoQueryIn["where"],
-      update: Partial<Omit<Data, "id">>,
+      update: Updateable<Input>,
    ) {
       this.requireObjectSet(where);
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       return this.patch<RepositoryResponse<Data[]>>(["entity", entity as any], {
          update,
          where,
       });
    }
 
-   deleteOne<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
-      entity: E,
-      id: PrimaryFieldType,
-   ) {
+   deleteOne<E extends keyof DB | string>(entity: E, id: PrimaryFieldType) {
       if (!id) throw new Error("ID is required");
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       return this.delete<RepositoryResponse<Data>>(["entity", entity as any, id]);
    }
 
-   deleteMany<E extends keyof DB | string, Data = E extends keyof DB ? DB[E] : EntityData>(
-      entity: E,
-      where: RepoQueryIn["where"],
-   ) {
+   deleteMany<E extends keyof DB | string>(entity: E, where: RepoQueryIn["where"]) {
       this.requireObjectSet(where);
+      type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       return this.delete<RepositoryResponse<Data>>(["entity", entity as any], where);
    }
 

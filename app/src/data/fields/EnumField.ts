@@ -3,6 +3,7 @@ import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { baseFieldConfigSchema, Field, type TActionContext, type TRenderContext } from "./Field";
 import * as tbbox from "@sinclair/typebox";
+import type { TFieldTSType } from "data/entities/EntityTypescript";
 const { Type } = tbbox;
 
 export const enumFieldConfigSchema = Type.Composite(
@@ -139,5 +140,15 @@ export class EnumField<Required extends true | false = false, TypeOverride = str
             default: this.getDefault(),
          }),
       );
+   }
+
+   override toType(): TFieldTSType {
+      const union = this.getOptions().map(({ value }) =>
+         typeof value === "string" ? `"${value}"` : value,
+      );
+      return {
+         ...super.toType(),
+         type: union.length > 0 ? union.join(" | ") : "string",
+      };
    }
 }

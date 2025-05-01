@@ -4,6 +4,7 @@ import { Field, baseFieldConfigSchema } from "../fields";
 import type { EntityRelation } from "./EntityRelation";
 import type { EntityRelationAnchor } from "./EntityRelationAnchor";
 import * as tbbox from "@sinclair/typebox";
+import type { TFieldTSType } from "data/entities/EntityTypescript";
 const { Type } = tbbox;
 
 const CASCADES = ["cascade", "set null", "set default", "restrict", "no action"] as const;
@@ -82,5 +83,12 @@ export class RelationField extends Field<RelationFieldConfig> {
             $ref: `${this.config?.target}#/properties/${this.config?.target_field}`,
          }),
       );
+   }
+
+   override toType(): TFieldTSType {
+      return {
+         ...super.toType(),
+         type: "number",
+      };
    }
 }

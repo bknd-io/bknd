@@ -1,5 +1,6 @@
+import { $console } from "core";
 import { execSync, exec as nodeExec } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile as nodeWriteFile } from "node:fs/promises";
 import path from "node:path";
 import url from "node:url";
 
@@ -44,6 +45,16 @@ export async function fileExists(filePath: string) {
       await readFile(path.resolve(process.cwd(), filePath));
       return true;
    } catch {
+      return false;
+   }
+}
+
+export async function writeFile(filePath: string, content: string) {
+   try {
+      await nodeWriteFile(path.resolve(process.cwd(), filePath), content);
+      return true;
+   } catch (e) {
+      $console.error("Failed to write file", e);
       return false;
    }
 }

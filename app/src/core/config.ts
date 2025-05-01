@@ -3,7 +3,11 @@
  */
 import type { Generated } from "kysely";
 
-export type PrimaryFieldType = number | Generated<number>;
+export type PrimaryFieldType<IdType extends number = number> = IdType | Generated<IdType>;
+
+export interface AppEntity<IdType extends number = number> {
+   id: PrimaryFieldType<IdType>;
+}
 
 export interface DB {
    // make sure to make unknown as "any"

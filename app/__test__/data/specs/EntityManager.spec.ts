@@ -47,8 +47,8 @@ describe("[data] EntityManager", async () => {
       em.addRelation(new ManyToOneRelation(posts, users));
       expect(em.relations.all.length).toBe(1);
       expect(em.relations.all[0]).toBeInstanceOf(ManyToOneRelation);
-      expect(em.relationsOf("users")).toEqual([em.relations.all[0]]);
-      expect(em.relationsOf("posts")).toEqual([em.relations.all[0]]);
+      expect(em.relationsOf("users")).toEqual([em.relations.all[0]!]);
+      expect(em.relationsOf("posts")).toEqual([em.relations.all[0]!]);
       expect(em.hasRelations("users")).toBe(true);
       expect(em.hasRelations("posts")).toBe(true);
       expect(em.relatedEntitiesOf("users")).toEqual([posts]);

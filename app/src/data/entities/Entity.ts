@@ -280,6 +280,15 @@ export class Entity<
       return options?.clean ? JSON.parse(JSON.stringify(schema)) : schema;
    }
 
+   toTypes() {
+      return {
+         name: this.name,
+         type: this.type,
+         comment: this.config.description,
+         fields: Object.fromEntries(this.getFields().map((field) => [field.name, field.toType()])),
+      };
+   }
+
    toJSON() {
       return {
          type: this.type,
