@@ -3,7 +3,7 @@ import { objectTransform } from "core/utils/objects";
 import { encodeSearch } from "core/utils/reqres";
 import type { EntityData, RepoQueryIn, RepositoryResponse } from "data";
 import type { Insertable, Selectable, Updateable } from "kysely";
-import type { ModuleApi, ResponseObject } from "modules/ModuleApi";
+import type { FetchPromise, ModuleApi, ResponseObject } from "modules/ModuleApi";
 import useSWR, { type SWRConfiguration, type SWRResponse, mutate } from "swr";
 import { type Api, useApi } from "ui/client";
 
@@ -24,15 +24,24 @@ export class UseEntityApiError<Payload = any> extends Error {
    }
 }
 
-interface UseEntityReturn<Id extends PrimaryFieldType | undefined, Data> {
-   create: (input: Insertable<Data>) => Promise<ResponseObject<RepositoryResponse<Data>>>;
-   read: (query?: RepoQueryIn) => Promise<ResponseObject<Data[] | Data>>;
+interface UseEntityReturn<
+   Entity extends keyof DB | string,
+   Id extends PrimaryFieldType | undefined,
+   Data = Entity extends keyof DB ? DB[Entity] : EntityData,
+   Response = ResponseObject<RepositoryResponse<Selectable<Data>>>,
+> {
+   create: (input: Insertable<Data>) => Promise<Response>;
+   read: (
+      query?: RepoQueryIn,
+   ) => Promise<
+      ResponseObject<
+         RepositoryResponse<Id extends undefined ? Selectable<Data>[] : Selectable<Data>>
+      >
+   >;
    update: Id extends undefined
-      ? (input: Updateable<Data>, id: Id) => Promise<ResponseObject<RepositoryResponse<Data>>>
-      : (input: Updateable<Data>) => Promise<ResponseObject<RepositoryResponse<Data>>>;
-   _delete: Id extends undefined
-      ? (id: Id) => Promise<ResponseObject<RepositoryResponse<Data>>>
-      : () => Promise<ResponseObject<RepositoryResponse<Data>>>;
+      ? (input: Updateable<Data>, id: Id) => Promise<Response>
+      : (input: Updateable<Data>) => Promise<Response>;
+   _delete: Id extends undefined ? (id: Id) => Promise<Response> : () => Promise<Response>;
 }
 
 export const useEntity = <
@@ -42,7 +51,7 @@ export const useEntity = <
 >(
    entity: Entity,
    id?: Id,
-): UseEntityReturn<Id, Data> => {
+): UseEntityReturn<Entity, Id, Data> => {
    const api = useApi().data;
 
    return {
@@ -51,17 +60,14 @@ export const useEntity = <
          if (!res.ok) {
             throw new UseEntityApiError(res, `Failed to create entity "${entity}"`);
          }
-         return res as unknown as ResponseObject<RepositoryResponse<Data>>;
+         return res as any;
       },
-      read: async (query: RepoQueryIn = {}) => {
+      read: async (query?: RepoQueryIn) => {
          const res = id ? await api.readOne(entity, id!, query) : await api.readMany(entity, query);
          if (!res.ok) {
             throw new UseEntityApiError(res as any, `Failed to read entity "${entity}"`);
          }
-         // must be manually typed
-         return res as unknown as Id extends undefined
-            ? ResponseObject<Data[]>
-            : ResponseObject<Data>;
+         return res as any;
       },
       // @ts-ignore
       update: async (input: Updateable<Data>, _id: PrimaryFieldType | undefined = id) => {
@@ -72,7 +78,7 @@ export const useEntity = <
          if (!res.ok) {
             throw new UseEntityApiError(res, `Failed to update entity "${entity}"`);
          }
-         return res as unknown as ResponseObject<RepositoryResponse<Data>>;
+         return res as any;
       },
       // @ts-ignore
       _delete: async (_id: PrimaryFieldType | undefined = id) => {
@@ -84,7 +90,7 @@ export const useEntity = <
          if (!res.ok) {
             throw new UseEntityApiError(res, `Failed to delete entity "${entity}"`);
          }
-         return res as unknown as ResponseObject<RepositoryResponse<Data>>;
+         return res as any;
       },
    };
 };
