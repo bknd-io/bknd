@@ -178,8 +178,8 @@ export const useEntityQuery = <
 
 export async function mutateEntityCache<
    Entity extends keyof DB | string,
-   Data = Entity extends keyof DB ? Omit<DB[Entity], "id"> : EntityData,
->(api: Api["data"], entity: Entity, id: PrimaryFieldType, partialData: Partial<Data>) {
+   Data = Entity extends keyof DB ? DB[Entity] : EntityData,
+>(api: Api["data"], entity: Entity, id: PrimaryFieldType, partialData: Partial<Selectable<Data>>) {
    function update(prev: any, partialNext: any) {
       if (
          typeof prev !== "undefined" &&
@@ -216,8 +216,8 @@ interface UseEntityMutateReturn<
    Data = Entity extends keyof DB ? DB[Entity] : EntityData,
 > extends Omit<ReturnType<typeof useEntityQuery<Entity, Id>>, "mutate"> {
    mutate: Id extends undefined
-      ? (id: PrimaryFieldType, data: Updateable<Data>) => Promise<void>
-      : (data: Updateable<Data>) => Promise<void>;
+      ? (id: PrimaryFieldType, data: Partial<Selectable<Data>>) => Promise<void>
+      : (data: Partial<Selectable<Data>>) => Promise<void>;
 }
 
 export const useEntityMutate = <
@@ -235,13 +235,12 @@ export const useEntityMutate = <
    });
 
    const _mutate = id
-      ? (data: Partial<Data>) => mutateEntityCache($q.api, entity, id, data)
-      : (id: PrimaryFieldType, data: Partial<Data>) => mutateEntityCache($q.api, entity, id, data);
+      ? (data: Partial<Selectable<Data>>) => mutateEntityCache($q.api, entity, id, data)
+      : (id: PrimaryFieldType, data: Partial<Selectable<Data>>) =>
+           mutateEntityCache($q.api, entity, id, data);
 
    return {
       ...$q,
-      mutate: _mutate as unknown as Id extends undefined
-         ? (id: PrimaryFieldType, data: Partial<Data>) => Promise<void>
-         : (data: Partial<Data>) => Promise<void>,
+      mutate: _mutate,
    } as any;
 };
