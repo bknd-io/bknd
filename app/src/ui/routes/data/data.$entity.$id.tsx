@@ -52,7 +52,6 @@ export function DataEntityUpdate({ params }) {
    }
 
    async function onSubmitted(changeSet?: EntityData) {
-      console.log("update:changeSet", changeSet);
       //return;
       if (!changeSet) {
          goBack();
