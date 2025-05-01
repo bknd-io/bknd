@@ -112,7 +112,7 @@ interface UseEntityQueryReturn<
    Return = Id extends undefined ? ResponseObject<Data[]> : ResponseObject<Data>,
 > extends Omit<SWRResponse<Return>, "mutate">,
       Omit<ReturnType<typeof useEntity<Entity, Id>>, "read"> {
-   mutate: Id extends undefined ? () => Promise<any> : (id: PrimaryFieldType) => Promise<any>;
+   mutate: (id?: PrimaryFieldType) => Promise<any>;
    mutateRaw: SWRResponse<Return>["mutate"];
    api: Api["data"];
    key: string;
@@ -207,17 +207,17 @@ export async function mutateEntityCache<
 interface UseEntityMutateReturn<
    Entity extends keyof DB | string,
    Id extends PrimaryFieldType | undefined = undefined,
-   Data = Entity extends keyof DB ? Omit<DB[Entity], "id"> : EntityData,
+   Data = Entity extends keyof DB ? DB[Entity] : EntityData,
 > extends Omit<ReturnType<typeof useEntityQuery<Entity, Id>>, "mutate"> {
    mutate: Id extends undefined
-      ? (id: PrimaryFieldType, data: Partial<Data>) => Promise<void>
-      : (data: Partial<Data>) => Promise<void>;
+      ? (id: PrimaryFieldType, data: Updateable<Data>) => Promise<void>
+      : (data: Updateable<Data>) => Promise<void>;
 }
 
 export const useEntityMutate = <
    Entity extends keyof DB | string,
    Id extends PrimaryFieldType | undefined = undefined,
-   Data = Entity extends keyof DB ? Omit<DB[Entity], "id"> : EntityData,
+   Data = Entity extends keyof DB ? DB[Entity] : EntityData,
 >(
    entity: Entity,
    id?: Id,

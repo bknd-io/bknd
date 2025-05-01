@@ -169,7 +169,17 @@ export class EntityTypescript {
       const tables: Record<string, string> = {};
       const imports: Record<string, string[]> = {
          "bknd/core": ["DB"],
+         kysely: ["Insertable", "Selectable", "Updateable", "Generated"],
       };
+
+      // add global types
+      let g = "declare global {\n";
+      g += `${this.getTab(1)}type BkndEntity<T extends keyof DB> = Selectable<DB[T]>;\n`;
+      g += `${this.getTab(1)}type BkndEntityCreate<T extends keyof DB> = Insertable<DB[T]>;\n`;
+      g += `${this.getTab(1)}type BkndEntityUpdate<T extends keyof DB> = Updateable<DB[T]>;\n`;
+      g += "}";
+      strings.push(g);
+
       const system_entities = this.em.entities.filter((e) => e.type === "system");
 
       for (const entity of this.em.entities) {
