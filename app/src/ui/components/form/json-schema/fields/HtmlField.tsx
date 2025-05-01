@@ -1,9 +1,9 @@
 import type { FieldProps } from "@rjsf/utils";
-import { LiquidJsEditor } from "../../../code/LiquidJsEditor";
 import { Label } from "../templates/FieldTemplate";
+import { HtmlEditor } from "ui/components/code/HtmlEditor";
 
 // @todo: move editor to lazy loading component
-export default function LiquidJsField({
+export default function HtmlField({
    formData,
    onChange,
    disabled,
@@ -20,7 +20,7 @@ export default function LiquidJsField({
    return (
       <div className="flex flex-col gap-2">
          <Label label={props.name} id={id} />
-         <LiquidJsEditor value={formData} editable={!isDisabled} onChange={handleChange} />
+         <HtmlEditor value={formData} editable={!isDisabled} onChange={handleChange} />
       </div>
    );
 }

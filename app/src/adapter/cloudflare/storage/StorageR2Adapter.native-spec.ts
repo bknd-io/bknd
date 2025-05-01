@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { Miniflare } from "miniflare";
 import { StorageR2Adapter } from "./StorageR2Adapter";
 import { adapterTestSuite } from "media";
-import { nodeTestRunner } from "adapter/node";
+import { nodeTestRunner } from "adapter/node/test";
 import path from "node:path";
 
 // https://github.com/nodejs/node/issues/44372#issuecomment-1736530480

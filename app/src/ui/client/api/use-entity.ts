@@ -112,7 +112,7 @@ interface UseEntityQueryReturn<
    Return = Id extends undefined ? ResponseObject<Data[]> : ResponseObject<Data>,
 > extends Omit<SWRResponse<Return>, "mutate">,
       Omit<ReturnType<typeof useEntity<Entity, Id>>, "read"> {
-   mutate: () => Promise<any>;
+   mutate: Id extends undefined ? () => Promise<any> : (id: PrimaryFieldType) => Promise<any>;
    mutateRaw: SWRResponse<Return>["mutate"];
    api: Api["data"];
    key: string;
@@ -139,8 +139,8 @@ export const useEntityQuery = <
       ...options,
    });
 
-   const mutateAll = async () => {
-      const entityKey = makeKey(api, entity as string);
+   const mutateFn = async (id?: PrimaryFieldType) => {
+      const entityKey = makeKey(api, entity as string, id);
       return mutate((key) => typeof key === "string" && key.startsWith(entityKey), undefined, {
          revalidate: true,
       });
@@ -153,7 +153,7 @@ export const useEntityQuery = <
 
          // mutate all keys of entity by default
          if (options?.revalidateOnMutate !== false) {
-            await mutateAll();
+            await mutateFn();
          }
          return res;
       };
@@ -162,7 +162,7 @@ export const useEntityQuery = <
    return {
       ...swr,
       ...mapped,
-      mutate: mutateAll,
+      mutate: mutateFn,
       // @ts-ignore
       mutateRaw: swr.mutate,
       api,

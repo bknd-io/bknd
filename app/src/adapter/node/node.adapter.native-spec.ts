@@ -1,7 +1,7 @@
 import { describe, before, after } from "node:test";
 import * as node from "./node.adapter";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
-import { nodeTestRunner } from "adapter/node";
+import { nodeTestRunner } from "adapter/node/test";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 
 before(() => disableConsoleLog());

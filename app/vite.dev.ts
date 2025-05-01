@@ -51,6 +51,7 @@ if (example) {
 
 let app: App;
 const recreate = import.meta.env.VITE_APP_FRESH === "1";
+const debugRerenders = import.meta.env.VITE_DEBUG_RERENDERS === "1";
 let firstStart = true;
 export default {
    async fetch(request: Request) {
@@ -61,7 +62,7 @@ export default {
          app.emgr.onEvent(
             App.Events.AppBuiltEvent,
             async () => {
-               app.registerAdminController({ forceDev: true });
+               app.registerAdminController({ forceDev: true, debugRerenders });
                app.module.server.client.get("/assets/*", serveStatic({ root: "./" }));
             },
             "sync",
@@ -73,11 +74,14 @@ export default {
          // log routes
          if (firstStart) {
             firstStart = false;
+            // biome-ignore lint/suspicious/noConsoleLog:
             console.log("[DB]", credentials);
 
             if (import.meta.env.VITE_SHOW_ROUTES === "1") {
+               // biome-ignore lint/suspicious/noConsoleLog:
                console.log("\n[APP ROUTES]");
                showRoutes(app.server);
+               // biome-ignore lint/suspicious/noConsoleLog:
                console.log("-------\n");
             }
          }

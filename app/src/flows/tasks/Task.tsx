@@ -106,7 +106,7 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
       inputs: object = {},
    ): Promise<StaticDecode<S>> {
       const newParams: any = {};
-      const renderer = new SimpleRenderer(inputs, { strictVariables: true, renderKeys: true });
+      const renderer = new SimpleRenderer(inputs, { renderKeys: true });
 
       for (const [key, value] of Object.entries(params)) {
          if (value && SimpleRenderer.hasMarkup(value)) {

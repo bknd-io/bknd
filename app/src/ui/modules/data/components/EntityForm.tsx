@@ -257,6 +257,9 @@ function EntityMediaFormField({
                id: entityId,
                field: field.name,
             }}
+            query={{
+               sort: "-id",
+            }}
          />
       </Formy.Group>
    );

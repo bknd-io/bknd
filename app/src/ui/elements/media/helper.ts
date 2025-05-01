@@ -29,3 +29,26 @@ export function mediaItemsToFileStates(
 ): FileState[] {
    return items.map((item) => mediaItemToFileState(item, options));
 }
+
+export function checkMaxReached({
+   maxItems,
+   current = 0,
+   overwrite,
+   added,
+}: { maxItems?: number; current?: number; overwrite?: boolean; added: number }) {
+   if (!maxItems) {
+      return {
+         reject: false,
+         to_drop: 0,
+      };
+   }
+
+   const remaining = maxItems - current;
+   const to_drop = added > remaining ? added : added - remaining > 0 ? added - remaining : 0;
+   const reject = overwrite ? added > maxItems : remaining - added < 0;
+
+   return {
+      reject,
+      to_drop,
+   };
+}

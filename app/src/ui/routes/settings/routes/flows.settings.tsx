@@ -90,7 +90,7 @@ export const FlowsSettings = ({ schema, config }) => {
                         uiSchema={{
                            params: {
                               render: {
-                                 "ui:field": "LiquidJsField",
+                                 "ui:field": "HtmlField",
                               },
                            },
                         }}

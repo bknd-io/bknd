@@ -3,7 +3,6 @@ import { type LocalAdapterConfig, StorageLocalAdapter } from "./storage/StorageL
 
 export * from "./node.adapter";
 export { StorageLocalAdapter, type LocalAdapterConfig };
-export { nodeTestRunner } from "./test";
 
 let registered = false;
 export function registerLocalMediaAdapter() {
