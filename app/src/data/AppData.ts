@@ -6,6 +6,7 @@ import {
    type EntityManager,
    constructEntity,
    constructRelation,
+   constructIndex,
 } from "data";
 import { Module } from "modules/Module";
 import { DataController } from "./api/DataController";
@@ -35,9 +36,7 @@ export class AppData extends Module<typeof dataConfigSchema> {
       );
 
       const indices = transformObject(_indices, (index, name) => {
-         const entity = _entity(index.entity)!;
-         const fields = index.fields.map((f) => entity.field(f)!);
-         return new EntityIndex(entity, fields, index.unique, name);
+         return constructIndex(index, _entity, name);
       });
 
       for (const entity of Object.values(entities)) {

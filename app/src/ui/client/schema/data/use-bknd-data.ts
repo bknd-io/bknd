@@ -70,6 +70,7 @@ export function useBkndData() {
    };
    const $data = {
       entity: (name: string) => entities[name],
+      indicesOf: (name: string) => app.indices.filter((i) => i.entity.name === name),
       modals,
       system: (name: string) => ({
          any: entities[name]?.type === "system",
@@ -82,6 +83,7 @@ export function useBkndData() {
       $data,
       entities,
       relations: app.relations,
+      indices: app.indices,
       config: config.data,
       schema: schema.data,
       actions,

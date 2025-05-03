@@ -83,10 +83,6 @@ export function DataRoot({ children }) {
             </AppShell.SectionHeader>
             <AppShell.Scrollable initialOffset={96}>
                <div className="flex flex-col flex-grow py-3 gap-3">
-                  {/*<div className="pt-3 px-3">
-                     <SearchInput placeholder="Search entities" />
-                  </div>*/}
-
                   <EntityLinkList entities={entityList.regular} context={context} suggestCreate />
                   <EntityLinkList entities={entityList.system} context={context} title="System" />
                   <EntityLinkList

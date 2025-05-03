@@ -13,7 +13,7 @@ export function DefaultNode({ selected, children, className, ...props }: TDefaul
          {...props}
          className={twMerge(
             "relative w-80 shadow-lg rounded-lg bg-background",
-            selected && "outline outline-blue-500/25",
+            selected && "ring-4 ring-blue-400/50",
             className,
          )}
       >

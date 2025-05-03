@@ -28,10 +28,10 @@ export function useRoutePathState(_path?: string, identifier?: string) {
    const [, navigate] = useLocation();
 
    function toggle(_open?: boolean) {
-      const open = _open ?? !localActive;
+      const open = _open ?? !active;
 
       if (ctx) {
-         ctx.setActiveIdentifier(identifier!);
+         ctx.setActiveIdentifier(open ? identifier! : "");
       }
 
       if (path) {
@@ -58,7 +58,7 @@ export function useRoutePathState(_path?: string, identifier?: string) {
 }
 
 type RoutePathStateContextType = {
-   defaultIdentifier: string;
+   defaultIdentifier?: string;
    path: string;
    activeIdentifier: string;
    setActiveIdentifier: (identifier: string) => void;
@@ -72,7 +72,9 @@ export function RoutePathStateProvider({
 }: Pick<RoutePathStateContextType, "path" | "defaultIdentifier"> & { children: React.ReactNode }) {
    const segment = extractPathSegment(path);
    const routeIdentifier = useParams()[segment];
-   const [activeIdentifier, setActiveIdentifier] = useState(routeIdentifier ?? defaultIdentifier);
+   const [activeIdentifier, setActiveIdentifier] = useState(
+      routeIdentifier ?? defaultIdentifier ?? "",
+   );
    return (
       <RoutePathStateContext.Provider
          value={{ defaultIdentifier, path, activeIdentifier, setActiveIdentifier }}

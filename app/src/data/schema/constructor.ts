@@ -1,6 +1,13 @@
 import { transformObject } from "core/utils";
-import { Entity, type Field } from "data";
-import { FIELDS, RELATIONS, type TAppDataEntity, type TAppDataRelation } from "data/data-schema";
+import { Entity, EntityIndex, type Field } from "data";
+import {
+   FIELDS,
+   RELATIONS,
+   type TAppDataEntity,
+   type TAppDataField,
+   type TAppDataIndex,
+   type TAppDataRelation,
+} from "data/data-schema";
 
 export function constructEntity(name: string, entityConfig: TAppDataEntity) {
    const fields = transformObject(entityConfig.fields ?? {}, (fieldConfig, name) => {
@@ -30,5 +37,19 @@ export function constructRelation(
       resolver(relationConfig.source),
       resolver(relationConfig.target),
       relationConfig.config,
+   );
+}
+
+export function constructIndex(
+   indexConfig: TAppDataIndex,
+   resolver: (name: Entity | string) => Entity,
+   name: string,
+) {
+   const entity = resolver(indexConfig.entity);
+   return new EntityIndex(
+      entity,
+      entity.fields.filter((f) => indexConfig.fields.includes(f.name)),
+      indexConfig.unique,
+      name,
    );
 }

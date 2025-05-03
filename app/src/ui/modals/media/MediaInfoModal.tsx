@@ -10,7 +10,7 @@ import { useClipboard } from "@mantine/hooks";
 import { ButtonLink } from "ui/components/buttons/Button";
 import { routes } from "ui/lib/routes";
 import { useBkndMedia } from "ui/client/schema/media/use-bknd-media";
-import { JsonViewer } from "ui";
+import { JsonViewer } from "ui/components/code/JsonViewer";
 
 export type MediaInfoModalProps = {
    file: FileState;

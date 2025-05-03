@@ -17,7 +17,7 @@ export {
 
 export { KyselyPluginRunner } from "./plugins/KyselyPluginRunner";
 
-export { constructEntity, constructRelation } from "./schema/constructor";
+export { constructEntity, constructRelation, constructIndex } from "./schema/constructor";
 
 export const DatabaseEvents = {
    ...MutatorEvents,

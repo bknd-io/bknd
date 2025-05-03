@@ -218,7 +218,7 @@ export function objectCleanEmpty<Obj extends { [key: string]: any }>(obj: Obj): 
  * @param object
  * @param sources
  */
-export function mergeObject(object, ...sources) {
+export function mergeObject<R = unknown>(object, ...sources): R {
    for (const source of sources) {
       for (const [key, value] of Object.entries(source)) {
          if (value === undefined) {
