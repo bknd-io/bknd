@@ -13,6 +13,7 @@ import {
 import type { IconType } from "react-icons";
 import { twMerge } from "tailwind-merge";
 import { IconButton } from "ui/components/buttons/IconButton";
+import { useRoutePathState } from "ui/hooks/use-route-path-state";
 import { AppShellProvider, useAppShell } from "ui/layouts/AppShell/use-appshell";
 import { appShellStore } from "ui/store";
 import { useLocation } from "wouter";
@@ -376,6 +377,15 @@ export function Scrollable({
    );
 }
 
+type SectionHeaderAccordionItemProps = {
+   title: string;
+   open: boolean;
+   toggle: () => void;
+   ActiveIcon?: any;
+   children?: React.ReactNode;
+   renderHeaderRight?: (props: { open: boolean }) => React.ReactNode;
+};
+
 export const SectionHeaderAccordionItem = ({
    title,
    open,
@@ -383,14 +393,7 @@ export const SectionHeaderAccordionItem = ({
    ActiveIcon = IconChevronUp,
    children,
    renderHeaderRight,
-}: {
-   title: string;
-   open: boolean;
-   toggle: () => void;
-   ActiveIcon?: any;
-   children?: React.ReactNode;
-   renderHeaderRight?: (props: { open: boolean }) => React.ReactNode;
-}) => (
+}: SectionHeaderAccordionItemProps) => (
    <div
       style={{ minHeight: 49 }}
       className={twMerge(
@@ -421,6 +424,19 @@ export const SectionHeaderAccordionItem = ({
       </div>
    </div>
 );
+
+export const RouteAwareSectionHeaderAccordionItem = ({
+   routePattern,
+   identifier,
+   ...props
+}: Omit<SectionHeaderAccordionItemProps, "open" | "toggle"> & {
+   // it's optional because it could be provided using the context
+   routePattern?: string;
+   identifier: string;
+}) => {
+   const { active, toggle } = useRoutePathState(routePattern, identifier);
+   return <SectionHeaderAccordionItem {...props} open={active} toggle={toggle} />;
+};
 
 export const Separator = ({ className, ...props }: ComponentPropsWithoutRef<"hr">) => (
    <hr {...props} className={twMerge("border-muted my-3", className)} />

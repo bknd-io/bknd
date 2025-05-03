@@ -27,6 +27,7 @@ import { Popover } from "ui/components/overlay/Popover";
 import { type TFieldSpec, fieldSpecs } from "ui/modules/data/components/fields-specs";
 import { dataFieldsUiSchema } from "../../settings/routes/data.settings";
 import * as tbbox from "@sinclair/typebox";
+import { useRoutePathState } from "ui/hooks/use-route-path-state";
 const { Type } = tbbox;
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
@@ -63,6 +64,7 @@ export type EntityFieldsFormProps = {
    onChange?: (formData: TAppDataEntityFields) => void;
    sortable?: boolean;
    additionalFieldTypes?: (TFieldSpec & { onClick: () => void })[];
+   routePattern?: string;
 };
 
 export type EntityFieldsFormRef = {
@@ -74,7 +76,10 @@ export type EntityFieldsFormRef = {
 };
 
 export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsFormProps>(
-   function EntityFieldsForm({ fields: _fields, sortable, additionalFieldTypes, ...props }, ref) {
+   function EntityFieldsForm(
+      { fields: _fields, sortable, additionalFieldTypes, routePattern, ...props },
+      ref,
+   ) {
       const entityFields = Object.entries(_fields).map(([name, field]) => ({
          name,
          field,
@@ -166,6 +171,7 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
                                  errors={errors}
                                  remove={remove}
                                  dnd={dnd}
+                                 routePattern={routePattern}
                               />
                            )}
                         />
@@ -179,6 +185,7 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
                                  form={formProps}
                                  errors={errors}
                                  remove={remove}
+                                 routePattern={routePattern}
                               />
                            ))}
                         </div>
@@ -273,6 +280,7 @@ function EntityField({
    remove,
    errors,
    dnd,
+   routePattern,
 }: {
    field: FieldArrayWithId<TFieldsFormSchema, "fields", "id">;
    index: number;
@@ -283,11 +291,12 @@ function EntityField({
    remove: (index: number) => void;
    errors: any;
    dnd?: SortableItemProps;
+   routePattern?: string;
 }) {
-   const [opened, handlers] = useDisclosure(false);
    const prefix = `fields.${index}.field` as const;
    const type = field.field.type;
    const name = watch(`fields.${index}.name`);
+   const { active, toggle } = useRoutePathState(routePattern ?? "", name);
    const fieldSpec = fieldSpecs.find((s) => s.type === type)!;
    const specificData = omit(field.field.config, commonProps);
    const disabled = fieldSpec.disabled || [];
@@ -300,9 +309,11 @@ function EntityField({
       return () => {
          if (name.length === 0) {
             remove(index);
-            return;
+            toggle();
+         } else if (window.confirm(`Sure to delete "${name}"?`)) {
+            remove(index);
+            toggle();
          }
-         window.confirm(`Sure to delete "${name}"?`) && remove(index);
       };
    }
    //console.log("register", register(`${prefix}.config.required`));
@@ -313,7 +324,7 @@ function EntityField({
          key={field.id}
          className={twMerge(
             "flex flex-col border border-muted rounded bg-background mb-2",
-            opened && "mb-6",
+            active && "mb-6",
             hasErrors && "border-red-500 ",
          )}
          {...dndProps}
@@ -371,13 +382,13 @@ function EntityField({
                      Icon={TbSettings}
                      disabled={is_primary}
                      iconProps={{ strokeWidth: 1.5 }}
-                     onClick={handlers.toggle}
-                     variant={opened ? "primary" : "ghost"}
+                     onClick={() => toggle()}
+                     variant={active ? "primary" : "ghost"}
                   />
                </div>
             </div>
          </div>
-         {opened && (
+         {active && (
             <div className="flex flex-col border-t border-t-muted px-3 py-2 bg-lightest/50">
                {/*<pre>{JSON.stringify(field, null, 2)}</pre>*/}
                <Tabs defaultValue="general">

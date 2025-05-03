@@ -17,7 +17,7 @@ export default function DataRoutes() {
 
             <Route path="/schema" nest>
                <Route path="/" component={DataSchemaIndex} />
-               <Route path="/entity/:entity" component={DataSchemaEntity} />
+               <Route path="/entity/:entity/:setting?/:sub?" component={DataSchemaEntity} />
             </Route>
          </Switch>
       </DataRoot>
