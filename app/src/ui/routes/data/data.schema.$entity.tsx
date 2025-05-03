@@ -30,14 +30,10 @@ import { routes, useNavigate } from "ui/lib/routes";
 import { fieldSpecs } from "ui/modules/data/components/fields-specs";
 import { extractSchema } from "../settings/utils/schema";
 import { EntityFieldsForm, type EntityFieldsFormRef } from "./forms/entity.fields.form";
+import { RoutePathStateProvider } from "ui/hooks/use-route-path-state";
 
 export function DataSchemaEntity({ params }) {
    const { $data } = useBkndData();
-   const [value, setValue] = useState("fields");
-
-   function toggle(value) {
-      return () => setValue(value);
-   }
 
    const [navigate] = useNavigate();
    const entity = $data.entity(params.entity as string)!;
@@ -46,7 +42,7 @@ export function DataSchemaEntity({ params }) {
    }
 
    return (
-      <>
+      <RoutePathStateProvider path={`/entity/${entity.name}/:setting?`} defaultIdentifier="fields">
          <AppShell.SectionHeader
             right={
                <>
@@ -109,13 +105,12 @@ export function DataSchemaEntity({ params }) {
             </div>
          </AppShell.SectionHeader>
          <div className="flex flex-col h-full" key={entity.name}>
-            <Fields entity={entity} open={value === "fields"} toggle={toggle("fields")} />
+            <Fields entity={entity} />
 
-            <BasicSettings entity={entity} open={value === "2"} toggle={toggle("2")} />
-            <AppShell.SectionHeaderAccordionItem
+            <BasicSettings entity={entity} />
+            <AppShell.RouteAwareSectionHeaderAccordionItem
+               identifier="relations"
                title="Relations"
-               open={value === "3"}
-               toggle={toggle("3")}
                ActiveIcon={IconCirclesRelation}
             >
                <Empty
@@ -127,11 +122,10 @@ export function DataSchemaEntity({ params }) {
                         navigate(routes.settings.path(["data", "relations"]), { absolute: true }),
                   }}
                />
-            </AppShell.SectionHeaderAccordionItem>
-            <AppShell.SectionHeaderAccordionItem
+            </AppShell.RouteAwareSectionHeaderAccordionItem>
+            <AppShell.RouteAwareSectionHeaderAccordionItem
+               identifier="indices"
                title="Indices"
-               open={value === "4"}
-               toggle={toggle("4")}
                ActiveIcon={IconBolt}
             >
                <Empty
@@ -145,17 +139,13 @@ export function DataSchemaEntity({ params }) {
                         }),
                   }}
                />
-            </AppShell.SectionHeaderAccordionItem>
+            </AppShell.RouteAwareSectionHeaderAccordionItem>
          </div>
-      </>
+      </RoutePathStateProvider>
    );
 }
 
-const Fields = ({
-   entity,
-   open,
-   toggle,
-}: { entity: Entity; open: boolean; toggle: () => void }) => {
+const Fields = ({ entity }: { entity: Entity }) => {
    const [submitting, setSubmitting] = useState(false);
    const [updates, setUpdates] = useState(0);
    const { actions, $data } = useBkndData();
@@ -174,10 +164,9 @@ const Fields = ({
    const initialFields = Object.fromEntries(entity.fields.map((f) => [f.name, f.toJSON()])) as any;
 
    return (
-      <AppShell.SectionHeaderAccordionItem
+      <AppShell.RouteAwareSectionHeaderAccordionItem
+         identifier="fields"
          title="Fields"
-         open={open}
-         toggle={toggle}
          ActiveIcon={IconAlignJustified}
          renderHeaderRight={({ open }) =>
             open ? (
@@ -192,6 +181,7 @@ const Fields = ({
                <div className="animate-fade-in absolute w-full h-full top-0 bottom-0 left-0 right-0 bg-background/65 z-50" />
             )}
             <EntityFieldsForm
+               routePattern={`/entity/${entity.name}/fields/:sub?`}
                fields={initialFields}
                ref={ref}
                key={String(updates)}
@@ -237,15 +227,11 @@ const Fields = ({
                </div>
             )}
          </div>
-      </AppShell.SectionHeaderAccordionItem>
+      </AppShell.RouteAwareSectionHeaderAccordionItem>
    );
 };
 
-const BasicSettings = ({
-   entity,
-   open,
-   toggle,
-}: { entity: Entity; open: boolean; toggle: () => void }) => {
+const BasicSettings = ({ entity }: { entity: Entity }) => {
    const d = useBkndData();
    const config = d.entities?.[entity.name]?.config;
    const formRef = useRef<JsonSchemaFormRef>(null);
@@ -271,10 +257,9 @@ const BasicSettings = ({
    }
 
    return (
-      <AppShell.SectionHeaderAccordionItem
+      <AppShell.RouteAwareSectionHeaderAccordionItem
+         identifier="settings"
          title="Settings"
-         open={open}
-         toggle={toggle}
          ActiveIcon={IconSettings}
          renderHeaderRight={({ open }) =>
             open ? (
@@ -293,6 +278,6 @@ const BasicSettings = ({
                className="legacy hide-required-mark fieldset-alternative mute-root"
             />
          </div>
-      </AppShell.SectionHeaderAccordionItem>
+      </AppShell.RouteAwareSectionHeaderAccordionItem>
    );
 };

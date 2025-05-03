@@ -33,6 +33,8 @@ import {
 } from "ui/components/form/json-schema-form";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "../../layouts/AppShell/AppShell";
+import { CollapsibleList } from "ui/components/list/CollapsibleList";
+import { useRoutePathState } from "ui/hooks/use-route-path-state";
 
 export function AuthStrategiesList(props) {
    useBrowserTitle(["Auth", "Strategies"]);
@@ -104,7 +106,7 @@ function AuthStrategiesListInternal() {
                <p className="opacity-70">
                   Allow users to sign in or sign up using different strategies.
                </p>
-               <div className="flex flex-col gap-2 max-w-4xl">
+               <CollapsibleList.Root>
                   <Strategy type="password" name="password" />
                   <Strategy type="oauth" name="google" />
                   <Strategy type="oauth" name="github" />
@@ -113,7 +115,7 @@ function AuthStrategiesListInternal() {
                   <Strategy type="oauth" name="instagram" unavailable />
                   <Strategy type="oauth" name="apple" unavailable />
                   <Strategy type="oauth" name="discord" unavailable />
-               </div>
+               </CollapsibleList.Root>
             </div>
             <FormDebug />
          </AppShell.Scrollable>
@@ -138,47 +140,40 @@ const Strategy = ({ type, name, unavailable }: StrategyProps) => {
       ]),
    );
    const schema = schemas[type];
-   const [open, setOpen] = useState(false);
+
+   const { active, toggle } = useRoutePathState("/strategies/:strategy?", name);
 
    if (!schema) return null;
 
    return (
       <FormContextOverride schema={schema} prefix={name}>
-         <div
-            className={twMerge(
-               "flex flex-col border border-muted rounded bg-background",
-               unavailable && "opacity-20 pointer-events-none cursor-not-allowed",
-               errors.length > 0 && "border-red-500",
-            )}
+         <CollapsibleList.Item
+            hasError={errors.length > 0}
+            className={
+               unavailable ? "opacity-20 pointer-events-none cursor-not-allowed" : undefined
+            }
          >
-            <div className="flex flex-row justify-between p-3 gap-3 items-center">
-               <div className="flex flex-row items-center p-2 bg-primary/5 rounded">
-                  <StrategyIcon type={type} provider={name} />
-               </div>
-               <div className="font-mono flex-grow flex flex-row gap-3">
-                  <span className="leading-none">{autoFormatString(name)}</span>
-               </div>
-               <div className="flex flex-row gap-4 items-center">
-                  <StrategyToggle type={type} />
-                  <IconButton
-                     Icon={TbSettings}
-                     size="lg"
-                     iconProps={{ strokeWidth: 1.5 }}
-                     variant={open ? "primary" : "ghost"}
-                     onClick={() => setOpen((o) => !o)}
-                  />
-               </div>
-            </div>
-            {open && (
-               <div
-                  className={twMerge(
-                     "flex flex-col border-t border-t-muted px-4 pt-3 pb-4 bg-lightest/50 gap-4",
-                  )}
-               >
-                  <StrategyForm type={type} name={name} />
-               </div>
-            )}
-         </div>
+            <CollapsibleList.Preview
+               left={<StrategyIcon type={type} provider={name} />}
+               right={
+                  <>
+                     <StrategyToggle type={type} />
+                     <IconButton
+                        Icon={TbSettings}
+                        size="lg"
+                        iconProps={{ strokeWidth: 1.5 }}
+                        variant={active ? "primary" : "ghost"}
+                        onClick={() => toggle(!active)}
+                     />
+                  </>
+               }
+            >
+               <span className="leading-none">{autoFormatString(name)}</span>
+            </CollapsibleList.Preview>
+            <CollapsibleList.Detail open={active}>
+               <StrategyForm type={type} name={name} />
+            </CollapsibleList.Detail>
+         </CollapsibleList.Item>
       </FormContextOverride>
    );
 };
