@@ -90,6 +90,7 @@ const expressions = [
 export type WhereQuery = FilterQuery<typeof expressions>;
 
 const validator = makeValidator(expressions);
+export const expressionKeys = validator.expressionKeys;
 
 export class WhereBuilder {
    static addClause<QB extends WhereQb>(qb: QB, query: WhereQuery) {

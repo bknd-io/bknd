@@ -1,0 +1,1 @@
+export { tbValidator } from "./tbValidator";

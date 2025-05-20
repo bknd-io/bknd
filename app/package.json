@@ -121,7 +121,8 @@
     "vite": "^6.2.1",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.9",
-    "wouter": "^3.6.0"
+    "wouter": "^3.6.0",
+    "jsonv-ts": "link:jsonv-ts"
   },
   "optionalDependencies": {
     "@hono/node-server": "^1.13.8"

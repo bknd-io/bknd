@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { Value, _jsonp } from "../../src/core/utils";
-import { type RepoQuery, WhereBuilder, type WhereQuery, querySchema } from "../../src/data";
-import type { RepoQueryIn } from "../../src/data/server/data-query-impl";
+import { Value, _jsonp } from "core/utils";
+import { type RepoQuery, WhereBuilder, type WhereQuery, querySchema } from "data";
+import type { RepoQueryIn } from "data/server/data-query-impl";
+// @ts-ignore
 import { getDummyConnection } from "./helper";
 
 const decode = (input: RepoQueryIn, expected: RepoQuery) => {

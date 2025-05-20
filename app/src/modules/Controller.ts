@@ -1,9 +1,9 @@
 import type { App } from "App";
-import { type Context, Hono } from "hono";
+import { type Context, type Env, Hono } from "hono";
 import * as middlewares from "modules/middlewares";
 import type { SafeUser } from "auth";
 
-export type ServerEnv = {
+export type ServerEnv = Env & {
    Variables: {
       app: App;
       // to prevent resolving auth multiple times
