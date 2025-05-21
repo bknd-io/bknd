@@ -5,7 +5,7 @@ import type { RepoQueryIn } from "data/server/data-query-impl";
 // @ts-ignore
 import { getDummyConnection } from "./helper";
 
-const decode = (input: RepoQueryIn, expected: RepoQuery) => {
+const decode = (input: RepoQueryIn, expected: Partial<RepoQuery>) => {
    const result = Value.Decode(querySchema, input);
    expect(result).toEqual(expected);
 };
@@ -146,7 +146,7 @@ describe("data-query-impl", () => {
 
 describe("data-query-impl: Typebox", () => {
    test("sort", async () => {
-      const _dflt = { sort: { by: "id", dir: "asc" } };
+      const _dflt = { sort: { by: "id", dir: "asc" } } as const;
 
       decode({ sort: "" }, _dflt);
       decode({ sort: "name" }, { sort: { by: "name", dir: "asc" } });

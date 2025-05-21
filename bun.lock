@@ -49,7 +49,7 @@
         "json-schema-form-react": "^0.0.2",
         "json-schema-library": "10.0.0-rc7",
         "json-schema-to-ts": "^3.1.1",
-        "jsonv-ts": "link:jsonv-ts",
+        "jsonv-ts": "^0.0.10",
         "kysely": "^0.27.6",
         "lodash-es": "^4.17.21",
         "oauth4webapi": "^2.11.1",
@@ -2518,7 +2518,7 @@
 
     "jsonpointer": ["jsonpointer@5.0.1", "", {}, "sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ=="],
 
-    "jsonv-ts": ["jsonv-ts@link:jsonv-ts", {}],
+    "jsonv-ts": ["jsonv-ts@0.0.10", "", { "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-JZAGQTXj3kE/QWgRhhISq7nZiWHhCbGilpVMS81CoVzQ2GT2o+OCoCklKsujbRgg2Ju493mJNvaXnqxedKQ0aw=="],
 
     "jsonwebtoken": ["jsonwebtoken@9.0.2", "", { "dependencies": { "jws": "^3.2.2", "lodash.includes": "^4.3.0", "lodash.isboolean": "^3.0.3", "lodash.isinteger": "^4.0.4", "lodash.isnumber": "^3.0.3", "lodash.isplainobject": "^4.0.6", "lodash.isstring": "^4.0.1", "lodash.once": "^4.0.0", "ms": "^2.1.1", "semver": "^7.5.4" } }, "sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ=="],
 

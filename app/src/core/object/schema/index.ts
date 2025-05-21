@@ -20,6 +20,7 @@ export class InvalidSchemaError extends Error {
 
 export type ParseOptions = {
    withDefaults?: boolean;
+   coerse?: boolean;
 };
 
 export function parse<S extends s.TAnySchema>(
@@ -28,12 +29,15 @@ export function parse<S extends s.TAnySchema>(
    opts: ParseOptions = {},
 ): s.StaticCoersed<S> {
    const schema = _schema as unknown as s.TSchema;
-   const result = schema.validate(v, { shortCircuit: true, ignoreUnsupported: true });
+   const value = opts.coerse !== false ? schema.coerce(v) : v;
+   const result = schema.validate(value, {
+      shortCircuit: true,
+      ignoreUnsupported: true,
+   });
    if (!result.valid) throw new InvalidSchemaError(schema, v, result.errors);
-   const coerced = schema.coerce(v);
    if (opts.withDefaults) {
-      return mergeObject(schema.template({ withOptional: true }), coerced) as any;
+      return mergeObject(schema.template({ withOptional: true }), value) as any;
    }
 
-   return coerced as any;
+   return value as any;
 }

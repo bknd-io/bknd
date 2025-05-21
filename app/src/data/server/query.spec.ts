@@ -1,13 +1,8 @@
 import { test, describe, expect } from "bun:test";
 import * as q from "./query";
 import { s as schema, parse as $parse, type ParseOptions } from "core/object/schema";
-import { querySchema } from "data";
 
 const parse = (v: unknown, o: ParseOptions = {}) => $parse(q.repoQuery, v, o);
-
-//console.log("querySchema", JSON.stringify(querySchema, null, 2));
-
-console.log(JSON.stringify(q.repoQuery, null, 2));
 
 describe("server/query", () => {
    test("limit & offset", () => {
@@ -89,15 +84,74 @@ describe("server/query", () => {
       });
    });
 
+   const decode = (input: any, output: any) => {
+      //expect(repoQuery.coerce(input)).toEqual(output);
+      expect(parse(input)).toEqual(output);
+   };
    test("with", () => {
-      console.log(parse({ with: ["posts"] }));
-      console.log(
-         parse({
-            with: {
-               posts: { limit: false },
+      let example = {
+         limit: 10,
+         with: {
+            posts: { limit: "10", with: ["comments"] },
+         },
+      };
+      expect(parse(example)).toEqual({
+         limit: 10,
+         with: {
+            posts: {
+               limit: 10,
+               with: {
+                  comments: {},
+               },
             },
-         }),
+         },
+      });
+
+      decode({ with: ["posts"] }, { with: { posts: {} } });
+      decode({ with: { posts: {} } }, { with: { posts: {} } });
+      decode({ with: { posts: { limit: 1 } } }, { with: { posts: { limit: 1 } } });
+      decode(
+         {
+            with: {
+               posts: {
+                  with: {
+                     images: {
+                        limit: "10",
+                        select: "id",
+                     },
+                  },
+               },
+            },
+         },
+         {
+            with: {
+               posts: {
+                  with: {
+                     images: {
+                        limit: 10,
+                        select: ["id"],
+                     },
+                  },
+               },
+            },
+         },
       );
-      //console.log();
+
+      // over http
+      {
+         const output = { with: { images: {} } };
+         decode({ with: "images" }, output);
+         decode({ with: '["images"]' }, output);
+         decode({ with: ["images"] }, output);
+         decode({ with: { images: {} } }, output);
+      }
+
+      {
+         const output = { with: { images: {}, comments: {} } };
+         decode({ with: "images,comments" }, output);
+         decode({ with: ["images", "comments"] }, output);
+         decode({ with: '["images", "comments"]' }, output);
+         decode({ with: { images: {}, comments: {} } }, output);
+      }
    });
 });

@@ -1,6 +1,8 @@
 import { s } from "core/object/schema";
-import { WhereBuilder } from "data";
+import { WhereBuilder, type WhereQuery } from "data";
 import { $console } from "core";
+import { isObject } from "core/utils";
+import type { CoercionOptions, TAnyOf } from "jsonv-ts";
 
 // -------
 // helpers
@@ -9,9 +11,7 @@ const stringIdentifier = s.string({
    pattern: "^(?:[a-zA-Z_$][\\w$]*)(?:,[a-zA-Z_$][\\w$]*)*$",
 });
 const numberOrString = <N extends s.NumberSchema>(c: N = {} as N) =>
-   s.anyOf([s.number(c), s.string()], {
-      coerce: Number,
-   });
+   s.anyOf([s.number(c), s.string()]);
 const stringArray = s.anyOf(
    [
       stringIdentifier,
@@ -73,31 +73,70 @@ type WhereSchema = s.StaticCoersed<typeof where>;
 
 // ------
 // with
-const withSchema = s.anyOf(
-   [stringIdentifier, s.array(stringIdentifier), s.refId("query-schema") /*s.record({})*/],
-   {
-      /*coerce: (value: unknown): any => {
-         console.log(value);
-         return value;
-      },*/
-   },
-);
+// @todo: waiting for recursion support
+export type RepoWithSchema = Record<
+   string,
+   Omit<RepoQueryIn, "with"> & {
+      with?: unknown;
+   }
+>;
+
+const withSchema = <In, Out = In>(self: s.TSchema): s.TSchemaInOut<In, Out> =>
+   s.anyOf([stringIdentifier, s.array(stringIdentifier), self], {
+      coerce: function (this: TAnyOf<any>, _value: unknown, opts: CoercionOptions = {}) {
+         let value: any = _value;
+
+         if (typeof value === "string") {
+            // if stringified object
+            if (value.match(/^\{/) || value.match(/^\[/)) {
+               value = JSON.parse(value);
+            } else if (value.includes(",")) {
+               value = value.split(",");
+            } else {
+               value = [value];
+            }
+         }
+
+         // Convert arrays to objects
+         if (Array.isArray(value)) {
+            value = value.reduce((acc, v) => {
+               acc[v] = {};
+               return acc;
+            }, {} as any);
+         }
+
+         // Handle object case
+         if (isObject(value)) {
+            for (const k in value) {
+               value[k] = self.coerce(value[k], opts);
+            }
+         }
+
+         return value as unknown as any;
+      },
+   }) as any;
 
 // ==========
 // REPO QUERY
-export const repoQuery = s.partialObject(
-   {
+export const repoQuery = s.recursive((self) =>
+   s.partialObject({
       limit: numberOrString({ default: 10 }),
       offset: numberOrString({ default: 0 }),
       sort,
       where,
       select: stringArray,
       join: stringArray,
-      with: withSchema,
-   },
-   {
-      $id: "query-schema",
-   },
+      with: withSchema<RepoWithSchema>(self),
+   }),
 );
-type RepoQueryIn = s.Static<typeof repoQuery>;
-type RepoQuery = s.StaticCoersed<typeof repoQuery>;
+
+export type RepoQueryIn = {
+   limit?: number;
+   offset?: number;
+   sort?: string | { by: string; dir: "asc" | "desc" };
+   select?: string[];
+   with?: string | string[] | Record<string, RepoQueryIn>;
+   join?: string[];
+   where?: WhereQuery;
+};
+export type RepoQuery = s.StaticCoersed<typeof repoQuery>;
