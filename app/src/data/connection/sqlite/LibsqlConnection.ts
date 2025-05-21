@@ -44,13 +44,6 @@ export class LibsqlConnection extends SqliteConnection {
          }
 
          client = createClient({ url, authToken });
-
-         // currently there is an issue in limbo implementation
-         // that prevents batching from working correctly
-         if (/\.aws.*turso\.io$/.test(url)) {
-            $console.warn("Using an Turso AWS endpoint currently disables batching support");
-            batching_enabled = false;
-         }
       } else {
          client = clientOrCredentials;
       }
