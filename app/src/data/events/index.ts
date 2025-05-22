@@ -1,7 +1,7 @@
 import { $console, type PrimaryFieldType } from "core";
 import { Event, InvalidEventReturn } from "core/events";
 import type { Entity, EntityData } from "../entities";
-import type { RepoQuery } from "../server/data-query-impl";
+import type { RepoQuery } from "data/server/query";
 
 export class MutatorInsertBefore extends Event<{ entity: Entity; data: EntityData }, EntityData> {
    static override slug = "mutator-insert-before";

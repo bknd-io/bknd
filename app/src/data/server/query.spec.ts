@@ -4,6 +4,11 @@ import { s as schema, parse as $parse, type ParseOptions } from "core/object/sch
 
 const parse = (v: unknown, o: ParseOptions = {}) => $parse(q.repoQuery, v, o);
 
+// compatibility
+const decode = (input: any, output: any) => {
+   expect(parse(input)).toEqual(output);
+};
+
 describe("server/query", () => {
    test("limit & offset", () => {
       expect(() => parse({ limit: false })).toThrow();
@@ -68,6 +73,17 @@ describe("server/query", () => {
       });
    });
 
+   test("sort2", () => {
+      const _dflt = { sort: { by: "id", dir: "asc" } } as const;
+
+      decode({ sort: "" }, _dflt);
+      decode({ sort: "name" }, { sort: { by: "name", dir: "asc" } });
+      decode({ sort: "-name" }, { sort: { by: "name", dir: "desc" } });
+      decode({ sort: "-posts.name" }, { sort: { by: "posts.name", dir: "desc" } });
+      decode({ sort: "-1name" }, _dflt);
+      decode({ sort: { by: "name", dir: "desc" } }, { sort: { by: "name", dir: "desc" } });
+   });
+
    test("where", () => {
       expect(parse({ where: { id: 1 } }).where).toEqual({
          id: { $eq: 1 },
@@ -84,10 +100,21 @@ describe("server/query", () => {
       });
    });
 
-   const decode = (input: any, output: any) => {
-      //expect(repoQuery.coerce(input)).toEqual(output);
-      expect(parse(input)).toEqual(output);
-   };
+   test("template", () => {
+      expect(
+         q.repoQuery.template({
+            withOptional: true,
+         }),
+      ).toEqual({
+         limit: 10,
+         offset: 0,
+         sort: { by: "id", dir: "asc" },
+         where: {},
+         select: [],
+         join: [],
+      });
+   });
+
    test("with", () => {
       let example = {
          limit: 10,

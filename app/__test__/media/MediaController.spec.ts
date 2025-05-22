@@ -43,8 +43,9 @@ beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
 describe("MediaController", () => {
-   test.only("accepts direct", async () => {
+   test("accepts direct", async () => {
       const app = await makeApp();
+      console.log("app", app);
 
       const file = Bun.file(path);
       const name = makeName("png");

@@ -10,8 +10,18 @@ const stringIdentifier = s.string({
    // allow "id", "id,title" – but not "id," or "not allowed"
    pattern: "^(?:[a-zA-Z_$][\\w$]*)(?:,[a-zA-Z_$][\\w$]*)*$",
 });
-const numberOrString = <N extends s.NumberSchema>(c: N = {} as N) =>
-   s.anyOf([s.number(c), s.string()]);
+const numberOrString = <N extends s.UnionSchema>(c: N = {} as N) =>
+   s.anyOf([s.number(), s.string()], {
+      ...c,
+      coerse: function (this: s.TSchema, v): number {
+         if (typeof v === "string") {
+            const n = Number.parseInt(v);
+            if (Number.isNaN(n)) return this.default ?? 10;
+            return n;
+         }
+         return v as number;
+      },
+   }) as unknown as s.TSchemaInOut<number | string, number>;
 const stringArray = s.anyOf(
    [
       stringIdentifier,
@@ -20,6 +30,7 @@ const stringArray = s.anyOf(
       }),
    ],
    {
+      default: [],
       coerce: (v): string[] => {
          if (Array.isArray(v)) {
             return v;
@@ -63,13 +74,14 @@ const sort = s.anyOf([s.string(), sortSchema], {
 // ------
 // filter
 const where = s.anyOf([s.string(), s.object({})], {
+   default: {},
    coerce: (value: unknown) => {
       const q = typeof value === "string" ? JSON.parse(value) : value;
       return WhereBuilder.convert(q);
    },
 });
-type WhereSchemaIn = s.Static<typeof where>;
-type WhereSchema = s.StaticCoersed<typeof where>;
+//type WhereSchemaIn = s.Static<typeof where>;
+//type WhereSchema = s.StaticCoerced<typeof where>;
 
 // ------
 // with
@@ -129,6 +141,10 @@ export const repoQuery = s.recursive((self) =>
       with: withSchema<RepoWithSchema>(self),
    }),
 );
+export const getRepoQueryTemplate = () =>
+   repoQuery.template({
+      withOptional: true,
+   }) as Required<RepoQuery>;
 
 export type RepoQueryIn = {
    limit?: number;
@@ -139,4 +155,4 @@ export type RepoQueryIn = {
    join?: string[];
    where?: WhereQuery;
 };
-export type RepoQuery = s.StaticCoersed<typeof repoQuery>;
+export type RepoQuery = s.StaticCoerced<typeof repoQuery>;

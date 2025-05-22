@@ -1,4 +1,4 @@
-import { type Entity, querySchema } from "data";
+import { type Entity, repoQuery } from "data";
 import { Fragment } from "react";
 import { TbDots } from "react-icons/tb";
 import { useApiQuery } from "ui/client";
@@ -14,20 +14,14 @@ import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate } from "ui/lib/routes";
 import { useCreateUserModal } from "ui/modules/auth/hooks/use-create-user-modal";
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "core/object/schema";
+import { pick } from "core/utils/objects";
 
-// @todo: migrate to Typebox
-const searchSchema = Type.Composite(
-   [
-      Type.Pick(querySchema, ["select", "where", "sort"]),
-      Type.Object({
-         page: Type.Optional(Type.Number({ default: 1 })),
-         perPage: Type.Optional(Type.Number({ default: 10 })),
-      }),
-   ],
-   { additionalProperties: false },
-);
+const searchSchema = s.partialObject({
+   ...pick(repoQuery.properties, ["select", "where", "sort"]),
+   page: s.number({ default: 1 }).optional(),
+   perPage: s.number({ default: 10 }).optional(),
+});
 
 const PER_PAGE_OPTIONS = [5, 10, 25];
 
@@ -74,8 +68,6 @@ export function DataEntityList({ params }) {
       const sort = search.value.sort!;
       const newSort = { by: name, dir: sort.by === name && sort.dir === "asc" ? "desc" : "asc" };
 
-      // // @ts-expect-error - somehow all search keys are optional
-      console.log("new sort", newSort);
       search.set("sort", newSort as any);
    }
 

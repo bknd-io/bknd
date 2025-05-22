@@ -6,7 +6,7 @@ import type { Entity, EntityData, EntityManager } from "../entities";
 import { InvalidSearchParamsException } from "../errors";
 import { MutatorEvents } from "../events";
 import { RelationMutator } from "../relations";
-import type { RepoQuery } from "../server/data-query-impl";
+import type { RepoQuery } from "../server/query";
 
 type MutatorQB =
    | InsertQueryBuilder<any, any, any>

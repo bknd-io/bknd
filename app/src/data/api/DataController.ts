@@ -8,7 +8,7 @@ import {
    type MutatorResponse,
    type RepoQuery,
    type RepositoryResponse,
-   querySchema,
+   repoQuery,
 } from "data";
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
@@ -244,7 +244,7 @@ export class DataController extends Controller {
          "/:entity",
          permission(DataPermissions.entityRead),
          jsc("param", s.object({ entity: s.string() })),
-         tb("query", querySchema),
+         jsc("query", repoQuery),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -268,7 +268,7 @@ export class DataController extends Controller {
                id: s.string(),
             }),
          ),
-         tb("query", querySchema),
+         jsc("query", repoQuery),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -293,7 +293,7 @@ export class DataController extends Controller {
                reference: s.string(),
             }),
          ),
-         tb("query", querySchema),
+         jsc("query", repoQuery),
          async (c) => {
             const { entity, id, reference } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -314,7 +314,7 @@ export class DataController extends Controller {
          "/:entity/query",
          permission(DataPermissions.entityRead),
          jsc("param", s.object({ entity: s.string() })),
-         tb("json", querySchema),
+         jsc("json", repoQuery),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -359,11 +359,11 @@ export class DataController extends Controller {
          "/:entity",
          permission(DataPermissions.entityUpdate),
          jsc("param", s.object({ entity: s.string() })),
-         tb(
+         jsc(
             "json",
-            Type.Object({
-               update: Type.Object({}),
-               where: querySchema.properties.where,
+            s.object({
+               update: s.object({}),
+               where: repoQuery.properties.where,
             }),
          ),
          async (c) => {
@@ -419,7 +419,7 @@ export class DataController extends Controller {
          "/:entity",
          permission(DataPermissions.entityDelete),
          jsc("param", s.object({ entity: s.string() })),
-         tb("json", querySchema.properties.where),
+         jsc("json", repoQuery.properties.where),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {

@@ -10,10 +10,11 @@ export * from "./connection";
 export {
    type RepoQuery,
    type RepoQueryIn,
-   defaultQuerySchema,
-   querySchema,
-   whereSchema,
-} from "./server/data-query-impl";
+   getRepoQueryTemplate,
+   repoQuery,
+} from "./server/query";
+
+export type { WhereQuery } from "./entities/query/WhereBuilder";
 
 export { KyselyPluginRunner } from "./plugins/KyselyPluginRunner";
 

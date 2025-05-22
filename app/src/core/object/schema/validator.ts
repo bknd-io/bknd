@@ -1,6 +1,6 @@
 import type { Context, Env, Input, MiddlewareHandler, ValidationTargets } from "hono";
 import { validator as honoValidator } from "hono/validator";
-import type { Static, StaticCoersed, TAnySchema } from "jsonv-ts";
+import type { Static, StaticCoerced, TAnySchema } from "jsonv-ts";
 
 export type Options = {
    coerce?: boolean;
@@ -29,7 +29,7 @@ export const validator = <
    E extends Env,
    P extends string,
    Opts extends Options = Options,
-   Out = Opts extends { coerce: false } ? Static<Schema> : StaticCoersed<Schema>,
+   Out = Opts extends { coerce: false } ? Static<Schema> : StaticCoerced<Schema>,
    I extends Input = {
       in: { [K in Target]: Static<Schema> };
       out: { [K in Target]: Out };

@@ -27,7 +27,7 @@ export function parse<S extends s.TAnySchema>(
    _schema: S,
    v: unknown,
    opts: ParseOptions = {},
-): s.StaticCoersed<S> {
+): s.StaticCoerced<S> {
    const schema = _schema as unknown as s.TSchema;
    const value = opts.coerse !== false ? schema.coerce(v) : v;
    const result = schema.validate(value, {

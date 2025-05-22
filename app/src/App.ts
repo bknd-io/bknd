@@ -151,7 +151,7 @@ export class App {
    }
 
    get fetch(): Hono["fetch"] {
-      return this.server.fetch;
+      return this.server.fetch as any;
    }
 
    get module() {
