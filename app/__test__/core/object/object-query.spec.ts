@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { type ObjectQuery, convert, validate } from "../../../src/core/object/query/object-query";
+import { type ObjectQuery, convert, validate } from "core/object/query/object-query";
 
 describe("object-query", () => {
    const q: ObjectQuery = { name: "Michael" };

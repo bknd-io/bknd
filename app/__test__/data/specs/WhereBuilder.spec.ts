@@ -1,25 +1,18 @@
-import { describe, expect, test } from "bun:test";
-import { Value, _jsonp } from "../../src/core/utils";
-import { type RepoQuery, WhereBuilder, type WhereQuery, querySchema } from "../../src/data";
-import type { RepoQueryIn } from "../../src/data/server/data-query-impl";
-import { getDummyConnection } from "./helper";
+import { describe, test, expect } from "bun:test";
+import { getDummyConnection } from "../helper";
+import { type WhereQuery, WhereBuilder } from "data";
 
-const decode = (input: RepoQueryIn, expected: RepoQuery) => {
-   const result = Value.Decode(querySchema, input);
-   expect(result).toEqual(expected);
-};
+function qb() {
+   const c = getDummyConnection();
+   const kysely = c.dummyConnection.kysely;
+   return kysely.selectFrom("t").selectAll();
+}
+function compile(q: WhereQuery) {
+   const { sql, parameters } = WhereBuilder.addClause(qb(), q).compile();
+   return { sql, parameters };
+}
 
-describe("data-query-impl", () => {
-   function qb() {
-      const c = getDummyConnection();
-      const kysely = c.dummyConnection.kysely;
-      return kysely.selectFrom("t").selectAll();
-   }
-   function compile(q: WhereQuery) {
-      const { sql, parameters } = WhereBuilder.addClause(qb(), q).compile();
-      return { sql, parameters };
-   }
-
+describe("WhereBuilder", () => {
    test("single validation", () => {
       const tests: [WhereQuery, string, any[]][] = [
          [{ name: "Michael", age: 40 }, '("name" = ? and "age" = ?)', ["Michael", 40]],
@@ -93,65 +86,5 @@ describe("data-query-impl", () => {
          const keys = WhereBuilder.getPropertyNames(query);
          expect(keys).toEqual(expectedKeys);
       }
-   });
-
-   test("with", () => {
-      decode({ with: ["posts"] }, { with: { posts: {} } });
-      decode({ with: { posts: {} } }, { with: { posts: {} } });
-      decode({ with: { posts: { limit: 1 } } }, { with: { posts: { limit: 1 } } });
-      decode(
-         {
-            with: {
-               posts: {
-                  with: {
-                     images: {
-                        select: ["id"],
-                     },
-                  },
-               },
-            },
-         },
-         {
-            with: {
-               posts: {
-                  with: {
-                     images: {
-                        select: ["id"],
-                     },
-                  },
-               },
-            },
-         },
-      );
-
-      // over http
-      {
-         const output = { with: { images: {} } };
-         decode({ with: "images" }, output);
-         decode({ with: '["images"]' }, output);
-         decode({ with: ["images"] }, output);
-         decode({ with: { images: {} } }, output);
-      }
-
-      {
-         const output = { with: { images: {}, comments: {} } };
-         decode({ with: "images,comments" }, output);
-         decode({ with: ["images", "comments"] }, output);
-         decode({ with: '["images", "comments"]' }, output);
-         decode({ with: { images: {}, comments: {} } }, output);
-      }
-   });
-});
-
-describe("data-query-impl: Typebox", () => {
-   test("sort", async () => {
-      const _dflt = { sort: { by: "id", dir: "asc" } };
-
-      decode({ sort: "" }, _dflt);
-      decode({ sort: "name" }, { sort: { by: "name", dir: "asc" } });
-      decode({ sort: "-name" }, { sort: { by: "name", dir: "desc" } });
-      decode({ sort: "-posts.name" }, { sort: { by: "posts.name", dir: "desc" } });
-      decode({ sort: "-1name" }, _dflt);
-      decode({ sort: { by: "name", dir: "desc" } }, { sort: { by: "name", dir: "desc" } });
    });
 });

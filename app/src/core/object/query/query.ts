@@ -34,6 +34,8 @@ type ExpressionMap<Exps extends Expressions> = {
       ? E
       : never;
 };
+type ExpressionKeys<Exps extends Expressions> = Exps[number]["key"];
+
 type ExpressionCondition<Exps extends Expressions> = {
    [K in keyof ExpressionMap<Exps>]: { [P in K]: ExpressionMap<Exps>[K] };
 }[keyof ExpressionMap<Exps>];
@@ -195,5 +197,7 @@ export function makeValidator<Exps extends Expressions>(expressions: Exps) {
          const fns = _build(query, expressions, options);
          return _validate(fns);
       },
+      expressions,
+      expressionKeys: expressions.map((e) => e.key) as ExpressionKeys<Exps>,
    };
 }

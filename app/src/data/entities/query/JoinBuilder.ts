@@ -20,6 +20,7 @@ export class JoinBuilder {
 
    // @todo: returns multiple on manytomany (edit: so?)
    static getJoinedEntityNames(em: EntityManager<any>, entity: Entity, joins: string[]): string[] {
+      console.log("join", joins);
       return joins.flatMap((join) => {
          const relation = em.relationOf(entity.name, join);
          if (!relation) {

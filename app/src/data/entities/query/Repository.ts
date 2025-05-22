@@ -2,10 +2,9 @@ import type { DB as DefaultDB, PrimaryFieldType } from "core";
 import { $console } from "core";
 import { type EmitsEvents, EventManager } from "core/events";
 import { type SelectQueryBuilder, sql } from "kysely";
-import { cloneDeep } from "lodash-es";
 import { InvalidSearchParamsException } from "../../errors";
 import { MutatorEvents, RepositoryEvents } from "../../events";
-import { type RepoQuery, defaultQuerySchema } from "../../server/data-query-impl";
+import { type RepoQuery, getRepoQueryTemplate } from "data/server/query";
 import {
    type Entity,
    type EntityData,
@@ -84,14 +83,14 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       }
    }
 
-   getValidOptions(options?: Partial<RepoQuery>): RepoQuery {
+   getValidOptions(options?: RepoQuery): RepoQuery {
       const entity = this.entity;
       // @todo: if not cloned deep, it will keep references and error if multiple requests come in
       const validated = {
-         ...cloneDeep(defaultQuerySchema),
+         ...structuredClone(getRepoQueryTemplate()),
          sort: entity.getDefaultSort(),
          select: entity.getSelect(),
-      };
+      } satisfies Required<RepoQuery>;
 
       if (!options) return validated;
 
@@ -99,12 +98,15 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          if (!validated.select.includes(options.sort.by)) {
             throw new InvalidSearchParamsException(`Invalid sort field "${options.sort.by}"`);
          }
-         if (!["asc", "desc"].includes(options.sort.dir)) {
+         if (!["asc", "desc"].includes(options.sort.dir!)) {
             throw new InvalidSearchParamsException(`Invalid sort direction "${options.sort.dir}"`);
          }
 
          this.checkIndex(entity.name, options.sort.by, "sort");
-         validated.sort = options.sort;
+         validated.sort = {
+            dir: "asc",
+            ...options.sort,
+         };
       }
 
       if (options.select && options.select.length > 0) {
@@ -505,7 +507,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       };
    }
 
-   async exists(where: Required<RepoQuery["where"]>): Promise<RepositoryExistsResponse> {
+   async exists(where: Required<RepoQuery>["where"]): Promise<RepositoryExistsResponse> {
       const entity = this.entity;
       const options = this.getValidOptions({ where });
 
@@ -513,7 +515,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       let qb = this.conn.selectFrom(entity.name).select(selector);
 
       // add mandatory where
-      qb = WhereBuilder.addClause(qb, options.where).limit(1);
+      qb = WhereBuilder.addClause(qb, options.where!).limit(1);
 
       const { result, ...compiled } = await this.executeQb(qb);
 

@@ -3,7 +3,7 @@ import { snakeToPascalWithSpaces } from "core/utils";
 import type { Static } from "core/utils";
 import type { ExpressionBuilder } from "kysely";
 import type { Entity, EntityManager } from "../entities";
-import type { RepoQuery } from "../server/data-query-impl";
+import type { RepoQuery } from "../server/query";
 import { EntityRelation, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField, type RelationFieldBaseConfig } from "./RelationField";

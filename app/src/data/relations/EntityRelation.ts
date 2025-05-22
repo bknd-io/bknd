@@ -6,7 +6,7 @@ import {
    type MutationInstructionResponse,
    RelationHelper,
 } from "../relations";
-import type { RepoQuery } from "../server/data-query-impl";
+import type { RepoQuery } from "../server/query";
 import type { RelationType } from "./relation-types";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;

@@ -11,8 +11,7 @@ import { Breadcrumbs2 } from "ui/layouts/AppShell/Breadcrumbs2";
 import { routes } from "ui/lib/routes";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "core/object/schema";
 
 export function DataEntityCreate({ params }) {
    const { $data } = useBkndData();
@@ -29,7 +28,7 @@ export function DataEntityCreate({ params }) {
    const $q = useEntityMutate(entity.name);
 
    // @todo: use entity schema for prefilling
-   const search = useSearch(Type.Object({}), {});
+   const search = useSearch(s.object({}), {});
 
    function goBack() {
       window.history.go(-1);

@@ -14,7 +14,7 @@ export default function AuthRoutes() {
          <Route path="/users" component={AuthUsersList} />
          <Route path="/roles" component={AuthRolesList} />
          <Route path="/roles/edit/:role" component={AuthRolesEdit} />
-         <Route path="/strategies" component={AuthStrategiesList} />
+         <Route path="/strategies/:strategy?" component={AuthStrategiesList} />
          <Route path="/settings" component={AuthSettings} />
       </AuthRoot>
    );

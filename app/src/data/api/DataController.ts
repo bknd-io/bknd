@@ -8,11 +8,12 @@ import {
    type MutatorResponse,
    type RepoQuery,
    type RepositoryResponse,
-   querySchema,
+   repoQuery,
 } from "data";
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
+import { jsc, s } from "core/object/schema";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
 const { Type } = tbbox;
@@ -205,7 +206,7 @@ export class DataController extends Controller {
       hono.post(
          "/:entity/fn/count",
          permission(DataPermissions.entityRead),
-         tb("param", Type.Object({ entity: Type.String() })),
+         jsc("param", s.object({ entity: s.string() })),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -222,7 +223,7 @@ export class DataController extends Controller {
       hono.post(
          "/:entity/fn/exists",
          permission(DataPermissions.entityRead),
-         tb("param", Type.Object({ entity: Type.String() })),
+         jsc("param", s.object({ entity: s.string() })),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -242,10 +243,10 @@ export class DataController extends Controller {
       hono.get(
          "/:entity",
          permission(DataPermissions.entityRead),
-         tb("param", Type.Object({ entity: Type.String() })),
-         tb("query", querySchema),
+         jsc("param", s.object({ entity: s.string() })),
+         jsc("query", repoQuery),
          async (c) => {
-            const { entity } = c.req.param();
+            const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
@@ -260,16 +261,16 @@ export class DataController extends Controller {
       hono.get(
          "/:entity/:id",
          permission(DataPermissions.entityRead),
-         tb(
+         jsc(
             "param",
-            Type.Object({
-               entity: Type.String(),
-               id: tbNumber,
+            s.object({
+               entity: s.string(),
+               id: s.string(),
             }),
          ),
-         tb("query", querySchema),
+         jsc("query", repoQuery),
          async (c) => {
-            const { entity, id } = c.req.param();
+            const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
@@ -284,17 +285,17 @@ export class DataController extends Controller {
       hono.get(
          "/:entity/:id/:reference",
          permission(DataPermissions.entityRead),
-         tb(
+         jsc(
             "param",
-            Type.Object({
-               entity: Type.String(),
-               id: tbNumber,
-               reference: Type.String(),
+            s.object({
+               entity: s.string(),
+               id: s.string(),
+               reference: s.string(),
             }),
          ),
-         tb("query", querySchema),
+         jsc("query", repoQuery),
          async (c) => {
-            const { entity, id, reference } = c.req.param();
+            const { entity, id, reference } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
@@ -312,10 +313,10 @@ export class DataController extends Controller {
       hono.post(
          "/:entity/query",
          permission(DataPermissions.entityRead),
-         tb("param", Type.Object({ entity: Type.String() })),
-         tb("json", querySchema),
+         jsc("param", s.object({ entity: s.string() })),
+         jsc("json", repoQuery),
          async (c) => {
-            const { entity } = c.req.param();
+            const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
@@ -333,10 +334,11 @@ export class DataController extends Controller {
       hono.post(
          "/:entity",
          permission(DataPermissions.entityCreate),
-         tb("param", Type.Object({ entity: Type.String() })),
-         tb("json", Type.Union([Type.Object({}), Type.Array(Type.Object({}))])),
+         jsc("param", s.object({ entity: s.string() })),
+         jsc("json", s.anyOf([s.object({}), s.array(s.object({}))])),
+         //tb("json", Type.Union([Type.Object({}), Type.Array(Type.Object({}))])),
          async (c) => {
-            const { entity } = c.req.param();
+            const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
@@ -356,12 +358,12 @@ export class DataController extends Controller {
       hono.patch(
          "/:entity",
          permission(DataPermissions.entityUpdate),
-         tb("param", Type.Object({ entity: Type.String() })),
-         tb(
+         jsc("param", s.object({ entity: s.string() })),
+         jsc(
             "json",
-            Type.Object({
-               update: Type.Object({}),
-               where: querySchema.properties.where,
+            s.object({
+               update: s.object({}),
+               where: repoQuery.properties.where,
             }),
          ),
          async (c) => {
@@ -383,9 +385,9 @@ export class DataController extends Controller {
       hono.patch(
          "/:entity/:id",
          permission(DataPermissions.entityUpdate),
-         tb("param", Type.Object({ entity: Type.String(), id: tbNumber })),
+         jsc("param", s.object({ entity: s.string(), id: s.number() })),
          async (c) => {
-            const { entity, id } = c.req.param();
+            const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
@@ -400,9 +402,9 @@ export class DataController extends Controller {
       hono.delete(
          "/:entity/:id",
          permission(DataPermissions.entityDelete),
-         tb("param", Type.Object({ entity: Type.String(), id: tbNumber })),
+         jsc("param", s.object({ entity: s.string(), id: s.number() })),
          async (c) => {
-            const { entity, id } = c.req.param();
+            const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
@@ -416,10 +418,10 @@ export class DataController extends Controller {
       hono.delete(
          "/:entity",
          permission(DataPermissions.entityDelete),
-         tb("param", Type.Object({ entity: Type.String() })),
-         tb("json", querySchema.properties.where),
+         jsc("param", s.object({ entity: s.string() })),
+         jsc("json", repoQuery.properties.where),
          async (c) => {
-            const { entity } = c.req.param();
+            const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
