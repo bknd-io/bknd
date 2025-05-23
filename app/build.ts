@@ -1,5 +1,6 @@
 import { $ } from "bun";
 import * as tsup from "tsup";
+import pkg from "./package.json" with { type: "json" };
 
 const args = process.argv.slice(2);
 const watch = args.includes("--watch");
@@ -9,7 +10,7 @@ const sourcemap = args.includes("--sourcemap");
 const clean = args.includes("--clean");
 
 if (clean) {
-   console.log("Cleaning dist (w/o static)");
+   console.info("Cleaning dist (w/o static)");
    await $`find dist -mindepth 1 ! -path "dist/static/*" ! -path "dist/static" -exec rm -rf {} +`;
 }
 
@@ -21,11 +22,11 @@ function buildTypes() {
    Bun.spawn(["bun", "build:types"], {
       stdout: "inherit",
       onExit: () => {
-         console.log("Types built");
+         console.info("Types built");
          Bun.spawn(["bun", "tsc-alias"], {
             stdout: "inherit",
             onExit: () => {
-               console.log("Types aliased");
+               console.info("Types aliased");
                types_running = false;
             },
          });
@@ -47,10 +48,10 @@ if (types && !watch) {
 }
 
 function banner(title: string) {
-   console.log("");
-   console.log("=".repeat(40));
-   console.log(title.toUpperCase());
-   console.log("-".repeat(40));
+   console.info("");
+   console.info("=".repeat(40));
+   console.info(title.toUpperCase());
+   console.info("-".repeat(40));
 }
 
 // collection of always-external packages
@@ -65,6 +66,9 @@ async function buildApi() {
       minify,
       sourcemap,
       watch,
+      define: {
+         __version: JSON.stringify(pkg.version),
+      },
       entry: [
          "src/index.ts",
          "src/core/index.ts",

@@ -6,12 +6,7 @@ import { DataPermissions } from "data";
 import { Controller } from "modules/Controller";
 import type { AppMedia } from "../AppMedia";
 import { MediaField } from "../MediaField";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
-
-const booleanLike = Type.Transform(Type.String())
-   .Decode((v) => v === "1")
-   .Encode((v) => (v ? "1" : "0"));
+import { jsc, s, describeRoute } from "core/object/schema";
 
 export class MediaController extends Controller {
    constructor(private readonly media: AppMedia) {
@@ -31,90 +26,165 @@ export class MediaController extends Controller {
       // @todo: implement range requests
       const { auth, permission } = this.middlewares;
       const hono = this.create().use(auth());
+      const entitiesEnum = this.getEntitiesEnum(this.media.em);
 
       // get files list (temporary)
-      hono.get("/files", permission(MediaPermissions.listFiles), async (c) => {
-         const files = await this.getStorageAdapter().listObjects();
-         return c.json(files);
-      });
+      hono.get(
+         "/files",
+         describeRoute({
+            summary: "Get the list of files",
+            tags: ["media"],
+         }),
+         permission(MediaPermissions.listFiles),
+         async (c) => {
+            const files = await this.getStorageAdapter().listObjects();
+            return c.json(files);
+         },
+      );
 
       // get file by name
       // @todo: implement more aggressive cache? (configurable)
-      hono.get("/file/:filename", permission(MediaPermissions.readFile), async (c) => {
-         const { filename } = c.req.param();
-         if (!filename) {
-            throw new Error("No file name provided");
-         }
+      hono.get(
+         "/file/:filename",
+         describeRoute({
+            summary: "Get a file by name",
+            tags: ["media"],
+         }),
+         permission(MediaPermissions.readFile),
+         async (c) => {
+            const { filename } = c.req.param();
+            if (!filename) {
+               throw new Error("No file name provided");
+            }
 
-         await this.getStorage().emgr.emit(new StorageEvents.FileAccessEvent({ name: filename }));
-         const res = await this.getStorageAdapter().getObject(filename, c.req.raw.headers);
+            await this.getStorage().emgr.emit(
+               new StorageEvents.FileAccessEvent({ name: filename }),
+            );
+            const res = await this.getStorageAdapter().getObject(filename, c.req.raw.headers);
 
-         const headers = new Headers(res.headers);
-         headers.set("Cache-Control", "public, max-age=31536000, immutable");
+            const headers = new Headers(res.headers);
+            headers.set("Cache-Control", "public, max-age=31536000, immutable");
 
-         return new Response(res.body, {
-            status: res.status,
-            statusText: res.statusText,
-            headers,
-         });
-      });
+            return new Response(res.body, {
+               status: res.status,
+               statusText: res.statusText,
+               headers,
+            });
+         },
+      );
 
       // delete a file by name
-      hono.delete("/file/:filename", permission(MediaPermissions.deleteFile), async (c) => {
-         const { filename } = c.req.param();
-         if (!filename) {
-            throw new Error("No file name provided");
-         }
-         await this.getStorage().deleteFile(filename);
+      hono.delete(
+         "/file/:filename",
+         describeRoute({
+            summary: "Delete a file by name",
+            tags: ["media"],
+         }),
+         permission(MediaPermissions.deleteFile),
+         async (c) => {
+            const { filename } = c.req.param();
+            if (!filename) {
+               throw new Error("No file name provided");
+            }
+            await this.getStorage().deleteFile(filename);
 
-         return c.json({ message: "File deleted" });
-      });
+            return c.json({ message: "File deleted" });
+         },
+      );
 
       const maxSize = this.getStorage().getConfig().body_max_size ?? Number.POSITIVE_INFINITY;
 
       if (isDebug()) {
-         hono.post("/inspect", async (c) => {
-            const file = await getFileFromContext(c);
-            return c.json({
-               type: file?.type,
-               name: file?.name,
-               size: file?.size,
-            });
-         });
+         hono.post(
+            "/inspect",
+            describeRoute({
+               summary: "Inspect a file",
+               tags: ["media"],
+            }),
+            async (c) => {
+               const file = await getFileFromContext(c);
+               return c.json({
+                  type: file?.type,
+                  name: file?.name,
+                  size: file?.size,
+               });
+            },
+         );
       }
+
+      const requestBody = {
+         content: {
+            "multipart/form-data": {
+               schema: {
+                  type: "object",
+                  properties: {
+                     file: {
+                        type: "string",
+                        format: "binary",
+                     },
+                  },
+                  required: ["file"],
+               },
+            },
+            "application/octet-stream": {
+               schema: {
+                  type: "string",
+                  format: "binary",
+               },
+            },
+         },
+      } as any;
 
       // upload file
       // @todo: add required type for "upload endpoints"
-      hono.post("/upload/:filename?", permission(MediaPermissions.uploadFile), async (c) => {
-         const reqname = c.req.param("filename");
+      hono.post(
+         "/upload/:filename?",
+         describeRoute({
+            summary: "Upload a file",
+            tags: ["media"],
+            requestBody,
+         }),
+         jsc("param", s.object({ filename: s.string().optional() })),
+         permission(MediaPermissions.uploadFile),
+         async (c) => {
+            const reqname = c.req.param("filename");
 
-         const body = await getFileFromContext(c);
-         if (!body) {
-            return c.json({ error: "No file provided" }, HttpStatus.BAD_REQUEST);
-         }
-         if (body.size > maxSize) {
-            return c.json(
-               { error: `Max size (${maxSize} bytes) exceeded` },
-               HttpStatus.PAYLOAD_TOO_LARGE,
-            );
-         }
+            const body = await getFileFromContext(c);
+            if (!body) {
+               return c.json({ error: "No file provided" }, HttpStatus.BAD_REQUEST);
+            }
+            if (body.size > maxSize) {
+               return c.json(
+                  { error: `Max size (${maxSize} bytes) exceeded` },
+                  HttpStatus.PAYLOAD_TOO_LARGE,
+               );
+            }
 
-         const filename = reqname ?? getRandomizedFilename(body as File);
-         const res = await this.getStorage().uploadFile(body, filename);
+            const filename = reqname ?? getRandomizedFilename(body as File);
+            const res = await this.getStorage().uploadFile(body, filename);
 
-         return c.json(res, HttpStatus.CREATED);
-      });
+            return c.json(res, HttpStatus.CREATED);
+         },
+      );
 
       // add upload file to entity
       // @todo: add required type for "upload endpoints"
       hono.post(
          "/entity/:entity/:id/:field",
-         tb(
-            "query",
-            Type.Object({
-               overwrite: Type.Optional(booleanLike),
+         describeRoute({
+            summary: "Add a file to an entity",
+            tags: ["media"],
+            requestBody,
+         }),
+         jsc(
+            "param",
+            s.object({
+               entity: entitiesEnum,
+               id: s.number(),
+               field: s.string(),
             }),
          ),
+         jsc("query", s.object({ overwrite: s.boolean().optional() })),
          permission([DataPermissions.entityCreate, MediaPermissions.uploadFile]),
          async (c) => {
             const entity_name = c.req.param("entity");

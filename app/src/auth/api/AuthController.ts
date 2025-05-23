@@ -1,11 +1,9 @@
 import { type AppAuth, AuthPermissions, type SafeUser, type Strategy } from "auth";
-import { tbValidator as tb } from "core";
 import { TypeInvalidError, parse, transformObject } from "core/utils";
 import { DataPermissions } from "data";
 import type { Hono } from "hono";
 import { Controller, type ServerEnv } from "modules/Controller";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { describeRoute, jsc, s } from "core/object/schema";
 
 export type AuthActionResponse = {
    success: boolean;
@@ -13,10 +11,6 @@ export type AuthActionResponse = {
    data?: SafeUser;
    errors?: any;
 };
-
-const booleanLike = Type.Transform(Type.String())
-   .Decode((v) => v === "1")
-   .Encode((v) => (v ? "1" : "0"));
 
 export class AuthController extends Controller {
    constructor(private auth: AppAuth) {
@@ -56,6 +50,10 @@ export class AuthController extends Controller {
          hono.post(
             "/create",
             permission([AuthPermissions.createUser, DataPermissions.entityCreate]),
+            describeRoute({
+               summary: "Create a new user",
+               tags: ["auth"],
+            }),
             async (c) => {
                try {
                   const body = await this.auth.authenticator.getBody(c);
@@ -93,9 +91,16 @@ export class AuthController extends Controller {
                }
             },
          );
-         hono.get("create/schema.json", async (c) => {
-            return c.json(create.schema);
-         });
+         hono.get(
+            "create/schema.json",
+            describeRoute({
+               summary: "Get the schema for creating a user",
+               tags: ["auth"],
+            }),
+            async (c) => {
+               return c.json(create.schema);
+            },
+         );
       }
 
       mainHono.route(`/${name}/actions`, hono);
@@ -104,42 +109,54 @@ export class AuthController extends Controller {
    override getController() {
       const { auth } = this.middlewares;
       const hono = this.create();
-      const strategies = this.auth.authenticator.getStrategies();
 
-      for (const [name, strategy] of Object.entries(strategies)) {
-         if (!this.auth.isStrategyEnabled(strategy)) continue;
+      hono.get(
+         "/me",
+         describeRoute({
+            summary: "Get the current user",
+            tags: ["auth"],
+         }),
+         auth(),
+         async (c) => {
+            const claims = c.get("auth")?.user;
+            if (claims) {
+               const { data: user } = await this.userRepo.findId(claims.id);
+               return c.json({ user });
+            }
 
-         hono.route(`/${name}`, strategy.getController(this.auth.authenticator));
-         this.registerStrategyActions(strategy, hono);
-      }
+            return c.json({ user: null }, 403);
+         },
+      );
 
-      hono.get("/me", auth(), async (c) => {
-         const claims = c.get("auth")?.user;
-         if (claims) {
-            const { data: user } = await this.userRepo.findId(claims.id);
-            return c.json({ user });
-         }
+      hono.get(
+         "/logout",
+         describeRoute({
+            summary: "Logout the current user",
+            tags: ["auth"],
+         }),
+         auth(),
+         async (c) => {
+            await this.auth.authenticator.logout(c);
+            if (this.auth.authenticator.isJsonRequest(c)) {
+               return c.json({ ok: true });
+            }
 
-         return c.json({ user: null }, 403);
-      });
+            const referer = c.req.header("referer");
+            if (referer) {
+               return c.redirect(referer);
+            }
 
-      hono.get("/logout", auth(), async (c) => {
-         await this.auth.authenticator.logout(c);
-         if (this.auth.authenticator.isJsonRequest(c)) {
-            return c.json({ ok: true });
-         }
-
-         const referer = c.req.header("referer");
-         if (referer) {
-            return c.redirect(referer);
-         }
-
-         return c.redirect("/");
-      });
+            return c.redirect("/");
+         },
+      );
 
       hono.get(
          "/strategies",
-         tb("query", Type.Object({ include_disabled: Type.Optional(booleanLike) })),
+         describeRoute({
+            summary: "Get the available authentication strategies",
+            tags: ["auth"],
+         }),
+         jsc("query", s.object({ include_disabled: s.boolean().optional() })),
          async (c) => {
             const { include_disabled } = c.req.valid("query");
             const { strategies, basepath } = this.auth.toJSON(false);
@@ -156,6 +173,15 @@ export class AuthController extends Controller {
             return c.json({ strategies, basepath });
          },
       );
+
+      const strategies = this.auth.authenticator.getStrategies();
+
+      for (const [name, strategy] of Object.entries(strategies)) {
+         if (!this.auth.isStrategyEnabled(strategy)) continue;
+
+         hono.route(`/${name}`, strategy.getController(this.auth.authenticator));
+         this.registerStrategyActions(strategy, hono);
+      }
 
       return hono.all("*", (c) => c.notFound());
    }

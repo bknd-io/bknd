@@ -13,6 +13,15 @@ export function isDebug(): boolean {
    }
 }
 
+export function getVersion(): string {
+   try {
+      // @ts-expect-error - this is a global variable in dev
+      return __version;
+   } catch (e) {
+      return "0.0.0";
+   }
+}
+
 const envs = {
    // used in $console to determine the log level
    cli_log_level: {

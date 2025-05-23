@@ -10,18 +10,6 @@ const stringIdentifier = s.string({
    // allow "id", "id,title" – but not "id," or "not allowed"
    pattern: "^(?:[a-zA-Z_$][\\w$]*)(?:,[a-zA-Z_$][\\w$]*)*$",
 });
-const numberOrString = <N extends s.UnionSchema>(c: N = {} as N) =>
-   s.anyOf([s.number(), s.string()], {
-      ...c,
-      coerse: function (this: s.TSchema, v): number {
-         if (typeof v === "string") {
-            const n = Number.parseInt(v);
-            if (Number.isNaN(n)) return this.default ?? 10;
-            return n;
-         }
-         return v as number;
-      },
-   }) as unknown as s.TSchemaInOut<number | string, number>;
 const stringArray = s.anyOf(
    [
       stringIdentifier,
@@ -75,6 +63,13 @@ const sort = s.anyOf([s.string(), sortSchema], {
 // filter
 const where = s.anyOf([s.string(), s.object({})], {
    default: {},
+   examples: [
+      {
+         attribute: {
+            $eq: 1,
+         },
+      },
+   ],
    coerce: (value: unknown) => {
       const q = typeof value === "string" ? JSON.parse(value) : value;
       return WhereBuilder.convert(q);
@@ -132,8 +127,8 @@ const withSchema = <In, Out = In>(self: s.TSchema): s.TSchemaInOut<In, Out> =>
 // REPO QUERY
 export const repoQuery = s.recursive((self) =>
    s.partialObject({
-      limit: numberOrString({ default: 10 }),
-      offset: numberOrString({ default: 0 }),
+      limit: s.number({ default: 10 }),
+      offset: s.number({ default: 0 }),
       sort,
       where,
       select: stringArray,

@@ -1,6 +1,4 @@
-import { $console, isDebug, tbValidator as tb } from "core";
-import { StringEnum } from "core/utils";
-import * as tbbox from "@sinclair/typebox";
+import { $console, isDebug } from "core";
 import {
    DataPermissions,
    type EntityData,
@@ -13,10 +11,10 @@ import {
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s } from "core/object/schema";
+import { jsc, s, describeRoute, schemaToSpec } from "core/object/schema";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
-const { Type } = tbbox;
+import { omitKeys } from "core/utils";
 
 export class DataController extends Controller {
    constructor(
@@ -72,6 +70,7 @@ export class DataController extends Controller {
    override getController() {
       const { permission, auth } = this.middlewares;
       const hono = this.create().use(auth(), permission(SystemPermissions.accessApi));
+      const entitiesEnum = this.getEntitiesEnum(this.em);
 
       // @todo: sample implementation how to augment handler with additional info
       function handler<HH extends Handler>(name: string, h: HH): any {
@@ -84,6 +83,10 @@ export class DataController extends Controller {
       // info
       hono.get(
          "/",
+         describeRoute({
+            summary: "Retrieve data configuration",
+            tags: ["data"],
+         }),
          handler("data info", (c) => {
             // sample implementation
             return c.json(this.em.toJSON());
@@ -91,49 +94,75 @@ export class DataController extends Controller {
       );
 
       // sync endpoint
-      hono.get("/sync", permission(DataPermissions.databaseSync), async (c) => {
-         const force = c.req.query("force") === "1";
-         const drop = c.req.query("drop") === "1";
-         //console.log("force", force);
-         const tables = await this.em.schema().introspect();
-         //console.log("tables", tables);
-         const changes = await this.em.schema().sync({
-            force,
-            drop,
-         });
-         return c.json({ tables: tables.map((t) => t.name), changes });
-      });
+      hono.get(
+         "/sync",
+         permission(DataPermissions.databaseSync),
+         describeRoute({
+            summary: "Sync database schema",
+            tags: ["data"],
+         }),
+         jsc(
+            "query",
+            s.partialObject({
+               force: s.boolean(),
+               drop: s.boolean(),
+            }),
+         ),
+         async (c) => {
+            const { force, drop } = c.req.valid("query");
+            //console.log("force", force);
+            const tables = await this.em.schema().introspect();
+            //console.log("tables", tables);
+            const changes = await this.em.schema().sync({
+               force,
+               drop,
+            });
+            return c.json({ tables: tables.map((t) => t.name), changes });
+         },
+      );
 
       /**
        * Schema endpoints
        */
       // read entity schema
-      hono.get("/schema.json", permission(DataPermissions.entityRead), async (c) => {
-         const $id = `${this.config.basepath}/schema.json`;
-         const schemas = Object.fromEntries(
-            this.em.entities.map((e) => [
-               e.name,
-               {
-                  $ref: `${this.config.basepath}/schemas/${e.name}`,
-               },
-            ]),
-         );
-         return c.json({
-            $schema: "https://json-schema.org/draft/2020-12/schema",
-            $id,
-            properties: schemas,
-         });
-      });
+      hono.get(
+         "/schema.json",
+         permission(DataPermissions.entityRead),
+         describeRoute({
+            summary: "Retrieve data schema",
+            tags: ["data"],
+         }),
+         async (c) => {
+            const $id = `${this.config.basepath}/schema.json`;
+            const schemas = Object.fromEntries(
+               this.em.entities.map((e) => [
+                  e.name,
+                  {
+                     $ref: `${this.config.basepath}/schemas/${e.name}`,
+                  },
+               ]),
+            );
+            return c.json({
+               $schema: "https://json-schema.org/draft/2020-12/schema",
+               $id,
+               properties: schemas,
+            });
+         },
+      );
 
       // read schema
       hono.get(
          "/schemas/:entity/:context?",
          permission(DataPermissions.entityRead),
-         tb(
+         describeRoute({
+            summary: "Retrieve entity schema",
+            tags: ["data"],
+         }),
+         jsc(
             "param",
-            Type.Object({
-               entity: Type.String(),
-               context: Type.Optional(StringEnum(["create", "update"])),
+            s.object({
+               entity: entitiesEnum,
+               context: s.string({ enum: ["create", "update"], default: "create" }).optional(),
             }),
          ),
          async (c) => {
@@ -162,30 +191,39 @@ export class DataController extends Controller {
       /**
        * Info endpoints
        */
-      hono.get("/info/:entity", async (c) => {
-         const { entity } = c.req.param();
-         if (!this.entityExists(entity)) {
-            return this.notFound(c);
-         }
-         const _entity = this.em.entity(entity);
-         const fields = _entity.fields.map((f) => f.name);
-         const $rels = (r: any) =>
-            r.map((r: any) => ({
-               entity: r.other(_entity).entity.name,
-               ref: r.other(_entity).reference,
-            }));
+      hono.get(
+         "/info/:entity",
+         permission(DataPermissions.entityRead),
+         describeRoute({
+            summary: "Retrieve entity info",
+            tags: ["data"],
+         }),
+         jsc("param", s.object({ entity: entitiesEnum })),
+         async (c) => {
+            const { entity } = c.req.param();
+            if (!this.entityExists(entity)) {
+               return this.notFound(c);
+            }
+            const _entity = this.em.entity(entity);
+            const fields = _entity.fields.map((f) => f.name);
+            const $rels = (r: any) =>
+               r.map((r: any) => ({
+                  entity: r.other(_entity).entity.name,
+                  ref: r.other(_entity).reference,
+               }));
 
-         return c.json({
-            name: _entity.name,
-            fields,
-            relations: {
-               all: $rels(this.em.relations.relationsOf(_entity)),
-               listable: $rels(this.em.relations.listableRelationsOf(_entity)),
-               source: $rels(this.em.relations.sourceRelationsOf(_entity)),
-               target: $rels(this.em.relations.targetRelationsOf(_entity)),
-            },
-         });
-      });
+            return c.json({
+               name: _entity.name,
+               fields,
+               relations: {
+                  all: $rels(this.em.relations.relationsOf(_entity)),
+                  listable: $rels(this.em.relations.listableRelationsOf(_entity)),
+                  source: $rels(this.em.relations.sourceRelationsOf(_entity)),
+                  target: $rels(this.em.relations.targetRelationsOf(_entity)),
+               },
+            });
+         },
+      );
 
       return hono.all("*", (c) => c.notFound());
    }
@@ -194,10 +232,7 @@ export class DataController extends Controller {
       const { permission } = this.middlewares;
       const hono = this.create();
 
-      const definedEntities = this.em.entities.map((e) => e.name);
-      const tbNumber = Type.Transform(Type.String({ pattern: "^[1-9][0-9]{0,}$" }))
-         .Decode(Number.parseInt)
-         .Encode(String);
+      const entitiesEnum = this.getEntitiesEnum(this.em);
 
       /**
        * Function endpoints
@@ -206,14 +241,19 @@ export class DataController extends Controller {
       hono.post(
          "/:entity/fn/count",
          permission(DataPermissions.entityRead),
-         jsc("param", s.object({ entity: s.string() })),
+         describeRoute({
+            summary: "Count entities",
+            tags: ["data"],
+         }),
+         jsc("param", s.object({ entity: entitiesEnum })),
+         jsc("json", repoQuery.properties.where),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
 
-            const where = (await c.req.json()) as any;
+            const where = c.req.valid("json") as any;
             const result = await this.em.repository(entity).count(where);
             return c.json({ entity, count: result.count });
          },
@@ -223,14 +263,19 @@ export class DataController extends Controller {
       hono.post(
          "/:entity/fn/exists",
          permission(DataPermissions.entityRead),
-         jsc("param", s.object({ entity: s.string() })),
+         describeRoute({
+            summary: "Check if entity exists",
+            tags: ["data"],
+         }),
+         jsc("param", s.object({ entity: entitiesEnum })),
+         jsc("json", repoQuery.properties.where),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
 
-            const where = c.req.json() as any;
+            const where = c.req.valid("json") as any;
             const result = await this.em.repository(entity).exists(where);
             return c.json({ entity, exists: result.exists });
          },
@@ -240,11 +285,29 @@ export class DataController extends Controller {
        * Read endpoints
        */
       // read many
+      const saveRepoQuery = s.partialObject({
+         ...omitKeys(repoQuery.properties, ["with"]),
+         sort: s.string({ default: "id" }),
+         select: s.array(s.string()),
+         join: s.array(s.string()),
+      });
+      const saveRepoQueryParams = (pick: string[] = Object.keys(repoQuery.properties)) => [
+         ...(schemaToSpec(saveRepoQuery, "query").parameters?.filter(
+            // @ts-ignore
+            (p) => pick.includes(p.name),
+         ) as any),
+      ];
+
       hono.get(
          "/:entity",
+         describeRoute({
+            summary: "Read many",
+            parameters: saveRepoQueryParams(["limit", "offset", "sort", "select", "join"]),
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityRead),
-         jsc("param", s.object({ entity: s.string() })),
-         jsc("query", repoQuery),
+         jsc("param", s.object({ entity: entitiesEnum })),
+         jsc("query", repoQuery, { skipOpenAPI: true }),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -260,15 +323,20 @@ export class DataController extends Controller {
       // read one
       hono.get(
          "/:entity/:id",
+         describeRoute({
+            summary: "Read one",
+            parameters: saveRepoQueryParams(["offset", "sort", "select"]),
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityRead),
          jsc(
             "param",
             s.object({
-               entity: s.string(),
+               entity: entitiesEnum,
                id: s.string(),
             }),
          ),
-         jsc("query", repoQuery),
+         jsc("query", saveRepoQuery),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -284,16 +352,21 @@ export class DataController extends Controller {
       // read many by reference
       hono.get(
          "/:entity/:id/:reference",
+         describeRoute({
+            summary: "Read many by reference",
+            parameters: saveRepoQueryParams(),
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityRead),
          jsc(
             "param",
             s.object({
-               entity: s.string(),
+               entity: entitiesEnum,
                id: s.string(),
                reference: s.string(),
             }),
          ),
-         jsc("query", repoQuery),
+         jsc("query", repoQuery, { skipOpenAPI: true }),
          async (c) => {
             const { entity, id, reference } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -310,11 +383,27 @@ export class DataController extends Controller {
       );
 
       // func query
+      const fnQuery = s.partialObject({
+         ...saveRepoQuery.properties,
+         with: s.object({}),
+      });
       hono.post(
          "/:entity/query",
+         describeRoute({
+            summary: "Query entities",
+            requestBody: {
+               content: {
+                  "application/json": {
+                     schema: fnQuery.toJSON(),
+                     example: fnQuery.template({ withOptional: true }),
+                  },
+               },
+            },
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityRead),
-         jsc("param", s.object({ entity: s.string() })),
-         jsc("json", repoQuery),
+         jsc("param", s.object({ entity: entitiesEnum })),
+         jsc("json", repoQuery, { skipOpenAPI: true }),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -333,16 +422,19 @@ export class DataController extends Controller {
       // insert one
       hono.post(
          "/:entity",
+         describeRoute({
+            summary: "Insert one or many",
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityCreate),
-         jsc("param", s.object({ entity: s.string() })),
+         jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", s.anyOf([s.object({}), s.array(s.object({}))])),
-         //tb("json", Type.Union([Type.Object({}), Type.Array(Type.Object({}))])),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const body = (await c.req.json()) as EntityData | EntityData[];
+            const body = c.req.valid("json") as EntityData | EntityData[];
 
             if (Array.isArray(body)) {
                const result = await this.em.mutator(entity).insertMany(body);
@@ -357,8 +449,12 @@ export class DataController extends Controller {
       // update many
       hono.patch(
          "/:entity",
+         describeRoute({
+            summary: "Update many",
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityUpdate),
-         jsc("param", s.object({ entity: s.string() })),
+         jsc("param", s.object({ entity: entitiesEnum })),
          jsc(
             "json",
             s.object({
@@ -371,7 +467,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const { update, where } = (await c.req.json()) as {
+            const { update, where } = c.req.valid("json") as {
                update: EntityData;
                where: RepoQuery["where"];
             };
@@ -384,14 +480,19 @@ export class DataController extends Controller {
       // update one
       hono.patch(
          "/:entity/:id",
+         describeRoute({
+            summary: "Update one",
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityUpdate),
-         jsc("param", s.object({ entity: s.string(), id: s.number() })),
+         jsc("param", s.object({ entity: entitiesEnum, id: s.number() })),
+         jsc("json", s.object({})),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const body = (await c.req.json()) as EntityData;
+            const body = c.req.valid("json") as EntityData;
             const result = await this.em.mutator(entity).updateOne(Number(id), body);
 
             return c.json(this.mutatorResult(result));
@@ -401,8 +502,12 @@ export class DataController extends Controller {
       // delete one
       hono.delete(
          "/:entity/:id",
+         describeRoute({
+            summary: "Delete one",
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityDelete),
-         jsc("param", s.object({ entity: s.string(), id: s.number() })),
+         jsc("param", s.object({ entity: entitiesEnum, id: s.number() })),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
@@ -417,8 +522,12 @@ export class DataController extends Controller {
       // delete many
       hono.delete(
          "/:entity",
+         describeRoute({
+            summary: "Delete many",
+            tags: ["data"],
+         }),
          permission(DataPermissions.entityDelete),
-         jsc("param", s.object({ entity: s.string() })),
+         jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery.properties.where),
          async (c) => {
             const { entity } = c.req.valid("param");

@@ -13,9 +13,8 @@ import {
 import { getRuntimeKey } from "core/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
-
+import { openAPISpecs } from "jsonv-ts/hono";
+import { swaggerUI } from "@hono/swagger-ui";
 import {
    MODULE_NAMES,
    type ModuleConfigs,
@@ -24,12 +23,8 @@ import {
    getDefaultConfig,
 } from "modules/ModuleManager";
 import * as SystemPermissions from "modules/permissions";
-import { generateOpenAPI } from "modules/server/openapi";
-
-const booleanLike = Type.Transform(Type.String())
-   .Decode((v) => v === "1")
-   .Encode((v) => (v ? "1" : "0"));
-
+import { jsc, s, describeRoute } from "core/object/schema";
+import { getVersion } from "core/env";
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
    module: Key;
@@ -61,20 +56,27 @@ export class SystemController extends Controller {
 
       hono.use(permission(SystemPermissions.configRead));
 
-      hono.get("/raw", permission([SystemPermissions.configReadSecrets]), async (c) => {
-         // @ts-expect-error "fetch" is private
-         return c.json(await this.app.modules.fetch());
-      });
+      hono.get(
+         "/raw",
+         describeRoute({
+            summary: "Get the raw config",
+            tags: ["system"],
+         }),
+         permission([SystemPermissions.configReadSecrets]),
+         async (c) => {
+            // @ts-expect-error "fetch" is private
+            return c.json(await this.app.modules.fetch());
+         },
+      );
 
       hono.get(
          "/:module?",
-         tb("param", Type.Object({ module: Type.Optional(StringEnum(MODULE_NAMES)) })),
-         tb(
-            "query",
-            Type.Object({
-               secrets: Type.Optional(booleanLike),
-            }),
-         ),
+         describeRoute({
+            summary: "Get the config for a module",
+            tags: ["system"],
+         }),
+         jsc("param", s.object({ module: s.string({ enum: MODULE_NAMES }).optional() })),
+         jsc("query", s.object({ secrets: s.boolean().optional() })),
          async (c) => {
             // @todo: allow secrets if authenticated user is admin
             const { secrets } = c.req.valid("query");
@@ -119,12 +121,7 @@ export class SystemController extends Controller {
       hono.post(
          "/set/:module",
          permission(SystemPermissions.configWrite),
-         tb(
-            "query",
-            Type.Object({
-               force: Type.Optional(booleanLike),
-            }),
-         ),
+         jsc("query", s.object({ force: s.boolean().optional() }), { skipOpenAPI: true }),
          async (c) => {
             const module = c.req.param("module") as any;
             const { force } = c.req.valid("query");
@@ -230,13 +227,17 @@ export class SystemController extends Controller {
 
       hono.get(
          "/schema/:module?",
+         describeRoute({
+            summary: "Get the schema for a module",
+            tags: ["system"],
+         }),
          permission(SystemPermissions.schemaRead),
-         tb(
+         jsc(
             "query",
-            Type.Object({
-               config: Type.Optional(booleanLike),
-               secrets: Type.Optional(booleanLike),
-               fresh: Type.Optional(booleanLike),
+            s.partialObject({
+               config: s.boolean(),
+               secrets: s.boolean(),
+               fresh: s.boolean(),
             }),
          ),
          async (c) => {
@@ -274,13 +275,11 @@ export class SystemController extends Controller {
 
       hono.post(
          "/build",
-         tb(
-            "query",
-            Type.Object({
-               sync: Type.Optional(booleanLike),
-               fetch: Type.Optional(booleanLike),
-            }),
-         ),
+         describeRoute({
+            summary: "Build the app",
+            tags: ["system"],
+         }),
+         jsc("query", s.object({ sync: s.boolean().optional(), fetch: s.boolean().optional() })),
          async (c) => {
             const options = c.req.valid("query") as Record<string, boolean>;
             this.ctx.guard.throwUnlessGranted(SystemPermissions.build, c);
@@ -293,25 +292,44 @@ export class SystemController extends Controller {
          },
       );
 
-      hono.get("/ping", (c) => c.json({ pong: true }));
+      hono.get(
+         "/ping",
+         describeRoute({
+            summary: "Ping the server",
+            tags: ["system"],
+         }),
+         (c) => c.json({ pong: true }),
+      );
 
-      hono.get("/info", (c) =>
-         c.json({
-            version: c.get("app")?.version(),
-            runtime: getRuntimeKey(),
-            timezone: {
-               name: getTimezone(),
-               offset: getTimezoneOffset(),
-               local: datetimeStringLocal(),
-               utc: datetimeStringUTC(),
+      hono.get(
+         "/info",
+         describeRoute({
+            summary: "Get the server info",
+            tags: ["system"],
+         }),
+         (c) =>
+            c.json({
+               version: c.get("app")?.version(),
+               runtime: getRuntimeKey(),
+               timezone: {
+                  name: getTimezone(),
+                  offset: getTimezoneOffset(),
+                  local: datetimeStringLocal(),
+                  utc: datetimeStringUTC(),
+               },
+            }),
+      );
+
+      hono.get(
+         "/openapi.json",
+         openAPISpecs(this.ctx.server, {
+            info: {
+               title: "bknd API",
+               version: getVersion(),
             },
          }),
       );
-
-      hono.get("/openapi.json", async (c) => {
-         const config = getDefaultConfig();
-         return c.json(generateOpenAPI(config));
-      });
+      hono.get("/swagger", swaggerUI({ url: "/api/system/openapi.json" }));
 
       return hono.all("*", (c) => c.notFound());
    }

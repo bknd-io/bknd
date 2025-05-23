@@ -1,7 +1,10 @@
 import { mergeObject } from "core/utils";
 
-export { jsc, type Options, type Hook } from "./validator";
+//export { jsc, type Options, type Hook } from "./validator";
 import * as s from "jsonv-ts";
+
+export { validator as jsc, type Options } from "jsonv-ts/hono";
+export { describeRoute, schemaToSpec, openAPISpecs } from "jsonv-ts/hono";
 
 export { s };
 
