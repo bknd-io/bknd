@@ -1,26 +1,21 @@
-import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position, useReactFlow } from "@xyflow/react";
 
 import type { TAppDataEntity } from "data/data-schema";
-import { useState } from "react";
-import { TbDiamonds, TbKey } from "react-icons/tb";
+import { useEffect, useState } from "react";
+import { TbBolt, TbDiamonds, TbKey } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
 import { DefaultNode } from "ui/components/canvas/components/nodes/DefaultNode";
+import { useTheme } from "ui/client/use-theme";
+import { useNavigate } from "ui/lib/routes";
+import type { TCanvasEntity, TCanvasEntityField } from "./DataSchemaCanvas";
 
 export type TableProps = {
    name: string;
    type?: string;
-   fields: TableField[];
-};
-export type TableField = {
-   name: string;
-   type: string;
-   primary?: boolean;
-   foreign?: boolean;
-   indexed?: boolean;
+   fields: TCanvasEntityField[];
 };
 
-function NodeComponent(props: NodeProps<Node<TAppDataEntity & { label: string }>>) {
-   const [hovered, setHovered] = useState(false);
+function NodeComponent(props: NodeProps<Node<TCanvasEntity>>) {
    const { data } = props;
    const fields = props.data.fields ?? {};
    const field_count = Object.keys(fields).length;
@@ -32,10 +27,11 @@ function NodeComponent(props: NodeProps<Node<TAppDataEntity & { label: string }>
             {Object.entries(fields).map(([name, field], index) => (
                <TableRow
                   key={index}
-                  field={{ name, ...field }}
+                  field={field}
                   table={data.label}
                   index={index}
                   last={field_count === index + 1}
+                  selected={props.selected && ["relation", "primary"].includes(field.type)}
                />
             ))}
          </div>
@@ -53,13 +49,16 @@ const TableRow = ({
    index,
    onHover,
    last,
+   selected,
 }: {
-   field: TableField;
+   field: TCanvasEntityField;
    table: string;
    index: number;
    last?: boolean;
+   selected?: boolean;
    onHover?: (hovered: boolean) => void;
 }) => {
+   const [navigate] = useNavigate();
    const handleTop = HEIGHTS.header + HEIGHTS.row * index + HEIGHTS.row / 2;
    const handles = true;
    const handleId = `${table}:${field.name}`;
@@ -67,10 +66,12 @@ const TableRow = ({
    return (
       <div
          className={twMerge(
-            "flex flex-row w-full justify-between font-mono py-1.5 px-2.5 border-b border-primary/15 border-l border-r cursor-auto",
+            "flex flex-row w-full justify-between font-mono py-1.5 px-2.5 border-b border-primary/15 border-l border-r cursor-pointer",
             last && "rounded-bl-lg rounded-br-lg",
+            selected && "bg-primary/5",
             "hover:bg-primary/5",
          )}
+         onClick={() => navigate(`/entity/${table}/fields/${field.name}`)}
       >
          {handles && (
             <Handle
@@ -86,7 +87,12 @@ const TableRow = ({
             {field.type === "primary" && <TbKey className="text-yellow-700" />}
             {field.type === "relation" && <TbDiamonds className="text-sky-700" />}
          </div>
-         <div className="flex flex-grow">{field.name}</div>
+         <div className="flex flex-grow items-center gap-1">
+            <span className={field.config?.required ? "font-bold" : "opacity-90"}>
+               {field.name}
+            </span>{" "}
+            {field.indexed && <TbBolt className="text-warning-foreground/50" />}
+         </div>
          <div className="flex opacity-60">{field.type}</div>
 
          {handles && (
