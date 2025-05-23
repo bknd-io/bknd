@@ -409,7 +409,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const options = (await c.req.valid("json")) as RepoQuery;
+            const options = (await c.req.json()) as RepoQuery;
             const result = await this.em.repository(entity).findMany(options);
 
             return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
@@ -434,7 +434,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const body = c.req.valid("json") as EntityData | EntityData[];
+            const body = (await c.req.json()) as EntityData | EntityData[];
 
             if (Array.isArray(body)) {
                const result = await this.em.mutator(entity).insertMany(body);
@@ -467,7 +467,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const { update, where } = c.req.valid("json") as {
+            const { update, where } = (await c.req.json()) as {
                update: EntityData;
                where: RepoQuery["where"];
             };
@@ -492,7 +492,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const body = c.req.valid("json") as EntityData;
+            const body = (await c.req.json()) as EntityData;
             const result = await this.em.mutator(entity).updateOne(Number(id), body);
 
             return c.json(this.mutatorResult(result));
@@ -534,7 +534,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const where = c.req.valid("json") as RepoQuery["where"];
+            const where = (await c.req.json()) as RepoQuery["where"];
             const result = await this.em.mutator(entity).deleteWhere(where);
 
             return c.json(this.mutatorResult(result));
