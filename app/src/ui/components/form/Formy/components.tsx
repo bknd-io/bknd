@@ -246,7 +246,6 @@ export const Switch = forwardRef<
             props.disabled && "opacity-50 !cursor-not-allowed",
          )}
          onCheckedChange={(bool) => {
-            console.log("setting", bool);
             props.onChange?.({ target: { value: bool } });
          }}
          {...(props as any)}
@@ -272,7 +271,7 @@ export const Switch = forwardRef<
 export const Select = forwardRef<
    HTMLSelectElement,
    React.ComponentProps<"select"> & {
-      options?: { value: string; label: string }[] | (string | number)[];
+      options?: { value: string; label: string; disabled?: boolean }[] | (string | number)[];
    }
 >(({ children, options, ...props }, ref) => (
    <div className="flex w-full relative">
@@ -297,7 +296,7 @@ export const Select = forwardRef<
                      return o;
                   })
                   .map((opt) => (
-                     <option key={opt.value} value={opt.value}>
+                     <option key={opt.value} value={opt.value} disabled={opt.disabled}>
                         {opt.label}
                      </option>
                   ))}

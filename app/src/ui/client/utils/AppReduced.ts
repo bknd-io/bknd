@@ -1,5 +1,12 @@
 import type { App } from "App";
-import { type Entity, type EntityRelation, constructEntity, constructRelation } from "data";
+import {
+   type Entity,
+   type EntityIndex,
+   type EntityRelation,
+   constructEntity,
+   constructRelation,
+   constructIndex,
+} from "data";
 import { RelationAccessor } from "data/relations/RelationAccessor";
 import { Flow, TaskMap } from "flows";
 import type { BkndAdminOptions } from "ui/client/BkndProvider";
@@ -14,6 +21,7 @@ export class AppReduced {
    // @todo: change to record
    private _entities: Entity[] = [];
    private _relations: EntityRelation[] = [];
+   private _indices: EntityIndex[] = [];
    private _flows: Flow[] = [];
 
    constructor(
@@ -28,6 +36,10 @@ export class AppReduced {
 
       this._relations = Object.entries(this.appJson.data.relations ?? {}).map(([, relation]) => {
          return constructRelation(relation, this.entity.bind(this));
+      });
+
+      this._indices = Object.entries(this.appJson.data.indices ?? {}).map(([name, index]) => {
+         return constructIndex(index, this.entity.bind(this), name);
       });
 
       for (const [name, obj] of Object.entries(this.appJson.flows.flows ?? {})) {
@@ -56,6 +68,10 @@ export class AppReduced {
 
    get relations(): RelationAccessor {
       return new RelationAccessor(this._relations);
+   }
+
+   get indices(): EntityIndex[] {
+      return this._indices;
    }
 
    get flows(): Flow[] {

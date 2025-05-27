@@ -31,6 +31,8 @@ import { fieldSpecs } from "ui/modules/data/components/fields-specs";
 import { extractSchema } from "../settings/utils/schema";
 import { EntityFieldsForm, type EntityFieldsFormRef } from "./forms/entity.fields.form";
 import { RoutePathStateProvider } from "ui/hooks/use-route-path-state";
+import { EntityIndicesForm } from "./forms/entity.indices.form";
+import type { TAppDataIndex } from "data/data-schema";
 
 export function DataSchemaEntity({ params }) {
    const { $data } = useBkndData();
@@ -42,106 +44,100 @@ export function DataSchemaEntity({ params }) {
    }
 
    return (
-      <RoutePathStateProvider path={`/entity/${entity.name}/:setting?`} defaultIdentifier="fields">
-         <AppShell.SectionHeader
-            right={
-               <>
-                  <Dropdown
-                     items={[
-                        {
-                           label: "Data",
-                           onClick: () =>
-                              navigate(routes.data.root() + routes.data.entity.list(entity.name), {
-                                 absolute: true,
-                              }),
-                        },
-                        {
-                           label: "Advanced Settings",
-                           onClick: () =>
-                              navigate(routes.settings.path(["data", "entities", entity.name]), {
-                                 absolute: true,
-                              }),
-                        },
-                     ]}
-                     position="bottom-end"
-                  >
-                     <IconButton Icon={TbDots} />
-                  </Dropdown>
-                  <Dropdown
-                     items={[
-                        {
-                           icon: TbCirclesRelation,
-                           label: "Add relation",
-                           onClick: () => $data.modals.createRelation(entity.name),
-                        },
-                        {
-                           icon: TbPhoto,
-                           label: "Add media",
-                           onClick: () => $data.modals.createMedia(entity.name),
-                        },
-                        () => <div className="h-px my-1 w-full bg-primary/5" />,
-                        {
-                           icon: TbDatabasePlus,
-                           label: "Create Entity",
-                           onClick: () => $data.modals.createEntity(),
-                        },
-                     ]}
-                     position="bottom-end"
-                  >
-                     <Button IconRight={TbPlus}>Add</Button>
-                  </Dropdown>
-               </>
-            }
-            className="pl-3"
+      <>
+         <RoutePathStateProvider
+            path={`/entity/${entity.name}/:setting?`}
+            defaultIdentifier="fields"
          >
-            <div className="flex flex-row gap-4">
-               <Breadcrumbs2
-                  path={[{ label: "Schema", href: "/" }, { label: entity.label }]}
-                  backTo="/"
-               />
-               <Link to="/" className="hidden md:inline">
-                  <Button IconLeft={TbSitemap}>Overview</Button>
-               </Link>
-            </div>
-         </AppShell.SectionHeader>
-         <div className="flex flex-col h-full" key={entity.name}>
-            <Fields entity={entity} />
+            <AppShell.SectionHeader
+               right={
+                  <>
+                     <Dropdown
+                        items={[
+                           {
+                              label: "Data",
+                              onClick: () =>
+                                 navigate(
+                                    routes.data.root() + routes.data.entity.list(entity.name),
+                                    {
+                                       absolute: true,
+                                    },
+                                 ),
+                           },
+                           {
+                              label: "Advanced Settings",
+                              onClick: () =>
+                                 navigate(routes.settings.path(["data", "entities", entity.name]), {
+                                    absolute: true,
+                                 }),
+                           },
+                        ]}
+                        position="bottom-end"
+                     >
+                        <IconButton Icon={TbDots} />
+                     </Dropdown>
+                     <Dropdown
+                        items={[
+                           {
+                              icon: TbCirclesRelation,
+                              label: "Add relation",
+                              onClick: () => $data.modals.createRelation(entity.name),
+                           },
+                           {
+                              icon: TbPhoto,
+                              label: "Add media",
+                              onClick: () => $data.modals.createMedia(entity.name),
+                           },
+                           () => <div className="h-px my-1 w-full bg-primary/5" />,
+                           {
+                              icon: TbDatabasePlus,
+                              label: "Create Entity",
+                              onClick: () => $data.modals.createEntity(),
+                           },
+                        ]}
+                        position="bottom-end"
+                     >
+                        <Button IconRight={TbPlus}>Add</Button>
+                     </Dropdown>
+                  </>
+               }
+               className="pl-3"
+            >
+               <div className="flex flex-row gap-4">
+                  <Breadcrumbs2
+                     path={[{ label: "Schema", href: "/" }, { label: entity.label }]}
+                     backTo="/"
+                  />
+                  <Link to="/" className="hidden md:inline">
+                     <Button IconLeft={TbSitemap}>Overview</Button>
+                  </Link>
+               </div>
+            </AppShell.SectionHeader>
+            <div className="flex flex-col h-full" key={entity.name}>
+               <Fields entity={entity} />
 
-            <BasicSettings entity={entity} />
-            <AppShell.RouteAwareSectionHeaderAccordionItem
-               identifier="relations"
-               title="Relations"
-               ActiveIcon={IconCirclesRelation}
-            >
-               <Empty
+               <BasicSettings entity={entity} />
+               <AppShell.RouteAwareSectionHeaderAccordionItem
+                  identifier="relations"
                   title="Relations"
-                  description="This will soon be available here. Meanwhile, check advanced settings."
-                  primary={{
-                     children: "Advanced Settings",
-                     onClick: () =>
-                        navigate(routes.settings.path(["data", "relations"]), { absolute: true }),
-                  }}
-               />
-            </AppShell.RouteAwareSectionHeaderAccordionItem>
-            <AppShell.RouteAwareSectionHeaderAccordionItem
-               identifier="indices"
-               title="Indices"
-               ActiveIcon={IconBolt}
-            >
-               <Empty
-                  title="Indices"
-                  description="This will soon be available here. Meanwhile, check advanced settings."
-                  primary={{
-                     children: "Advanced Settings",
-                     onClick: () =>
-                        navigate(routes.settings.path(["data", "indices"]), {
-                           absolute: true,
-                        }),
-                  }}
-               />
-            </AppShell.RouteAwareSectionHeaderAccordionItem>
-         </div>
-      </RoutePathStateProvider>
+                  ActiveIcon={IconCirclesRelation}
+               >
+                  <Empty
+                     title="Relations"
+                     description="This will soon be available here. Meanwhile, check advanced settings."
+                     primary={{
+                        children: "Advanced Settings",
+                        onClick: () =>
+                           navigate(routes.settings.path(["data", "relations"]), {
+                              absolute: true,
+                           }),
+                     }}
+                  />
+               </AppShell.RouteAwareSectionHeaderAccordionItem>
+               <Indices entity={entity} />
+            </div>
+         </RoutePathStateProvider>
+      </>
    );
 }
 
@@ -277,6 +273,40 @@ const BasicSettings = ({ entity }: { entity: Entity }) => {
                onSubmit={console.log}
                className="legacy hide-required-mark fieldset-alternative mute-root"
             />
+         </div>
+      </AppShell.RouteAwareSectionHeaderAccordionItem>
+   );
+};
+
+const Indices = ({ entity }: { entity: Entity }) => {
+   const [navigate] = useNavigate();
+   const [data, setData] = useState<Record<string, TAppDataIndex>>({});
+   const d = useBkndData();
+   const [submitting, setSubmitting] = useState(false);
+   async function handleUpdate() {
+      console.log("update", data);
+      return;
+      /*if (submitting) return;
+      setSubmitting(true);
+      await d.actions.entity.patch(entity.name).indices.set(data);
+      setSubmitting(false);*/
+   }
+
+   return (
+      <AppShell.RouteAwareSectionHeaderAccordionItem
+         identifier="indices"
+         title="Indices"
+         ActiveIcon={IconBolt}
+         renderHeaderRight={({ open }) =>
+            open ? (
+               <Button variant="primary" disabled={!open || submitting} onClick={handleUpdate}>
+                  Update
+               </Button>
+            ) : null
+         }
+      >
+         <div className="flex flex-col flex-grow py-3 px-4 max-w-4xl gap-3 relative">
+            <EntityIndicesForm entity={entity} onChange={setData} />
          </div>
       </AppShell.RouteAwareSectionHeaderAccordionItem>
    );
