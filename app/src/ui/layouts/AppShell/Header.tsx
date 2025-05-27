@@ -1,5 +1,5 @@
 import { SegmentedControl, Tooltip } from "@mantine/core";
-import { IconKeyOff, IconSettings, IconUser } from "@tabler/icons-react";
+import { IconApi, IconKeyOff, IconSettings, IconUser } from "@tabler/icons-react";
 import {
    TbDatabase,
    TbFingerprint,
@@ -159,6 +159,11 @@ function UserMenu() {
 
    const items: DropdownItem[] = [
       { label: "Settings", onClick: () => navigate("/settings"), icon: IconSettings },
+      {
+         label: "OpenAPI",
+         onClick: () => window.open("/api/system/swagger", "_blank"),
+         icon: IconApi,
+      },
    ];
 
    if (config.auth.enabled) {

@@ -336,7 +336,7 @@ export class DataController extends Controller {
                id: s.string(),
             }),
          ),
-         jsc("query", saveRepoQuery),
+         jsc("query", repoQuery, { skipOpenAPI: true }),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {

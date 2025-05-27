@@ -24,6 +24,12 @@ export class InvalidSchemaError extends Error {
 export type ParseOptions = {
    withDefaults?: boolean;
    coerse?: boolean;
+   clone?: boolean;
+};
+
+const cloneSchema = <S extends s.TSchema>(schema: S): S => {
+   const json = schema.toJSON();
+   return s.fromSchema(json) as S;
 };
 
 export function parse<S extends s.TAnySchema>(
@@ -31,7 +37,7 @@ export function parse<S extends s.TAnySchema>(
    v: unknown,
    opts: ParseOptions = {},
 ): s.StaticCoerced<S> {
-   const schema = _schema as unknown as s.TSchema;
+   const schema = (opts.clone ? cloneSchema(_schema as any) : _schema) as s.TSchema;
    const value = opts.coerse !== false ? schema.coerce(v) : v;
    const result = schema.validate(value, {
       shortCircuit: true,

@@ -10,12 +10,11 @@ export function useSearch<Schema extends s.TAnySchema = s.TAnySchema>(
 ) {
    const searchString = useWouterSearch();
    const [location, navigate] = useLocation();
-   let value = (defaultValue ? parse(schema, defaultValue as any) : {}) as s.StaticCoerced<Schema>;
-
-   if (searchString.length > 0) {
-      value = parse(schema, decodeSearch(searchString));
-      //console.log("search:decode", value);
-   }
+   const initial = searchString.length > 0 ? decodeSearch(searchString) : (defaultValue ?? {});
+   const value = parse(schema, initial, {
+      withDefaults: true,
+      clone: true,
+   }) as s.StaticCoerced<Schema>;
 
    // @todo: add option to set multiple keys at once
    function set<Key extends keyof s.StaticCoerced<Schema>>(
