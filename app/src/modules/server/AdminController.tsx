@@ -86,7 +86,7 @@ export class AdminController extends Controller {
       hono.use("*", async (c, next) => {
          const obj = {
             user: c.get("auth")?.user,
-            logout_route: this.withAdminBasePath(authRoutes.logout),
+            logout_route: authRoutes.logout,
             admin_basepath: this.options.adminBasepath,
          };
          const html = await this.getHtml(obj);

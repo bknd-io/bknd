@@ -49,6 +49,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .cm-editor {
    display: flex;
    flex: 1;
+   max-width: 100%;
 }
 
 .animate-fade-in {

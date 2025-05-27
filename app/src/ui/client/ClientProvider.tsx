@@ -1,52 +1,64 @@
-import { Api, type ApiOptions, type TApiUser } from "Api";
+import { Api, type ApiOptions, type AuthState } from "Api";
 import { isDebug } from "core";
-import { createContext, type ReactNode, useContext } from "react";
+import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import type { AdminBkndWindowContext } from "modules/server/AdminController";
 
-const ClientContext = createContext<{ baseUrl: string; api: Api }>({
-   baseUrl: undefined,
-} as any);
+export type BkndClientContext = {
+   baseUrl: string;
+   api: Api;
+   authState?: Partial<AuthState>;
+};
+
+const ClientContext = createContext<BkndClientContext>(undefined!);
 
 export type ClientProviderProps = {
    children?: ReactNode;
-} & (
-   | { baseUrl?: string; user?: TApiUser | null | undefined }
-   | {
-        api: Api;
-     }
-);
+   baseUrl?: string;
+} & ApiOptions;
 
-export const ClientProvider = ({ children, ...props }: ClientProviderProps) => {
-   let api: Api;
+export const ClientProvider = ({
+   children,
+   host,
+   baseUrl: _baseUrl = host,
+   ...props
+}: ClientProviderProps) => {
+   const winCtx = useBkndWindowContext();
+   const _ctx = useClientContext();
+   let actualBaseUrl = _baseUrl ?? _ctx?.baseUrl ?? "";
+   let user: any = undefined;
 
-   if (props && "api" in props) {
-      api = props.api;
-   } else {
-      const winCtx = useBkndWindowContext();
-      const _ctx_baseUrl = useBaseUrl();
-      const { baseUrl, user } = props;
-      let actualBaseUrl = baseUrl ?? _ctx_baseUrl ?? "";
-
-      try {
-         if (!baseUrl) {
-            if (_ctx_baseUrl) {
-               actualBaseUrl = _ctx_baseUrl;
-               console.warn("wrapped many times, take from context", actualBaseUrl);
-            } else if (typeof window !== "undefined") {
-               actualBaseUrl = window.location.origin;
-               //console.log("setting from window", actualBaseUrl);
-            }
-         }
-      } catch (e) {
-         console.error("Error in ClientProvider", e);
-      }
-
-      //console.log("api init", { host: actualBaseUrl, user: user ?? winCtx.user });
-      api = new Api({ host: actualBaseUrl, user: user ?? winCtx.user, verbose: isDebug() });
+   if (winCtx) {
+      user = winCtx.user;
    }
 
+   if (!actualBaseUrl) {
+      try {
+         actualBaseUrl = window.location.origin;
+      } catch (e) {}
+   }
+
+   const apiProps = { user, ...props, host: actualBaseUrl };
+   const api = useMemo(
+      () =>
+         new Api({
+            ...apiProps,
+            verbose: isDebug(),
+            onAuthStateChange: (state) => {
+               props.onAuthStateChange?.(state);
+               if (!authState?.token || state.token !== authState?.token) {
+                  setAuthState(state);
+               }
+            },
+         }),
+      [JSON.stringify(apiProps)],
+   );
+
+   const [authState, setAuthState] = useState<Partial<AuthState> | undefined>(
+      apiProps.user ? api.getAuthState() : undefined,
+   );
+
    return (
-      <ClientContext.Provider value={{ baseUrl: api.baseUrl, api }}>
+      <ClientContext.Provider value={{ baseUrl: api.baseUrl, api, authState }}>
          {children}
       </ClientContext.Provider>
    );
@@ -61,12 +73,16 @@ export const useApi = (host?: ApiOptions["host"]): Api => {
    return context.api;
 };
 
+export const useClientContext = () => {
+   return useContext(ClientContext);
+};
+
 /**
  * @deprecated use useApi().baseUrl instead
  */
 export const useBaseUrl = () => {
-   const context = useContext(ClientContext);
-   return context.baseUrl;
+   const context = useClientContext();
+   return context?.baseUrl;
 };
 
 export function useBkndWindowContext(): AdminBkndWindowContext {

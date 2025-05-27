@@ -1,10 +1,11 @@
 import type { SafeUser } from "auth";
-import { AuthApi } from "auth/api/AuthApi";
-import { DataApi } from "data/api/DataApi";
+import { AuthApi, type AuthApiOptions } from "auth/api/AuthApi";
+import { DataApi, type DataApiOptions } from "data/api/DataApi";
 import { decode } from "hono/jwt";
-import { MediaApi } from "media/api/MediaApi";
+import { MediaApi, type MediaApiOptions } from "media/api/MediaApi";
 import { SystemApi } from "modules/SystemApi";
 import { omitKeys } from "core/utils";
+import type { BaseModuleApiOptions } from "modules";
 
 export type TApiUser = SafeUser;
 
@@ -21,14 +22,24 @@ declare global {
    }
 }
 
+type SubApiOptions<T extends BaseModuleApiOptions> = Omit<T, keyof BaseModuleApiOptions>;
+
 export type ApiOptions = {
    host?: string;
    headers?: Headers;
    key?: string;
-   localStorage?: boolean;
+   storage?: {
+      getItem: (key: string) => string | undefined | null | Promise<string | undefined | null>;
+      setItem: (key: string, value: string) => void | Promise<void>;
+      removeItem: (key: string) => void | Promise<void>;
+   };
+   onAuthStateChange?: (state: AuthState) => void;
    fetcher?: ApiFetcher;
    verbose?: boolean;
    verified?: boolean;
+   data?: SubApiOptions<DataApiOptions>;
+   auth?: SubApiOptions<AuthApiOptions>;
+   media?: SubApiOptions<MediaApiOptions>;
 } & (
    | {
         token?: string;
@@ -61,18 +72,18 @@ export class Api {
       this.verified = options.verified === true;
 
       // prefer request if given
-      if ("request" in options) {
+      if ("request" in options && options.request) {
          this.options.host = options.host ?? new URL(options.request.url).origin;
          this.options.headers = options.headers ?? options.request.headers;
          this.extractToken();
 
          // then check for a token
-      } else if ("token" in options) {
+      } else if ("token" in options && options.token) {
          this.token_transport = "header";
-         this.updateToken(options.token);
+         this.updateToken(options.token, { trigger: false });
 
          // then check for an user object
-      } else if ("user" in options) {
+      } else if ("user" in options && options.user) {
          this.token_transport = "none";
          this.user = options.user;
          this.verified = options.verified !== false;
@@ -115,16 +126,30 @@ export class Api {
             this.updateToken(headerToken);
             return;
          }
-      } else if (this.options.localStorage) {
-         const token = localStorage.getItem(this.tokenKey);
-         if (token) {
+      } else if (this.storage) {
+         this.storage.getItem(this.tokenKey).then((token) => {
             this.token_transport = "header";
-            this.updateToken(token);
-         }
+            this.updateToken(token ? String(token) : undefined);
+         });
       }
    }
 
-   updateToken(token?: string, rebuild?: boolean) {
+   private get storage() {
+      if (!this.options.storage) return null;
+      return {
+         getItem: async (key: string) => {
+            return await this.options.storage!.getItem(key);
+         },
+         setItem: async (key: string, value: string) => {
+            return await this.options.storage!.setItem(key, value);
+         },
+         removeItem: async (key: string) => {
+            return await this.options.storage!.removeItem(key);
+         },
+      };
+   }
+
+   updateToken(token?: string, opts?: { rebuild?: boolean; trigger?: boolean }) {
       this.token = token;
       this.verified = false;
 
@@ -134,17 +159,25 @@ export class Api {
          this.user = undefined;
       }
 
-      if (this.options.localStorage) {
+      if (this.storage) {
          const key = this.tokenKey;
 
          if (token) {
-            localStorage.setItem(key, token);
+            this.storage.setItem(key, token).then(() => {
+               this.options.onAuthStateChange?.(this.getAuthState());
+            });
          } else {
-            localStorage.removeItem(key);
+            this.storage.removeItem(key).then(() => {
+               this.options.onAuthStateChange?.(this.getAuthState());
+            });
+         }
+      } else {
+         if (opts?.trigger !== false) {
+            this.options.onAuthStateChange?.(this.getAuthState());
          }
       }
 
-      if (rebuild) this.buildApis();
+      if (opts?.rebuild) this.buildApis();
    }
 
    private markAuthVerified(verfied: boolean) {
@@ -214,15 +247,32 @@ export class Api {
       const fetcher = this.options.fetcher;
 
       this.system = new SystemApi(baseParams, fetcher);
-      this.data = new DataApi(baseParams, fetcher);
-      this.auth = new AuthApi(
+      this.data = new DataApi(
          {
             ...baseParams,
-            onTokenUpdate: (token) => this.updateToken(token, true),
+            ...this.options.data,
          },
          fetcher,
       );
-      this.media = new MediaApi(baseParams, fetcher);
+      this.auth = new AuthApi(
+         {
+            ...baseParams,
+            credentials: this.options.storage ? "omit" : "include",
+            ...this.options.auth,
+            onTokenUpdate: (token) => {
+               this.updateToken(token, { rebuild: true });
+               this.options.auth?.onTokenUpdate?.(token);
+            },
+         },
+         fetcher,
+      );
+      this.media = new MediaApi(
+         {
+            ...baseParams,
+            ...this.options.media,
+         },
+         fetcher,
+      );
    }
 }
 

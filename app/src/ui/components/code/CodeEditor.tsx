@@ -1,4 +1,8 @@
-import { default as CodeMirror, type ReactCodeMirrorProps } from "@uiw/react-codemirror";
+import {
+   default as CodeMirror,
+   type ReactCodeMirrorProps,
+   EditorView,
+} from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
 import { html } from "@codemirror/lang-html";
 import { useTheme } from "ui/client/use-theme";
@@ -43,7 +47,7 @@ export default function CodeEditor({
          theme={theme === "dark" ? "dark" : "light"}
          editable={editable}
          basicSetup={_basicSetup}
-         extensions={extensions}
+         extensions={[...extensions, EditorView.lineWrapping]}
          {...props}
       />
    );

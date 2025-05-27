@@ -171,7 +171,8 @@ function UserMenu() {
          items.push({ label: "Login", onClick: handleLogin, icon: IconUser });
       } else {
          items.push({
-            label: `Logout ${auth.user.email}`,
+            label: "Logout",
+            title: `Logout ${auth.user.email}`,
             onClick: handleLogout,
             icon: IconKeyOff,
          });

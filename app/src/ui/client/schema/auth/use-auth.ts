@@ -1,7 +1,7 @@
 import type { AuthState } from "Api";
 import type { AuthResponse } from "auth";
-import { useState } from "react";
 import { useApi, useInvalidate } from "ui/client";
+import { useClientContext } from "ui/client/ClientProvider";
 
 type LoginData = {
    email: string;
@@ -10,7 +10,7 @@ type LoginData = {
 };
 
 type UseAuth = {
-   data: AuthState | undefined;
+   data: Partial<AuthState> | undefined;
    user: AuthState["user"] | undefined;
    token: AuthState["token"] | undefined;
    verified: boolean;
@@ -24,46 +24,36 @@ type UseAuth = {
 export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
    const api = useApi(options?.baseUrl);
    const invalidate = useInvalidate();
-   const authState = api.getAuthState();
-   const [authData, setAuthData] = useState<UseAuth["data"]>(authState);
+   const { authState } = useClientContext();
    const verified = authState?.verified ?? false;
 
-   function updateAuthState() {
-      setAuthData(api.getAuthState());
-   }
-
    async function login(input: LoginData) {
-      const res = await api.auth.loginWithPassword(input);
-      updateAuthState();
+      const res = await api.auth.login("password", input);
       return res.data;
    }
 
    async function register(input: LoginData) {
-      const res = await api.auth.registerWithPassword(input);
-      updateAuthState();
+      const res = await api.auth.register("password", input);
       return res.data;
    }
 
    function setToken(token: string) {
       api.updateToken(token);
-      updateAuthState();
    }
 
    async function logout() {
-      await api.updateToken(undefined);
-      setAuthData(undefined);
+      api.updateToken(undefined);
       invalidate();
    }
 
    async function verify() {
       await api.verifyAuth();
-      updateAuthState();
    }
 
    return {
-      data: authData,
-      user: authData?.user,
-      token: authData?.token,
+      data: authState,
+      user: authState?.user,
+      token: authState?.token,
       verified,
       login,
       register,

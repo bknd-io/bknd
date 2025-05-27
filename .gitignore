@@ -31,3 +31,4 @@ packages/media/.env
 .git_old
 docker/tmp
 .debug
+.history

@@ -4,19 +4,21 @@ import type { AuthResponse, SafeUser, Strategy } from "auth/authenticate/Authent
 import { type BaseModuleApiOptions, ModuleApi } from "modules/ModuleApi";
 
 export type AuthApiOptions = BaseModuleApiOptions & {
-   onTokenUpdate?: (token: string) => void | Promise<void>;
+   onTokenUpdate?: (token?: string) => void | Promise<void>;
+   credentials?: "include" | "same-origin" | "omit";
 };
 
 export class AuthApi extends ModuleApi<AuthApiOptions> {
    protected override getDefaultOptions(): Partial<AuthApiOptions> {
       return {
          basepath: "/api/auth",
+         credentials: "include",
       };
    }
 
    async login(strategy: string, input: any) {
       const res = await this.post<AuthResponse>([strategy, "login"], input, {
-         credentials: "include",
+         credentials: this.options.credentials,
       });
 
       if (res.ok && res.body.token) {
@@ -27,7 +29,7 @@ export class AuthApi extends ModuleApi<AuthApiOptions> {
 
    async register(strategy: string, input: any) {
       const res = await this.post<AuthResponse>([strategy, "register"], input, {
-         credentials: "include",
+         credentials: this.options.credentials,
       });
 
       if (res.ok && res.body.token) {
@@ -68,5 +70,7 @@ export class AuthApi extends ModuleApi<AuthApiOptions> {
       return this.get<Pick<AppAuthSchema, "strategies" | "basepath">>(["strategies"]);
    }
 
-   async logout() {}
+   async logout() {
+      await this.options.onTokenUpdate?.(undefined);
+   }
 }

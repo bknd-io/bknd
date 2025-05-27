@@ -19,6 +19,7 @@ export type DropdownItem =
         onClick?: () => void;
         destructive?: boolean;
         disabled?: boolean;
+        title?: string;
         [key: string]: any;
      };
 
@@ -142,6 +143,7 @@ export function Dropdown({
                   item.destructive && "text-red-500 hover:bg-red-600 hover:text-white",
                )}
                onClick={onClick}
+               title={item.title}
             >
                {space_for_icon && (
                   <div className="size-[16px] text-left mr-1.5 opacity-80">
