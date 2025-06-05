@@ -1,10 +1,31 @@
 {
   "name": "bknd-docs",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "mintlify dev"
+    "build": "next build",
+    "dev": "next dev --turbo",
+    "start": "next start",
+    "postinstall": "fumadocs-mdx"
+  },
+  "dependencies": {
+    "next": "15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "fumadocs-ui": "15.5.0",
+    "fumadocs-core": "15.5.0",
+    "fumadocs-mdx": "11.6.6"
   },
   "devDependencies": {
-    "mintlify": "4.0.510"
+    "@types/node": "22.15.28",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "typescript": "^5.8.3",
+    "@types/mdx": "^2.0.13",
+    "@tailwindcss/postcss": "^4.1.8",
+    "tailwindcss": "^4.1.8",
+    "postcss": "^8.5.4",
+    "eslint": "^8",
+    "eslint-config-next": "15.3.3"
   }
 }
