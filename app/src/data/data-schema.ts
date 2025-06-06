@@ -68,6 +68,7 @@ export const indicesSchema = tb.Type.Object(
       additionalProperties: false,
    },
 );
+export type TAppDataIndex = Static<(typeof indicesSchema)[number]>;
 
 export const dataConfigSchema = tb.Type.Object(
    {

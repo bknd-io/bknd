@@ -13,13 +13,15 @@ import {
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTheme } from "ui/client/use-theme";
 
-type CanvasProps = ReactFlowProps & {
+export type CanvasProps = Omit<ReactFlowProps, "onNodesChange" | "onEdgesChange"> & {
    externalProvider?: boolean;
    backgroundStyle?: "lines" | "dots";
    minimap?: boolean | MiniMapProps;
    children?: Element | ReactNode;
    onDropNewNode?: (base: any) => any;
    onDropNewEdge?: (base: any) => any;
+   onNodesChange?: (changes: any) => void;
+   onEdgesChange?: (changes: any) => void;
 };
 
 export function Canvas({
@@ -33,14 +35,30 @@ export function Canvas({
    onDropNewEdge,
    ...props
 }: CanvasProps) {
-   const [nodes, setNodes, onNodesChange] = useNodesState(_nodes ?? []);
-   const [edges, setEdges, onEdgesChange] = useEdgesState(_edges ?? []);
+   const [nodes, setNodes, _onNodesChange] = useNodesState(_nodes ?? []);
+   const [edges, setEdges, _onEdgesChange] = useEdgesState(_edges ?? []);
    const { screenToFlowPosition } = useReactFlow();
    const { theme } = useTheme();
 
    const [isCommandPressed, setIsCommandPressed] = useState(false);
    const [isSpacePressed, setIsSpacePressed] = useState(false);
    const [isPointerPressed, setIsPointerPressed] = useState(false);
+
+   const onNodesChange = useCallback(
+      (changes) => {
+         _onNodesChange(changes);
+         props.onNodesChange?.(changes);
+      },
+      [_onNodesChange, props.onNodesChange],
+   );
+
+   const onEdgesChange = useCallback(
+      (changes) => {
+         _onEdgesChange(changes);
+         props.onEdgesChange?.(changes);
+      },
+      [_onEdgesChange, props.onEdgesChange],
+   );
 
    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey) {
@@ -173,8 +191,6 @@ export function Canvas({
          snapToGrid
          nodes={nodes}
          edges={edges}
-         onNodesChange={onNodesChange}
-         onEdgesChange={onEdgesChange}
          nodesConnectable={false}
          /*panOnDrag={isSpacePressed}*/
          panOnDrag={true}
@@ -183,6 +199,8 @@ export function Canvas({
          zoomOnDoubleClick={false}
          selectionOnDrag={!isSpacePressed}
          {...props}
+         onNodesChange={onNodesChange}
+         onEdgesChange={onEdgesChange}
       >
          {backgroundStyle === "lines" && (
             <Background
