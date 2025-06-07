@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "---Getting Started---",
+    "start",
+    "motivation",
+    "---Usage---",
+    "introduction",
+    "database",
+    "cli",
+    "sdk",
+    "react",
+    "elements",
+    "---Extending---",
+    "config",
+    "events"
+  ]
+}
