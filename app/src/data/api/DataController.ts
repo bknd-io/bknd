@@ -233,6 +233,8 @@ export class DataController extends Controller {
       const hono = this.create();
 
       const entitiesEnum = this.getEntitiesEnum(this.em);
+      // @todo: make dynamic based on entity
+      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as any });
 
       /**
        * Function endpoints
@@ -333,7 +335,7 @@ export class DataController extends Controller {
             "param",
             s.object({
                entity: entitiesEnum,
-               id: s.string(),
+               id: idType,
             }),
          ),
          jsc("query", repoQuery, { skipOpenAPI: true }),
@@ -343,7 +345,7 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const options = c.req.valid("query") as RepoQuery;
-            const result = await this.em.repository(entity).findId(Number(id), options);
+            const result = await this.em.repository(entity).findId(id, options);
 
             return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
          },
@@ -362,7 +364,7 @@ export class DataController extends Controller {
             "param",
             s.object({
                entity: entitiesEnum,
-               id: s.string(),
+               id: idType,
                reference: s.string(),
             }),
          ),
@@ -376,7 +378,7 @@ export class DataController extends Controller {
             const options = c.req.valid("query") as RepoQuery;
             const result = await this.em
                .repository(entity)
-               .findManyByReference(Number(id), reference, options);
+               .findManyByReference(id, reference, options);
 
             return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
          },
@@ -485,7 +487,7 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityUpdate),
-         jsc("param", s.object({ entity: entitiesEnum, id: s.number() })),
+         jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          jsc("json", s.object({})),
          async (c) => {
             const { entity, id } = c.req.valid("param");
@@ -493,7 +495,7 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const body = (await c.req.json()) as EntityData;
-            const result = await this.em.mutator(entity).updateOne(Number(id), body);
+            const result = await this.em.mutator(entity).updateOne(id, body);
 
             return c.json(this.mutatorResult(result));
          },
@@ -507,13 +509,13 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityDelete),
-         jsc("param", s.object({ entity: entitiesEnum, id: s.number() })),
+         jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const result = await this.em.mutator(entity).deleteOne(Number(id));
+            const result = await this.em.mutator(entity).deleteOne(id);
 
             return c.json(this.mutatorResult(result));
          },

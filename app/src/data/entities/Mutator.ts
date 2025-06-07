@@ -143,7 +143,7 @@ export class Mutator<
 
       // if listener returned, take what's returned
       const _data = result.returned ? result.params.data : data;
-      const validatedData = {
+      let validatedData = {
          ...entity.getDefaultObject(),
          ...(await this.getValidatedData(_data, "create")),
       };
@@ -157,6 +157,16 @@ export class Mutator<
          ) {
             throw new Error(`Field "${field.name}" is required`);
          }
+      }
+
+      // primary
+      const primary = entity.getPrimaryField();
+      const primary_value = primary.getNewValue();
+      if (primary_value) {
+         validatedData = {
+            [primary.name]: primary_value,
+            ...validatedData,
+         };
       }
 
       const query = this.conn
@@ -175,7 +185,7 @@ export class Mutator<
 
    async updateOne(id: PrimaryFieldType, data: Partial<Input>): Promise<MutatorResponse<Output>> {
       const entity = this.entity;
-      if (!Number.isInteger(id)) {
+      if (!id) {
          throw new Error("ID must be provided for update");
       }
 
@@ -212,7 +222,7 @@ export class Mutator<
 
    async deleteOne(id: PrimaryFieldType): Promise<MutatorResponse<Output>> {
       const entity = this.entity;
-      if (!Number.isInteger(id)) {
+      if (!id) {
          throw new Error("ID must be provided for deletion");
       }
 

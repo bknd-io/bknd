@@ -2,6 +2,8 @@ import {
    type AliasableExpression,
    type ColumnBuilderCallback,
    type ColumnDataType,
+   type DatabaseIntrospector,
+   type Dialect,
    type Expression,
    type Kysely,
    type KyselyPlugin,
@@ -12,7 +14,8 @@ import {
    type Simplify,
    sql,
 } from "kysely";
-import type { BaseIntrospector } from "./BaseIntrospector";
+import type { BaseIntrospector, BaseIntrospectorConfig } from "./BaseIntrospector";
+import type { Constructor } from "core";
 
 export type QB = SelectQueryBuilder<any, any, any>;
 
@@ -158,4 +161,20 @@ export abstract class Connection<DB = any> {
    async close(): Promise<void> {
       // no-op by default
    }
+}
+
+export function customIntrospector<T extends Constructor<Dialect>>(
+   dialect: T,
+   introspector: Constructor<DatabaseIntrospector>,
+   options: BaseIntrospectorConfig = {},
+) {
+   return {
+      create(...args: ConstructorParameters<T>) {
+         return new (class extends dialect {
+            override createIntrospector(db: Kysely<any>): DatabaseIntrospector {
+               return new introspector(db, options);
+            }
+         })(...args);
+      },
+   };
 }

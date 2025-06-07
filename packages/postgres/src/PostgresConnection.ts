@@ -1,61 +1,44 @@
-import { Connection, type FieldSpec, type SchemaResponse } from "bknd/data";
+import { Connection, type DbFunctions, type FieldSpec, type SchemaResponse } from "bknd/data";
 import {
+   ParseJSONResultsPlugin,
    type ColumnDataType,
    type ColumnDefinitionBuilder,
-   type DatabaseIntrospector,
-   Kysely,
-   ParseJSONResultsPlugin,
-   PostgresDialect,
+   type Kysely,
+   type KyselyPlugin,
    type SelectQueryBuilder,
 } from "kysely";
 import { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/postgres";
-import pg from "pg";
-import { PostgresIntrospector } from "./PostgresIntrospector";
 
-export type PostgresConnectionConfig = pg.PoolConfig;
 export type QB = SelectQueryBuilder<any, any, any>;
 
-const plugins = [new ParseJSONResultsPlugin()];
+export const plugins = [new ParseJSONResultsPlugin()];
 
-class CustomPostgresDialect extends PostgresDialect {
-   override createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-      return new PostgresIntrospector(db, {
-         excludeTables: [],
-      });
-   }
-}
-
-export class PostgresConnection extends Connection {
+export abstract class PostgresConnection<DB = any> extends Connection<DB> {
    protected override readonly supported = {
       batching: true,
    };
-   private pool: pg.Pool;
 
-   constructor(config: PostgresConnectionConfig) {
-      const pool = new pg.Pool(config);
-      const kysely = new Kysely({
-         dialect: new CustomPostgresDialect({
-            pool,
-         }),
-         plugins,
-         //log: ["query", "error"],
-      });
-
+   constructor(kysely: Kysely<DB>, fn?: Partial<DbFunctions>, _plugins?: KyselyPlugin[]) {
       super(
          kysely,
-         {
+         fn ?? {
             jsonArrayFrom,
             jsonBuildObject,
             jsonObjectFrom,
          },
-         plugins,
+         _plugins ?? plugins,
       );
-      this.pool = pool;
    }
 
    override getFieldSchema(spec: FieldSpec): SchemaResponse {
       this.validateFieldSpecType(spec.type);
-      let type: ColumnDataType = spec.primary ? "serial" : spec.type;
+      let type: ColumnDataType = spec.type;
+
+      if (spec.primary) {
+         if (spec.type === "integer") {
+            type = "serial";
+         }
+      }
 
       switch (spec.type) {
          case "blob":
@@ -88,10 +71,6 @@ export class PostgresConnection extends Connection {
             return spec.nullable ? col : col.notNull();
          },
       ];
-   }
-
-   override async close(): Promise<void> {
-      await this.pool.end();
    }
 
    protected override async batch<Queries extends QB[]>(

@@ -2,6 +2,7 @@ import type { CompiledQuery, TableMetadata } from "kysely";
 import type { IndexMetadata, SchemaResponse } from "../connection/Connection";
 import type { Entity, EntityManager } from "../entities";
 import { PrimaryField } from "../fields";
+import { $console } from "core";
 
 type IntrospectedTable = TableMetadata & {
    indices: IndexMetadata[];
@@ -332,6 +333,7 @@ export class SchemaManager {
 
             if (config.force) {
                try {
+                  $console.info("[SchemaManager]", sql, parameters);
                   await qb.execute();
                } catch (e) {
                   throw new Error(`Failed to execute query: ${sql}: ${(e as any).message}`);

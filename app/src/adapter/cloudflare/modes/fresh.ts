@@ -1,13 +1,13 @@
 import { createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
 import type { CloudflareBkndConfig, Context, CloudflareEnv } from "../index";
-import { makeConfig, registerAsyncsExecutionContext } from "../config";
+import { makeConfig, registerAsyncsExecutionContext, type CfMakeConfigArgs } from "../config";
 
 export async function makeApp<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
-   args: Env = {} as Env,
+   args?: CfMakeConfigArgs<Env>,
    opts?: RuntimeOptions,
 ) {
-   return await createRuntimeApp<Env>(makeConfig(config, args), args, opts);
+   return await createRuntimeApp<Env>(makeConfig(config, args), args?.env, opts);
 }
 
 export async function getFresh<Env extends CloudflareEnv = CloudflareEnv>(
@@ -23,7 +23,7 @@ export async function getFresh<Env extends CloudflareEnv = CloudflareEnv>(
             await config.onBuilt?.(app);
          },
       },
-      ctx.env,
+      ctx,
       opts,
    );
 }

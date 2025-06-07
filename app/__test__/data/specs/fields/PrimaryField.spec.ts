@@ -39,4 +39,28 @@ describe("[data] PrimaryField", async () => {
       expect(field.transformPersist(1)).rejects.toThrow();
       expect(field.transformRetrieve(1)).toBe(1);
    });
+
+   test("format", () => {
+      const uuid = new PrimaryField("uuid", { format: "uuid" });
+      expect(uuid.format).toBe("uuid");
+      expect(uuid.fieldType).toBe("text");
+      expect(uuid.getNewValue()).toBeString();
+      expect(uuid.toType()).toEqual({
+         required: true,
+         comment: undefined,
+         type: "Generated<string>",
+         import: [{ package: "kysely", name: "Generated" }],
+      });
+
+      const integer = new PrimaryField("integer", { format: "integer" });
+      expect(integer.format).toBe("integer");
+      expect(integer.fieldType).toBe("integer");
+      expect(integer.getNewValue()).toBeUndefined();
+      expect(integer.toType()).toEqual({
+         required: true,
+         comment: undefined,
+         type: "Generated<number>",
+         import: [{ package: "kysely", name: "Generated" }],
+      });
+   });
 });

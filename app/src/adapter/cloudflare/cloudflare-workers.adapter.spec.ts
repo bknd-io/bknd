@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { makeApp } from "./modes/fresh";
-import { makeConfig } from "./config";
+import { makeConfig, type CfMakeConfigArgs } from "./config";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
@@ -23,7 +23,7 @@ describe("cf adapter", () => {
             {
                connection: { url: DB_URL },
             },
-            {},
+            $ctx({ DB_URL }),
          ),
       ).toEqual({ connection: { url: DB_URL } });
 
@@ -34,15 +34,15 @@ describe("cf adapter", () => {
                   connection: { url: env.DB_URL },
                }),
             },
-            {
-               DB_URL,
-            },
+            $ctx({ DB_URL }),
          ),
       ).toEqual({ connection: { url: DB_URL } });
    });
 
-   adapterTestSuite<CloudflareBkndConfig, object>(bunTestRunner, {
-      makeApp,
+   adapterTestSuite<CloudflareBkndConfig, CfMakeConfigArgs<any>>(bunTestRunner, {
+      makeApp: async (c, a, o) => {
+         return await makeApp(c, { env: a } as any, o);
+      },
       makeHandler: (c, a, o) => {
          return async (request: any) => {
             const app = await makeApp(
@@ -50,7 +50,7 @@ describe("cf adapter", () => {
                c ?? {
                   connection: { url: DB_URL },
                },
-               a,
+               a!,
                o,
             );
             return app.fetch(request);

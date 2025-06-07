@@ -5,7 +5,7 @@
     "jsx": "react-jsx",
     "module": "es2022",
     "moduleResolution": "Bundler",
-    "types": ["@cloudflare/workers-types/2023-07-01"],
+    "types": ["./worker-configuration.d.ts"],
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,

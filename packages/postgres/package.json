@@ -1,6 +1,6 @@
 {
   "name": "@bknd/postgres",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -17,15 +17,20 @@
     "docker:start": "docker run --rm --name bknd-test-postgres -d -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=bknd -p 5430:5432 postgres:17",
     "docker:stop": "docker stop bknd-test-postgres"
   },
-  "dependencies": {
+  "optionalDependencies": {
+    "kysely": "^0.27.6",
+    "kysely-postgres-js": "^2.0.0",
     "pg": "^8.14.0",
-    "kysely": "^0.27.6"
+    "postgres": "^3.4.7"
   },
   "devDependencies": {
     "@types/bun": "^1.2.5",
     "@types/node": "^22.13.10",
     "@types/pg": "^8.11.11",
+    "@xata.io/client": "^0.0.0-next.v93343b9646f57a1e5c51c35eccf0767c2bb80baa",
+    "@xata.io/kysely": "^0.2.1",
     "bknd": "workspace:*",
+    "kysely-neon": "^1.3.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.2"
   },
@@ -33,10 +38,11 @@
     "entry": ["src/index.ts"],
     "format": ["esm"],
     "target": "es2022",
+    "metafile": true,
     "clean": true,
     "minify": true,
     "dts": true,
-    "external": ["bknd", "pg", "kysely"]
+    "external": ["bknd", "pg", "postgres", "kysely", "kysely-postgres-js"]
   },
   "files": ["dist", "README.md", "!*.map", "!metafile*.json"]
 }

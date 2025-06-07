@@ -347,6 +347,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
    }
 
    async logout(c: Context<ServerEnv>) {
+      $console.info("Logging out");
       c.set("auth", undefined);
 
       const cookie = await this.getAuthCookie(c);

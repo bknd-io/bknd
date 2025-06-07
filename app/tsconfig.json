@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["bun-types", "@cloudflare/workers-types"],
+    "types": ["bun-types"],
     "composite": false,
     "incremental": true,
     "module": "ESNext",
@@ -30,7 +30,14 @@
     "baseUrl": ".",
     "outDir": "./dist/types",
     "paths": {
-      "*": ["./src/*"]
+      "*": ["./src/*"],
+      "bknd": ["./src/index.ts"],
+      "bknd/core": ["./src/core/index.ts"],
+      "bknd/adapter": ["./src/adapter/index.ts"],
+      "bknd/client": ["./src/ui/client/index.ts"],
+      "bknd/data": ["./src/data/index.ts"],
+      "bknd/media": ["./src/media/index.ts"],
+      "bknd/auth": ["./src/auth/index.ts"]
     }
   },
   "include": [

@@ -6,7 +6,13 @@ import {
    snakeToPascalWithSpaces,
    transformObject,
 } from "core/utils";
-import { type Field, PrimaryField, type TActionContext, type TRenderContext } from "../fields";
+import {
+   type Field,
+   PrimaryField,
+   primaryFieldTypes,
+   type TActionContext,
+   type TRenderContext,
+} from "../fields";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;
 
@@ -18,6 +24,7 @@ export const entityConfigSchema = Type.Object(
       description: Type.Optional(Type.String()),
       sort_field: Type.Optional(Type.String({ default: config.data.default_primary_field })),
       sort_dir: Type.Optional(StringEnum(["asc", "desc"], { default: "asc" })),
+      primary_format: Type.Optional(StringEnum(primaryFieldTypes)),
    },
    {
       additionalProperties: false,
@@ -68,7 +75,14 @@ export class Entity<
       if (primary_count > 1) {
          throw new Error(`Entity "${name}" has more than one primary field`);
       }
-      this.fields = primary_count === 1 ? [] : [new PrimaryField()];
+      this.fields =
+         primary_count === 1
+            ? []
+            : [
+                 new PrimaryField(undefined, {
+                    format: this.config.primary_format,
+                 }),
+              ];
 
       if (fields) {
          fields.forEach((field) => this.addField(field));

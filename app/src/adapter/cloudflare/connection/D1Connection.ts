@@ -5,8 +5,8 @@ import type { QB } from "data/connection/Connection";
 import { type DatabaseIntrospector, Kysely, ParseJSONResultsPlugin } from "kysely";
 import { D1Dialect } from "kysely-d1";
 
-export type D1ConnectionConfig = {
-   binding: D1Database;
+export type D1ConnectionConfig<DB extends D1Database | D1DatabaseSession = D1Database> = {
+   binding: DB;
 };
 
 class CustomD1Dialect extends D1Dialect {
@@ -17,22 +17,24 @@ class CustomD1Dialect extends D1Dialect {
    }
 }
 
-export class D1Connection extends SqliteConnection {
+export class D1Connection<
+   DB extends D1Database | D1DatabaseSession = D1Database,
+> extends SqliteConnection {
    protected override readonly supported = {
       batching: true,
    };
 
-   constructor(private config: D1ConnectionConfig) {
+   constructor(private config: D1ConnectionConfig<DB>) {
       const plugins = [new ParseJSONResultsPlugin()];
 
       const kysely = new Kysely({
-         dialect: new CustomD1Dialect({ database: config.binding }),
+         dialect: new CustomD1Dialect({ database: config.binding as D1Database }),
          plugins,
       });
       super(kysely, {}, plugins);
    }
 
-   get client(): D1Database {
+   get client(): DB {
       return this.config.binding;
    }
 

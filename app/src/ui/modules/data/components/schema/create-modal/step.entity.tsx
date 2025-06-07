@@ -10,12 +10,13 @@ import {
    entitySchema,
    useStepContext,
 } from "./CreateModal";
+import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 
 export function StepEntity() {
    const focusTrapRef = useFocusTrap();
 
    const { nextStep, stepBack, state, setState } = useStepContext<TCreateModalSchema>();
-   const { register, handleSubmit, formState, watch } = useForm({
+   const { register, handleSubmit, formState, watch, control } = useForm({
       mode: "onTouched",
       resolver: typeboxResolver(entitySchema),
       defaultValues: state.entities?.create?.[0] ?? {},
@@ -56,7 +57,6 @@ export function StepEntity() {
                   label="What's the name of the entity?"
                   description="Use plural form, and all lowercase. It will be used as the database table."
                />
-               {/*<input type="submit" value="submit" />*/}
                <TextInput
                   {...register("config.name")}
                   error={formState.errors.config?.name?.message}

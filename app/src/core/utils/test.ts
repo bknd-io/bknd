@@ -36,7 +36,7 @@ export function disableConsoleLog(severities: ConsoleSeverity[] = ["log", "warn"
    severities.forEach((severity) => {
       console[severity] = () => null;
    });
-   $console.setLevel("error");
+   $console.setLevel("critical");
 }
 
 export function enableConsoleLog() {

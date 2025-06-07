@@ -206,3 +206,33 @@ tag = "v2"
 renamed_classes = [{from = "DurableBkndApp", to = "CustomDurableBkndApp"}]
 deleted_classes = ["DurableBkndApp"]
 ```
+
+## D1 Sessions (experimental)
+D1 now supports to enable [global read replication](https://developers.cloudflare.com/d1/best-practices/read-replication/). This allows to reduce latency by reading from the closest region. In order for this to work, D1 has to be started from a bookmark. You can enable this behavior on bknd by setting the `d1.session` property:
+
+```typescript src/index.ts
+import { serve } from "bknd/adapter/cloudflare";
+
+export default serve({
+   // currently recommended to use "fresh" mode
+   // otherwise consecutive requests will use the same bookmark
+   mode: "fresh",
+   // ...
+   d1: {
+      // enables D1 sessions
+      session: true,
+      // (optional) restrict the transport, options: "header" | "cookie"
+      // if not specified, it supports both
+      transport: "cookie", 
+      // (optional) choose session constraint if not bookmark present
+      // options: "first-primary" | "first-unconstrained"
+      first: "first-primary"
+   }
+});
+```
+
+If bknd is used in a stateful user context (like in a browser), it'll automatically send the session cookie to the server to set the correct bookmark. If you need to manually set the bookmark, you can do so by setting the `x-cf-d1-session` header:
+
+```bash
+curl -H "x-cf-d1-session: <bookmark>" ...
+```

@@ -1,3 +1,4 @@
+import type { PrimaryFieldType } from "core";
 import { ucFirst } from "core/utils";
 import type { Entity, EntityData, EntityRelation } from "data";
 import { Fragment, useState } from "react";
@@ -24,7 +25,7 @@ export function DataEntityUpdate({ params }) {
       return <Message.NotFound description={`Entity "${params.entity}" doesn't exist.`} />;
    }
 
-   const entityId = Number.parseInt(params.id as string);
+   const entityId = params.id as PrimaryFieldType;
    const [error, setError] = useState<string | null>(null);
    const [navigate] = useNavigate();
    useBrowserTitle(["Data", entity.label, `#${entityId}`]);
@@ -202,7 +203,7 @@ function EntityDetailRelations({
    entity,
    relations,
 }: {
-   id: number;
+   id: PrimaryFieldType;
    entity: Entity;
    relations: EntityRelation[];
 }) {
@@ -250,7 +251,7 @@ function EntityDetailInner({
    entity,
    relation,
 }: {
-   id: number;
+   id: PrimaryFieldType;
    entity: Entity;
    relation: EntityRelation;
 }) {

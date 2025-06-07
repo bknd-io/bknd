@@ -110,4 +110,18 @@ describe("some tests", async () => {
          new EntityManager([entity, entity2], connection);
       }).toThrow();
    });
+
+   test("primary uuid", async () => {
+      const entity = new Entity("users", [
+         new PrimaryField("id", { format: "uuid" }),
+         new TextField("username"),
+      ]);
+      const em = new EntityManager([entity], getDummyConnection().dummyConnection);
+      await em.schema().sync({ force: true });
+
+      const mutator = em.mutator(entity);
+      const data = await mutator.insertOne({ username: "test" });
+      expect(data.data.id).toBeDefined();
+      expect(data.data.id).toBeString();
+   });
 });

@@ -50,11 +50,11 @@ export class AdminController extends Controller {
    }
 
    get basepath() {
-      return this.options.basepath ?? "/";
+      return this.options.adminBasepath ?? "/";
    }
 
    private withBasePath(route: string = "") {
-      return (this.basepath + route).replace(/(?<!:)\/+/g, "/");
+      return (this.options.basepath + route).replace(/(?<!:)\/+/g, "/");
    }
 
    private withAdminBasePath(route: string = "") {
@@ -80,25 +80,48 @@ export class AdminController extends Controller {
          loggedOut: configs.auth.cookie.pathLoggedOut ?? this.withAdminBasePath("/"),
          login: this.withAdminBasePath("/auth/login"),
          register: this.withAdminBasePath("/auth/register"),
-         logout: this.withAdminBasePath("/auth/logout"),
+         logout: "/api/auth/logout",
       };
 
-      hono.use("*", async (c, next) => {
-         const obj = {
-            user: c.get("auth")?.user,
-            logout_route: authRoutes.logout,
-            admin_basepath: this.options.adminBasepath,
-         };
-         const html = await this.getHtml(obj);
-         if (!html) {
-            console.warn("Couldn't generate HTML for admin UI");
-            // re-casting to void as a return is not required
-            return c.notFound() as unknown as void;
-         }
-         c.set("html", html);
+      const paths = ["/", "/data/*", "/auth/*", "/media/*", "/flows/*", "/settings/*"];
+      if (isDebug()) {
+         paths.push("/test/*");
+      }
 
-         await next();
-      });
+      for (const path of paths) {
+         hono.get(
+            path,
+            permission(SystemPermissions.accessAdmin, {
+               onDenied: async (c) => {
+                  addFlashMessage(c, "You are not authorized to access the Admin UI", "error");
+
+                  $console.log("redirecting");
+                  return c.redirect(authRoutes.login);
+               },
+            }),
+            permission(SystemPermissions.schemaRead, {
+               onDenied: async (c) => {
+                  addFlashMessage(c, "You not allowed to read the schema", "warning");
+               },
+            }),
+            async (c) => {
+               const obj = {
+                  user: c.get("auth")?.user,
+                  logout_route: authRoutes.logout,
+                  admin_basepath: this.options.adminBasepath,
+               };
+               const html = await this.getHtml(obj);
+               if (!html) {
+                  console.warn("Couldn't generate HTML for admin UI");
+                  // re-casting to void as a return is not required
+                  return c.notFound() as unknown as void;
+               }
+
+               await auth.authenticator?.requestCookieRefresh(c);
+               return c.html(html);
+            },
+         );
+      }
 
       if (auth_enabled) {
          const redirectRouteParams = [
@@ -125,27 +148,6 @@ export class AdminController extends Controller {
             return c.redirect(authRoutes.loggedOut);
          });
       }
-
-      // @todo: only load known paths
-      hono.get(
-         "/*",
-         permission(SystemPermissions.accessAdmin, {
-            onDenied: async (c) => {
-               addFlashMessage(c, "You are not authorized to access the Admin UI", "error");
-
-               $console.log("redirecting");
-               return c.redirect(authRoutes.login);
-            },
-         }),
-         permission(SystemPermissions.schemaRead, {
-            onDenied: async (c) => {
-               addFlashMessage(c, "You not allowed to read the schema", "warning");
-            },
-         }),
-         async (c) => {
-            return c.html(c.get("html")!);
-         },
-      );
 
       return hono;
    }
@@ -194,9 +196,13 @@ export class AdminController extends Controller {
             }).then((res) => res.default);
          }
 
-         // @todo: load all marked as entry (incl. css)
-         assets.js = manifest["src/ui/main.tsx"].file;
-         assets.css = manifest["src/ui/main.tsx"].css[0] as any;
+         try {
+            // @todo: load all marked as entry (incl. css)
+            assets.js = manifest["src/ui/main.tsx"].file;
+            assets.css = manifest["src/ui/main.tsx"].css[0] as any;
+         } catch (e) {
+            $console.warn("Couldn't find assets in manifest", e);
+         }
       }
 
       const favicon = isProd ? this.options.assetsPath + "favicon.ico" : "/favicon.ico";

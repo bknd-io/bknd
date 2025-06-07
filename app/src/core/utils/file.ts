@@ -117,7 +117,9 @@ async function detectMimeType(
    return;
 }
 
-export async function getFileFromContext(c: Context<any>): Promise<File> {
+type HonoAnyContext = Context<any, any, any>;
+
+export async function getFileFromContext(c: HonoAnyContext): Promise<File> {
    const contentType = c.req.header("Content-Type") ?? "application/octet-stream";
 
    if (
@@ -149,7 +151,7 @@ export async function getFileFromContext(c: Context<any>): Promise<File> {
    throw new Error("No file found in request");
 }
 
-export async function getBodyFromContext(c: Context<any>): Promise<ReadableStream | File> {
+export async function getBodyFromContext(c: HonoAnyContext): Promise<ReadableStream | File> {
    const contentType = c.req.header("Content-Type") ?? "application/octet-stream";
 
    if (

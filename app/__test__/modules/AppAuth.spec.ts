@@ -153,6 +153,7 @@ describe("AppAuth", () => {
       });
 
       await app.build();
+      app.registerAdminController();
       const spy = spyOn(app.module.auth.authenticator, "requestCookieRefresh");
 
       // register custom route
@@ -162,6 +163,10 @@ describe("AppAuth", () => {
       await app.server.request("/api/system/ping");
       await app.server.request("/test");
 
+      expect(spy.mock.calls.length).toBe(0);
+
+      // admin route
+      await app.server.request("/");
       expect(spy.mock.calls.length).toBe(1);
    });
 

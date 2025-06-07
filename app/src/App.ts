@@ -253,6 +253,11 @@ export class App {
                break;
          }
       });
+
+      // call server init if set
+      if (this.options?.manager?.onServerInit) {
+         this.options.manager.onServerInit(server);
+      }
    }
 }
 

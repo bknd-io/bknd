@@ -121,6 +121,7 @@ export class AuthController extends Controller {
             const claims = c.get("auth")?.user;
             if (claims) {
                const { data: user } = await this.userRepo.findId(claims.id);
+               await this.auth.authenticator?.requestCookieRefresh(c);
                return c.json({ user });
             }
 

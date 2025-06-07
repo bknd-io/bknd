@@ -3,13 +3,8 @@ title: 'Database'
 description: 'Choosing the right database configuration'
 ---
 
-In order to use **bknd**, you need to prepare access information to your database and install
-the dependencies.
+In order to use **bknd**, you need to prepare access information to your database and install the dependencies. Connections to the database are managed using Kysely. Therefore, all [its dialects](https://kysely.dev/docs/dialects) are theoretically supported. 
 
-<Note>
-   Connections to the database are managed using Kysely. Therefore, all its dialects are
-   theoretically supported. However, only the `SQLite` dialect is implemented as of now.
-</Note>
 
 ## Database
 ### SQLite in-memory
@@ -56,7 +51,9 @@ connection object to your new database:
 ```
 
 ### Cloudflare D1
-Using the [Cloudflare Adapter](/integration/cloudflare), you can choose to use a D1 database binding. To do so, you only need to add a D1 database to your `wrangler.toml` and it'll pick up automatically. To manually specify which D1 database to take, you can specify it manually:
+Using the [Cloudflare Adapter](/integration/cloudflare), you can choose to use a D1 database binding. To do so, you only need to add a D1 database to your `wrangler.toml` and it'll pick up automatically. 
+
+To manually specify which D1 database to take, you can specify it explicitly:
 
 ```ts
 import { serve, d1 } from "bknd/adapter/cloudflare";
@@ -73,17 +70,19 @@ To use bknd with Postgres, you need to install the `@bknd/postgres` package. You
 npm install @bknd/postgres
 ```
 
-This package uses `pg` under the hood. If you'd like to see `postgres` or any other flavor, please create an [issue on Github](https://github.com/bknd-io/bknd/issues/new).
+You can connect to your Postgres database using `pg` or `postgres` dialects. Additionally, you may also define your custom connection.
 
-To establish a connection to your database, you can use any connection options available on the [`pg`](https://node-postgres.com/apis/client) package. Here is a quick example using the [Node.js Adapter](http://localhost:3000/integration/node):
+#### Using `pg`
+
+To establish a connection to your database, you can use any connection options available on the [`pg`](https://node-postgres.com/apis/client) package. 
 
 ```js
 import { serve } from "bknd/adapter/node";
-import { PostgresConnection } from "@bknd/postgres";
+import { pg } from "@bknd/postgres";
 
 /** @type {import("bknd/adapter/node").NodeBkndConfig} */
 const config = {
-   connection: new PostgresConnection({
+   connection: pg({
       connectionString:
          "postgresql://user:password@localhost:5432/database",
    }),
@@ -91,6 +90,64 @@ const config = {
 
 serve(config);
 ```
+
+#### Using `postgres`
+
+To establish a connection to your database, you can use any connection options available on the [`postgres`](https://github.com/porsager/postgres) package. 
+
+```js
+import { serve } from "bknd/adapter/node";
+import { postgresJs } from "@bknd/postgres";
+
+serve({
+   connection: postgresJs("postgresql://user:password@localhost:5432/database"),
+});
+```
+
+#### Using custom connection
+
+Several Postgres hosting providers offer their own clients to connect to their database, e.g. suitable for serverless environments.
+
+Example using `@neondatabase/serverless`:
+
+```js
+import { createCustomPostgresConnection } from "@bknd/postgres";
+import { NeonDialect } from "kysely-neon";
+
+const connection = createCustomPostgresConnection(NeonDialect)({
+   connectionString: process.env.NEON,
+});
+
+serve({
+   connection: connection,
+});
+```
+
+Example using `@xata.io/client`:
+
+```js
+import { createCustomPostgresConnection } from "@bknd/postgres";
+import { XataDialect } from "@xata.io/kysely";
+import { buildClient } from "@xata.io/client";
+
+const client = buildClient();
+const xata = new client({
+   databaseURL: process.env.XATA_URL,
+   apiKey: process.env.XATA_API_KEY,
+   branch: process.env.XATA_BRANCH,
+});
+
+const connection = createCustomPostgresConnection(XataDialect, {
+   supports: {
+      batching: false,
+   },
+})({ xata });
+
+serve({
+   connection: connection,
+});
+```
+
 
 ### SQLocal
 To use bknd with `sqlocal` for a offline expierence, you need to install the `@bknd/sqlocal` package. You can do so by running the following command:
@@ -138,7 +195,11 @@ const app = createApp({ connection })
 ## Initial Structure
 To provide an initial database structure, you can pass `initialConfig` to the creation of an app. This will only be used if there isn't an existing configuration found in the database given. Here is a quick example:
 
-```ts
+<Note>
+   The initial structure is only respected if the database is empty! If you made updates, ensure to delete the database first, or perform updates through the Admin UI.
+</Note>
+
+```typescript
 import { createApp } from "bknd";
 import { em, entity, text, number } from "bknd/data";
 
@@ -193,13 +254,17 @@ Note that we didn't add relational fields directly to the entity, but instead de
 </Note>
 
 ### Type completion
+To get type completion, there are two options:
+1. Use the CLI to [generate the types](/usage/cli#generating-types-types)
+2. If you have an initial structure created with the prototype functions, you can extend the `DB` interface with your own schema.
+
 All entity related functions use the types defined in `DB` from `bknd/core`. To get type completion, you can extend that interface with your own schema:
 
-```ts
+```typescript
 import { em } from "bknd/data";
 import { Api } from "bknd/client";
 
- const schema = em({ /* ... */ });
+const schema = em({ /* ... */ });
 
 type Database = (typeof schema)["DB"];
 declare module "bknd/core" {
@@ -217,10 +282,12 @@ The type completion is available for the API as well as all provided [React hook
 To seed your database with initial data, you can pass a `seed` function to the configuration. It
 provides the `ModuleBuildContext` as the first argument.
 
-Note that the seed function will only be executed on app's first boot. If a configuration
-already exists in the database, it will not be executed.
+<Note>
+   Note that the seed function will only be executed on app's first boot. If a configuration
+   already exists in the database, it will not be executed.
+</Note>
 
-```ts
+```typescript
 import { createApp, type ModuleBuildContext } from "bknd";
 
 const app = createApp({

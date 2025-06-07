@@ -331,6 +331,6 @@ export class SystemController extends Controller {
       );
       hono.get("/swagger", swaggerUI({ url: "/api/system/openapi.json" }));
 
-      return hono.all("*", (c) => c.notFound());
+      return hono;
    }
 }

@@ -31,7 +31,11 @@ export class SqliteConnection extends Connection {
          type,
          (col: ColumnDefinitionBuilder) => {
             if (spec.primary) {
-               return col.primaryKey().notNull().autoIncrement();
+               if (spec.type === "integer") {
+                  return col.primaryKey().notNull().autoIncrement();
+               }
+
+               return col.primaryKey().notNull();
             }
             if (spec.references) {
                let relCol = col.references(spec.references);

@@ -21,7 +21,6 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@clack/prompts": "^0.10.0",
-    "@cloudflare/workers-types": "^4.20240620.0",
     "@tsconfig/strictest": "^2.0.5",
     "@types/lodash-es": "^4.17.12",
     "bun-types": "^1.1.18",
@@ -42,8 +41,5 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "workspaces": [
-    "app",
-    "packages/*"
-  ]
+  "workspaces": ["app", "packages/*"]
 }

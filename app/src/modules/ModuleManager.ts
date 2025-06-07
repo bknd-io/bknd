@@ -183,7 +183,7 @@ export class ModuleManager {
          const context = this.ctx(true);
 
          for (const key in MODULES) {
-            const moduleConfig = key in initial ? initial[key] : {};
+            const moduleConfig = initial && key in initial ? initial[key] : {};
             const module = new MODULES[key](moduleConfig, context) as Module;
             module.setListener(async (c) => {
                await this.onModuleConfigUpdated(key, c);

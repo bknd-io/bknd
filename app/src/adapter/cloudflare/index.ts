@@ -1,4 +1,4 @@
-import { D1Connection, type D1ConnectionConfig } from "./D1Connection";
+import { D1Connection, type D1ConnectionConfig } from "./connection/D1Connection";
 
 export * from "./cloudflare-workers.adapter";
 export { makeApp, getFresh } from "./modes/fresh";
@@ -12,6 +12,7 @@ export {
    type GetBindingType,
    type BindingMap,
 } from "./bindings";
+export { constants } from "./config";
 
 export function d1(config: D1ConnectionConfig) {
    return new D1Connection(config);

@@ -60,11 +60,7 @@ export const auth = (options?: {
       }
 
       await next();
-
-      if (!skipped) {
-         // renew cookie if applicable
-         authenticator?.requestCookieRefresh(c);
-      }
+      // @todo: potentially add cookie refresh if content-type html and about to expire
 
       // release
       authCtx.skip = false;

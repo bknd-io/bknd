@@ -5,6 +5,7 @@ export {
    type IndexSpec,
    type DbFunctions,
    type SchemaResponse,
+   customIntrospector,
 } from "./Connection";
 
 // sqlite
