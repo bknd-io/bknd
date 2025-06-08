@@ -7,10 +7,10 @@ bknd comes with a powerful built-in event system that allows you to hook into th
 - `async`: Your listener is not blocking the main execution flow. E.g. on Cloudflare Workers, by default, the `ExecutionContext`'s `waitUntil` method is used so that the listeners runs after the response is sent.
 - `sync`: Your listener is blocking the main execution flow. This allows to abort the request in your custom conditions. Some events also allow to return a modified event payload.
 
-<Callout variant="info">
+<CalloutInfo>
   Don't mistake `async` with JavaScript's `async` keyword. The `async` keyword
   is used to indicate that the listener is not blocking the main execution flow.
-</Callout>
+</CalloutInfo>
 
 ## Overview
 

@@ -6,11 +6,11 @@ description: "Choosing the right database configuration"
 In order to use **bknd**, you need to prepare access information to your database and install
 the dependencies.
 
-<Callout variant="info">
+<CalloutInfo>
   Connections to the database are managed using Kysely. Therefore, all its
   dialects are theoretically supported. However, only the `SQLite` dialect is
   implemented as of now.
-</Callout>
+</CalloutInfo>
 
 ## Database
 
@@ -210,11 +210,11 @@ const app = createApp({
 
 Note that we didn't add relational fields directly to the entity, but instead defined them afterwards. That is because the relations are managed outside the entity scope to have an unified expierence for all kinds of relations (e.g. many-to-many).
 
-<Callout variant="info">
+<CalloutInfo>
   Defined relations are currently not part of the produced types for the
   structure. We're working on that, but in the meantime, you can define them
   manually.
-</Callout>
+</CalloutInfo>
 
 ### Type completion
 
