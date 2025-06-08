@@ -3,6 +3,7 @@ import { RootProvider } from 'fumadocs-ui/provider';
 import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
 import { baseOptions } from './layout.config';
 import { source } from '@/lib/source';
+import { GithubInfo } from 'fumadocs-ui/components/github-info';
 import type { ReactNode } from 'react';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -13,11 +14,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <DocsLayout
             tree={source.pageTree}
             {...baseOptions}
+            links={[
+              {
+                text: 'Discord',
+                url: 'https://discord.gg/952SFk8Tb8',
+              },
+              {
+                type: 'custom',
+                children: (
+                  <GithubInfo owner="bknd-io" repo="bknd" className="lg:-mx-2" />
+                ),
+              },
+            ]}
           >
             {children}
           </DocsLayout>
         </RootProvider>
       </body>
-    </html >
+    </html>
   );
 }

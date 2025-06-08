@@ -9,7 +9,6 @@ import { Logo } from '@/app/_components/Logo';
  * Docs Layout: app/docs/layout.tsx
  */
 export const baseOptions: BaseLayoutProps = {
-  githubUrl: 'https://github.com/bknd-io/bknd',
   nav: {
     title: <Logo />,
     mode: 'top'
