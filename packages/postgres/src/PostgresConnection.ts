@@ -16,6 +16,7 @@ export const plugins = [new ParseJSONResultsPlugin()];
 export abstract class PostgresConnection<DB = any> extends Connection<DB> {
    protected override readonly supported = {
       batching: true,
+      counts: true,
    };
 
    constructor(kysely: Kysely<DB>, fn?: Partial<DbFunctions>, _plugins?: KyselyPlugin[]) {
