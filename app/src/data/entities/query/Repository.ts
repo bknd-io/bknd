@@ -27,6 +27,7 @@ export type RepositoryResponse<T = EntityData[]> = RepositoryRawResponse & {
    data: T;
    meta: {
       items: number;
+      has_more?: boolean;
       total?: number;
       count?: number;
       time?: number;
@@ -61,6 +62,10 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       public entity: Entity,
       protected options: RepositoryOptions = {},
    ) {
+      this.options = {
+         ...options,
+         includeCounts: options?.includeCounts ?? this.em.connection.supports("counts"),
+      };
       this.emgr = options?.emgr ?? new EventManager(MutatorEvents);
    }
 
@@ -179,6 +184,11 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       if (options.limit) validated.limit = options.limit;
       if (options.offset) validated.offset = options.offset;
 
+      // if counts disabled, add +1 to limit
+      if (this.options?.includeCounts === false) {
+         validated.limit = (validated.limit ?? 10) + 1;
+      }
+
       return validated;
    }
 
@@ -210,6 +220,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
 
    protected async performQuery(qb: RepositoryQB): Promise<RepositoryResponse> {
       const entity = this.entity;
+
       const compiled = qb.compile();
 
       const payload = {
@@ -444,6 +455,16 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       await this.triggerFindBefore(this.entity, options);
 
       const res = await this.performQuery(qb);
+      if (this.options?.includeCounts === false) {
+         const hasMore = res.data.length === (options.limit ?? 10);
+         res.meta.has_more = hasMore;
+
+         if (hasMore) {
+            res.data = res.data.slice(0, -1);
+            res.result = res.result.slice(0, -1);
+            res.meta.items = res.data.length;
+         }
+      }
 
       await this.triggerFindAfter(this.entity, options, res.data);
       return res as any;

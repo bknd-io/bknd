@@ -82,6 +82,7 @@ export abstract class Connection<DB = any> {
    kysely: Kysely<DB>;
    protected readonly supported = {
       batching: false,
+      counts: true,
    };
 
    constructor(

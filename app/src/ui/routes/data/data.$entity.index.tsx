@@ -131,6 +131,7 @@ export function DataEntityList({ params }) {
                      perPage={search.value.perPage}
                      perPageOptions={PER_PAGE_OPTIONS}
                      total={meta?.count}
+                     hasMore={meta?.has_more}
                      onClickPage={handleClickPage}
                      onClickPerPage={handleClickPerPage}
                   />

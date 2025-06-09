@@ -316,7 +316,7 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const options = c.req.valid("query") as RepoQuery;
-            const result = await this.em.repository(entity).findMany(options);
+            const result = await this.em.repo(entity).findMany(options);
 
             return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
          },

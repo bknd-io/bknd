@@ -3,6 +3,7 @@ import { Connection, type FieldSpec, type SchemaResponse } from "./Connection";
 export class DummyConnection extends Connection {
    protected override readonly supported = {
       batching: true,
+      counts: true,
    };
 
    constructor() {

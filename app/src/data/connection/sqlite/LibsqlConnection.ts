@@ -28,13 +28,13 @@ export class LibsqlConnection extends SqliteConnection {
    private client: Client;
    protected override readonly supported = {
       batching: true,
+      counts: false,
    };
 
    constructor(client: Client);
    constructor(credentials: LibSqlCredentials);
    constructor(clientOrCredentials: Client | LibSqlCredentials) {
       let client: Client;
-      let batching_enabled = true;
       if (clientOrCredentials && "url" in clientOrCredentials) {
          let { url, authToken, protocol } = clientOrCredentials;
          if (protocol && LIBSQL_PROTOCOLS.includes(protocol)) {
@@ -56,7 +56,6 @@ export class LibsqlConnection extends SqliteConnection {
 
       super(kysely, {}, plugins);
       this.client = client;
-      this.supported.batching = batching_enabled;
    }
 
    getClient(): Client {

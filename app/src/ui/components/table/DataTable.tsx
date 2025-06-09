@@ -34,6 +34,7 @@ export type DataTableProps<Data> = {
    checkable?: boolean;
    onClickRow?: (row: Data) => void;
    onClickPage?: (page: number) => void;
+   hasMore?: boolean;
    total?: number;
    page?: number;
    perPage?: number;
@@ -59,6 +60,7 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
    onClickRow,
    onClickPage,
    onClickSort,
+   hasMore,
    total,
    sort,
    page = 1,
@@ -75,7 +77,7 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
    page = page || 1;
 
    const select = columns && columns.length > 0 ? columns : Object.keys(data?.[0] || {});
-   const pages = Math.max(Math.ceil(total / perPage), 1);
+   const pages = hasMore === undefined ? Math.max(Math.ceil(total / perPage), 1) : undefined;
    const CellRender = renderValue || CellValue;
 
    return (
@@ -196,12 +198,14 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
          </div>
          <div className="flex flex-row items-center justify-between">
             <div className="hidden md:flex text-primary/40">
-               <TableDisplay
-                  perPage={perPage}
-                  page={page}
-                  items={data?.length || 0}
-                  total={total}
-               />
+               {hasMore === undefined ? (
+                  <TableDisplay
+                     perPage={perPage}
+                     page={page}
+                     items={data?.length || 0}
+                     total={total}
+                  />
+               ) : null}
             </div>
             <div className="flex flex-row gap-2 md:gap-10 items-center">
                {perPageOptions && (
@@ -220,11 +224,16 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
                   </div>
                )}
                <div className="text-primary/40">
-                  Page {page} of {pages}
+                  Page {page} {pages ? `of ${pages}` : ""}
                </div>
                {onClickPage && (
                   <div className="flex flex-row gap-1.5">
-                     <TableNav current={page} total={pages} onClick={onClickPage} />
+                     <TableNav
+                        current={page}
+                        total={pages}
+                        hasMore={hasMore}
+                        onClick={onClickPage}
+                     />
                   </div>
                )}
             </div>
@@ -274,41 +283,59 @@ const TableDisplay = ({ perPage, page, items, total }) => {
       return <>Showing 1 row</>;
    }
 
-   return (
-      <>
-         Showing {perPage * (page - 1) + 1}-{perPage * (page - 1) + items} of {total} rows
-      </>
-   );
+   const text = `Showing ${perPage * (page - 1) + 1}-${perPage * (page - 1) + items}`;
+   if (total) {
+      return `${text} of ${total} rows`;
+   }
+
+   return text;
 };
 
 type TableNavProps = {
    current: number;
-   total: number;
+   total?: number;
+   hasMore?: boolean;
    onClick?: (page: number) => void;
 };
 
-const TableNav: React.FC<TableNavProps> = ({ current, total, onClick }: TableNavProps) => {
+const TableNav: React.FC<TableNavProps> = ({
+   current,
+   total: _total,
+   hasMore: _hasMore,
+   onClick,
+}: TableNavProps) => {
+   const total = _total !== undefined ? _total : _hasMore !== undefined ? current + 1 : current;
+   const hasMore = _hasMore !== undefined ? _hasMore : current < (total ?? 0);
+
    const navMap = [
       { value: 1, Icon: TbChevronsLeft, disabled: current === 1 },
       { value: current - 1, Icon: TbChevronLeft, disabled: current === 1 },
-      { value: current + 1, Icon: TbChevronRight, disabled: current === total },
-      { value: total, Icon: TbChevronsRight, disabled: current === total },
+      { value: current + 1, Icon: TbChevronRight, disabled: !hasMore },
+      {
+         value: _hasMore === undefined ? total : undefined,
+         Icon: TbChevronsRight,
+         disabled: !hasMore,
+      },
    ] as const;
 
-   return navMap.map((nav, key) => (
-      <button
-         role="button"
-         type="button"
-         key={key}
-         disabled={nav.disabled}
-         className="px-2 py-2 border-muted border rounded-md enabled:link text-lg enabled:hover:bg-primary/5 text-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-         onClick={() => {
-            const page = nav.value;
-            const safePage = page < 1 ? 1 : page > total ? total : page;
-            onClick?.(safePage);
-         }}
-      >
-         <nav.Icon />
-      </button>
-   ));
+   return navMap.map((nav, key) => {
+      const page = nav.value;
+      if (page === undefined) return null;
+
+      return (
+         <button
+            role="button"
+            type="button"
+            key={key}
+            disabled={nav.disabled}
+            className="px-2 py-2 border-muted border rounded-md enabled:link text-lg enabled:hover:bg-primary/5 text-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => {
+               const safePage = page < 1 ? 1 : page > total ? total : page;
+               onClick?.(safePage);
+            }}
+         >
+            <nav.Icon />
+         </button>
+      );
+   });
 };

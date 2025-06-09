@@ -22,6 +22,7 @@ export class D1Connection<
 > extends SqliteConnection {
    protected override readonly supported = {
       batching: true,
+      counts: false,
    };
 
    constructor(private config: D1ConnectionConfig<DB>) {
