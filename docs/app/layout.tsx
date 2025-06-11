@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <RootProvider>
           <DocsLayout
             tree={source.pageTree}
-            {...baseOptions}
+            nav={{ ...baseOptions.nav, mode: 'top' }}
             links={[
               {
                 text: 'Discord',

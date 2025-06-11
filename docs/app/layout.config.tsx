@@ -11,7 +11,6 @@ import { Logo } from '@/app/_components/Logo';
 export const baseOptions: BaseLayoutProps = {
   nav: {
     title: <Logo />,
-    mode: 'top'
   },
   // see https://fumadocs.dev/docs/ui/navigation/links
   links: [],
