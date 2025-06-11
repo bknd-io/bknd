@@ -1,0 +1,3 @@
+{
+  "pages": ["node", "bun", "cloudflare", "aws", "docker"]
+}

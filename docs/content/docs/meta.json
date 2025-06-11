@@ -1,0 +1,28 @@
+{
+  "pages": [
+    "---Getting Started---",
+    "start",
+    "motivation",
+    "---Usage---",
+    "introduction",
+    "database",
+    "cli",
+    "sdk",
+    "react",
+    "elements",
+    "---Extending---",
+    "config",
+    "events",
+    "---Integration---",
+    "./integration/introduction",
+    "./integration/(frameworks)/",
+    "./integration/(runtimes)/",
+    "---Modules---",
+    "./modules/overview",
+    "./modules/server",
+    "./modules/data",
+    "./modules/auth",
+    "./modules/media",
+    "./modules/flows"
+  ]
+}
