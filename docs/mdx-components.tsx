@@ -5,6 +5,7 @@ import * as TabsComponents from 'fumadocs-ui/components/tabs';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { CalloutInfo, CalloutPositive, CalloutCaution, CalloutDanger } from './app/_components/Callout';
 import { StackBlitz } from './app/_components/StackBlitz';
+import { Icon } from '@iconify/react'
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -19,5 +20,6 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     CalloutCaution,
     CalloutDanger,
     StackBlitz,
+    Icon
   };
 }
