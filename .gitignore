@@ -33,3 +33,4 @@ docker/tmp
 .debug
 .history
 .aider*
+.vercel
