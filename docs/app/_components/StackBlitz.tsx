@@ -19,7 +19,7 @@ export const StackBlitz = ({
   path?: string;
   ratio?: number;
   example?: keyof typeof examples;
-  [key: string]: any;
+  [key: string]: unknown;
 }) => {
   const selected = example ? examples[example] : undefined;
   const finalPath = path || selected?.path || "github/bknd-io/bknd-examples";
@@ -70,7 +70,7 @@ export const StackBlitz = ({
           textAlign: "center"
         }}
       >
-        If you're having issues viewing it inline,{" "}
+        If you&rsquo;re having issues viewing it inline,{" "}
         <a href={url.toString()} target="_blank" rel="noreferrer">
           try in a new tab
         </a>
@@ -79,4 +79,3 @@ export const StackBlitz = ({
     </>
   );
 };
-
