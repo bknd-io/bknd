@@ -78,6 +78,7 @@ const ArrayItem = memo(({ path, index, schema }: any) => {
    return (
       <div key={itemPath} className="flex flex-row gap-2">
          <FieldComponent
+            required={schema.minItems > 0}
             name={itemPath}
             schema={subschema!}
             value={value}
