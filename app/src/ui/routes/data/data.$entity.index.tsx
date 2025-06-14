@@ -26,6 +26,10 @@ const searchSchema = s.partialObject({
 const PER_PAGE_OPTIONS = [5, 10, 25, 50, 100];
 
 export function DataEntityList({ params }) {
+   return <DataEntityListImpl params={params} key={params.entity} />;
+}
+
+function DataEntityListImpl({ params }) {
    const { $data } = useBkndData();
    const entity = $data.entity(params.entity as string);
    if (!entity) {

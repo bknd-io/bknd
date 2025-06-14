@@ -311,12 +311,18 @@ export class SystemController extends Controller {
             c.json({
                version: c.get("app")?.version(),
                runtime: getRuntimeKey(),
+               connection: {
+                  name: this.app.em.connection.name,
+                  // @ts-expect-error
+                  supports: this.app.em.connection.supported,
+               },
                timezone: {
                   name: getTimezone(),
                   offset: getTimezoneOffset(),
                   local: datetimeStringLocal(),
                   utc: datetimeStringUTC(),
                },
+               plugins: Array.from(this.app.plugins.keys()),
             }),
       );
 

@@ -1,7 +1,7 @@
 import type { DB, PrimaryFieldType } from "core";
 import { objectTransform } from "core/utils/objects";
 import { encodeSearch } from "core/utils/reqres";
-import type { EntityData, RepoQueryIn, RepositoryResponse } from "data";
+import type { EntityData, RepoQueryIn, RepositoryResult } from "data";
 import type { Insertable, Selectable, Updateable } from "kysely";
 import type { FetchPromise, ModuleApi, ResponseObject } from "modules/ModuleApi";
 import useSWR, { type SWRConfiguration, type SWRResponse, mutate } from "swr";
@@ -28,15 +28,13 @@ interface UseEntityReturn<
    Entity extends keyof DB | string,
    Id extends PrimaryFieldType | undefined,
    Data = Entity extends keyof DB ? DB[Entity] : EntityData,
-   Response = ResponseObject<RepositoryResponse<Selectable<Data>>>,
+   Response = ResponseObject<RepositoryResult<Selectable<Data>>>,
 > {
    create: (input: Insertable<Data>) => Promise<Response>;
    read: (
       query?: RepoQueryIn,
    ) => Promise<
-      ResponseObject<
-         RepositoryResponse<Id extends undefined ? Selectable<Data>[] : Selectable<Data>>
-      >
+      ResponseObject<RepositoryResult<Id extends undefined ? Selectable<Data>[] : Selectable<Data>>>
    >;
    update: Id extends undefined
       ? (input: Updateable<Data>, id: Id) => Promise<Response>

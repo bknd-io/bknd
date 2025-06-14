@@ -1,12 +1,15 @@
-import { $console, type DB as DefaultDB, type PrimaryFieldType } from "core";
+import type { DB as DefaultDB, PrimaryFieldType } from "core";
 import { type EmitsEvents, EventManager } from "core/events";
 import type { DeleteQueryBuilder, InsertQueryBuilder, UpdateQueryBuilder } from "kysely";
-import { type TActionContext, WhereBuilder } from "..";
-import type { Entity, EntityData, EntityManager } from "../entities";
-import { InvalidSearchParamsException } from "../errors";
-import { MutatorEvents } from "../events";
-import { RelationMutator } from "../relations";
-import type { RepoQuery } from "../server/query";
+import type { TActionContext } from "../..";
+import { WhereBuilder } from "../query/WhereBuilder";
+import type { Entity, EntityData, EntityManager } from "../../entities";
+import { InvalidSearchParamsException } from "../../errors";
+import { MutatorEvents } from "../../events";
+import { RelationMutator } from "../../relations";
+import type { RepoQuery } from "../../server/query";
+import { MutatorResult, type MutatorResultOptions } from "./MutatorResult";
+import { transformObject } from "core/utils";
 
 type MutatorQB =
    | InsertQueryBuilder<any, any, any>
@@ -16,14 +19,6 @@ type MutatorQB =
 type MutatorUpdateOrDelete =
    | UpdateQueryBuilder<any, any, any, any>
    | DeleteQueryBuilder<any, any, any>;
-
-export type MutatorResponse<T = EntityData[]> = {
-   entity: Entity;
-   sql: string;
-   parameters: any[];
-   result: EntityData[];
-   data: T;
-};
 
 export class Mutator<
    TBD extends object = DefaultDB,
@@ -93,7 +88,11 @@ export class Mutator<
             throw new Error(`Field "${key}" is not fillable on entity "${entity.name}"`);
          }
 
+         // transform from field
          validatedData[key] = await field.transformPersist(data[key], this.em, context);
+
+         // transform to driver
+         validatedData[key] = this.em.connection.toDriver(validatedData[key], field);
       }
 
       if (Object.keys(validatedData).length === 0) {
@@ -103,35 +102,18 @@ export class Mutator<
       return validatedData as Given;
    }
 
-   protected async many(qb: MutatorQB): Promise<MutatorResponse> {
-      const entity = this.entity;
-      const { sql, parameters } = qb.compile();
-
-      try {
-         const result = await qb.execute();
-
-         const data = this.em.hydrate(entity.name, result) as EntityData[];
-
-         return {
-            entity,
-            sql,
-            parameters: [...parameters],
-            result: result,
-            data,
-         };
-      } catch (e) {
-         // @todo: redact
-         $console.error("[Error in query]", sql);
-         throw e;
-      }
+   protected async performQuery<T = EntityData[]>(
+      qb: MutatorQB,
+      opts?: MutatorResultOptions,
+   ): Promise<MutatorResult<T>> {
+      const result = new MutatorResult(this.em, this.entity, {
+         silent: false,
+         ...opts,
+      });
+      return (await result.execute(qb)) as any;
    }
 
-   protected async single(qb: MutatorQB): Promise<MutatorResponse<EntityData>> {
-      const { data, ...response } = await this.many(qb);
-      return { ...response, data: data[0]! };
-   }
-
-   async insertOne(data: Input): Promise<MutatorResponse<Output>> {
+   async insertOne(data: Input): Promise<MutatorResult<Output>> {
       const entity = this.entity;
       if (entity.type === "system" && this.__unstable_disable_system_entity_creation) {
          throw new Error(`Creation of system entity "${entity.name}" is disabled`);
@@ -143,10 +125,13 @@ export class Mutator<
 
       // if listener returned, take what's returned
       const _data = result.returned ? result.params.data : data;
-      let validatedData = {
-         ...entity.getDefaultObject(),
-         ...(await this.getValidatedData(_data, "create")),
-      };
+      let validatedData = await this.getValidatedData(
+         {
+            ...entity.getDefaultObject(),
+            ..._data,
+         },
+         "create",
+      );
 
       // check if required fields are present
       const required = entity.getRequiredFields();
@@ -174,7 +159,7 @@ export class Mutator<
          .values(validatedData)
          .returning(entity.getSelect());
 
-      const res = await this.single(query);
+      const res = await this.performQuery(query, { single: true });
 
       await this.emgr.emit(
          new Mutator.Events.MutatorInsertAfter({ entity, data: res.data, changed: validatedData }),
@@ -183,7 +168,7 @@ export class Mutator<
       return res as any;
    }
 
-   async updateOne(id: PrimaryFieldType, data: Partial<Input>): Promise<MutatorResponse<Output>> {
+   async updateOne(id: PrimaryFieldType, data: Partial<Input>): Promise<MutatorResult<Output>> {
       const entity = this.entity;
       if (!id) {
          throw new Error("ID must be provided for update");
@@ -206,7 +191,7 @@ export class Mutator<
          .where(entity.id().name, "=", id)
          .returning(entity.getSelect());
 
-      const res = await this.single(query);
+      const res = await this.performQuery(query, { single: true });
 
       await this.emgr.emit(
          new Mutator.Events.MutatorUpdateAfter({
@@ -220,7 +205,7 @@ export class Mutator<
       return res as any;
    }
 
-   async deleteOne(id: PrimaryFieldType): Promise<MutatorResponse<Output>> {
+   async deleteOne(id: PrimaryFieldType): Promise<MutatorResult<Output>> {
       const entity = this.entity;
       if (!id) {
          throw new Error("ID must be provided for deletion");
@@ -233,7 +218,7 @@ export class Mutator<
          .where(entity.id().name, "=", id)
          .returning(entity.getSelect());
 
-      const res = await this.single(query);
+      const res = await this.performQuery(query, { single: true });
 
       await this.emgr.emit(
          new Mutator.Events.MutatorDeleteAfter({ entity, entityId: id, data: res.data }),
@@ -286,7 +271,7 @@ export class Mutator<
    }
 
    // @todo: decide whether entries should be deleted all at once or one by one (for events)
-   async deleteWhere(where: RepoQuery["where"]): Promise<MutatorResponse<Output[]>> {
+   async deleteWhere(where: RepoQuery["where"]): Promise<MutatorResult<Output[]>> {
       const entity = this.entity;
 
       // @todo: add a way to delete all by adding force?
@@ -298,13 +283,13 @@ export class Mutator<
          entity.getSelect(),
       );
 
-      return (await this.many(qb)) as any;
+      return await this.performQuery(qb);
    }
 
    async updateWhere(
       data: Partial<Input>,
       where: RepoQuery["where"],
-   ): Promise<MutatorResponse<Output[]>> {
+   ): Promise<MutatorResult<Output[]>> {
       const entity = this.entity;
       const validatedData = await this.getValidatedData(data, "update");
 
@@ -317,10 +302,10 @@ export class Mutator<
          .set(validatedData as any)
          .returning(entity.getSelect());
 
-      return (await this.many(query)) as any;
+      return await this.performQuery(query);
    }
 
-   async insertMany(data: Input[]): Promise<MutatorResponse<Output[]>> {
+   async insertMany(data: Input[]): Promise<MutatorResult<Output[]>> {
       const entity = this.entity;
       if (entity.type === "system" && this.__unstable_disable_system_entity_creation) {
          throw new Error(`Creation of system entity "${entity.name}" is disabled`);
@@ -352,6 +337,6 @@ export class Mutator<
          .values(validated)
          .returning(entity.getSelect());
 
-      return (await this.many(query)) as any;
+      return await this.performQuery(query);
    }
 }

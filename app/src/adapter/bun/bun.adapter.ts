@@ -2,10 +2,11 @@
 
 import path from "node:path";
 import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
-import { registerLocalMediaAdapter } from "bknd/adapter/node";
+import { registerLocalMediaAdapter } from ".";
 import { config } from "bknd/core";
 import type { ServeOptions } from "bun";
 import { serveStatic } from "hono/bun";
+import type { App } from "App";
 
 type BunEnv = Bun.Env;
 export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOptions, "fetch">;
@@ -33,8 +34,11 @@ export function createHandler<Env = BunEnv>(
    args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
+   let app: App | undefined;
    return async (req: Request) => {
-      const app = await createApp(config, args ?? (process.env as Env), opts);
+      if (!app) {
+         app = await createApp(config, args ?? (process.env as Env), opts);
+      }
       return app.fetch(req);
    };
 }
@@ -72,5 +76,5 @@ export function serve<Env = BunEnv>(
       ),
    });
 
-   console.log(`Server is running on http://localhost:${port}`);
+   console.info(`Server is running on http://localhost:${port}`);
 }

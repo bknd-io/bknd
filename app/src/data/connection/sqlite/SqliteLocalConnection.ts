@@ -1,31 +1,14 @@
-import {
-   type DatabaseIntrospector,
-   Kysely,
-   ParseJSONResultsPlugin,
-   type SqliteDatabase,
-   SqliteDialect,
-} from "kysely";
+import { type SqliteDatabase, SqliteDialect } from "kysely";
 import { SqliteConnection } from "./SqliteConnection";
-import { SqliteIntrospector } from "./SqliteIntrospector";
 
-const plugins = [new ParseJSONResultsPlugin()];
+export class SqliteLocalConnection extends SqliteConnection<SqliteDatabase> {
+   override name = "sqlite-local";
 
-class CustomSqliteDialect extends SqliteDialect {
-   override createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-      return new SqliteIntrospector(db, {
-         excludeTables: ["test_table"],
-         plugins,
+   constructor(database: SqliteDatabase) {
+      super({
+         dialect: SqliteDialect,
+         dialectArgs: [{ database }],
       });
-   }
-}
-
-export class SqliteLocalConnection extends SqliteConnection {
-   constructor(private database: SqliteDatabase) {
-      const kysely = new Kysely({
-         dialect: new CustomSqliteDialect({ database }),
-         plugins,
-      });
-
-      super(kysely, {}, plugins);
+      this.client = database;
    }
 }

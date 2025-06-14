@@ -207,8 +207,9 @@ export class EntityManager<TBD extends object = DefaultDB> {
 
    repository<E extends Entity | keyof TBD | string>(
       entity: E,
+      opts: Omit<RepositoryOptions, "emgr"> = {},
    ): Repository<TBD, EntitySchema<TBD, E>> {
-      return this.repo(entity);
+      return this.repo(entity, opts);
    }
 
    repo<E extends Entity | keyof TBD | string>(
@@ -277,6 +278,10 @@ export class EntityManager<TBD extends object = DefaultDB> {
                   row[key] = field.getDefault();
                }
 
+               // transform from driver
+               value = this.connection.fromDriver(value, field);
+
+               // transform from field
                row[key] = field.transformRetrieve(value as any);
             } catch (e: any) {
                throw new TransformRetrieveFailedException(

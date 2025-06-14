@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { createApp } from "../../src";
+import { createApp } from "core/test/utils";
 import { Api } from "../../src/Api";
 
 describe("integration config", () => {

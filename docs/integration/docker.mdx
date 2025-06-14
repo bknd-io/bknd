@@ -18,9 +18,7 @@ docker build -t bknd .
 If you want to override the bknd version used, you can pass a `VERSION` build argument:
 ```bash
 docker build --build-arg VERSION=<version> -t bknd .
-````
-
-```bash
+```
 
 ## Running the Docker container
 To run the Docker container, run the following command:
@@ -33,10 +31,6 @@ You can pass the same CLI arguments (see [Using the CLI](https://docs.bknd.io/cl
 
 ```bash
 docker run -p 1337:1337 -e ARGS="--db-url file:/data/data.db" bknd
-```
-Or connect to a remote turso database:
-```bash
-docker run -p 1337:1337 -e ARGS="--db-url libsql://<db>.turso.io --db-token <token>" bknd
 ```
 
 To mount the data directory to the host, you can use the `-v` flag:

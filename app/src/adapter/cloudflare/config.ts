@@ -9,6 +9,7 @@ import { makeConfig as makeAdapterConfig } from "bknd/adapter";
 import type { Context, ExecutionContext } from "hono";
 import { $console } from "core";
 import { setCookie } from "hono/cookie";
+import { sqlite } from "bknd/adapter/sqlite";
 
 export const constants = {
    exec_async_event_id: "cf_register_waituntil",
@@ -98,52 +99,68 @@ export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
 
    const appConfig = makeAdapterConfig(config, args?.env);
 
-   if (args?.env) {
-      const bindings = config.bindings?.(args?.env);
+   // if connection instance is given, don't do anything
+   // other than checking if D1 session is defined
+   if (D1Connection.isConnection(appConfig.connection)) {
+      if (config.d1?.session) {
+         // we cannot guarantee that db was opened with session
+         throw new Error(
+            "D1 session don't work when D1 is directly given as connection. Define it in bindings instead.",
+         );
+      }
+      // if connection is given, try to open with unified sqlite adapter
+   } else if (appConfig.connection) {
+      appConfig.connection = sqlite(appConfig.connection);
 
+      // if connection is not given, but env is set
+      // try to make D1 from bindings
+   } else if (args?.env) {
+      const bindings = config.bindings?.(args?.env);
       const sessionHelper = d1SessionHelper(config);
       const sessionId = sessionHelper.get(args.request);
       let session: D1DatabaseSession | undefined;
+      let db: D1Database | undefined;
 
-      if (!appConfig.connection) {
-         let db: D1Database | undefined;
-         if (bindings?.db) {
-            $console.log("Using database from bindings");
-            db = bindings.db;
-         } else if (Object.keys(args).length > 0) {
-            const binding = getBinding(args.env, "D1Database");
-            if (binding) {
-               $console.log(`Using database from env "${binding.key}"`);
-               db = binding.value;
-            }
-         }
+      // if db is given in bindings, use it
+      if (bindings?.db) {
+         $console.log("Using database from bindings");
+         db = bindings.db;
 
-         if (db) {
-            if (config.d1?.session) {
-               session = db.withSession(sessionId ?? config.d1?.first);
-               appConfig.connection = new D1Connection({ binding: session });
-            } else {
-               appConfig.connection = new D1Connection({ binding: db });
-            }
-         } else {
-            throw new Error("No database connection given");
+         // scan for D1Database in args
+      } else {
+         const binding = getBinding(args.env, "D1Database");
+         if (binding) {
+            $console.log(`Using database from env "${binding.key}"`);
+            db = binding.value;
          }
       }
 
-      if (config.d1?.session) {
-         appConfig.options = {
-            ...appConfig.options,
-            manager: {
-               ...appConfig.options?.manager,
-               onServerInit: (server) => {
-                  server.use(async (c, next) => {
-                     sessionHelper.set(c, session);
-                     await next();
-                  });
+      // if db is found, check if session is requested
+      if (db) {
+         if (config.d1?.session) {
+            session = db.withSession(sessionId ?? config.d1?.first);
+
+            appConfig.connection = new D1Connection({ binding: session });
+            appConfig.options = {
+               ...appConfig.options,
+               manager: {
+                  ...appConfig.options?.manager,
+                  onServerInit: (server) => {
+                     server.use(async (c, next) => {
+                        sessionHelper.set(c, session);
+                        await next();
+                     });
+                  },
                },
-            },
-         };
+            };
+         } else {
+            appConfig.connection = new D1Connection({ binding: db });
+         }
       }
+   }
+
+   if (!D1Connection.isConnection(appConfig.connection)) {
+      throw new Error("Couldn't find database connection");
    }
 
    return appConfig;

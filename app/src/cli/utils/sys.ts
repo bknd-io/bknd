@@ -4,14 +4,6 @@ import { readFile, writeFile as nodeWriteFile } from "node:fs/promises";
 import path from "node:path";
 import url from "node:url";
 
-export function isBun(): boolean {
-   try {
-      return typeof Bun !== "undefined";
-   } catch (e) {
-      return false;
-   }
-}
-
 export function getRootPath() {
    const _path = path.dirname(url.fileURLToPath(import.meta.url));
    // because of "src", local needs one more level up

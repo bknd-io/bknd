@@ -89,9 +89,9 @@ describe("[data] WithBuilder", async () => {
       const res2 = qb2.compile();
 
       expect(res2.sql).toBe(
-         'select (select json_object(\'id\', "obj"."id", \'username\', "obj"."username") from (select "users"."id" as "id", "users"."username" as "username" from "users" as "author" where "author"."id" = "posts"."author_id" order by "users"."id" asc limit ? offset ?) as obj) as "author" from "posts"',
+         'select (select json_object(\'id\', "obj"."id", \'username\', "obj"."username") from (select "users"."id" as "id", "users"."username" as "username" from "users" as "author" where "author"."id" = "posts"."author_id" order by "users"."id" asc limit ?) as obj) as "author" from "posts"',
       );
-      expect(res2.parameters).toEqual([1, 0]);
+      expect(res2.parameters).toEqual([1]);
    });
 
    test("test with empty join", async () => {
@@ -194,9 +194,9 @@ describe("[data] WithBuilder", async () => {
       );
       const res = qb.compile();
       expect(res.sql).toBe(
-         'select (select json_object(\'id\', "obj"."id", \'path\', "obj"."path") from (select "media"."id" as "id", "media"."path" as "path" from "media" where "media"."reference" = ? and "categories"."id" = "media"."entity_id" order by "media"."id" asc limit ? offset ?) as obj) as "single" from "categories"',
+         'select (select json_object(\'id\', "obj"."id", \'path\', "obj"."path") from (select "media"."id" as "id", "media"."path" as "path" from "media" where "media"."reference" = ? and "categories"."id" = "media"."entity_id" order by "media"."id" asc limit ?) as obj) as "single" from "categories"',
       );
-      expect(res.parameters).toEqual(["categories.single", 1, 0]);
+      expect(res.parameters).toEqual(["categories.single", 1]);
 
       const qb2 = WithBuilder.addClause(
          em,
@@ -273,9 +273,9 @@ describe("[data] WithBuilder", async () => {
 
          //prettyPrintQb(qb);
          expect(qb.compile().sql).toBe(
-            'select (select json_object(\'id\', "obj"."id", \'username\', "obj"."username", \'avatar\', "obj"."avatar") from (select "users"."id" as "id", "users"."username" as "username", (select json_object(\'id\', "obj"."id", \'path\', "obj"."path") from (select "media"."id" as "id", "media"."path" as "path" from "media" where "media"."reference" = ? and "users"."id" = "media"."entity_id" order by "media"."id" asc limit ? offset ?) as obj) as "avatar" from "users" as "users" where "users"."id" = "posts"."users_id" order by "users"."username" asc limit ? offset ?) as obj) as "users" from "posts"',
+            'select (select json_object(\'id\', "obj"."id", \'username\', "obj"."username", \'avatar\', "obj"."avatar") from (select "users"."id" as "id", "users"."username" as "username", (select json_object(\'id\', "obj"."id", \'path\', "obj"."path") from (select "media"."id" as "id", "media"."path" as "path" from "media" where "media"."reference" = ? and "users"."id" = "media"."entity_id" order by "media"."id" asc limit ?) as obj) as "avatar" from "users" as "users" where "users"."id" = "posts"."users_id" order by "users"."username" asc limit ?) as obj) as "users" from "posts"',
          );
-         expect(qb.compile().parameters).toEqual(["users.avatar", 1, 0, 1, 0]);
+         expect(qb.compile().parameters).toEqual(["users.avatar", 1, 1]);
       });
 
       test("compiles with many", async () => {
@@ -315,9 +315,9 @@ describe("[data] WithBuilder", async () => {
          );
 
          expect(qb.compile().sql).toBe(
-            'select (select coalesce(json_group_array(json_object(\'id\', "agg"."id", \'posts_id\', "agg"."posts_id", \'users_id\', "agg"."users_id", \'users\', "agg"."users")), \'[]\') from (select "comments"."id" as "id", "comments"."posts_id" as "posts_id", "comments"."users_id" as "users_id", (select json_object(\'username\', "obj"."username") from (select "users"."username" as "username" from "users" as "users" where "users"."id" = "comments"."users_id" order by "users"."id" asc limit ? offset ?) as obj) as "users" from "comments" as "comments" where "comments"."posts_id" = "posts"."id" order by "comments"."id" asc limit ? offset ?) as agg) as "comments" from "posts"',
+            'select (select coalesce(json_group_array(json_object(\'id\', "agg"."id", \'posts_id\', "agg"."posts_id", \'users_id\', "agg"."users_id", \'users\', "agg"."users")), \'[]\') from (select "comments"."id" as "id", "comments"."posts_id" as "posts_id", "comments"."users_id" as "users_id", (select json_object(\'username\', "obj"."username") from (select "users"."username" as "username" from "users" as "users" where "users"."id" = "comments"."users_id" order by "users"."id" asc limit ?) as obj) as "users" from "comments" as "comments" where "comments"."posts_id" = "posts"."id" order by "comments"."id" asc limit ? offset ?) as agg) as "comments" from "posts"',
          );
-         expect(qb.compile().parameters).toEqual([1, 0, 12, 0]);
+         expect(qb.compile().parameters).toEqual([1, 12, 0]);
       });
 
       test("returns correct result", async () => {

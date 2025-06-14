@@ -140,7 +140,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
 
    registerEntities() {
       const users = this.getUsersEntity(true);
-      this.ensureSchema(
+      this.ctx.helper.ensureSchema(
          em(
             {
                [users.name as "users"]: users,
@@ -153,13 +153,13 @@ export class AppAuth extends Module<typeof authConfigSchema> {
 
       try {
          const roles = Object.keys(this.config.roles ?? {});
-         this.replaceEntityField(users, "role", enumm({ enum: roles }));
+         this.ctx.helper.replaceEntityField(users, "role", enumm({ enum: roles }));
       } catch (e) {}
 
       try {
          // also keep disabled strategies as a choice
          const strategies = Object.keys(this.config.strategies ?? {});
-         this.replaceEntityField(users, "strategy", enumm({ enum: strategies }));
+         this.ctx.helper.replaceEntityField(users, "strategy", enumm({ enum: strategies }));
       } catch (e) {}
    }
 

@@ -7,6 +7,12 @@ import { Stackblitz, examples } from "/snippets/stackblitz.mdx"
 
 Glad you're here! **bknd** is a lightweight, infrastructure agnostic and feature-rich backend that runs in any JavaScript environment.
 
+- Instant backend with full REST API
+- Built on Web Standards for maximum compatibility
+- Multiple run modes (standalone, runtime, framework)
+- Official API and React SDK with type-safety
+- React elements for auto-configured authentication and media components
+
 ## Preview
 Here is a preview of **bknd** in StackBlitz:
 <Stackblitz {...examples.adminRich} />
@@ -96,12 +102,12 @@ The following databases are currently supported. Request a new integration if yo
 
 <CardGroup cols={2}>
    <Card
-      title="LibSQL/SQLite"
-      icon={<div className="text-primary-light">{libsql}</div>}
+      title="SQLite"
+      icon={<div className="text-primary-light">{sqlite}</div>}
       href="/usage/database#database"
    />
    <Card
-      title="Turso"
+      title="Turso/LibSQL"
       icon={<div className="text-primary-light">{turso}</div>}
       href="/usage/database#sqlite-using-libsql-on-turso"
    />

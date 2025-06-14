@@ -64,7 +64,7 @@ export class DurableBkndApp extends DurableObject {
             "type" in config.connection &&
             config.connection.type === "libsql"
          ) {
-            config.connection.config.protocol = "wss";
+            //config.connection.config.protocol = "wss";
          }
 
          this.app = await createRuntimeApp({

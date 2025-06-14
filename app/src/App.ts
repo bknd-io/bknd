@@ -1,7 +1,8 @@
 import type { CreateUserPayload } from "auth/AppAuth";
 import { $console } from "core";
 import { Event } from "core/events";
-import { Connection, type LibSqlCredentials, LibsqlConnection } from "data";
+import type { em as prototypeEm } from "data/prototype";
+import { Connection } from "data/connection/Connection";
 import type { Hono } from "hono";
 import {
    ModuleManager,
@@ -14,12 +15,22 @@ import {
 import * as SystemPermissions from "modules/permissions";
 import { AdminController, type AdminControllerOptions } from "modules/server/AdminController";
 import { SystemController } from "modules/server/SystemController";
+import type { MaybePromise } from "core/types";
+import type { ServerEnv } from "modules/Controller";
 
 // biome-ignore format: must be here
 import { Api, type ApiOptions } from "Api";
-import type { ServerEnv } from "modules/Controller";
 
-export type AppPlugin = (app: App) => Promise<void> | void;
+export type AppPluginConfig = {
+   name: string;
+   schema?: () => MaybePromise<ReturnType<typeof prototypeEm> | void>;
+   beforeBuild?: () => MaybePromise<void>;
+   onBuilt?: () => MaybePromise<void>;
+   onServerInit?: (server: Hono<ServerEnv>) => MaybePromise<void>;
+   onFirstBoot?: () => MaybePromise<void>;
+   onBoot?: () => MaybePromise<void>;
+};
+export type AppPlugin = (app: App) => AppPluginConfig;
 
 abstract class AppEvent<A = {}> extends Event<{ app: App } & A> {}
 export class AppConfigUpdatedEvent extends AppEvent {
@@ -52,14 +63,7 @@ export type AppOptions = {
    asyncEventsMode?: "sync" | "async" | "none";
 };
 export type CreateAppConfig = {
-   connection?:
-      | Connection
-      | {
-           // @deprecated
-           type: "libsql";
-           config: LibSqlCredentials;
-        }
-      | LibSqlCredentials;
+   connection?: Connection | { url: string };
    initialConfig?: InitialModuleConfigs;
    options?: AppOptions;
 };
@@ -73,29 +77,60 @@ export class App {
    modules: ModuleManager;
    adminController?: AdminController;
    _id: string = crypto.randomUUID();
+   plugins: Map<string, AppPluginConfig> = new Map();
 
    private trigger_first_boot = false;
-   private plugins: AppPlugin[];
    private _building: boolean = false;
 
    constructor(
-      private connection: Connection,
+      public connection: Connection,
       _initialConfig?: InitialModuleConfigs,
       private options?: AppOptions,
    ) {
-      this.plugins = options?.plugins ?? [];
+      for (const plugin of options?.plugins ?? []) {
+         const config = plugin(this);
+         this.plugins.set(config.name, config);
+      }
+      this.runPlugins("onBoot");
       this.modules = new ModuleManager(connection, {
          ...(options?.manager ?? {}),
          initial: _initialConfig,
          onUpdated: this.onUpdated.bind(this),
          onFirstBoot: this.onFirstBoot.bind(this),
          onServerInit: this.onServerInit.bind(this),
+         onModulesBuilt: this.onModulesBuilt.bind(this),
       });
       this.modules.ctx().emgr.registerEvents(AppEvents);
    }
 
    get emgr() {
       return this.modules.ctx().emgr;
+   }
+
+   protected async runPlugins<Key extends keyof AppPluginConfig>(
+      key: Key,
+      ...args: any[]
+   ): Promise<{ name: string; result: any }[]> {
+      const results: { name: string; result: any }[] = [];
+      for (const [name, config] of this.plugins) {
+         try {
+            if (key in config && config[key]) {
+               const fn = config[key];
+               if (fn && typeof fn === "function") {
+                  $console.debug(`[Plugin:${name}] ${key}`);
+                  // @ts-expect-error
+                  const result = await fn(...args);
+                  results.push({
+                     name,
+                     result,
+                  });
+               }
+            }
+         } catch (e) {
+            $console.warn(`[Plugin:${name}] error running "${key}"`, String(e));
+         }
+      }
+      return results as any;
    }
 
    async build(options?: { sync?: boolean; fetch?: boolean; forceBuild?: boolean }) {
@@ -106,6 +141,8 @@ export class App {
          }
          if (!options?.forceBuild) return;
       }
+
+      await this.runPlugins("beforeBuild");
       this._building = true;
 
       if (options?.sync) this.modules.ctx().flags.sync_required = true;
@@ -117,13 +154,10 @@ export class App {
       guard.registerPermissions(Object.values(SystemPermissions));
       server.route("/api/system", new SystemController(this).getController());
 
-      // load plugins
-      if (this.plugins.length > 0) {
-         await Promise.all(this.plugins.map((plugin) => plugin(this)));
-      }
-
+      // emit built event
       $console.log("App built");
       await this.emgr.emit(new AppBuiltEvent({ app: this }));
+      await this.runPlugins("onBuilt");
 
       // first boot is set from ModuleManager when there wasn't a config table
       if (this.trigger_first_boot) {
@@ -223,12 +257,13 @@ export class App {
       await this.emgr.emit(new AppConfigUpdatedEvent({ app: this }));
    }
 
-   async onFirstBoot() {
+   protected async onFirstBoot() {
       $console.log("App first boot");
       this.trigger_first_boot = true;
+      await this.runPlugins("onFirstBoot");
    }
 
-   async onServerInit(server: Hono<ServerEnv>) {
+   protected async onServerInit(server: Hono<ServerEnv>) {
       server.use(async (c, next) => {
          c.set("app", this);
          await this.emgr.emit(new AppRequest({ app: this, request: c.req.raw }));
@@ -258,35 +293,30 @@ export class App {
       if (this.options?.manager?.onServerInit) {
          this.options.manager.onServerInit(server);
       }
+
+      await this.runPlugins("onServerInit", server);
+   }
+
+   protected async onModulesBuilt(ctx: ModuleBuildContext) {
+      const results = (await this.runPlugins("schema")) as {
+         name: string;
+         result: ReturnType<typeof prototypeEm>;
+      }[];
+      if (results.length > 0) {
+         for (const { name, result } of results) {
+            if (result) {
+               $console.log(`[Plugin:${name}] schema`);
+               ctx.helper.ensureSchema(result);
+            }
+         }
+      }
    }
 }
 
 export function createApp(config: CreateAppConfig = {}) {
-   let connection: Connection | undefined = undefined;
-
-   try {
-      if (Connection.isConnection(config.connection)) {
-         connection = config.connection;
-      } else if (typeof config.connection === "object") {
-         if ("type" in config.connection) {
-            $console.warn(
-               "Using deprecated connection type 'libsql', use the 'config' object directly.",
-            );
-            connection = new LibsqlConnection(config.connection.config);
-         } else {
-            connection = new LibsqlConnection(config.connection);
-         }
-      } else {
-         connection = new LibsqlConnection({ url: ":memory:" });
-         $console.warn("No connection provided, using in-memory database");
-      }
-   } catch (e) {
-      $console.error("Could not create connection", e);
-   }
-
-   if (!connection) {
+   if (!config.connection || !Connection.isConnection(config.connection)) {
       throw new Error("Invalid connection");
    }
 
-   return new App(connection, config.initialConfig, config.options);
+   return new App(config.connection, config.initialConfig, config.options);
 }

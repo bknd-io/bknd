@@ -11,7 +11,7 @@ import type { CliCommand } from "cli/types";
 import { Argument } from "commander";
 import { $console } from "core";
 import c from "picocolors";
-import { isBun } from "cli/utils/sys";
+import { isBun } from "core/utils";
 
 export const user: CliCommand = (program) => {
    program
