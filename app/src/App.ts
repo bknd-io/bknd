@@ -17,6 +17,7 @@ import { AdminController, type AdminControllerOptions } from "modules/server/Adm
 import { SystemController } from "modules/server/SystemController";
 import type { MaybePromise } from "core/types";
 import type { ServerEnv } from "modules/Controller";
+import type { IEmailDriver, ICacheDriver } from "core/drivers";
 
 // biome-ignore format: must be here
 import { Api, type ApiOptions } from "Api";
@@ -61,6 +62,10 @@ export type AppOptions = {
    seed?: (ctx: ModuleBuildContext & { app: App }) => Promise<void>;
    manager?: Omit<ModuleManagerOptions, "initial" | "onUpdated" | "seed">;
    asyncEventsMode?: "sync" | "async" | "none";
+   drivers?: {
+      email?: IEmailDriver;
+      cache?: ICacheDriver;
+   };
 };
 export type CreateAppConfig = {
    connection?: Connection | { url: string };

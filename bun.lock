@@ -15,7 +15,7 @@
     },
     "app": {
       "name": "bknd",
-      "version": "0.14.0-rc.2",
+      "version": "0.15.0-rc.2",
       "bin": "./dist/cli/index.js",
       "dependencies": {
         "@cfworker/json-schema": "^4.1.1",
