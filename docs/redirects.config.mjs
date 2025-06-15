@@ -1,7 +1,7 @@
 export const redirectsConfig = [
   {
     source: "/",
-    destination: "/start",
+    destination: "/documentation/start",
     permanent: true
   }
 ];

@@ -17,8 +17,10 @@
     "incremental": true,
     "paths": {
       "@/.source": ["./.source/index.ts"],
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "content-collections": ["./.content-collections/generated"]
     },
+
     "plugins": [
       {
         "name": "next"

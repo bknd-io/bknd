@@ -1,5 +1,6 @@
 import { createMDX } from "fumadocs-mdx/next";
 import { redirectsConfig } from "./redirects.config.mjs";
+import { rewritesConfig } from "./rewrites.config.mjs";
 
 const withMDX = createMDX();
 
@@ -8,6 +9,9 @@ const config = {
   reactStrictMode: true,
   async redirects() {
     return redirectsConfig;
+  },
+  async rewrites() {
+    return rewritesConfig;
   }
 };
 

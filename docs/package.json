@@ -9,6 +9,10 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@content-collections/core": "^0.9.1",
+    "@content-collections/mdx": "^0.2.2",
+    "@content-collections/next": "^0.2.6",
+    "@fumadocs/content-collections": "^1.2.1",
     "@iconify/react": "^6.0.0",
     "fumadocs-core": "15.5.0",
     "fumadocs-mdx": "11.6.6",
@@ -31,7 +35,10 @@
     "typescript": "^5.8.3"
   },
   "trustedDependencies": [
+    "@parcel/watcher",
     "@tailwindcss/oxide",
+    "esbuild",
+    "sharp",
     "unrs-resolver"
   ]
 }
