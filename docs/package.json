@@ -18,16 +18,17 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.8",
+    "@types/mdx": "^2.0.13",
     "@types/node": "22.15.28",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
-    "typescript": "^5.8.3",
-    "@types/mdx": "^2.0.13",
-    "@tailwindcss/postcss": "^4.1.8",
-    "tailwindcss": "^4.1.8",
-    "postcss": "^8.5.4",
     "eslint": "^8",
-    "eslint-config-next": "15.3.3"
+    "eslint-config-next": "15.3.3",
+    "fumadocs-docgen": "^2.0.1",
+    "postcss": "^8.5.4",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.8.3"
   },
   "trustedDependencies": [
     "@tailwindcss/oxide",
