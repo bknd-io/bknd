@@ -13,8 +13,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <RootProvider>
           <DocsLayout
             tree={source.pageTree}
-            nav={{ ...baseOptions.nav, mode: 'top' }}
-            // nav={{ ...baseOptions.nav }}
+            // nav={{ ...baseOptions.nav, mode: 'top' }}
+            nav={{ ...baseOptions.nav }}
             tabMode="navbar"
             links={[
               {
