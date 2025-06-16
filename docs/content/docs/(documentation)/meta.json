@@ -1,6 +1,7 @@
 {
   "title": "Documentation",
   "root": true,
+  "slug": "",
   "pages": [
     "---Getting Started---",
     "start",
