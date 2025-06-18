@@ -11,16 +11,9 @@ import {
    stripMark,
    transformObject,
 } from "core/utils";
-import {
-   type Connection,
-   EntityManager,
-   type Schema,
-   datetime,
-   entity,
-   enumm,
-   jsonSchema,
-   number,
-} from "data";
+import type { Connection, Schema } from "data";
+import { EntityManager } from "data/entities/EntityManager";
+import * as proto from "data/prototype";
 import { TransformPersistFailedException } from "data/errors";
 import { Hono } from "hono";
 import type { Kysely } from "kysely";
@@ -34,6 +27,7 @@ import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
 import * as tbbox from "@sinclair/typebox";
+import { ModuleHelper } from "./ModuleHelper";
 const { Type } = tbbox;
 
 export type { ModuleBuildContext };
@@ -92,6 +86,8 @@ export type ModuleManagerOptions = {
    trustFetched?: boolean;
    // runs when initial config provided on a fresh database
    seed?: (ctx: ModuleBuildContext) => Promise<void>;
+   // called right after modules are built, before finish
+   onModulesBuilt?: (ctx: ModuleBuildContext) => Promise<void>;
    /** @deprecated */
    verbosity?: Verbosity;
 };
@@ -116,12 +112,12 @@ const configJsonSchema = Type.Union([
       }),
    ),
 ]);
-export const __bknd = entity(TABLE_NAME, {
-   version: number().required(),
-   type: enumm({ enum: ["config", "diff", "backup"] }).required(),
-   json: jsonSchema({ schema: configJsonSchema }).required(),
-   created_at: datetime(),
-   updated_at: datetime(),
+export const __bknd = proto.entity(TABLE_NAME, {
+   version: proto.number().required(),
+   type: proto.enumm({ enum: ["config", "diff", "backup"] }).required(),
+   json: proto.jsonSchema({ schema: configJsonSchema }).required(),
+   created_at: proto.datetime(),
+   updated_at: proto.datetime(),
 });
 type ConfigTable2 = Schema<typeof __bknd>;
 interface T_INTERNAL_EM {
@@ -234,7 +230,8 @@ export class ModuleManager {
    }
 
    private get db() {
-      return this.connection.kysely as Kysely<{ table: ConfigTable }>;
+      // @todo: check why this is neccessary
+      return this.connection.kysely as unknown as Kysely<{ table: ConfigTable }>;
    }
 
    // @todo: add indices for: version, type
@@ -267,7 +264,7 @@ export class ModuleManager {
          this.guard = new Guard();
       }
 
-      return {
+      const ctx = {
          connection: this.connection,
          server: this.server,
          em: this.em,
@@ -275,6 +272,11 @@ export class ModuleManager {
          guard: this.guard,
          flags: Module.ctx_flags,
          logger: this.logger,
+      };
+
+      return {
+         ...ctx,
+         helper: new ModuleHelper(ctx),
       };
    }
 
@@ -548,6 +550,10 @@ export class ModuleManager {
 
       this._built = state.built = true;
       this.logger.log("modules built", ctx.flags);
+
+      if (this.options?.onModulesBuilt) {
+         await this.options.onModulesBuilt(ctx);
+      }
 
       if (options?.ignoreFlags !== true) {
          if (ctx.flags.sync_required) {

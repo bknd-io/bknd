@@ -13,30 +13,32 @@ describe("cf adapter", () => {
    const DB_URL = ":memory:";
    const $ctx = (env?: any, request?: Request, ctx?: ExecutionContext) => ({
       request: request ?? (null as any),
-      env: env ?? { DB_URL },
+      env: env ?? { url: DB_URL },
       ctx: ctx ?? (null as any),
    });
 
    it("makes config", async () => {
-      expect(
-         makeConfig(
-            {
-               connection: { url: DB_URL },
-            },
-            $ctx({ DB_URL }),
-         ),
-      ).toEqual({ connection: { url: DB_URL } });
+      const staticConfig = makeConfig(
+         {
+            connection: { url: DB_URL },
+            initialConfig: { data: { basepath: DB_URL } },
+         },
+         $ctx({ DB_URL }),
+      );
+      expect(staticConfig.initialConfig).toEqual({ data: { basepath: DB_URL } });
+      expect(staticConfig.connection).toBeDefined();
 
-      expect(
-         makeConfig(
-            {
-               app: (env) => ({
-                  connection: { url: env.DB_URL },
-               }),
-            },
-            $ctx({ DB_URL }),
-         ),
-      ).toEqual({ connection: { url: DB_URL } });
+      const dynamicConfig = makeConfig(
+         {
+            app: (env) => ({
+               initialConfig: { data: { basepath: env.DB_URL } },
+               connection: { url: env.DB_URL },
+            }),
+         },
+         $ctx({ DB_URL }),
+      );
+      expect(dynamicConfig.initialConfig).toEqual({ data: { basepath: DB_URL } });
+      expect(dynamicConfig.connection).toBeDefined();
    });
 
    adapterTestSuite<CloudflareBkndConfig, CfMakeConfigArgs<any>>(bunTestRunner, {

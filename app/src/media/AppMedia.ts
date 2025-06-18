@@ -51,7 +51,7 @@ export class AppMedia extends Module<typeof mediaConfigSchema> {
          this.ctx.server.route(this.basepath, new MediaController(this).getController());
 
          const media = this.getMediaEntity(true);
-         this.ensureSchema(
+         this.ctx.helper.ensureSchema(
             em({ [media.name as "media"]: media }, ({ index }, { media }) => {
                index(media).on(["path"], true).on(["reference"]).on(["entity_id"]);
             }),

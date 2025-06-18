@@ -16,6 +16,8 @@ export type AdminBkndWindowContext = {
    user?: TApiUser;
    logout_route: string;
    admin_basepath: string;
+   logo_return_path?: string;
+   theme?: "dark" | "light" | "system";
 };
 
 // @todo: add migration to remove admin path from config
@@ -26,6 +28,8 @@ export type AdminControllerOptions = {
    html?: string;
    forceDev?: boolean | { mainPath: string };
    debugRerenders?: boolean;
+   theme?: "dark" | "light" | "system";
+   logoReturnPath?: string;
 };
 
 export class AdminController extends Controller {
@@ -46,6 +50,8 @@ export class AdminController extends Controller {
          basepath: this._options.basepath ?? "/",
          adminBasepath: this._options.adminBasepath ?? "",
          assetsPath: this._options.assetsPath ?? config.server.assets_path,
+         theme: this._options.theme ?? "system",
+         logo_return_path: this._options.logoReturnPath ?? "/",
       };
    }
 
@@ -108,10 +114,12 @@ export class AdminController extends Controller {
                },
             }),
             async (c) => {
-               const obj = {
+               const obj: AdminBkndWindowContext = {
                   user: c.get("auth")?.user,
                   logout_route: authRoutes.logout,
                   admin_basepath: this.options.adminBasepath,
+                  theme: this.options.theme,
+                  logo_return_path: this.options.logoReturnPath,
                };
                const html = await this.getHtml(obj);
                if (!html) {
@@ -172,7 +180,6 @@ export class AdminController extends Controller {
          return this.options.html as string;
       }
 
-      const configs = this.app.modules.configs();
       const isProd = !isDebug() && !this.options.forceDev;
       const mainPath =
          typeof this.options.forceDev === "object" && "mainPath" in this.options.forceDev

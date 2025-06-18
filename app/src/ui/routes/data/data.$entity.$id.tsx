@@ -19,6 +19,10 @@ import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
 
 export function DataEntityUpdate({ params }) {
+   return <DataEntityUpdateImpl params={params} key={params.entity} />;
+}
+
+function DataEntityUpdateImpl({ params }) {
    const { $data, relations } = useBkndData();
    const entity = $data.entity(params.entity as string);
    if (!entity) {
@@ -240,7 +244,12 @@ function EntityDetailRelations({
             })}
          />
          <div className="flex flex-grow flex-col gap-3 p-3">
-            <EntityDetailInner id={id} entity={entity} relation={selected} />
+            <EntityDetailInner
+               id={id}
+               entity={entity}
+               relation={selected}
+               key={JSON.stringify(selected?.toJSON())}
+            />
          </div>
       </div>
    );
@@ -257,6 +266,7 @@ function EntityDetailInner({
 }) {
    const other = relation.other(entity);
    const [navigate] = useNavigate();
+
    const [search, setSearch] = useState({
       select: other.entity.getSelect(undefined, "table"),
       sort: other.entity.getDefaultSort(),

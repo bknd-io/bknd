@@ -184,6 +184,6 @@ export class AuthController extends Controller {
          this.registerStrategyActions(strategy, hono);
       }
 
-      return hono.all("*", (c) => c.notFound());
+      return hono;
    }
 }

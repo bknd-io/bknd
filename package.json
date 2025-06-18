@@ -4,14 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "test": "ALL_TESTS=1 bun test --bail",
-    "test:coverage": "bun test --coverage",
-    "types": "bun run --filter './packages/**' types",
-    "build": "bun run clean:dist && bun run --cwd app build:all && bun build:packages",
-    "build:packages": "bun run --filter './packages/{cli,plasmic}' build",
-    "git:pre-commit": "bun run test",
     "updater": "bun x npm-check-updates -ui",
-    "clean:dist": "find packages -name 'dist' -type d -exec rm -rf {} +",
     "ci": "find . -name 'node_modules' -type d -exec rm -rf {} + && bun install",
     "npm:local": "verdaccio --config verdaccio.yml",
     "format": "bunx biome format --write ./app",
@@ -20,26 +13,15 @@
   "dependencies": {},
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@clack/prompts": "^0.10.0",
     "@tsconfig/strictest": "^2.0.5",
     "@types/lodash-es": "^4.17.12",
     "bun-types": "^1.1.18",
-    "dotenv": "^16.4.5",
-    "esbuild": "^0.23.0",
-    "esbuild-plugin-tsc": "^0.4.0",
     "miniflare": "^3.20240806.0",
-    "mitata": "^0.1.11",
-    "picocolors": "^1.0.1",
-    "semver": "^7.6.2",
-    "sql-formatter": "^15.3.2",
-    "tsd": "^0.31.1",
-    "tsup": "^8.1.0",
     "typescript": "^5.5.3",
-    "verdaccio": "^5.32.1",
-    "wrangler": "^3.108.1"
+    "verdaccio": "^5.32.1"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22"
   },
   "workspaces": ["app", "packages/*"]
 }

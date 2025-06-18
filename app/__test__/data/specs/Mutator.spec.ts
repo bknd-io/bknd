@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import type { EventManager } from "../../../src/core/events";
 import {
    Entity,
@@ -12,10 +12,13 @@ import {
    TextField,
 } from "../../../src/data";
 import * as proto from "../../../src/data/prototype";
-import { getDummyConnection } from "../helper";
+import { getDummyConnection, disableConsoleLog, enableConsoleLog } from "../../helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
 afterAll(afterAllCleanup);
+
+beforeAll(() => disableConsoleLog(["log", "warn"]));
+afterAll(async () => (await afterAllCleanup()) && enableConsoleLog());
 
 describe("[data] Mutator (base)", async () => {
    const entity = new Entity("items", [

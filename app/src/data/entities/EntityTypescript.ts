@@ -56,7 +56,7 @@ export class EntityTypescript {
       return this.em.entities.map((e) => e.toTypes());
    }
 
-   protected getTab(count = 1) {
+   getTab(count = 1) {
       return this.options.indentChar.repeat(this.options.indentWidth).repeat(count);
    }
 

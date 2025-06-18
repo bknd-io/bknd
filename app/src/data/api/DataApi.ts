@@ -1,5 +1,5 @@
 import type { DB } from "core";
-import type { EntityData, RepoQueryIn, RepositoryResponse } from "data";
+import type { EntityData, RepoQueryIn, RepositoryResultJSON } from "data";
 import type { Insertable, Selectable, Updateable } from "kysely";
 import { type BaseModuleApiOptions, ModuleApi, type PrimaryFieldType } from "modules";
 import type { FetchPromise, ResponseObject } from "modules/ModuleApi";
@@ -32,10 +32,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
       query: Omit<RepoQueryIn, "where" | "limit" | "offset"> = {},
    ) {
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      return this.get<Pick<RepositoryResponse<Data>, "meta" | "data">>(
-         ["entity", entity as any, id],
-         query,
-      );
+      return this.get<RepositoryResultJSON<Data>>(["entity", entity as any, id], query);
    }
 
    readOneBy<E extends keyof DB | string>(
@@ -43,7 +40,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
       query: Omit<RepoQueryIn, "limit" | "offset" | "sort"> = {},
    ) {
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      type T = Pick<RepositoryResponse<Data>, "meta" | "data">;
+      type T = RepositoryResultJSON<Data>;
       return this.readMany(entity, {
          ...query,
          limit: 1,
@@ -53,7 +50,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
 
    readMany<E extends keyof DB | string>(entity: E, query: RepoQueryIn = {}) {
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      type T = Pick<RepositoryResponse<Data[]>, "meta" | "data">;
+      type T = RepositoryResultJSON<Data[]>;
 
       const input = query ?? this.options.defaultQuery;
       const req = this.get<T>(["entity", entity as any], input);
@@ -72,7 +69,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
       query: RepoQueryIn = {},
    ) {
       type Data = R extends keyof DB ? Selectable<DB[R]> : EntityData;
-      return this.get<Pick<RepositoryResponse<Data[]>, "meta" | "data">>(
+      return this.get<RepositoryResultJSON<Data[]>>(
          ["entity", entity as any, id, reference],
          query ?? this.options.defaultQuery,
       );
@@ -83,7 +80,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
       input: Insertable<Input>,
    ) {
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      return this.post<RepositoryResponse<Data>>(["entity", entity as any], input);
+      return this.post<RepositoryResultJSON<Data>>(["entity", entity as any], input);
    }
 
    createMany<E extends keyof DB | string, Input = E extends keyof DB ? DB[E] : EntityData>(
@@ -94,7 +91,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
          throw new Error("input is required");
       }
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      return this.post<RepositoryResponse<Data[]>>(["entity", entity as any], input);
+      return this.post<RepositoryResultJSON<Data[]>>(["entity", entity as any], input);
    }
 
    updateOne<E extends keyof DB | string, Input = E extends keyof DB ? DB[E] : EntityData>(
@@ -104,7 +101,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
    ) {
       if (!id) throw new Error("ID is required");
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      return this.patch<RepositoryResponse<Data>>(["entity", entity as any, id], input);
+      return this.patch<RepositoryResultJSON<Data>>(["entity", entity as any, id], input);
    }
 
    updateMany<E extends keyof DB | string, Input = E extends keyof DB ? DB[E] : EntityData>(
@@ -114,7 +111,7 @@ export class DataApi extends ModuleApi<DataApiOptions> {
    ) {
       this.requireObjectSet(where);
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      return this.patch<RepositoryResponse<Data[]>>(["entity", entity as any], {
+      return this.patch<RepositoryResultJSON<Data[]>>(["entity", entity as any], {
          update,
          where,
       });
@@ -123,24 +120,24 @@ export class DataApi extends ModuleApi<DataApiOptions> {
    deleteOne<E extends keyof DB | string>(entity: E, id: PrimaryFieldType) {
       if (!id) throw new Error("ID is required");
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      return this.delete<RepositoryResponse<Data>>(["entity", entity as any, id]);
+      return this.delete<RepositoryResultJSON<Data>>(["entity", entity as any, id]);
    }
 
    deleteMany<E extends keyof DB | string>(entity: E, where: RepoQueryIn["where"]) {
       this.requireObjectSet(where);
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
-      return this.delete<RepositoryResponse<Data>>(["entity", entity as any], where);
+      return this.delete<RepositoryResultJSON<Data>>(["entity", entity as any], where);
    }
 
    count<E extends keyof DB | string>(entity: E, where: RepoQueryIn["where"] = {}) {
-      return this.post<RepositoryResponse<{ entity: E; count: number }>>(
+      return this.post<RepositoryResultJSON<{ entity: E; count: number }>>(
          ["entity", entity as any, "fn", "count"],
          where,
       );
    }
 
    exists<E extends keyof DB | string>(entity: E, where: RepoQueryIn["where"] = {}) {
-      return this.post<RepositoryResponse<{ entity: E; exists: boolean }>>(
+      return this.post<RepositoryResultJSON<{ entity: E; exists: boolean }>>(
          ["entity", entity as any, "fn", "exists"],
          where,
       );

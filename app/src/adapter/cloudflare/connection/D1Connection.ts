@@ -1,65 +1,42 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { KyselyPluginRunner, SqliteConnection, SqliteIntrospector } from "bknd/data";
-import type { QB } from "data/connection/Connection";
-import { type DatabaseIntrospector, Kysely, ParseJSONResultsPlugin } from "kysely";
+import { SqliteConnection } from "bknd/data";
+import type { ConnQuery, ConnQueryResults } from "data/connection/Connection";
 import { D1Dialect } from "kysely-d1";
 
 export type D1ConnectionConfig<DB extends D1Database | D1DatabaseSession = D1Database> = {
    binding: DB;
 };
 
-class CustomD1Dialect extends D1Dialect {
-   override createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-      return new SqliteIntrospector(db, {
-         excludeTables: ["_cf_KV", "_cf_METADATA"],
-      });
-   }
-}
-
 export class D1Connection<
    DB extends D1Database | D1DatabaseSession = D1Database,
-> extends SqliteConnection {
+> extends SqliteConnection<DB> {
+   override name = "sqlite-d1";
+
    protected override readonly supported = {
       batching: true,
+      softscans: false,
    };
 
    constructor(private config: D1ConnectionConfig<DB>) {
-      const plugins = [new ParseJSONResultsPlugin()];
-
-      const kysely = new Kysely({
-         dialect: new CustomD1Dialect({ database: config.binding as D1Database }),
-         plugins,
+      super({
+         excludeTables: ["_cf_KV", "_cf_METADATA"],
+         dialect: D1Dialect,
+         dialectArgs: [{ database: config.binding as D1Database }],
       });
-      super(kysely, {}, plugins);
    }
 
-   get client(): DB {
-      return this.config.binding;
-   }
+   override async executeQueries<O extends ConnQuery[]>(...qbs: O): Promise<ConnQueryResults<O>> {
+      const compiled = this.getCompiled(...qbs);
 
-   protected override async batch<Queries extends QB[]>(
-      queries: [...Queries],
-   ): Promise<{
-      [K in keyof Queries]: Awaited<ReturnType<Queries[K]["execute"]>>;
-   }> {
       const db = this.config.binding;
 
       const res = await db.batch(
-         queries.map((q) => {
-            const { sql, parameters } = q.compile();
+         compiled.map(({ sql, parameters }) => {
             return db.prepare(sql).bind(...parameters);
          }),
       );
 
-      // let it run through plugins
-      const kyselyPlugins = new KyselyPluginRunner(this.plugins);
-      const data: any = [];
-      for (const r of res) {
-         const rows = await kyselyPlugins.transformResultRows(r.results);
-         data.push(rows);
-      }
-
-      return data;
+      return this.withTransformedRows(res, "results") as any;
    }
 }

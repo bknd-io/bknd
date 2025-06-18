@@ -16,6 +16,7 @@ export interface Test {
    skipIf: (condition: boolean) => (label: string, fn: TestFn) => void;
 }
 export type TestRunner = {
+   describe: (label: string, asyncFn: () => Promise<void>) => void;
    test: Test;
    mock: <T extends (...args: any[]) => any>(fn: T) => T | any;
    expect: <T = unknown>(

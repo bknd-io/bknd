@@ -1,92 +1,62 @@
-import { type Client, type Config, type InStatement, createClient } from "@libsql/client";
+import type { Client, Config, InStatement } from "@libsql/client";
+import { createClient } from "libsql-stateless-easy";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
 import { FilterNumericKeysPlugin } from "data/plugins/FilterNumericKeysPlugin";
-import { KyselyPluginRunner } from "data/plugins/KyselyPluginRunner";
-import { type DatabaseIntrospector, Kysely, ParseJSONResultsPlugin } from "kysely";
-import type { QB } from "../Connection";
-import { SqliteConnection } from "./SqliteConnection";
-import { SqliteIntrospector } from "./SqliteIntrospector";
-import { $console } from "core";
+import { type ConnQuery, type ConnQueryResults, SqliteConnection } from "bknd/data";
 
 export const LIBSQL_PROTOCOLS = ["wss", "https", "libsql"] as const;
 export type LibSqlCredentials = Config & {
    protocol?: (typeof LIBSQL_PROTOCOLS)[number];
 };
 
-const plugins = [new FilterNumericKeysPlugin(), new ParseJSONResultsPlugin()];
-
-class CustomLibsqlDialect extends LibsqlDialect {
-   override createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-      return new SqliteIntrospector(db, {
-         excludeTables: ["libsql_wasm_func_table"],
-         plugins,
-      });
-   }
-}
-
-export class LibsqlConnection extends SqliteConnection {
-   private client: Client;
-   protected override readonly supported = {
-      batching: true,
-   };
-
-   constructor(client: Client);
-   constructor(credentials: LibSqlCredentials);
-   constructor(clientOrCredentials: Client | LibSqlCredentials) {
-      let client: Client;
-      let batching_enabled = true;
-      if (clientOrCredentials && "url" in clientOrCredentials) {
-         let { url, authToken, protocol } = clientOrCredentials;
-         if (protocol && LIBSQL_PROTOCOLS.includes(protocol)) {
-            $console.log("changing protocol to", protocol);
-            const [, rest] = url.split("://");
-            url = `${protocol}://${rest}`;
-         }
-
-         client = createClient({ url, authToken });
-      } else {
-         client = clientOrCredentials;
+function getClient(clientOrCredentials: Client | LibSqlCredentials): Client {
+   if (clientOrCredentials && "url" in clientOrCredentials) {
+      let { url, authToken, protocol } = clientOrCredentials;
+      if (protocol && LIBSQL_PROTOCOLS.includes(protocol)) {
+         console.info("changing protocol to", protocol);
+         const [, rest] = url.split("://");
+         url = `${protocol}://${rest}`;
       }
 
-      const kysely = new Kysely({
-         // @ts-expect-error libsql has type issues
-         dialect: new CustomLibsqlDialect({ client }),
-         plugins,
+      return createClient({ url, authToken });
+   }
+
+   return clientOrCredentials as Client;
+}
+
+export class LibsqlConnection extends SqliteConnection<Client> {
+   override name = "libsql";
+   protected override readonly supported = {
+      batching: true,
+      softscans: true,
+   };
+
+   constructor(clientOrCredentials: Client | LibSqlCredentials) {
+      const client = getClient(clientOrCredentials);
+
+      super({
+         excludeTables: ["libsql_wasm_func_table"],
+         dialect: LibsqlDialect,
+         dialectArgs: [{ client }],
+         additionalPlugins: [new FilterNumericKeysPlugin()],
       });
 
-      super(kysely, {}, plugins);
       this.client = client;
-      this.supported.batching = batching_enabled;
    }
 
-   getClient(): Client {
-      return this.client;
-   }
-
-   protected override async batch<Queries extends QB[]>(
-      queries: [...Queries],
-   ): Promise<{
-      [K in keyof Queries]: Awaited<ReturnType<Queries[K]["execute"]>>;
-   }> {
-      const stms: InStatement[] = queries.map((q) => {
-         const compiled = q.compile();
+   override async executeQueries<O extends ConnQuery[]>(...qbs: O): Promise<ConnQueryResults<O>> {
+      const compiled = this.getCompiled(...qbs);
+      const stms: InStatement[] = compiled.map((q) => {
          return {
-            sql: compiled.sql,
-            args: compiled.parameters as any[],
+            sql: q.sql,
+            args: q.parameters as any[],
          };
       });
 
-      const res = await this.client.batch(stms);
-
-      // let it run through plugins
-      const kyselyPlugins = new KyselyPluginRunner(this.plugins);
-
-      const data: any = [];
-      for (const r of res) {
-         const rows = await kyselyPlugins.transformResultRows(r.rows);
-         data.push(rows);
-      }
-
-      return data;
+      return this.withTransformedRows(await this.client.batch(stms)) as any;
    }
+}
+
+export function libsql(credentials: Client | LibSqlCredentials): LibsqlConnection {
+   return new LibsqlConnection(credentials);
 }

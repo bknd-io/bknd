@@ -34,8 +34,7 @@ import { serve } from "bknd/adapter/bun";
 // if the configuration is omitted, it uses an in-memory database
 serve({
    connection: {
-      url: process.env.DB_URL!,
-      authToken: process.env.DB_AUTH_TOKEN!
+      url: "file:data.db"
    }
 });
 ```

@@ -1,10 +1,11 @@
 import path from "node:path";
 import { serve as honoServe } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { registerLocalMediaAdapter } from "adapter/node/index";
+import { registerLocalMediaAdapter } from "adapter/node/storage";
 import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
 import { config as $config } from "bknd/core";
 import { $console } from "core";
+import type { App } from "App";
 
 type NodeEnv = NodeJS.ProcessEnv;
 export type NodeBkndConfig<Env = NodeEnv> = RuntimeBkndConfig<Env> & {
@@ -45,8 +46,11 @@ export function createHandler<Env = NodeEnv>(
    args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
+   let app: App | undefined;
    return async (req: Request) => {
-      const app = await createApp(config, args ?? (process.env as Env), opts);
+      if (!app) {
+         app = await createApp(config, args ?? (process.env as Env), opts);
+      }
       return app.fetch(req);
    };
 }

@@ -27,12 +27,13 @@ To serve the API, you can use the `serveLambda` function of the AWS Lambda adapt
 
 ```tsx index.mjs
 import { serveLambda } from "bknd/adapter/aws";
+import { libsql } from "bknd/data";
 
 export const handler = serveLambda({
-   connection: {
-      url: process.env.DB_URL!,
-      authToken: process.env.DB_AUTH_TOKEN!
-   }
+   connection: libsql({ 
+      url: "libsql://your-database-url.turso.io",
+      authToken: "your-auth-token",
+   }),
 });
 ```
 Although the runtime would support database as a file, we don't recommend it. You'd need to also bundle the native dependencies which increases the deployment size and cold start time. Instead, we recommend you to use [LibSQL on Turso](/usage/database#sqlite-using-libsql-on-turso).

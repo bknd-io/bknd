@@ -70,7 +70,7 @@ export class RelationMutator {
          [field.targetField()]: value,
       });
 
-      if (!query.exists) {
+      if (!query.data.exists) {
          const idProp = field.targetField();
          throw new Error(
             `Cannot connect "${this.entity.name}.${key}" to ` +

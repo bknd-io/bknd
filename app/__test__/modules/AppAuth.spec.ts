@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import { createApp } from "../../src";
+import { createApp } from "core/test/utils";
 import { AuthController } from "../../src/auth/api/AuthController";
 import { em, entity, make, text } from "../../src/data";
 import { AppAuth, type ModuleBuildContext } from "../../src/modules";

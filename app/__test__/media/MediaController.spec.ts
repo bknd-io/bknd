@@ -1,7 +1,8 @@
 /// <reference types="@types/bun" />
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createApp, registries } from "../../src";
+import { registries } from "../../src";
+import { createApp } from "core/test/utils";
 import { mergeObject, randomString } from "../../src/core/utils";
 import type { TAppMediaConfig } from "../../src/media/media-schema";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";

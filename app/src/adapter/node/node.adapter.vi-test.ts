@@ -1,14 +1,14 @@
-import { describe, before, after } from "node:test";
+import { describe, beforeAll, afterAll } from "vitest";
 import * as node from "./node.adapter";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
-import { nodeTestRunner } from "adapter/node/test";
+import { viTestRunner } from "adapter/node/vitest";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 
-before(() => disableConsoleLog());
-after(enableConsoleLog);
+beforeAll(() => disableConsoleLog());
+afterAll(enableConsoleLog);
 
 describe("node adapter", () => {
-   adapterTestSuite(nodeTestRunner, {
+   adapterTestSuite(viTestRunner, {
       makeApp: node.createApp,
       makeHandler: node.createHandler,
    });

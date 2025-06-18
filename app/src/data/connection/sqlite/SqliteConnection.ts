@@ -1,16 +1,51 @@
-import type { ColumnDataType, ColumnDefinitionBuilder, Kysely, KyselyPlugin } from "kysely";
+import {
+   ParseJSONResultsPlugin,
+   type ColumnDataType,
+   type ColumnDefinitionBuilder,
+   type Dialect,
+   Kysely,
+   type KyselyPlugin,
+} from "kysely";
 import { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/sqlite";
 import { Connection, type DbFunctions, type FieldSpec, type SchemaResponse } from "../Connection";
+import type { Constructor } from "core";
+import { customIntrospector } from "../Connection";
+import { SqliteIntrospector } from "./SqliteIntrospector";
+import type { Field } from "data/fields/Field";
 
-export class SqliteConnection extends Connection {
-   constructor(kysely: Kysely<any>, fn: Partial<DbFunctions> = {}, plugins: KyselyPlugin[] = []) {
+// @todo: add pragmas
+export type SqliteConnectionConfig<
+   CustomDialect extends Constructor<Dialect> = Constructor<Dialect>,
+> = {
+   excludeTables?: string[];
+   dialect: CustomDialect;
+   dialectArgs?: ConstructorParameters<CustomDialect>;
+   additionalPlugins?: KyselyPlugin[];
+   customFn?: Partial<DbFunctions>;
+};
+
+export abstract class SqliteConnection<Client = unknown> extends Connection<Client> {
+   override name = "sqlite";
+
+   constructor(config: SqliteConnectionConfig) {
+      const { excludeTables, dialect, dialectArgs = [], additionalPlugins } = config;
+      const plugins = [new ParseJSONResultsPlugin(), ...(additionalPlugins ?? [])];
+
+      const kysely = new Kysely({
+         dialect: customIntrospector(dialect, SqliteIntrospector, {
+            excludeTables,
+            plugins,
+         }).create(...dialectArgs),
+         plugins,
+      });
+
       super(
          kysely,
          {
-            ...fn,
             jsonArrayFrom,
             jsonObjectFrom,
             jsonBuildObject,
+            ...(config.customFn ?? {}),
          },
          plugins,
       );
@@ -43,8 +78,25 @@ export class SqliteConnection extends Connection {
                if (spec.onUpdate) relCol = relCol.onUpdate(spec.onUpdate);
                return relCol;
             }
-            return spec.nullable ? col : col.notNull();
+            return col;
          },
       ] as const;
+   }
+
+   override toDriver(value: unknown, field: Field): unknown {
+      if (field.type === "boolean") {
+         return value ? 1 : 0;
+      }
+      if (typeof value === "undefined") {
+         return null;
+      }
+      return value;
+   }
+
+   override fromDriver(value: any, field: Field): unknown {
+      if (field.type === "boolean" && typeof value === "number") {
+         return value === 1;
+      }
+      return value;
    }
 }

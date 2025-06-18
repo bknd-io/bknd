@@ -44,6 +44,8 @@ export type EntityJSON = ReturnType<Entity["toJSON"]>;
 export const entityTypes = ["regular", "system", "generated"] as const;
 export type TEntityType = (typeof entityTypes)[number];
 
+const ENTITY_SYMBOL = Symbol.for("bknd:entity");
+
 /**
  * @todo: add check for adding fields (primary and relation not allowed)
  * @todo: add option to disallow api deletes (or api actions in general)
@@ -89,6 +91,14 @@ export class Entity<
       }
 
       if (type) this.type = type;
+      this[ENTITY_SYMBOL] = true;
+   }
+
+   // this is currently required as there could be multiple variants
+   // we need to migrate to a mono repo
+   static isEntity(e: unknown): e is Entity {
+      if (!e) return false;
+      return e[ENTITY_SYMBOL] === true;
    }
 
    static create(args: {

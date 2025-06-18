@@ -1,13 +1,9 @@
 import { type Static, StringEnum, StringRecord, objectTransform } from "core/utils";
 import * as tb from "@sinclair/typebox";
-import {
-   FieldClassMap,
-   RelationClassMap,
-   RelationFieldClassMap,
-   entityConfigSchema,
-   entityTypes,
-} from "data";
 import { MediaField, mediaFieldConfigSchema } from "../media/MediaField";
+import { FieldClassMap } from "data/fields";
+import { RelationClassMap, RelationFieldClassMap } from "data/relations";
+import { entityConfigSchema, entityTypes } from "data/entities";
 import { primaryFieldTypes } from "./fields";
 
 export const FIELDS = {
