@@ -18,7 +18,9 @@
     "lucide-react": "^0.518.0",
     "next": "15.3.3",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "ajv": "^8.12.0",
+    "ajv-draft-04": "^1.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.8",

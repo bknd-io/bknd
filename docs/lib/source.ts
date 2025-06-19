@@ -9,6 +9,7 @@ export const source = loader({
   source: docs.toFumadocsSource(),
   pageTree: {
     // adds a badge to each page item in page tree
+    // @ts-expect-error temporary hack, type incompatibility
     attachFile,
   },
   icon(icon) {
