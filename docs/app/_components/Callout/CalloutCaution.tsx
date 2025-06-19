@@ -8,7 +8,7 @@ export function CalloutCaution({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl px-4 py-3 flex gap-3 border bg-yellow-50 border-yellow-200 text-yellow-900 dark:bg-yellow-900/15 dark:border-yellow-900 dark:text-yellow-100 [&>div>p]:m-0">
+    <div className="rounded-xl my-4 px-4 py-3 flex gap-3 border bg-yellow-50 border-yellow-200 text-yellow-900 dark:bg-yellow-900/15 dark:border-yellow-900 dark:text-yellow-100 [&>div>p]:m-0">
       <div className="pt-1.5 text-yellow-500 dark:text-yellow-100">
         <svg
           xmlns="http://www.w3.org/2000/svg"

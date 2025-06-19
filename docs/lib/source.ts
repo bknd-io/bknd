@@ -1,9 +1,10 @@
-import { docs } from "@/.source";
 import { loader } from "fumadocs-core/source";
+import { docs } from "@/.source";
+import { createOpenAPI } from "fumadocs-openapi/server";
 
-// See https://fumadocs.vercel.app/docs/headless/source-api for more info
 export const source = loader({
-  // it assigns a URL to your pages
   baseUrl: "/",
-  source: docs.toFumadocsSource()
+  source: docs.toFumadocsSource(),
 });
+
+export const openapi = createOpenAPI();

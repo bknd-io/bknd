@@ -8,7 +8,7 @@ export function CalloutInfo({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl px-4 py-3 flex gap-3 border bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-900/15 dark:border-blue-900 dark:text-blue-100 [&>div>p]:m-0">
+    <div className="rounded-xl my-4 px-4 py-3 flex gap-3 border bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-900/15 dark:border-blue-900 dark:text-blue-100 [&>div>p]:m-0">
       <div className="pt-1.5 text-blue-500 dark:text-blue-100">
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -6,6 +6,7 @@
     "build": "next build",
     "dev": "next dev --turbo",
     "start": "next start",
+    "generate:openapi": "bun scripts/generate-openapi.mjs",
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "fumadocs-core": "15.5.0",
     "fumadocs-mdx": "11.6.6",
     "fumadocs-ui": "15.5.0",
+    "lucide-react": "^0.518.0",
     "next": "15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
@@ -31,6 +33,7 @@
     "eslint-config-next": "15.3.3",
     "fumadocs-docgen": "^2.0.1",
     "postcss": "^8.5.4",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^4.1.8",
     "typescript": "^5.8.3"
   },
