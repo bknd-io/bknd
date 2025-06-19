@@ -10,13 +10,10 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@content-collections/core": "^0.9.1",
-    "@content-collections/mdx": "^0.2.2",
-    "@content-collections/next": "^0.2.6",
-    "@fumadocs/content-collections": "^1.2.1",
     "@iconify/react": "^6.0.0",
     "fumadocs-core": "15.5.0",
     "fumadocs-mdx": "11.6.6",
+    "fumadocs-openapi": "^9.0.12",
     "fumadocs-ui": "15.5.0",
     "lucide-react": "^0.518.0",
     "next": "15.3.3",
