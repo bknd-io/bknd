@@ -7,11 +7,11 @@ import { s } from "core/object/schema";
 
 export const dateFieldConfigSchema = s
    .strictObject({
-      type: s.string({ enum: ["date", "datetime", "week"], default: "date" }),
+      type: s.string({ enum: ["date", "datetime", "week"] }),
       timezone: s.string(),
       min_date: s.string(),
       max_date: s.string(),
-      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+      ...baseFieldConfigSchema.properties,
    })
    .partial();
 

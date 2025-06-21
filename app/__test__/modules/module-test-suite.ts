@@ -44,7 +44,7 @@ export function moduleTestSuite(module: { new (): Module }) {
       it("uses the default config", async () => {
          const m = new module();
          await m.setContext(ctx).build();
-         expect(m.toJSON()).toEqual(m.getSchema().template());
+         expect(m.toJSON()).toEqual(m.getSchema().template({}, { withOptional: true }));
          //expect(stripMark(m.toJSON())).toEqual(Default(m.getSchema(), {}));
       });
    });

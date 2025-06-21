@@ -17,8 +17,7 @@ export type TaskResult<Output = any> = {
 
 export type TaskRenderProps<T extends Task = Task> = any;
 
-// @todo: CURRENT WORKAROUND
-export const dynamic = <S extends s.Schema>(a: S, b?: any) => null as unknown as S;
+export const dynamic = <S extends s.Schema>(a: S, b?: any) => a;
 
 /* export function dynamic<Type extends TSchema>(
    type: Type,

@@ -1,6 +1,6 @@
 import type { JSONSchema7 } from "json-schema";
-import { cloneDeep, omit, pick } from "lodash-es";
 import type { s } from "core/object/schema";
+import { omitKeys } from "core/utils";
 
 export function extractSchema<
    Schema extends s.ObjectSchema,
@@ -25,10 +25,10 @@ export function extractSchema<
       return [{ ...schema.toJSON() }, config, {} as any];
    }
 
-   const newSchema = cloneDeep(schema);
+   const newSchema = JSON.parse(JSON.stringify(schema));
    const updated = {
-      ...newSchema.toJSON(),
-      properties: omit(newSchema.properties, keys),
+      ...newSchema,
+      properties: omitKeys(newSchema.properties, keys),
    };
    if (updated.required) {
       updated.required = updated.required.filter((key) => !keys.includes(key as any));
@@ -44,7 +44,7 @@ export function extractSchema<
       };
    }
 
-   const reducedConfig = omit(config, keys) as any;
+   const reducedConfig = omitKeys(config, keys as string[]) as any;
 
    return [updated, reducedConfig, extracted];
 }

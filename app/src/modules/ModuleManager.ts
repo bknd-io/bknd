@@ -25,10 +25,10 @@ export type { ModuleBuildContext };
 
 export const MODULES = {
    server: AppServer,
-   data: AppData, // @todo:
+   data: AppData,
    auth: AppAuth,
    media: AppMedia,
-   flows: AppFlows, // @todo:
+   flows: AppFlows,
 } as const;
 
 // get names of MODULES as an array

@@ -47,7 +47,7 @@ export class InvalidFieldConfigException extends Exception {
    ) {
       console.error("InvalidFieldConfigException", {
          given,
-         error: error.firstToString(),
+         error: error.first(),
       });
       super(`Invalid Field config given for field "${field.name}": ${error.firstToString()}`);
    }

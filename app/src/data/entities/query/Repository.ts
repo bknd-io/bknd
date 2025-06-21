@@ -120,7 +120,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       if (options.where) {
          // @todo: auto-alias base entity when using joins! otherwise "id" is ambiguous
          const aliases = [entity.name];
-         if (validated.join.length > 0) {
+         if (validated.join?.length > 0) {
             aliases.push(...JoinBuilder.getJoinedEntityNames(this.em, entity, validated.join));
          }
 

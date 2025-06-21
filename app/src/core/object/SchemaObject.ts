@@ -26,14 +26,13 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
       initial?: Partial<s.Static<Schema>>,
       private options?: SchemaObjectOptions<Schema>,
    ) {
-      this._default = _schema.template() as any;
-      this._value = initial
-         ? parse(_schema, structuredClone(initial as any), {
-              withDefaults: true,
-              forceParse: this.isForceParse(),
-              skipMark: this.isForceParse(),
-           })
-         : (this._default as any);
+      this._default = _schema.template({}, { withOptional: true }) as any;
+      this._value = parse(_schema, structuredClone(initial ?? {}), {
+         withDefaults: true,
+         withExtendedDefaults: true,
+         forceParse: this.isForceParse(),
+         skipMark: this.isForceParse(),
+      });
       this._config = Object.freeze(this._value);
    }
 

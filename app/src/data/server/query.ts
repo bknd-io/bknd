@@ -141,9 +141,12 @@ export const repoQuery = s.recursive((self) =>
       .partial(),
 );
 export const getRepoQueryTemplate = () =>
-   repoQuery.template({
-      withOptional: true,
-   }) as Required<RepoQuery>;
+   repoQuery.template(
+      {},
+      {
+         withOptional: true,
+      },
+   ) as Required<RepoQuery>;
 
 export type RepoQueryIn = {
    limit?: number;

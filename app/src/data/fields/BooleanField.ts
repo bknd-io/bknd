@@ -6,7 +6,8 @@ import { s } from "core/object/schema";
 
 export const booleanFieldConfigSchema = s
    .strictObject({
-      default_value: s.boolean({ default: false }),
+      //default_value: s.boolean({ default: false }),
+      default_value: s.boolean(),
       ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
    })
    .partial();

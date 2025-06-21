@@ -1,5 +1,5 @@
 import { type Schema as JsonSchema, Validator } from "@cfworker/json-schema";
-import { FromSchema, objectToJsLiteral, omitKeys } from "core/utils";
+import { objectToJsLiteral } from "core/utils";
 import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
@@ -8,10 +8,10 @@ import { s } from "core/object/schema";
 
 export const jsonSchemaFieldConfigSchema = s
    .strictObject({
-      schema: s.any({ type: "object", default: {} }),
-      ui_schema: s.any({ type: "object", default: {} }),
+      schema: s.any({ type: "object" }),
+      ui_schema: s.any({ type: "object" }),
       default_from_schema: s.boolean(),
-      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+      ...baseFieldConfigSchema.properties,
    })
    .partial();
 
@@ -26,7 +26,7 @@ export class JsonSchemaField<
 
    constructor(name: string, config: Partial<JsonSchemaFieldConfig>) {
       super(name, config);
-      this.validator = new Validator(this.getJsonSchema());
+      this.validator = new Validator({ ...this.getJsonSchema() });
    }
 
    protected getSchema() {

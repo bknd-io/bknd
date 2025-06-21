@@ -23,21 +23,46 @@ export function buildMediaSchema() {
       );
    });
 
-   return s.strictObject({
-      enabled: s.boolean({ default: false }),
-      basepath: s.string({ default: "/api/media" }),
-      entity_name: s.string({ default: "media" }),
-      storage: s.strictObject(
+   return s
+      .strictObject(
          {
-            body_max_size: s.number({
-               description: "Max size of the body in bytes. Leave blank for unlimited.",
-            }),
+            enabled: s.boolean({ default: false }),
+            basepath: s.string({ default: "/api/media" }),
+            entity_name: s.string({ default: "media" }),
+            storage: s
+               .strictObject({
+                  body_max_size: s.number({
+                     description: "Max size of the body in bytes. Leave blank for unlimited.",
+                  }),
+               })
+               .partial(),
+            adapter: s.anyOf(Object.values(adapterSchemaObject)),
          },
-         { default: {} },
-      ),
-      adapter: s.anyOf(Object.values(adapterSchemaObject)).optional(),
-   });
+         {
+            default: {},
+         },
+      )
+      .partial();
 }
 
 export const mediaConfigSchema = buildMediaSchema();
 export type TAppMediaConfig = s.Static<typeof mediaConfigSchema>;
+export type TAppMediaConfig2 = s.ObjectDefaults<(typeof mediaConfigSchema)["properties"]>;
+
+const schema = s.strictObject(
+   {
+      enabled: s.boolean({ default: false }),
+      basepath: s.string({ default: "/api/media" }),
+      entity_name: s.string({ default: "media" }),
+      storage: s
+         .strictObject({
+            body_max_size: s.number({
+               description: "Max size of the body in bytes. Leave blank for unlimited.",
+            }),
+         })
+         .partial(),
+   },
+   {
+      default: {},
+   },
+);

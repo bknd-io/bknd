@@ -3,7 +3,6 @@ import { omitKeys, uuidv7 } from "core/utils";
 import { Field, baseFieldConfigSchema } from "./Field";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
 import { s } from "core/object/schema";
-import type { FieldSpec } from "data/connection/Connection";
 
 export const primaryFieldTypes = ["integer", "uuid"] as const;
 export type TPrimaryFieldFormat = (typeof primaryFieldTypes)[number];
@@ -26,7 +25,7 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    override readonly type = "primary";
 
    constructor(name: string = config.data.default_primary_field, cfg?: PrimaryFieldConfig) {
-      super(name, { fillable: false, required: false, ...cfg });
+      super(name, { ...cfg, fillable: false, required: false });
    }
 
    override isRequired(): boolean {

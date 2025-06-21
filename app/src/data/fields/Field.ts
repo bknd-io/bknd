@@ -27,26 +27,16 @@ export const baseFieldConfigSchema = s
    .strictObject({
       label: s.string(),
       description: s.string(),
-      required: s.boolean({ default: DEFAULT_REQUIRED }),
-      fillable: s.anyOf(
-         [
-            s.boolean({ title: "Boolean", default: DEFAULT_FILLABLE }),
-            s.array(s.string({ enum: ActionContext }), { title: "Context", uniqueItems: true }),
-         ],
-         {
-            default: DEFAULT_FILLABLE,
-         },
-      ),
-      hidden: s.anyOf(
-         [
-            s.boolean({ title: "Boolean", default: DEFAULT_HIDDEN }),
-            // @todo: tmp workaround
-            s.array(s.string({ enum: TmpContext }), { title: "Context", uniqueItems: true }),
-         ],
-         {
-            default: DEFAULT_HIDDEN,
-         },
-      ),
+      required: s.boolean(),
+      fillable: s.anyOf([
+         s.boolean({ title: "Boolean" }),
+         s.array(s.string({ enum: ActionContext }), { title: "Context", uniqueItems: true }),
+      ]),
+      hidden: s.anyOf([
+         s.boolean({ title: "Boolean" }),
+         // @todo: tmp workaround
+         s.array(s.string({ enum: TmpContext }), { title: "Context", uniqueItems: true }),
+      ]),
       // if field is virtual, it will not call transformPersist & transformRetrieve
       virtual: s.boolean(),
       default_value: s.any(),
@@ -100,7 +90,9 @@ export abstract class Field<
          name: this.name,
          type: "text",
          nullable: true,
-         dflt: this.getDefault(),
+         // see field-test-suite.ts:41
+         dflt: undefined,
+         //dflt: this.getDefault(),
       });
    }
 
@@ -116,14 +108,14 @@ export abstract class Field<
       if (Array.isArray(this.config.fillable)) {
          return context ? this.config.fillable.includes(context) : DEFAULT_FILLABLE;
       }
-      return !!this.config.fillable;
+      return this.config.fillable ?? DEFAULT_FILLABLE;
    }
 
    isHidden(context?: TmpActionAndRenderContext): boolean {
       if (Array.isArray(this.config.hidden)) {
          return context ? this.config.hidden.includes(context as any) : DEFAULT_HIDDEN;
       }
-      return this.config.hidden ?? false;
+      return this.config.hidden ?? DEFAULT_HIDDEN;
    }
 
    isRequired(): boolean {

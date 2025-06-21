@@ -2,8 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { Authenticator, type User, type UserPool } from "../../src/auth";
 import { cookieConfig } from "../../src/auth/authenticate/Authenticator";
 import { PasswordStrategy } from "../../src/auth/authenticate/strategies/PasswordStrategy";
-import * as hash from "../../src/auth/utils/hash";
-import { Default, parse } from "../../src/core/utils";
+import { parse } from "core/object/schema";
 
 /*class MemoryUserPool implements UserPool {
    constructor(private users: User[] = []) {}
@@ -23,7 +22,7 @@ import { Default, parse } from "../../src/core/utils";
 describe("Authenticator", async () => {
    test("cookie options", async () => {
       console.log("parsed", parse(cookieConfig, undefined));
-      console.log(Default(cookieConfig, {}));
+      console.log(cookieConfig.template({}));
    });
    /*const userpool = new MemoryUserPool([
       { id: 1, email: "d", username: "test", password: await hash.sha256("test") },

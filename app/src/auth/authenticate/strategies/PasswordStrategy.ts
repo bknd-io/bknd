@@ -34,7 +34,7 @@ export class PasswordStrategy extends Strategy<typeof schema> {
    private getPayloadSchema() {
       return s.object({
          email: s.string({
-            pattern: "^[\\w-\\.\\+_]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+            pattern: /^[\w-\.\+_]+@([\w-]+\.)+[\w-]{2,4}$/,
          }),
          password: s.string({
             minLength: 8, // @todo: this should be configurable

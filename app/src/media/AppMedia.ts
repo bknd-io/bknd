@@ -23,7 +23,8 @@ declare module "core" {
    }
 }
 
-export class AppMedia extends Module<TAppMediaConfig> {
+// @todo: current workaround to make it all required
+export class AppMedia extends Module<Required<TAppMediaConfig>> {
    private _storage?: Storage;
 
    override async build() {

@@ -10,8 +10,8 @@ export const textFieldConfigSchema = s
       minLength: s.number(),
       maxLength: s.number(),
       pattern: s.string(),
-      html_config: s.object({
-         element: s.string({ default: "input" }),
+      html_config: s.partialObject({
+         element: s.string(),
          props: s.record(s.anyOf([s.string({ title: "String" }), s.number({ title: "Number" })])),
       }),
       ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
