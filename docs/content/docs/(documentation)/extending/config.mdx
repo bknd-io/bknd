@@ -1,5 +1,6 @@
 ---
 title: bknd.config.ts
+tags: ["documentation"]
 ---
 
 The central configuration file to extend bknd should be placed in the root of your project, so that the [CLI](/usage/cli#using-configuration-file-bknd-config) can automatically pick it up. It allows to:
@@ -16,9 +17,9 @@ A simple example of a `bknd.config.ts` file:
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-   connection: {
-      url: "file:data.db",
-   }
+  connection: {
+    url: "file:data.db",
+  },
 } satisfies BkndConfig;
 ```
 
@@ -53,11 +54,11 @@ The `app` property is a function that returns a `CreateAppConfig` object. It all
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-   app: ({ env }) => ({
-      connection: {
-         url: env.DB_URL,
-      }
-   })
+  app: ({ env }) => ({
+    connection: {
+      url: env.DB_URL,
+    },
+  }),
 } satisfies BkndConfig;
 ```
 
@@ -71,10 +72,10 @@ The `beforeBuild` property is an async function that is called before the app is
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-   beforeBuild: async (app: App) => {
-      // do something that has to happen before the app is built
-   }
-}
+  beforeBuild: async (app: App) => {
+    // do something that has to happen before the app is built
+  },
+};
 ```
 
 ### `onBuilt`
@@ -86,18 +87,18 @@ import { type App, AppEvents } from "bknd";
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-   onBuilt: async (app: App) => {
-      console.log("App built", app.version());
+  onBuilt: async (app: App) => {
+    console.log("App built", app.version());
 
-      // registering an event listener
-      app.emgr.onEvent(AppEvents.AppRequest, (event) => {
-         console.log("Request received", event.request.url);
-      })
+    // registering an event listener
+    app.emgr.onEvent(AppEvents.AppRequest, (event) => {
+      console.log("Request received", event.request.url);
+    });
 
-      // registering a custom route
-      app.server.get("/hello", (c) => c.text("Hello World"));
-   }
-}
+    // registering a custom route
+    app.server.get("/hello", (c) => c.text("Hello World"));
+  },
+};
 ```
 
 ### `force` & `id`

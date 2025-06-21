@@ -1,6 +1,7 @@
 ---
 title: "React Elements"
 description: "Speed up your frontend development"
+tags: ["documentation"]
 ---
 
 Not only creating and maintaing a backend is time-consuming, but also integrating it into your frontend can be a hassle. With `bknd/elements`, you can easily add media uploads and authentication forms to your app without having to figure out API details.
@@ -78,12 +79,12 @@ function CustomUserAvatar() {
     wrapperRef,
     inputProps,
     showPlaceholder,
-    actions: { openFileInput }
+    actions: { openFileInput },
   } = useMediaDropzone();
   const {
     files: [file],
     isOver,
-    isOverAccepted
+    isOverAccepted,
   } = useMediaDropzoneState();
 
   return (
@@ -148,4 +149,3 @@ export default function LoginForm() {
   );
 }
 ```
-

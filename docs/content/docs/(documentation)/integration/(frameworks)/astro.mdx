@@ -1,6 +1,7 @@
 ---
-title: 'Astro'
-description: 'Run bknd inside Astro'
+title: "Astro"
+description: "Run bknd inside Astro"
+tags: ["documentation"]
 ---
 
 ## Installation
@@ -40,8 +41,9 @@ bun add bknd
 </Tabs>
 
 <CalloutInfo>
-The guide below assumes you're using Astro v4. We've experienced issues with Astro DB
-using v5, see [this issue](https://github.com/withastro/astro/issues/12474).
+  The guide below assumes you're using Astro v4. We've experienced issues with
+  Astro DB using v5, see [this
+  issue](https://github.com/withastro/astro/issues/12474).
 </CalloutInfo>
 
 For the Astro integration to work, you also need to [add the react integration](https://docs.astro.build/en/guides/integrations-guide/react/):
@@ -59,14 +61,16 @@ import react from "@astrojs/react";
 
 export default defineConfig({
   output: "server", // [!code highlight]
-  integrations: [react()]
+  integrations: [react()],
 });
 ```
 
 <CalloutInfo>
-  If you don't want to use React with Astro, there is also an option to serve the bknd Admin UI
-  statically using Astro's middleware. In case you're interested in this, feel free to reach
-  out in [Discord](https://discord.gg/952SFk8Tb8) or open an [issue on GitHub](https://github.com/bknd-io/bknd/issues/new).
+  If you don't want to use React with Astro, there is also an option to serve
+  the bknd Admin UI statically using Astro's middleware. In case you're
+  interested in this, feel free to reach out in
+  [Discord](https://discord.gg/952SFk8Tb8) or open an [issue on
+  GitHub](https://github.com/bknd-io/bknd/issues/new).
 </CalloutInfo>
 
 ## Configuration
@@ -77,9 +81,9 @@ Now create a `bknd.config.ts` file in the root of your project. If you created t
 import type { AstroBkndConfig } from "bknd/adapter/astro";
 
 export default {
-   connection: {
-      url: "file:data.db"
-   },
+  connection: {
+    url: "file:data.db",
+  },
 } satisfies AstroBkndConfig;
 ```
 
@@ -102,21 +106,21 @@ import config from "../bknd.config";
 export { config };
 
 export async function getApp() {
-   return await getBkndApp(config);
+  return await getBkndApp(config);
 }
 
 export async function getApi(
-   astro: AstroGlobal,
-   opts?: { mode: "static" } | { mode?: "dynamic"; verify?: boolean },
+  astro: AstroGlobal,
+  opts?: { mode: "static" } | { mode?: "dynamic"; verify?: boolean },
 ) {
-   const app = await getApp();
-   if (opts?.mode !== "static" && opts?.verify) {
-      const api = app.getApi({ headers: astro.request.headers });
-      await api.verifyAuth();
-      return api;
-   }
+  const app = await getApp();
+  if (opts?.mode !== "static" && opts?.verify) {
+    const api = app.getApi({ headers: astro.request.headers });
+    await api.verifyAuth();
+    return api;
+  }
 
-   return app.getApi();
+  return app.getApi();
 }
 ```
 
@@ -128,11 +132,11 @@ import { serve } from "bknd/adapter/astro";
 export const prerender = false;
 
 export const ALL = serve({
-   connection: {
-      // location of your local Astro DB
-      // make sure to use a remote URL in production
-      url: "file:.astro/content.db"
-   }
+  connection: {
+    // location of your local Astro DB
+    // make sure to use a remote URL in production
+    url: "file:.astro/content.db",
+  },
 });
 ```
 
@@ -194,6 +198,7 @@ const { data } = await api.data.readMany("todos");
 ```
 
 On SSR pages, you can also access the authenticated user:
+
 ```jsx
 ---
 import { getApi } from "bknd/adapter/astro";
@@ -216,4 +221,3 @@ export const prerender = false;
 
 Check the [astro repository example](https://github.com/bknd-io/bknd/tree/main/examples/astro)
 for more implementation details or a [fully working example using Astro DB](https://github.com/dswbx/bknd-astro-example).
-

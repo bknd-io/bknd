@@ -1,6 +1,7 @@
 ---
-title: 'Bun'
-description: 'Run bknd inside Bun'
+title: "Bun"
+description: "Run bknd inside Bun"
+tags: ["documentation"]
 ---
 
 ## Installation
@@ -8,6 +9,7 @@ description: 'Run bknd inside Bun'
 To get started with Bun and bknd you can either install the package manually, and follow the descriptions below, or use the CLI starter:
 
 ## CLI Starter
+
 Create a new Bun CLI starter project by running the following command:
 
 ```sh
@@ -15,6 +17,7 @@ npx bknd create -i bun
 ```
 
 ### Manual
+
 Create a new Bun project and then install bknd as a dependency:
 
 <Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
@@ -47,10 +50,10 @@ import { serve } from "bknd/adapter/bun";
 
 // if the configuration is omitted, it uses an in-memory database
 serve({
-   connection: {
-      url: process.env.DB_URL!,
-      authToken: process.env.DB_AUTH_TOKEN!
-   }
+  connection: {
+    url: process.env.DB_URL!,
+    authToken: process.env.DB_AUTH_TOKEN!,
+  },
 });
 ```
 
@@ -61,4 +64,3 @@ Run the application using Bun by executing:
 ```bash
 bun run server.ts
 ```
-

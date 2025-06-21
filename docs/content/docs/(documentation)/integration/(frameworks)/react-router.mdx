@@ -1,6 +1,7 @@
 ---
-title: 'React Router'
-description: 'Run bknd inside React Router'
+title: "React Router"
+description: "Run bknd inside React Router"
+tags: ["documentation"]
 ---
 
 ## Installation
@@ -47,9 +48,9 @@ Now create a `bknd.config.ts` file in the root of your project. If you created t
 import type { ReactRouterBkndConfig } from "bknd/adapter/react-router";
 
 export default {
-   connection: {
-      url: "file:data.db"
-   },
+  connection: {
+    url: "file:data.db",
+  },
 } satisfies ReactRouterBkndConfig;
 ```
 
@@ -58,18 +59,21 @@ See [bknd.config.ts](/extending/config) for more information on how to configure
 ```typescript
 type ReactRouterEnv = NodeJS.ProcessEnv;
 type ReactRouterFunctionArgs = {
-   request: Request;
+  request: Request;
 };
-export type ReactRouterBkndConfig<Env = ReactRouterEnv> = FrameworkBkndConfig<Env>;
+export type ReactRouterBkndConfig<Env = ReactRouterEnv> =
+  FrameworkBkndConfig<Env>;
 ```
-
 
 ## Serve the API
 
 Create a helper file to instantiate the bknd instance and retrieve the API, importing the configurationfrom the `bknd.config.ts` file:
 
 ```ts title="app/bknd.ts"
-import { type ReactRouterBkndConfig, getApp as getBkndApp } from "bknd/adapter/react-router";
+import {
+  type ReactRouterBkndConfig,
+  getApp as getBkndApp,
+} from "bknd/adapter/react-router";
 import config from "../bknd.config";
 
 export { config };
@@ -78,21 +82,21 @@ export { config };
 // e.g. when deploying to cloudflare workers, you'd want the FunctionArgs to be passed in
 // to resolve environment variables
 export async function getApp() {
-   return await getBkndApp(config, process.env as any);
+  return await getBkndApp(config, process.env as any);
 }
 
 export async function getApi(
-   args?: { request: Request },
-   opts?: { verify?: boolean }
+  args?: { request: Request },
+  opts?: { verify?: boolean },
 ) {
-   const app = await getApp();
-   if (opts?.verify) {
-      const api = app.getApi({ headers: args?.request.headers });
-      await api.verifyAuth();
-      return api;
-   }
+  const app = await getApp();
+  if (opts?.verify) {
+    const api = app.getApi({ headers: args?.request.headers });
+    await api.verifyAuth();
+    return api;
+  }
 
-   return app.getApi();
+  return app.getApi();
 }
 ```
 
@@ -104,8 +108,8 @@ Create a new api splat route file at `app/routes/api.$.ts`:
 import { getApp } from "~/bknd";
 
 const handler = async (args: { request: Request }) => {
-   const app = await getApp();
-   return app.fetch(args.request);
+  const app = await getApp();
+  return app.fetch(args.request);
 };
 
 export const loader = handler;
@@ -121,30 +125,38 @@ import { lazy, Suspense, useSyncExternalStore } from "react";
 import { type LoaderFunctionArgs, useLoaderData } from "react-router";
 import { getApi } from "~/bknd";
 
-const Admin = lazy(() => import("bknd/ui").then((mod) => ({ default: mod.Admin })));
+const Admin = lazy(() =>
+  import("bknd/ui").then((mod) => ({ default: mod.Admin })),
+);
 import "bknd/dist/styles.css";
 
 export const loader = async (args: LoaderFunctionArgs) => {
-   const api = await getApi(args, { verify: true });
-   return {
-      user: api.getUser(),
-   };
+  const api = await getApi(args, { verify: true });
+  return {
+    user: api.getUser(),
+  };
 };
 
 export default function AdminPage() {
-   const { user } = useLoaderData<typeof loader>();
-   // derived from https://github.com/sergiodxa/remix-utils
-   // @ts-ignore
-   const hydrated = useSyncExternalStore(() => {}, () => true, () => false);
-   if (!hydrated) return null;
+  const { user } = useLoaderData<typeof loader>();
+  // derived from https://github.com/sergiodxa/remix-utils
+  // @ts-ignore
+  const hydrated = useSyncExternalStore(
+    () => {},
+    () => true,
+    () => false,
+  );
+  if (!hydrated) return null;
 
-   return (
-      <Suspense>
-         <Admin withProvider={{ user }} config={{ basepath: "/admin", logo_return_path: "/../" }} />
-      </Suspense>
-   );
+  return (
+    <Suspense>
+      <Admin
+        withProvider={{ user }}
+        config={{ basepath: "/admin", logo_return_path: "/../" }}
+      />
+    </Suspense>
+  );
 }
-
 ```
 
 ## Example usage of the API
@@ -156,23 +168,22 @@ import { useLoaderData, type LoaderFunctionArgs } from "react-router";
 import { getApi } from "~/bknd";
 
 export const loader = async (args: LoaderFunctionArgs) => {
-   // use authentication from request
-   const api = await getApi(args, { verify: true });
-   const { data } = await api.data.readMany("todos");
-   return { data, user: api.getUser() };
+  // use authentication from request
+  const api = await getApi(args, { verify: true });
+  const { data } = await api.data.readMany("todos");
+  return { data, user: api.getUser() };
 };
 
 export default function Index() {
-   const { data, user } = useLoaderData<typeof loader>();
+  const { data, user } = useLoaderData<typeof loader>();
 
-   return (
-      <div>
-         <h1>Data</h1>
-         <pre>{JSON.stringify(data, null, 2)}</pre>
-         <h1>User</h1>
-         <pre>{JSON.stringify(user, null, 2)}</pre>
-      </div>
-   );
+  return (
+    <div>
+      <h1>Data</h1>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+      <h1>User</h1>
+      <pre>{JSON.stringify(user, null, 2)}</pre>
+    </div>
+  );
 }
 ```
-

@@ -1,6 +1,7 @@
 ---
 title: "Introduction"
 description: "Setting up bknd"
+tags: ["documentation"]
 ---
 
 There are several methods to get **bknd** up and running. You can choose between these options:
@@ -24,7 +25,9 @@ instantiation of the `App`, which in raw looks like this:
 import { createApp, type CreateAppConfig } from "bknd";
 
 // create the app
-const config = { /* ... */ } satisfies CreateAppConfig;
+const config = {
+  /* ... */
+} satisfies CreateAppConfig;
 const app = createApp(config);
 
 // build the app
@@ -49,21 +52,19 @@ import type { Config } from "@libsql/client";
 
 type AppPlugin = (app: App) => Promise<void> | void;
 type ManagerOptions = {
-   basePath?: string;
-   trustFetched?: boolean;
-   onFirstBoot?: () => Promise<void>;
-   seed?: (ctx: ModuleBuildContext) => Promise<void>;
+  basePath?: string;
+  trustFetched?: boolean;
+  onFirstBoot?: () => Promise<void>;
+  seed?: (ctx: ModuleBuildContext) => Promise<void>;
 };
 
 type CreateAppConfig = {
-   connection?:
-      | Connection
-      | Config;
-   initialConfig?: InitialModuleConfigs;
-   options?: {
-      plugins?: AppPlugin[];
-      manager?: ManagerOptions
-   };
+  connection?: Connection | Config;
+  initialConfig?: InitialModuleConfigs;
+  options?: {
+    plugins?: AppPlugin[];
+    manager?: ManagerOptions;
+  };
 };
 ```
 
@@ -74,7 +75,7 @@ The `connection` property is the main connection object to the database. It can 
 ```ts
 const connection = {
   url: "<url>",
-  authToken: "<token>"
+  authToken: "<token>",
 };
 ```
 
@@ -181,7 +182,7 @@ A simple plugin that adds a custom route looks like this:
 import type { AppPlugin } from "bknd";
 
 export const myPlugin: AppPlugin = (app) => {
-   app.server.get("/hello", (c) => c.json({ hello: "world" }));
+  app.server.get("/hello", (c) => c.json({ hello: "world" }));
 };
 ```
 
@@ -206,7 +207,7 @@ const seed = async (ctx: ModuleBuildContext) => {
   // seed the database
   await ctx.em.mutator("todos").insertMany([
     { title: "Learn bknd", done: true },
-    { title: "Build something cool", done: false }
+    { title: "Build something cool", done: false },
   ]);
 };
 ```

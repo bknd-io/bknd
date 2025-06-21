@@ -1,5 +1,6 @@
 ---
 title: Events & Hooks
+tags: ["documentation"]
 ---
 
 bknd comes with a powerful built-in event system that allows you to hook into the app lifecycle and extend its functionality. You can hook into these events in two ways:
@@ -26,16 +27,16 @@ You can listen to events by using the `EventManager` exposed at `app.emgr`. To r
 import { createApp, AppEvents } from "bknd";
 const app = createApp();
 
-app.emgr.onEvent(AppEvents.AppRequest, async event => {
+app.emgr.onEvent(AppEvents.AppRequest, async (event) => {
   //                                         ^? AppRequest
   console.log("Request received", event.request.url);
 });
 
-app.emgr.on("app-request", async event => {
+app.emgr.on("app-request", async (event) => {
   console.log("Request received", event.request.url);
 });
 
-app.emgr.onAny(async event => {
+app.emgr.onAny(async (event) => {
   console.log("Event received", event.slug);
 });
 ```
@@ -46,11 +47,11 @@ You may want to register your listeners inside [`bknd.config.ts`](/extending/con
 import { AppEvents } from "bknd";
 
 export default {
-  onBuilt: app => {
-    app.emgr.onEvent(AppEvents.AppRequest, async event => {
+  onBuilt: (app) => {
+    app.emgr.onEvent(AppEvents.AppRequest, async (event) => {
       console.log("Request received", event.request.url);
     });
-  }
+  },
 };
 ```
 
@@ -61,10 +62,10 @@ By default, listeners are registered as `async` listeners, meaning that the list
 ```typescript
 app.emgr.onEvent(
   AppEvents.AppRequest,
-  async event => {
+  async (event) => {
     console.log("Request received", event.request.url);
   },
-  { mode: "sync" }
+  { mode: "sync" },
 );
 ```
 

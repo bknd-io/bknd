@@ -1,6 +1,7 @@
 ---
-title: 'Using the CLI'
-description: 'How to start a bknd instance using the CLI.'
+title: "Using the CLI"
+description: "How to start a bknd instance using the CLI."
+tags: ["documentation"]
 ---
 
 The bknd package includes a command-line interface (CLI) that allows you to run a bknd instance and perform various tasks.
@@ -10,6 +11,7 @@ npx bknd
 ```
 
 Here is the output:
+
 ```
 $ npx bknd
 Usage: bknd [options] [command]
@@ -33,6 +35,7 @@ Commands:
 ```
 
 ## Starting an instance (`run`)
+
 To see all available `run` options, execute `npx bknd run --help`.
 
 ```
@@ -51,6 +54,7 @@ Options:
 ```
 
 To order in which the connection is determined is as follows:
+
 1. `--db-url`
 2. `--config` or reading the filesystem looking for `bknd.config.[js|ts|mjs|cjs|json]`
 3. `--memory`
@@ -58,6 +62,7 @@ To order in which the connection is determined is as follows:
 5. Fallback to file-based database `data.db`
 
 ### File-based database
+
 By default, a file-based database `data.db` is used when running without any arguments. You can specify a different file name or path using the `--db-url` option. The database file will be created in the current working directory if it does not exist.
 
 ```
@@ -65,6 +70,7 @@ npx bknd run --db-url file:data.db
 ```
 
 ### Using configuration file (`bknd.config.*`)
+
 You can create a configuration file on the working directory that automatically gets picked up: `bknd.config.[js|ts|mjs|cjs|json]`
 
 Here is an example of a `bknd.config.ts` file:
@@ -73,20 +79,20 @@ Here is an example of a `bknd.config.ts` file:
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-   // you can either specify the connection directly
-   connection: {
-      url: "file:data.db",
-   },
-   // or use the `app` function which passes the environment variables
-   app: ({ env }) => ({
-      connection: {
-         url: env.DB_URL,
-      }
-   })
+  // you can either specify the connection directly
+  connection: {
+    url: "file:data.db",
+  },
+  // or use the `app` function which passes the environment variables
+  app: ({ env }) => ({
+    connection: {
+      url: env.DB_URL,
+    },
+  }),
 } satisfies BkndConfig;
 ```
-The `app` function is useful if you need a cross-platform way to access the environment variables. For example, on Cloudflare Workers, you can only access environment variables inside a request handler. If you're exclusively using a node-like environment, it's safe to access the environment variables directly from `process.env`.
 
+The `app` function is useful if you need a cross-platform way to access the environment variables. For example, on Cloudflare Workers, you can only access environment variables inside a request handler. If you're exclusively using a node-like environment, it's safe to access the environment variables directly from `process.env`.
 
 If you're using `npx bknd run`, make sure to create a file in a file format that `node` can load, otherwise you may run into an error that the file couldn't be found:
 
@@ -112,21 +118,27 @@ npx tsx node_modules/.bin/bknd run
 ```
 
 ### Turso/LibSQL database
+
 To start an instance with a Turso/LibSQL database, run the following:
+
 ```
 npx bknd run --db-url libsql://your-db.turso.io --db-token <your-token>
 ```
+
 The `--db-token` option is optional and only required if the database is protected.
 
-
 ### In-memory database
+
 To start an instance with an ephemeral in-memory database, run the following:
+
 ```
 npx bknd run --memory
 ```
+
 Keep in mind that the database is not persisted and will be lost when the process is terminated.
 
 ## Generating types (`types`)
+
 To see all available `types` options, execute `npx bknd types --help`.
 
 ```
@@ -142,6 +154,7 @@ Options:
 ```
 
 To generate types for the database, run the following:
+
 ```
 npx bknd types
 ```
@@ -177,9 +190,7 @@ Make sure to add the generated file in your `tsconfig.json` file:
 
 ```json tsconfig.json
 {
-   "include": [
-      "bknd-types.d.ts"
-   ]
+  "include": ["bknd-types.d.ts"]
 }
 ```
 
@@ -192,3 +203,4 @@ type Todo = DB["todos"];
 ```
 
 All bknd methods that involve your database schema will be automatically typed.
+

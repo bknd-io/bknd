@@ -1,6 +1,7 @@
 ---
-title: 'Next.js'
-description: 'Run bknd inside Next.js'
+title: "Next.js"
+description: "Run bknd inside Next.js"
+tags: ["documentation"]
 ---
 
 ## Installation
@@ -47,9 +48,9 @@ Now create a `bknd.config.ts` file in the root of your project. If you created t
 import type { NextjsBkndConfig } from "bknd/adapter/nextjs";
 
 export default {
-   connection: {
-      url: "file:data.db"
-   },
+  connection: {
+    url: "file:data.db",
+  },
 } satisfies NextjsBkndConfig;
 ```
 
@@ -58,7 +59,7 @@ See [bknd.config.ts](/extending/config) for more information on how to configure
 ```typescript
 type NextjsEnv = NextApiRequest["env"];
 export type NextjsBkndConfig<Env = NextjsEnv> = FrameworkBkndConfig<Env> & {
-   cleanRequest?: { searchParams?: string[] };
+  cleanRequest?: { searchParams?: string[] };
 };
 ```
 
@@ -67,25 +68,28 @@ export type NextjsBkndConfig<Env = NextjsEnv> = FrameworkBkndConfig<Env> & {
 Create a helper file to instantiate the bknd instance and retrieve the API, importing the configurationfrom the `bknd.config.ts` file:
 
 ```ts title="src/bknd.ts"
-import { type NextjsBkndConfig, getApp as getBkndApp } from "bknd/adapter/nextjs";
+import {
+  type NextjsBkndConfig,
+  getApp as getBkndApp,
+} from "bknd/adapter/nextjs";
 import { headers } from "next/headers";
 import config from "../bknd.config";
 
 export { config };
 
 export async function getApp() {
-   return await getBkndApp(config, process.env);
+  return await getBkndApp(config, process.env);
 }
 
 export async function getApi(opts?: { verify?: boolean }) {
-   const app = await getApp();
-   if (opts?.verify) {
-      const api = app.getApi({ headers: await headers() });
-      await api.verifyAuth();
-      return api;
-   }
+  const app = await getApp();
+  if (opts?.verify) {
+    const api = app.getApi({ headers: await headers() });
+    await api.verifyAuth();
+    return api;
+  }
 
-   return app.getApi();
+  return app.getApi();
 }
 ```
 
@@ -101,12 +105,12 @@ import { serve } from "bknd/adapter/nextjs";
 export const runtime = "edge";
 
 const handler = serve({
-   ...config,
-   cleanRequest: {
-      // depending on what name you used for the catch-all route,
-      // you need to change this to clean it from the request.
-      searchParams: ["bknd"],
-   },
+  ...config,
+  cleanRequest: {
+    // depending on what name you used for the catch-all route,
+    // you need to change this to clean it from the request.
+    searchParams: ["bknd"],
+  },
 });
 
 export const GET = handler;
@@ -126,36 +130,39 @@ import { getApi } from "@/bknd";
 import "bknd/dist/styles.css";
 
 export default async function AdminPage() {
-   // make sure to verify auth using headers
-   const api = await getApi({ verify: true });
+  // make sure to verify auth using headers
+  const api = await getApi({ verify: true });
 
-   return (
-      <Admin
-         withProvider={{ user: api.getUser() }}
-         config={{
-            basepath: "/admin",
-            logo_return_path: "/../",
-            color_scheme: "system",
-         }}
-      />
-   );
+  return (
+    <Admin
+      withProvider={{ user: api.getUser() }}
+      config={{
+        basepath: "/admin",
+        logo_return_path: "/../",
+        color_scheme: "system",
+      }}
+    />
+  );
 }
 ```
 
 ## Example usage of the API
+
 You can use the `getApi` helper function we've already set up to fetch and mutate in static pages and server components:
 
 ```tsx title="app/page.tsx"
 import { getApi } from "@/bknd";
 
 export default async function Home() {
-   const api = await getApi();
-   const { data: todos } = await api.data.readMany("todos", { limit: 5 });
+  const api = await getApi();
+  const { data: todos } = await api.data.readMany("todos", { limit: 5 });
 
-   return <ul>
+  return (
+    <ul>
       {todos.map((todo) => (
-         <li key={String(todo.id)}>{todo.title}</li>
+        <li key={String(todo.id)}>{todo.title}</li>
       ))}
-   </ul>
+    </ul>
+  );
 }
 ```

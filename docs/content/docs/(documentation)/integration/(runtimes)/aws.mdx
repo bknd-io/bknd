@@ -1,6 +1,7 @@
 ---
-title: 'AWS Lambda'
-description: 'Run bknd inside AWS Lambda'
+title: "AWS Lambda"
+description: "Run bknd inside AWS Lambda"
+tags: ["documentation"]
 ---
 
 ## Installation
@@ -8,6 +9,7 @@ description: 'Run bknd inside AWS Lambda'
 To get started with AWS Lambda and bknd you can either install the package manually and follow the descriptions below, or use the CLI starter:
 
 ### CLI Starter
+
 Create a new Bun CLI starter project by running the following command:
 
 ```sh
@@ -15,6 +17,7 @@ npx bknd create -i aws
 ```
 
 ### Manual
+
 Create a new AWS Lambda project and then install bknd as a dependency:
 
 <Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
@@ -45,10 +48,10 @@ To serve the API, you can use the `serveLambda` function of the AWS Lambda adapt
 import { serveLambda } from "bknd/adapter/aws";
 
 export const handler = serveLambda({
-   connection: {
-      url: process.env.DB_URL!,
-      authToken: process.env.DB_AUTH_TOKEN!
-   }
+  connection: {
+    url: process.env.DB_URL!,
+    authToken: process.env.DB_AUTH_TOKEN!,
+  },
 });
 ```
 
@@ -70,14 +73,15 @@ This will copy the static files to the `static` directory and then serve them fr
 import { serveLambda } from "bknd/adapter/aws";
 
 export const handler = serveLambda({
-   connection: {
-      url: process.env.DB_URL!,
-      authToken: process.env.DB_AUTH_TOKEN!
-   },
-   assets: { // [!code highlight]
-      mode: "local", // [!code highlight]
-      root: "./static" // [!code highlight]
-   } // [!code highlight]
+  connection: {
+    url: process.env.DB_URL!,
+    authToken: process.env.DB_AUTH_TOKEN!,
+  },
+  assets: {
+    // [!code highlight]
+    mode: "local", // [!code highlight]
+    root: "./static", // [!code highlight]
+  }, // [!code highlight]
 });
 ```
 
@@ -93,7 +97,6 @@ To deploy a lambda function, you could follow these steps:
 6. Create a function URL for the lambda function & make it publicly accessible (optional)
 
 Depending on your use case, you may want to skip step 6 and use the AWS API Gateway to serve the lambda function. Here is an [example deployment script](https://github.com/bknd-io/bknd/blob/main/examples/aws-lambda/deploy.sh) which creates the AWS resources described above, bundles the lambda function and uploads it.
-
 
 ### Using the CLI starter
 
@@ -124,5 +127,3 @@ To clean up AWS resources created by the deployment script, you can run:
 ```bash
 npm run clean
 ```
-
-

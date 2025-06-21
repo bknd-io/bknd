@@ -1,6 +1,7 @@
 ---
 title: "Database"
 description: "Choosing the right database configuration"
+tags: ["documentation"]
 ---
 
 In order to use **bknd**, you need to prepare access information to your database and install the dependencies. Connections to the database are managed using Kysely. Therefore, all [its dialects](https://kysely.dev/docs/dialects) are theoretically supported.
@@ -69,7 +70,7 @@ To manually specify which D1 database to take, you can specify it explicitly:
 import { serve, d1 } from "bknd/adapter/cloudflare";
 
 export default serve<Env>({
-  app: ({ env }) => d1({ binding: env.D1_BINDING })
+  app: ({ env }) => d1({ binding: env.D1_BINDING }),
 });
 ```
 
@@ -94,8 +95,8 @@ import { pg } from "@bknd/postgres";
 /** @type {import("bknd/adapter/node").NodeBkndConfig} */
 const config = {
   connection: pg({
-    connectionString: "postgresql://user:password@localhost:5432/database"
-  })
+    connectionString: "postgresql://user:password@localhost:5432/database",
+  }),
 };
 
 serve(config);
@@ -110,7 +111,7 @@ import { serve } from "bknd/adapter/node";
 import { postgresJs } from "@bknd/postgres";
 
 serve({
-  connection: postgresJs("postgresql://user:password@localhost:5432/database")
+  connection: postgresJs("postgresql://user:password@localhost:5432/database"),
 });
 ```
 
@@ -128,8 +129,8 @@ const neon = createCustomPostgresConnection(NeonDialect);
 
 serve({
   connection: neon({
-    connectionString: process.env.NEON
-  })
+    connectionString: process.env.NEON,
+  }),
 });
 ```
 
@@ -144,17 +145,17 @@ const client = buildClient();
 const xata = new client({
   databaseURL: process.env.XATA_URL,
   apiKey: process.env.XATA_API_KEY,
-  branch: process.env.XATA_BRANCH
+  branch: process.env.XATA_BRANCH,
 });
 
 const xataConnection = createCustomPostgresConnection(XataDialect, {
   supports: {
-    batching: false
-  }
+    batching: false,
+  },
 });
 
 serve({
-  connection: xataConnection({ xata })
+  connection: xataConnection({ xata }),
 });
 ```
 
@@ -175,8 +176,8 @@ import { SQLocalConnection } from "@bknd/sqlocal";
 const app = createApp({
   connection: new SQLocalConnection({
     databasePath: ":localStorage:",
-    verbose: true
-  })
+    verbose: true,
+  }),
 });
 ```
 
@@ -224,11 +225,11 @@ const schema = em(
       title: text().required(),
       slug: text().required(),
       content: text(),
-      views: number()
+      views: number(),
     }),
     comments: entity("comments", {
-      content: text()
-    })
+      content: text(),
+    }),
 
     // relations and indices are defined separately.
     // the first argument are the helper functions, the second the entities.
@@ -236,14 +237,12 @@ const schema = em(
   ({ relation, index }, { posts, comments }) => {
     relation(comments).manyToOne(posts);
     // relation as well as index can be chained!
-    index(posts)
-      .on(["title"])
-      .on(["slug"], true);
-  }
+    index(posts).on(["title"]).on(["slug"], true);
+  },
 );
 
 // to get a type from your schema, use:
-type Database = typeof schema["DB"];
+type Database = (typeof schema)["DB"];
 // type Database = {
 //    posts: {
 //       id: number;
@@ -263,8 +262,8 @@ const app = createApp({
     /* ... */
   },
   initialConfig: {
-    data: schema.toJSON()
-  }
+    data: schema.toJSON(),
+  },
 });
 ```
 
@@ -293,7 +292,7 @@ const schema = em({
   /* ... */
 });
 
-type Database = typeof schema["DB"];
+type Database = (typeof schema)["DB"];
 declare module "bknd/core" {
   interface DB extends Database {}
 }
@@ -321,15 +320,19 @@ provides the `ModuleBuildContext` as the first argument.
 import { createApp, type ModuleBuildContext } from "bknd";
 
 const app = createApp({
-   connection: { /* ... */ },
-   initialConfig: { /* ... */ },
-   options: {
-      seed: async (ctx: ModuleBuildContext) => {
-         await ctx.em.mutator("posts").insertMany([
-            { title: "First post", slug: "first-post", content: "..." },
-            { title: "Second post", slug: "second-post" }
-         ]);
-      }
-   }
+  connection: {
+    /* ... */
+  },
+  initialConfig: {
+    /* ... */
+  },
+  options: {
+    seed: async (ctx: ModuleBuildContext) => {
+      await ctx.em.mutator("posts").insertMany([
+        { title: "First post", slug: "first-post", content: "..." },
+        { title: "Second post", slug: "second-post" },
+      ]);
+    },
+  },
 });
 ```

@@ -1,6 +1,7 @@
 ---
-title: 'Cloudflare'
-description: 'Run bknd inside Cloudflare Worker'
+title: "Cloudflare"
+description: "Run bknd inside Cloudflare Worker"
+tags: ["documentation"]
 ---
 
 ## Installation
@@ -52,17 +53,17 @@ export default serve();
 
 // manually specifying a D1 binding:
 export default serve<Env>({
-  app: ({ env }) => d1({ binding: env.D1_BINDING })
+  app: ({ env }) => d1({ binding: env.D1_BINDING }),
 });
 
 // or specify binding using `bindings`
 export default serve<Env>({
-  bindings: ({ env }) => ({ db: env.D1_BINDING })
+  bindings: ({ env }) => ({ db: env.D1_BINDING }),
 });
 
 // or use LibSQL
 export default serve<Env>({
-  app: ({ env }) => ({ url: env.DB_URL })
+  app: ({ env }) => ({ url: env.DB_URL }),
 });
 ```
 
@@ -82,6 +83,7 @@ your browser.
 Now in order to also server the static admin files, you have to modify the `wrangler.toml` to include the static assets. You can do so by either serving the static using the new [Assets feature](https://developers.cloudflare.com/workers/static-assets/), or the deprecated [Workers Site](https://developers.cloudflare.com/workers/configuration/sites/configuration/).
 
 ### Assets
+
 Make sure your assets point to the static assets included in the bknd package:
 
 ```toml title="wrangler.toml"
@@ -89,6 +91,7 @@ assets = { directory = "node_modules/bknd/dist/static" }
 ```
 
 ### Workers Sites
+
 Make sure your site points to the static assets included in the bknd package:
 
 ```toml title="wrangler.toml"
@@ -103,22 +106,26 @@ import { serve } from "bknd/adapter/cloudflare";
 import manifest from "__STATIC_CONTENT_MANIFEST"; // [!code highlight]
 
 export default serve<Env>({
-  app: () => ({/* ... */}),
-  manifest // [!code highlight]
+  app: () => ({
+    /* ... */
+  }),
+  manifest, // [!code highlight]
 });
 ```
 
 ## Adding custom routes
 
 You can also add custom routes by defining them after the app has been built, like so:
+
 ```ts
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve<Env>({
-   // ...
-   onBuilt: async (app) => { // [!code highlight]
-      app.server.get("/hello", (c) => c.json({ hello: "world" })); // [!code highlight]
-   } // [!code highlight]
+  // ...
+  onBuilt: async (app) => {
+    // [!code highlight]
+    app.server.get("/hello", (c) => c.json({ hello: "world" })); // [!code highlight]
+  }, // [!code highlight]
 });
 ```
 
@@ -130,7 +137,7 @@ With the Cloudflare Workers adapter, you're being offered to 4 modes to choose f
 `warm`):
 
 | Mode      | Description                                                                                | Use Case                                                                                                                                |
-|:----------|:-------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------|
+| :-------- | :----------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
 | `fresh`   | On every request, the configuration gets refetched, app built and then served.             | Ideal if you don't want to deal with eviction, KV or Durable Objects.                                                                   |
 | `warm`    | It tries to keep the built app in memory for as long as possible, and rebuilds if evicted. | Better response times, should be the default choice.                                                                                    |
 | `cache`   | The configuration is fetched from KV to reduce the initial roundtrip to the database.      | Generally faster response times with irregular access patterns.                                                                         |
@@ -145,8 +152,8 @@ mode`, like so:
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve({
-   // ...
-   mode: "fresh" // mode: "fresh" | "warm" | "cache" | "durable"
+  // ...
+  mode: "fresh", // mode: "fresh" | "warm" | "cache" | "durable"
 });
 ```
 
@@ -159,9 +166,9 @@ For the cache mode to work, you also need to specify the KV to be used. For this
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve<Env>({
-   // ...
-   mode: "cache",
-   bindings: ({ env }) => ({ kv: env.KV })
+  // ...
+  mode: "cache",
+  bindings: ({ env }) => ({ kv: env.KV }),
 });
 ```
 
@@ -175,10 +182,10 @@ import { serve, DurableBkndApp } from "bknd/adapter/cloudflare";
 
 export { DurableBkndApp };
 export default serve<Env>({
-   // ...
-   mode: "durable",
-   bindings: ({ env }) => ({ dobj: env.DOBJ }),
-   keepAliveSeconds: 60 // optional
+  // ...
+  mode: "durable",
+  bindings: ({ env }) => ({ dobj: env.DOBJ }),
+  keepAliveSeconds: 60, // optional
 });
 ```
 
@@ -204,16 +211,16 @@ import type { App } from "bknd";
 import { serve, DurableBkndApp } from "bknd/adapter/cloudflare";
 
 export default serve({
-   // ...
-   mode: "durable",
-   bindings: ({ env }) => ({ dobj: env.DOBJ }),
-   keepAliveSeconds: 60 // optional
+  // ...
+  mode: "durable",
+  bindings: ({ env }) => ({ dobj: env.DOBJ }),
+  keepAliveSeconds: 60, // optional
 });
 
 export class CustomDurableBkndApp extends DurableBkndApp {
-   async onBuilt(app: App) {
-      app.modules.server.get("/custom/endpoint", (c) => c.text("Custom"));
-   }
+  async onBuilt(app: App) {
+    app.modules.server.get("/custom/endpoint", (c) => c.text("Custom"));
+  }
 }
 ```
 
@@ -243,20 +250,20 @@ D1 now supports to enable [global read replication](https://developers.cloudflar
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve({
-   // currently recommended to use "fresh" mode
-   // otherwise consecutive requests will use the same bookmark
-   mode: "fresh",
-   // ...
-   d1: {
-      // enables D1 sessions
-      session: true,
-      // (optional) restrict the transport, options: "header" | "cookie"
-      // if not specified, it supports both
-      transport: "cookie",
-      // (optional) choose session constraint if not bookmark present
-      // options: "first-primary" | "first-unconstrained"
-      first: "first-primary"
-   }
+  // currently recommended to use "fresh" mode
+  // otherwise consecutive requests will use the same bookmark
+  mode: "fresh",
+  // ...
+  d1: {
+    // enables D1 sessions
+    session: true,
+    // (optional) restrict the transport, options: "header" | "cookie"
+    // if not specified, it supports both
+    transport: "cookie",
+    // (optional) choose session constraint if not bookmark present
+    // options: "first-primary" | "first-unconstrained"
+    first: "first-primary",
+  },
 });
 ```
 
