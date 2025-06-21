@@ -4,7 +4,6 @@ import { Hono } from "hono";
 import { Guard } from "../../src/auth";
 import { DebugLogger } from "../../src/core";
 import { EventManager } from "../../src/core/events";
-import { Default, stripMark } from "../../src/core/utils";
 import { EntityManager } from "../../src/data";
 import { Module, type ModuleBuildContext } from "../../src/modules/Module";
 import { getDummyConnection } from "../helper";
@@ -45,7 +44,8 @@ export function moduleTestSuite(module: { new (): Module }) {
       it("uses the default config", async () => {
          const m = new module();
          await m.setContext(ctx).build();
-         expect(stripMark(m.toJSON())).toEqual(Default(m.getSchema(), {}));
+         expect(m.toJSON()).toEqual(m.getSchema().template());
+         //expect(stripMark(m.toJSON())).toEqual(Default(m.getSchema(), {}));
       });
    });
 }

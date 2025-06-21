@@ -1,11 +1,11 @@
-import type { Static, TObject } from "core/utils";
 import type { JSONSchema7 } from "json-schema";
 import { cloneDeep, omit, pick } from "lodash-es";
+import type { s } from "core/object/schema";
 
 export function extractSchema<
-   Schema extends TObject,
+   Schema extends s.ObjectSchema,
    Keys extends keyof Schema["properties"],
-   Config extends Static<Schema>,
+   Config extends s.Static<Schema>,
 >(
    schema: Schema,
    config: Config,
@@ -22,12 +22,12 @@ export function extractSchema<
    },
 ] {
    if (!schema.properties) {
-      return [{ ...schema }, config, {} as any];
+      return [{ ...schema.toJSON() }, config, {} as any];
    }
 
    const newSchema = cloneDeep(schema);
    const updated = {
-      ...newSchema,
+      ...newSchema.toJSON(),
       properties: omit(newSchema.properties, keys),
    };
    if (updated.required) {

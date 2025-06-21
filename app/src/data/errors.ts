@@ -1,5 +1,6 @@
 import { Exception } from "core";
-import { HttpStatus, type TypeInvalidError } from "core/utils";
+import { HttpStatus } from "core/utils";
+import type { InvalidSchemaError } from "core/object/schema";
 import type { Entity } from "./entities";
 import type { Field } from "./fields";
 
@@ -42,7 +43,7 @@ export class InvalidFieldConfigException extends Exception {
    constructor(
       field: Field<any, any, any>,
       public given: any,
-      error: TypeInvalidError,
+      error: InvalidSchemaError,
    ) {
       console.error("InvalidFieldConfigException", {
          given,

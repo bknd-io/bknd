@@ -2,7 +2,7 @@ import { s } from "core/object/schema";
 import { WhereBuilder, type WhereQuery } from "data/entities/query/WhereBuilder";
 import { $console } from "core";
 import { isObject } from "core/utils";
-import type { CoercionOptions, TAnyOf } from "jsonv-ts";
+import type { anyOf, CoercionOptions, Schema } from "jsonv-ts";
 
 // -------
 // helpers
@@ -36,10 +36,12 @@ const stringArray = s.anyOf(
 // -------
 // sorting
 const sortDefault = { by: "id", dir: "asc" };
-const sortSchema = s.object({
-   by: s.string(),
-   dir: s.string({ enum: ["asc", "desc"] }).optional(),
-});
+const sortSchema = s
+   .object({
+      by: s.string(),
+      dir: s.string({ enum: ["asc", "desc"] }).optional(),
+   })
+   .strict();
 type SortSchema = s.Static<typeof sortSchema>;
 const sort = s.anyOf([s.string(), sortSchema], {
    default: sortDefault,
@@ -88,9 +90,9 @@ export type RepoWithSchema = Record<
    }
 >;
 
-const withSchema = <In, Out = In>(self: s.TSchema): s.TSchemaInOut<In, Out> =>
+const withSchema = <Type = unknown>(self: Schema): Schema<{}, Type, Type> =>
    s.anyOf([stringIdentifier, s.array(stringIdentifier), self], {
-      coerce: function (this: TAnyOf<any>, _value: unknown, opts: CoercionOptions = {}) {
+      coerce: function (this: typeof anyOf, _value: unknown, opts: CoercionOptions = {}) {
          let value: any = _value;
 
          if (typeof value === "string") {
@@ -126,15 +128,17 @@ const withSchema = <In, Out = In>(self: s.TSchema): s.TSchemaInOut<In, Out> =>
 // ==========
 // REPO QUERY
 export const repoQuery = s.recursive((self) =>
-   s.partialObject({
-      limit: s.number({ default: 10 }),
-      offset: s.number({ default: 0 }),
-      sort,
-      where,
-      select: stringArray,
-      join: stringArray,
-      with: withSchema<RepoWithSchema>(self),
-   }),
+   s
+      .object({
+         limit: s.number({ default: 10 }),
+         offset: s.number({ default: 0 }),
+         sort,
+         where,
+         select: stringArray,
+         join: stringArray,
+         with: withSchema<RepoWithSchema>(self),
+      })
+      .partial(),
 );
 export const getRepoQueryTemplate = () =>
    repoQuery.template({
@@ -151,3 +155,15 @@ export type RepoQueryIn = {
    where?: WhereQuery;
 };
 export type RepoQuery = s.StaticCoerced<typeof repoQuery>;
+
+//export type RepoQuery = s.StaticCoerced<typeof repoQuery>;
+// @todo: CURRENT WORKAROUND
+/* export type RepoQuery = {
+   limit?: number;
+   offset?: number;
+   sort?: { by: string; dir: "asc" | "desc" };
+   select?: string[];
+   with?: Record<string, RepoQuery>;
+   join?: string[];
+   where?: WhereQuery;
+}; */

@@ -226,7 +226,7 @@ function baseConfig(adapter: string, overrides: Partial<tsup.Options> = {}): tsu
       },
       external: [
          /^cloudflare*/,
-         /^@?(hono|libsql).*?/,
+         /^@?hono.*?/,
          /^(bknd|react|next|node).*?/,
          /.*\.(html)$/,
          ...external,

@@ -14,16 +14,9 @@ import {
    type ValueErrorIterator,
 } from "@sinclair/typebox/errors";
 import { Check, Default, Value, type ValueError } from "@sinclair/typebox/value";
+import type { RecursivePartial } from "../types";
 
-export type RecursivePartial<T> = {
-   [P in keyof T]?: T[P] extends (infer U)[]
-      ? RecursivePartial<U>[]
-      : T[P] extends object | undefined
-        ? RecursivePartial<T[P]>
-        : T[P];
-};
-
-type ParseOptions = {
+/* type ParseOptions = {
    useDefaults?: boolean;
    decode?: boolean;
    onError?: (errors: ValueErrorIterator) => void;
@@ -198,4 +191,4 @@ SetErrorFunction((error) => {
 
 export type { Static, StaticDecode, TSchema, TObject, ValueError, SchemaOptions };
 
-export { Value, Default, Errors, Check };
+export { Value, Default, Errors, Check }; */

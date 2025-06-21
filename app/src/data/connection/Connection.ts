@@ -38,7 +38,7 @@ export interface SelectQueryBuilderExpression<O> extends AliasableExpression<O> 
 
 export type SchemaResponse = [string, ColumnDataType, ColumnBuilderCallback] | undefined;
 
-const FieldSpecTypes = [
+export const FieldSpecTypes = [
    "text",
    "integer",
    "real",

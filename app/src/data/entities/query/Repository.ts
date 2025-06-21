@@ -78,8 +78,8 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
 
          this.checkIndex(entity.name, options.sort.by, "sort");
          validated.sort = {
-            dir: "asc",
-            ...options.sort,
+            dir: options.sort.dir ?? "asc",
+            by: options.sort.by,
          };
       }
 
@@ -345,7 +345,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          ...refQueryOptions,
          where: {
             ...refQueryOptions.where,
-            ..._options?.where,
+            ...(_options?.where ?? {}),
          },
       };
 

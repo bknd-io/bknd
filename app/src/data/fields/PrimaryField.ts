@@ -1,22 +1,22 @@
 import { config } from "core";
-import { StringEnum, uuidv7, type Static } from "core/utils";
+import { omitKeys, uuidv7 } from "core/utils";
 import { Field, baseFieldConfigSchema } from "./Field";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s } from "core/object/schema";
+import type { FieldSpec } from "data/connection/Connection";
 
 export const primaryFieldTypes = ["integer", "uuid"] as const;
 export type TPrimaryFieldFormat = (typeof primaryFieldTypes)[number];
 
-export const primaryFieldConfigSchema = Type.Composite([
-   Type.Omit(baseFieldConfigSchema, ["required"]),
-   Type.Object({
-      format: Type.Optional(StringEnum(primaryFieldTypes, { default: "integer" })),
-      required: Type.Optional(Type.Literal(false)),
-   }),
-]);
+export const primaryFieldConfigSchema = s
+   .strictObject({
+      format: s.string({ enum: primaryFieldTypes, default: "integer" }),
+      required: s.boolean({ default: false }),
+      ...omitKeys(baseFieldConfigSchema.properties, ["required"]),
+   })
+   .partial();
 
-export type PrimaryFieldConfig = Static<typeof primaryFieldConfigSchema>;
+export type PrimaryFieldConfig = s.Static<typeof primaryFieldConfigSchema>;
 
 export class PrimaryField<Required extends true | false = false> extends Field<
    PrimaryFieldConfig,
@@ -41,7 +41,7 @@ export class PrimaryField<Required extends true | false = false> extends Field<
       return this.config.format ?? "integer";
    }
 
-   get fieldType() {
+   get fieldType(): "integer" | "text" {
       return this.format === "integer" ? "integer" : "text";
    }
 
@@ -67,11 +67,11 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    }
 
    override toJsonSchema() {
-      if (this.format === "uuid") {
-         return this.toSchemaWrapIfRequired(Type.String({ writeOnly: undefined }));
-      }
-
-      return this.toSchemaWrapIfRequired(Type.Number({ writeOnly: undefined }));
+      return this.toSchemaWrapIfRequired(
+         this.format === "integer"
+            ? s.number({ writeOnly: undefined })
+            : s.string({ writeOnly: undefined }),
+      );
    }
 
    override toType(): TFieldTSType {

@@ -11,7 +11,7 @@ import { Module } from "modules/Module";
 import { DataController } from "./api/DataController";
 import { type AppDataConfig, dataConfigSchema } from "./data-schema";
 
-export class AppData extends Module<typeof dataConfigSchema> {
+export class AppData extends Module<AppDataConfig> {
    override async build() {
       const {
          entities: _entities = {},

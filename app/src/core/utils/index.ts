@@ -5,7 +5,7 @@ export * from "./perf";
 export * from "./file";
 export * from "./reqres";
 export * from "./xml";
-export type { Prettify, PrettifyRec } from "./types";
+export type { Prettify, PrettifyRec, RecursivePartial } from "./types";
 export * from "./typebox";
 export * from "./dates";
 export * from "./crypto";

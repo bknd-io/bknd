@@ -13,7 +13,7 @@ import {
    text,
 } from "../data/prototype";
 import { MediaController } from "./api/MediaController";
-import { buildMediaSchema, type mediaConfigSchema, registry } from "./media-schema";
+import { buildMediaSchema, registry, type TAppMediaConfig } from "./media-schema";
 
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
 declare module "core" {
@@ -23,7 +23,7 @@ declare module "core" {
    }
 }
 
-export class AppMedia extends Module<typeof mediaConfigSchema> {
+export class AppMedia extends Module<TAppMediaConfig> {
    private _storage?: Storage;
 
    override async build() {

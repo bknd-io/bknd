@@ -20,7 +20,7 @@ declare module "core" {
 
 export type CreateUserPayload = { email: string; password: string; [key: string]: any };
 
-export class AppAuth extends Module<typeof authConfigSchema> {
+export class AppAuth extends Module<AppAuthSchema> {
    private _authenticator?: Authenticator;
    cache: Record<string, any> = {};
    _controller!: AuthController;
@@ -197,6 +197,6 @@ export class AppAuth extends Module<typeof authConfigSchema> {
             enabled: this.isStrategyEnabled(strategy),
             ...strategy.toJSON(secrets),
          })),
-      };
+      } as AppAuthSchema;
    }
 }

@@ -1,8 +1,5 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Switch, TextInput } from "@mantine/core";
-import { TypeRegistry } from "@sinclair/typebox";
 import { IconDatabase } from "@tabler/icons-react";
-import { type Static, StringEnum, StringIdentifier, registerCustomTypeboxKinds } from "core/utils";
 import { ManyToOneRelation, type RelationType, RelationTypes } from "data";
 import type { ReactNode } from "react";
 import { type Control, type FieldValues, type UseFormRegister, useForm } from "react-hook-form";
@@ -14,11 +11,7 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import { useStepContext } from "ui/components/steps/Steps";
 import { useEvent } from "ui/hooks/use-event";
 import { ModalBody, ModalFooter, type TCreateModalSchema } from "./CreateModal";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
-
-// @todo: check if this could become an issue
-registerCustomTypeboxKinds(TypeRegistry);
+import { s, stringIdentifier } from "core/object/schema";
 
 const Relations: {
    type: RelationType;
@@ -47,11 +40,11 @@ const Relations: {
    },
 ];
 
-const schema = Type.Object({
-   type: StringEnum(Relations.map((r) => r.type)),
-   source: StringIdentifier,
-   target: StringIdentifier,
-   config: Type.Object({}),
+const schema = s.strictObject({
+   type: s.string({ enum: Relations.map((r) => r.type) }),
+   source: stringIdentifier,
+   target: stringIdentifier,
+   config: s.object({}),
 });
 
 type ComponentCtx<T extends FieldValues = FieldValues> = {
@@ -73,8 +66,9 @@ export function StepRelation() {
       watch,
       control,
    } = useForm({
-      resolver: typeboxResolver(schema),
-      defaultValues: (state.relations?.create?.[0] ?? {}) as Static<typeof schema>,
+      // @todo: implement resolver
+      //resolver: typeboxResolver(schema),
+      defaultValues: (state.relations?.create?.[0] ?? {}) as s.Static<typeof schema>,
    });
    const data = watch();
 

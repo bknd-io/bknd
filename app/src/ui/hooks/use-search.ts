@@ -4,12 +4,12 @@ import { useLocation, useSearch as useWouterSearch } from "wouter";
 import { type s, parse } from "core/object/schema";
 import { useEffect, useMemo, useState } from "react";
 
-export type UseSearchOptions<Schema extends s.TAnySchema = s.TAnySchema> = {
+export type UseSearchOptions<Schema extends s.Schema = s.Schema> = {
    defaultValue?: Partial<s.StaticCoerced<Schema>>;
    beforeEncode?: (search: Partial<s.StaticCoerced<Schema>>) => object;
 };
 
-export function useSearch<Schema extends s.TAnySchema = s.TAnySchema>(
+export function useSearch<Schema extends s.Schema = s.Schema>(
    schema: Schema,
    options?: UseSearchOptions<Schema>,
 ) {

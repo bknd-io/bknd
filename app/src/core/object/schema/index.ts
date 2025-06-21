@@ -1,6 +1,3 @@
-import { mergeObject } from "core/utils";
-
-//export { jsc, type Options, type Hook } from "./validator";
 import * as s from "jsonv-ts";
 
 export { validator as jsc, type Options } from "jsonv-ts/hono";
@@ -8,9 +5,18 @@ export { describeRoute, schemaToSpec, openAPISpecs } from "jsonv-ts/hono";
 
 export { s };
 
+export const stripMark = <O extends object>(o: O): O => o;
+export const mark = <O extends object>(o: O): O => o;
+
+export const stringIdentifier = s.string({
+   pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$",
+   minLength: 2,
+   maxLength: 150,
+});
+
 export class InvalidSchemaError extends Error {
    constructor(
-      public schema: s.TAnySchema,
+      public schema: s.Schema,
       public value: unknown,
       public errors: s.ErrorDetail[] = [],
    ) {
@@ -19,33 +25,52 @@ export class InvalidSchemaError extends Error {
             `Error: ${JSON.stringify(errors[0], null, 2)}`,
       );
    }
+
+   first() {
+      return this.errors[0]!;
+   }
+
+   firstToString() {
+      const first = this.first();
+      return `${first.error} at ${first.instanceLocation}`;
+   }
 }
 
 export type ParseOptions = {
    withDefaults?: boolean;
-   coerse?: boolean;
+   coerce?: boolean;
    clone?: boolean;
+   skipMark?: boolean; // @todo: do something with this
+   forceParse?: boolean; // @todo: do something with this
+   onError?: (errors: s.ErrorDetail[]) => void;
 };
 
-export const cloneSchema = <S extends s.TSchema>(schema: S): S => {
+export const cloneSchema = <S extends s.Schema>(schema: S): S => {
    const json = schema.toJSON();
    return s.fromSchema(json) as S;
 };
 
-export function parse<S extends s.TAnySchema>(
+export function parse<S extends s.Schema, Options extends ParseOptions = ParseOptions>(
    _schema: S,
    v: unknown,
-   opts: ParseOptions = {},
-): s.StaticCoerced<S> {
-   const schema = (opts.clone ? cloneSchema(_schema as any) : _schema) as s.TSchema;
-   const value = opts.coerse !== false ? schema.coerce(v) : v;
+   opts?: Options,
+): Options extends { coerce: true } ? s.StaticCoerced<S> : s.Static<S> {
+   const schema = (opts?.clone ? cloneSchema(_schema as any) : _schema) as s.Schema;
+   let value = opts?.coerce !== false ? schema.coerce(v) : v;
+   if (opts?.withDefaults) {
+      value = schema.template(value, { withOptional: true });
+   }
+
    const result = schema.validate(value, {
       shortCircuit: true,
       ignoreUnsupported: true,
    });
-   if (!result.valid) throw new InvalidSchemaError(schema, v, result.errors);
-   if (opts.withDefaults) {
-      return mergeObject(schema.template({ withOptional: true }), value) as any;
+   if (!result.valid) {
+      if (opts?.onError) {
+         opts.onError(result.errors);
+      } else {
+         throw new InvalidSchemaError(schema, v, result.errors);
+      }
    }
 
    return value as any;

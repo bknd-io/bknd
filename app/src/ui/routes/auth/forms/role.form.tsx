@@ -1,15 +1,16 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
+//import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Input, Switch, Tooltip } from "@mantine/core";
 import { guardRoleSchema } from "auth/auth-schema";
-import { type Static, ucFirst } from "core/utils";
+import { ucFirst } from "core/utils";
 import { forwardRef, useImperativeHandle } from "react";
 import { type UseControllerProps, useController, useForm } from "react-hook-form";
 import { useBknd } from "ui/client/bknd";
 import { Button } from "ui/components/buttons/Button";
 import { MantineSwitch } from "ui/components/form/hook-form-mantine/MantineSwitch";
+import type { s } from "core/object/schema";
 
 const schema = guardRoleSchema;
-type Role = Static<typeof guardRoleSchema>;
+type Role = s.Static<typeof guardRoleSchema>;
 
 export type AuthRoleFormRef = {
    getData: () => Role;
@@ -33,7 +34,8 @@ export const AuthRoleForm = forwardRef<
       reset,
       getValues,
    } = useForm({
-      resolver: typeboxResolver(schema),
+      // @todo: add resolver
+      //resolver: typeboxResolver(schema),
       defaultValues: role,
    });
 
@@ -87,7 +89,7 @@ const Permissions = ({
    const {
       field: { value, onChange: fieldOnChange, ...field },
       fieldState,
-   } = useController<Static<typeof schema>, "permissions">({
+   } = useController<s.Static<typeof schema>, "permissions">({
       name: "permissions",
       control,
    });

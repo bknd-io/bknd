@@ -1,27 +1,21 @@
-import { type Static, StringEnum, dayjs } from "core/utils";
+import { dayjs, omitKeys } from "core/utils";
 import type { EntityManager } from "../entities";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
 import { $console } from "core";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s } from "core/object/schema";
 
-export const dateFieldConfigSchema = Type.Composite(
-   [
-      Type.Object({
-         type: StringEnum(["date", "datetime", "week"] as const, { default: "date" }),
-         timezone: Type.Optional(Type.String()),
-         min_date: Type.Optional(Type.String()),
-         max_date: Type.Optional(Type.String()),
-      }),
-      baseFieldConfigSchema,
-   ],
-   {
-      additionalProperties: false,
-   },
-);
+export const dateFieldConfigSchema = s
+   .strictObject({
+      type: s.string({ enum: ["date", "datetime", "week"], default: "date" }),
+      timezone: s.string(),
+      min_date: s.string(),
+      max_date: s.string(),
+      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+   })
+   .partial();
 
-export type DateFieldConfig = Static<typeof dateFieldConfigSchema>;
+export type DateFieldConfig = s.Static<typeof dateFieldConfigSchema>;
 
 export class DateField<Required extends true | false = false> extends Field<
    DateFieldConfig,
@@ -143,7 +137,7 @@ export class DateField<Required extends true | false = false> extends Field<
 
    // @todo: check this
    override toJsonSchema() {
-      return this.toSchemaWrapIfRequired(Type.String({ default: this.getDefault() }));
+      return this.toSchemaWrapIfRequired(s.string({ default: this.getDefault() }));
    }
 
    override toType(): TFieldTSType {
