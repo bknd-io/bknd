@@ -6,13 +6,15 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
+  output: "export",
+  trailingSlash: true,
   reactStrictMode: true,
   async redirects() {
     return redirectsConfig;
   },
   async rewrites() {
     return rewritesConfig;
-  }
+  },
 };
 
 export default withMDX(config);
