@@ -9,12 +9,11 @@ const config = {
   output: "export",
   trailingSlash: true,
   reactStrictMode: true,
-  async redirects() {
-    return redirectsConfig;
-  },
-  async rewrites() {
-    return rewritesConfig;
-  },
 };
+
+if (process.env.NODE_ENV === "development") {
+  config.redirects = async () => redirectsConfig;
+  config.rewrites = async () => rewritesConfig;
+}
 
 export default withMDX(config);
