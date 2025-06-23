@@ -6,6 +6,17 @@ import { GithubInfo } from "fumadocs-ui/components/github-info";
 import type { ReactNode } from "react";
 import { Provider } from "./provider";
 
+const githubToken = process.env.GITHUB_TOKEN;
+
+// GitHub API has a strict rate limit (60 req/hour) without authentication.
+// Setting a token (even with no scopes) raises the limit to 5000 req/hour.
+// Recommended to set GITHUB_TOKEN in your environment for better reliability.
+if (!githubToken) {
+  console.warn(
+    "[Docs] GITHUB_TOKEN is missing. GitHub API will be rate-limited (60 req/hour).",
+  );
+}
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -27,7 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     owner="bknd-io"
                     repo="bknd"
                     className="lg:-mx-2"
-                    token={process.env.GITHUB_TOKEN}
+                    token={githubToken}
                   />
                 ),
               },

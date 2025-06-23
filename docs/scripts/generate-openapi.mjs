@@ -9,7 +9,7 @@ async function generate() {
   try {
     if (!fs.existsSync(schemaPath)) {
       console.error(
-        `Missing ${schemaPath}. Make sure openapi.json is located in the docs project root.`,
+        `[generate-openapi] Missing ${schemaPath}. Make sure openapi.json is located in the docs project root.`,
       );
       process.exit(1);
     }
