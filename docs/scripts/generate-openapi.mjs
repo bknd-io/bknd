@@ -1,26 +1,41 @@
 import { generateFiles } from "fumadocs-openapi";
 import { rimraf } from "rimraf";
+import fs from "fs";
 
 const outDir = "./content/docs/api-reference";
+const schemaPath = "./openapi.json";
 
 async function generate() {
-  console.log("Cleaning generated files...");
-  await rimraf(outDir, {
-    filter(v) {
-      return !v.endsWith("introduction.mdx") && !v.endsWith("meta.json");
-    },
-  });
-  console.log("Generated files cleaned");
+  try {
+    if (!fs.existsSync(schemaPath)) {
+      console.error(
+        `Missing ${schemaPath}. Make sure openapi.json is located in the docs project root.`,
+      );
+      process.exit(1);
+    }
 
-  await generateFiles({
-    input: ["./openapi.json"],
-    output: outDir,
-    per: "operation",
-    groupBy: "tag",
-    includeDescription: true,
-    addGeneratedComment: true,
-  });
-  console.log("OpenAPI docs generated");
+    console.log("Cleaning generated files...");
+    await rimraf(outDir, {
+      filter: (v) =>
+        !v.endsWith("introduction.mdx") && !v.endsWith("meta.json"),
+    });
+    console.log("Clean complete.");
+
+    console.log("Generating OpenAPI documentation...");
+    await generateFiles({
+      input: [schemaPath],
+      output: outDir,
+      per: "operation",
+      groupBy: "tag",
+      includeDescription: true,
+      addGeneratedComment: true,
+    });
+    console.log("OpenAPI docs generated.");
+  } catch (error) {
+    console.error("Error while generating OpenAPI docs:");
+    console.error(error);
+    process.exit(1);
+  }
 }
 
 void generate();
