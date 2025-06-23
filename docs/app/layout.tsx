@@ -24,7 +24,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Provider>
           <DocsLayout
             tree={source.pageTree}
-            nav={{ ...baseOptions.nav }}
+            nav={{ ...baseOptions.nav, mode: "top" }}
+            // or
+            // nav={{ ...baseOptions.nav }}
             tabMode="navbar"
             links={[
               {
