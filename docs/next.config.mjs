@@ -12,6 +12,7 @@ const config = {
 };
 
 if (process.env.NODE_ENV === "development") {
+  config.output = "standalone";
   config.redirects = async () => redirectsConfig;
   config.rewrites = async () => rewritesConfig;
 }
