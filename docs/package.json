@@ -3,11 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
     "dev": "next dev --turbo",
+    "build": "bun generate:openapi && next build",
     "start": "next start",
     "generate:openapi": "bun scripts/generate-openapi.mjs",
-    "generate:search": "bun scripts/generate-search.mjs",
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
