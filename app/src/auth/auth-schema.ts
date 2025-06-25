@@ -46,20 +46,6 @@ export const guardRoleSchema = s.strictObject({
    implicit_allow: s.boolean().optional(),
 });
 
-const a = s.record(strategiesSchema, {
-   // ^?
-   title: "Strategies",
-   default: {
-      password: {
-         type: "password",
-         enabled: true,
-         config: {
-            hashing: "sha256",
-         },
-      },
-   },
-});
-
 export const authConfigSchema = s.strictObject(
    {
       enabled: s.boolean({ default: false }),
@@ -85,9 +71,7 @@ export const authConfigSchema = s.strictObject(
    },
    { title: "Authentication" },
 );
-const b = authConfigSchema.properties.basepath;
-//    ^?
-const c = authConfigSchema.properties.strategies;
-//    ^?
+
+export type AppAuthJWTConfig = s.Static<typeof jwtConfig>;
 
 export type AppAuthSchema = s.Static<typeof authConfigSchema>;

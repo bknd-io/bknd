@@ -8,7 +8,7 @@ import type { CookieOptions } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
-import { s, parse } from "core/object/schema";
+import { s, parse, secret } from "core/object/schema";
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];
@@ -72,7 +72,7 @@ export const jwtConfig = s
    .object(
       {
          // @todo: autogenerate a secret if not present. But it must be persisted from AppAuth
-         secret: s.string({ default: "" }),
+         secret: secret({ default: "" }),
          alg: s.string({ enum: ["HS256", "HS384", "HS512"], default: "HS256" }).optional(),
          expires: s.number().optional(), // seconds
          issuer: s.string().optional(),

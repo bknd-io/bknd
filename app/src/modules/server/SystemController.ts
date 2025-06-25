@@ -17,6 +17,7 @@ import {
 import * as SystemPermissions from "modules/permissions";
 import { jsc, s, describeRoute, InvalidSchemaError } from "core/object/schema";
 import { getVersion } from "core/env";
+import { SecretSchema } from "core/object/schema/secret";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -318,6 +319,19 @@ export class SystemController extends Controller {
                   utc: datetimeStringUTC(),
                },
                plugins: Array.from(this.app.plugins.keys()),
+               walk: {
+                  auth: [
+                     ...c
+                        .get("app")
+                        .getSchema()
+                        .auth.walk({ data: c.get("app").toJSON(true).auth }),
+                  ]
+                     .filter((n) => n.schema instanceof SecretSchema)
+                     .map((n) => ({
+                        ...n,
+                        schema: n.schema.constructor.name,
+                     })),
+               },
             }),
       );
 

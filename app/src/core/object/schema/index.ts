@@ -3,6 +3,8 @@ import * as s from "jsonv-ts";
 export { validator as jsc, type Options } from "jsonv-ts/hono";
 export { describeRoute, schemaToSpec, openAPISpecs } from "jsonv-ts/hono";
 
+export { secret } from "./secret";
+
 export { s };
 
 export const stripMark = <O extends object>(o: O): O => o;
