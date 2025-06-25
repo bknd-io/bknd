@@ -1,5 +1,5 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
-import { type Static, objectCleanEmpty } from "core/utils";
+//import { typeboxResolver } from "@hookform/resolvers/typebox";
+import { objectCleanEmpty } from "core/utils";
 import { type TAppDataEntityFields, entitiesSchema } from "data/data-schema";
 import { mergeWith } from "lodash-es";
 import { useRef } from "react";
@@ -12,9 +12,10 @@ import {
 } from "ui/routes/data/forms/entity.fields.form";
 import { ModalBody, ModalFooter, type TCreateModalSchema, useStepContext } from "./CreateModal";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
+import type { s } from "core/object/schema";
 
 const schema = entitiesSchema;
-type Schema = Static<typeof schema>;
+type Schema = s.Static<typeof schema>;
 
 export function StepEntityFields() {
    const { nextStep, stepBack, state, setState } = useStepContext<TCreateModalSchema>();
@@ -40,7 +41,8 @@ export function StepEntityFields() {
       setValue,
    } = useForm({
       mode: "onTouched",
-      resolver: typeboxResolver(schema),
+      // @todo: add resolver
+      //resolver: typeboxResolver(schema),
       defaultValues: initial as NonNullable<Schema>,
    });
 

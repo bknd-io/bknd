@@ -1,5 +1,5 @@
 import { useHotkeys } from "@mantine/hooks";
-import { type TObject, ucFirst } from "core/utils";
+import { ucFirst } from "core/utils";
 import { omit } from "lodash-es";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 import { TbSettings } from "react-icons/tb";
@@ -18,10 +18,11 @@ import { Link, Route, useLocation } from "wouter";
 import { extractSchema } from "../utils/schema";
 import { SettingNewModal, type SettingsNewModalProps } from "./SettingNewModal";
 import { SettingSchemaModal, type SettingsSchemaModalRef } from "./SettingSchemaModal";
+import type { s } from "core/object/schema";
 
 export type SettingProps<
-   Schema extends TObject = TObject,
-   Props = Schema extends TObject<infer TProperties> ? TProperties : any,
+   Schema extends s.ObjectSchema = s.ObjectSchema,
+   Props = Schema extends s.ObjectSchema<infer TProperties> ? TProperties : any,
 > = {
    schema: Schema;
    config: any;
@@ -44,7 +45,7 @@ export type SettingProps<
    };
 };
 
-export function Setting<Schema extends TObject = any>({
+export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
    schema,
    uiSchema,
    config,

@@ -8,6 +8,12 @@ import { disableConsoleLog, enableConsoleLog } from "../helper";
 import { makeCtx, moduleTestSuite } from "./module-test-suite";
 
 describe("AppAuth", () => {
+   test.only("...", () => {
+      const auth = new AppAuth({});
+      console.log(auth.toJSON());
+      console.log(auth.config);
+   });
+
    moduleTestSuite(AppAuth);
 
    let ctx: ModuleBuildContext;

@@ -1,6 +1,5 @@
 import type { ModalProps } from "@mantine/core";
 import type { ContextModalProps } from "@mantine/modals";
-import { type Static, StringEnum, StringIdentifier } from "core/utils";
 import { entitiesSchema, fieldsSchema, relationsSchema } from "data/data-schema";
 import { useState } from "react";
 import { type Modal2Ref, ModalBody, ModalFooter, ModalTitle } from "ui/components/modal/Modal2";
@@ -11,58 +10,51 @@ import { StepEntityFields } from "./step.entity.fields";
 import { StepRelation } from "./step.relation";
 import { StepSelect } from "./step.select";
 import Templates from "./templates/register";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "core/object/schema";
 
 export type CreateModalRef = Modal2Ref;
 
 export const ModalActions = ["entity", "relation", "media"] as const;
 
-export const entitySchema = Type.Composite([
-   Type.Object({
-      name: StringIdentifier,
-   }),
-   entitiesSchema,
-]);
-
-const schemaAction = Type.Union([
-   StringEnum(["entity", "relation", "media"]),
-   Type.String({ pattern: "^template-" }),
-]);
-export type TSchemaAction = Static<typeof schemaAction>;
-
-const createFieldSchema = Type.Object({
-   entity: StringIdentifier,
-   name: StringIdentifier,
-   field: Type.Array(fieldsSchema),
+export const entitySchema = s.object({
+   name: s.string(),
+   ...entitiesSchema.properties,
 });
-export type TFieldCreate = Static<typeof createFieldSchema>;
 
-const createModalSchema = Type.Object(
-   {
-      action: schemaAction,
-      initial: Type.Optional(Type.Any()),
-      entities: Type.Optional(
-         Type.Object({
-            create: Type.Optional(Type.Array(entitySchema)),
-         }),
-      ),
-      relations: Type.Optional(
-         Type.Object({
-            create: Type.Optional(Type.Array(Type.Union(relationsSchema))),
-         }),
-      ),
-      fields: Type.Optional(
-         Type.Object({
-            create: Type.Optional(Type.Array(createFieldSchema)),
-         }),
-      ),
-   },
-   {
-      additionalProperties: false,
-   },
-);
-export type TCreateModalSchema = Static<typeof createModalSchema>;
+// @todo: this union is not fully working, just "string"
+const schemaAction = s.anyOf([
+   s.string({ enum: ["entity", "relation", "media"] }),
+   s.string({ pattern: "^template-" }),
+]);
+export type TSchemaAction = s.Static<typeof schemaAction>;
+
+const createFieldSchema = s.object({
+   entity: s.string(),
+   name: s.string(),
+   field: s.array(fieldsSchema),
+});
+export type TFieldCreate = s.Static<typeof createFieldSchema>;
+
+const createModalSchema = s.strictObject({
+   action: schemaAction,
+   initial: s.any().optional(),
+   entities: s
+      .object({
+         create: s.array(entitySchema).optional(),
+      })
+      .optional(),
+   relations: s
+      .object({
+         create: s.array(s.anyOf(relationsSchema)).optional(),
+      })
+      .optional(),
+   fields: s
+      .object({
+         create: s.array(createFieldSchema).optional(),
+      })
+      .optional(),
+});
+export type TCreateModalSchema = s.Static<typeof createModalSchema>;
 
 export function CreateModal({
    context,
@@ -70,7 +62,6 @@ export function CreateModal({
    innerProps: { initialPath = [], initialState },
 }: ContextModalProps<{ initialPath?: string[]; initialState?: TCreateModalSchema }>) {
    const [path, setPath] = useState<string[]>(initialPath);
-   console.log("...", initialPath, initialState);
 
    function close() {
       context.closeModal(id);

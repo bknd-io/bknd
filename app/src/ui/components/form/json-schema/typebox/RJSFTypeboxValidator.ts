@@ -1,4 +1,5 @@
-import { Check, Errors } from "core/utils";
+import { Check } from "@sinclair/typebox/value";
+import { Errors } from "@sinclair/typebox/errors";
 import { FromSchema } from "./from-schema";
 
 import type {

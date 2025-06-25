@@ -1,15 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { App } from "App";
-import { $console, tbValidator as tb } from "core";
-import {
-   StringEnum,
-   TypeInvalidError,
-   datetimeStringLocal,
-   datetimeStringUTC,
-   getTimezone,
-   getTimezoneOffset,
-} from "core/utils";
+import { $console } from "core";
+import { datetimeStringLocal, datetimeStringUTC, getTimezone, getTimezoneOffset } from "core/utils";
 import { getRuntimeKey } from "core/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
@@ -20,11 +13,12 @@ import {
    type ModuleConfigs,
    type ModuleSchemas,
    type ModuleKey,
-   getDefaultConfig,
 } from "modules/ModuleManager";
 import * as SystemPermissions from "modules/permissions";
-import { jsc, s, describeRoute } from "core/object/schema";
+import { jsc, s, describeRoute, InvalidSchemaError } from "core/object/schema";
 import { getVersion } from "core/env";
+import { SecretSchema } from "core/object/schema/secret";
+
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
    module: Key;
@@ -104,7 +98,7 @@ export class SystemController extends Controller {
          } catch (e) {
             $console.error("config update error", e);
 
-            if (e instanceof TypeInvalidError) {
+            if (e instanceof InvalidSchemaError) {
                return c.json(
                   { success: false, type: "type-invalid", errors: e.errors },
                   { status: 400 },
@@ -234,11 +228,13 @@ export class SystemController extends Controller {
          permission(SystemPermissions.schemaRead),
          jsc(
             "query",
-            s.partialObject({
-               config: s.boolean(),
-               secrets: s.boolean(),
-               fresh: s.boolean(),
-            }),
+            s
+               .object({
+                  config: s.boolean(),
+                  secrets: s.boolean(),
+                  fresh: s.boolean(),
+               })
+               .partial(),
          ),
          async (c) => {
             const module = c.req.param("module") as ModuleKey | undefined;
@@ -323,6 +319,19 @@ export class SystemController extends Controller {
                   utc: datetimeStringUTC(),
                },
                plugins: Array.from(this.app.plugins.keys()),
+               walk: {
+                  auth: [
+                     ...c
+                        .get("app")
+                        .getSchema()
+                        .auth.walk({ data: c.get("app").toJSON(true).auth }),
+                  ]
+                     .filter((n) => n.schema instanceof SecretSchema)
+                     .map((n) => ({
+                        ...n,
+                        schema: n.schema.constructor.name,
+                     })),
+               },
             }),
       );
 
