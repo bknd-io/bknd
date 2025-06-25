@@ -150,4 +150,6 @@ export type RepoQueryIn = {
    join?: string[];
    where?: WhereQuery;
 };
-export type RepoQuery = s.StaticCoerced<typeof repoQuery>;
+export type RepoQuery = s.StaticCoerced<typeof repoQuery> & {
+   sort: SortSchema;
+};

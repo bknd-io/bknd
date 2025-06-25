@@ -57,7 +57,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       }
    }
 
-   getValidOptions(options?: RepoQuery): RepoQuery {
+   getValidOptions(options?: Partial<RepoQuery>): RepoQuery {
       const entity = this.entity;
       // @todo: if not cloned deep, it will keep references and error if multiple requests come in
       const validated = {

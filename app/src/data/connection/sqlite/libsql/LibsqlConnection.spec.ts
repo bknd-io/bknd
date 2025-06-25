@@ -1,4 +1,4 @@
-import { connectionTestSuite } from "../connection-test-suite";
+import { connectionTestSuite } from "../../connection-test-suite";
 import { LibsqlConnection } from "./LibsqlConnection";
 import { bunTestRunner } from "adapter/bun/test";
 import { describe } from "bun:test";

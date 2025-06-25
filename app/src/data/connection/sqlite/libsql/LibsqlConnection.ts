@@ -1,23 +1,14 @@
 import type { Client, Config, InStatement } from "@libsql/client";
 import { createClient } from "libsql-stateless-easy";
-import { LibsqlDialect } from "@libsql/kysely-libsql";
+import { LibsqlDialect } from "./LibsqlDialect";
 import { FilterNumericKeysPlugin } from "data/plugins/FilterNumericKeysPlugin";
 import { type ConnQuery, type ConnQueryResults, SqliteConnection } from "bknd/data";
 
-export const LIBSQL_PROTOCOLS = ["wss", "https", "libsql"] as const;
-export type LibSqlCredentials = Config & {
-   protocol?: (typeof LIBSQL_PROTOCOLS)[number];
-};
+export type LibSqlCredentials = Config;
 
 function getClient(clientOrCredentials: Client | LibSqlCredentials): Client {
    if (clientOrCredentials && "url" in clientOrCredentials) {
-      let { url, authToken, protocol } = clientOrCredentials;
-      if (protocol && LIBSQL_PROTOCOLS.includes(protocol)) {
-         console.info("changing protocol to", protocol);
-         const [, rest] = url.split("://");
-         url = `${protocol}://${rest}`;
-      }
-
+      const { url, authToken } = clientOrCredentials;
       return createClient({ url, authToken });
    }
 

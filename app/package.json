@@ -65,6 +65,7 @@
     "json-schema-form-react": "^0.0.2",
     "json-schema-library": "10.0.0-rc7",
     "json-schema-to-ts": "^3.1.1",
+    "jsonv-ts": "^0.1.0",
     "kysely": "^0.27.6",
     "lodash-es": "^4.17.21",
     "oauth4webapi": "^2.11.1",
@@ -82,7 +83,6 @@
     "@hono/vite-dev-server": "^0.19.1",
     "@hookform/resolvers": "^4.1.3",
     "@libsql/client": "^0.15.9",
-    "@libsql/kysely-libsql": "^0.4.1",
     "@mantine/modals": "^7.17.1",
     "@mantine/notifications": "^7.17.1",
     "@playwright/test": "^1.51.1",
@@ -102,7 +102,6 @@
     "dotenv": "^16.4.7",
     "jotai": "^2.12.2",
     "jsdom": "^26.0.0",
-    "jsonv-ts": "^0.1.0",
     "kysely-d1": "^0.3.0",
     "kysely-generic-sqlite": "^1.2.1",
     "libsql-stateless-easy": "^1.8.0",
@@ -187,6 +186,11 @@
       "import": "./dist/media/index.js",
       "require": "./dist/media/index.js"
     },
+    "./plugins": {
+      "types": "./dist/types/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js",
+      "require": "./dist/plugins/index.js"
+    },
     "./adapter/sqlite": {
       "types": "./dist/types/adapter/sqlite/edge.d.ts",
       "import": {
@@ -200,11 +204,6 @@
         "default": "./dist/adapter/sqlite/node.js"
       },
       "require": "./dist/adapter/sqlite/node.js"
-    },
-    "./plugins": {
-      "types": "./dist/types/plugins/index.d.ts",
-      "import": "./dist/plugins/index.js",
-      "require": "./dist/plugins/index.js"
     },
     "./adapter/cloudflare": {
       "types": "./dist/types/adapter/cloudflare/index.d.ts",
@@ -262,14 +261,14 @@
       "cli": ["./dist/types/cli/index.d.ts"],
       "media": ["./dist/types/media/index.d.ts"],
       "plugins": ["./dist/types/plugins/index.d.ts"],
-      "sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"],
       "adapter": ["./dist/types/adapter/index.d.ts"],
       "adapter/cloudflare": ["./dist/types/adapter/cloudflare/index.d.ts"],
       "adapter/vite": ["./dist/types/adapter/vite/index.d.ts"],
       "adapter/nextjs": ["./dist/types/adapter/nextjs/index.d.ts"],
       "adapter/react-router": ["./dist/types/adapter/react-router/index.d.ts"],
       "adapter/bun": ["./dist/types/adapter/bun/index.d.ts"],
-      "adapter/node": ["./dist/types/adapter/node/index.d.ts"]
+      "adapter/node": ["./dist/types/adapter/node/index.d.ts"],
+      "adapter/sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"]
     }
   },
   "publishConfig": {

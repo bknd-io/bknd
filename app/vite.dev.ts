@@ -6,7 +6,7 @@ import { StorageLocalAdapter } from "./src/adapter/node";
 import type { Connection } from "./src/data/connection/Connection";
 import { __bknd } from "modules/ModuleManager";
 import { nodeSqlite } from "./src/adapter/node/connection/NodeSqliteConnection";
-import { libsql } from "./src/data/connection/sqlite/LibsqlConnection";
+import { libsql } from "./src/data/connection/sqlite/libsql/LibsqlConnection";
 import { $console } from "core";
 import { createClient } from "@libsql/client";
 
