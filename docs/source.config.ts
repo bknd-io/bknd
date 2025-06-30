@@ -3,22 +3,42 @@ import {
   defineConfig,
   defineDocs,
   frontmatterSchema,
-  metaSchema
+  metaSchema,
 } from "fumadocs-mdx/config";
+
+import { transformerTwoslash } from "fumadocs-twoslash";
+import { createFileSystemTypesCache } from "fumadocs-twoslash/cache-fs";
+import { rehypeCodeDefaultOptions } from "fumadocs-core/mdx-plugins";
+import { remarkAutoTypeTable } from "fumadocs-typescript";
 
 // You can customise Zod schemas for frontmatter and `meta.json` here
 // see https://fumadocs.vercel.app/docs/mdx/collections#define-docs
 export const docs = defineDocs({
   docs: {
-    schema: frontmatterSchema
+    schema: frontmatterSchema,
   },
   meta: {
-    schema: metaSchema
-  }
+    schema: metaSchema,
+  },
 });
 
 export default defineConfig({
   mdxOptions: {
-    remarkPlugins: [remarkInstall]
-  }
+    remarkPlugins: [remarkInstall, remarkAutoTypeTable],
+    rehypeCodeOptions: {
+      lazy: true,
+      experimentalJSEngine: true,
+      langs: ["ts", "js", "html", "tsx", "mdx"],
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
+      transformers: [
+        ...(rehypeCodeDefaultOptions.transformers ?? []),
+        transformerTwoslash({
+          typesCache: createFileSystemTypesCache(),
+        }),
+      ],
+    },
+  },
 });

@@ -9,6 +9,7 @@ const config = {
   output: "export",
   trailingSlash: true,
   reactStrictMode: true,
+  serverExternalPackages: ["typescript", "twoslash"],
 };
 
 if (process.env.NODE_ENV === "development") {

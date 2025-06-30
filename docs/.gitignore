@@ -5,6 +5,7 @@
 .contentlayer
 .content-collections
 .source
+.twoslash-cache
 
 # test & build
 /coverage

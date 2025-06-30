@@ -14,13 +14,15 @@ import {
 import { StackBlitz } from "./app/_components/StackBlitz";
 import { Icon } from "@iconify/react";
 
+import * as Twoslash from "fumadocs-twoslash/ui";
+
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultMdxComponents,
     APIPage: (props) => <APIPage {...openapi.getAPIPageProps(props)} />,
     ...TabsComponents,
     ...FilesComponents,
-    ...components,
+    ...Twoslash,
     Accordion,
     Accordions,
     CalloutInfo,
@@ -29,5 +31,6 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     CalloutDanger,
     StackBlitz,
     Icon,
+    ...components,
   };
 }
