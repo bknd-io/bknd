@@ -1,7 +1,7 @@
 import type { EventManager } from "core/events";
 import type { Flow } from "../Flow";
 import { Trigger } from "./Trigger";
-import { $console } from "core";
+import { $console } from "core/utils";
 import { s } from "core/object/schema";
 
 export class EventTrigger extends Trigger<typeof EventTrigger.schema> {

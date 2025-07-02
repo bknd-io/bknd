@@ -1,5 +1,5 @@
 import type { TestFn, TestRunner, Test } from "core/test";
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
 
 function vitestTest(label: string, fn: TestFn, options?: any) {
    return test(label, fn as any);
@@ -47,4 +47,7 @@ export const viTestRunner: TestRunner = {
    test: vitestTest,
    expect: vitestExpect as any,
    mock: (fn) => vi.fn(fn),
+   beforeEach: beforeEach,
+   afterEach: afterEach,
+   afterAll: afterAll,
 };

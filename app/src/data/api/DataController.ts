@@ -1,4 +1,3 @@
-import { $console, isDebug } from "core";
 import {
    DataPermissions,
    type EntityData,

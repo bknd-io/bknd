@@ -1,7 +1,6 @@
 import { s } from "core/object/schema";
 import { WhereBuilder, type WhereQuery } from "data/entities/query/WhereBuilder";
-import { $console } from "core";
-import { isObject } from "core/utils";
+import { isObject, $console } from "core/utils";
 import type { anyOf, CoercionOptions, Schema } from "jsonv-ts";
 
 // -------
@@ -157,7 +156,9 @@ export type RepoQueryIn = {
    join?: string[];
    where?: WhereQuery;
 };
-export type RepoQuery = s.StaticCoerced<typeof repoQuery>;
+export type RepoQuery = s.StaticCoerced<typeof repoQuery> & {
+   sort: SortSchema;
+};
 
 //export type RepoQuery = s.StaticCoerced<typeof repoQuery>;
 // @todo: CURRENT WORKAROUND

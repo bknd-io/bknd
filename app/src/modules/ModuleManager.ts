@@ -1,6 +1,7 @@
 import { Guard } from "auth";
-import { $console, BkndError, DebugLogger, env } from "core";
-import { EventManager } from "core/events";
+import { BkndError, DebugLogger, env } from "core";
+import { $console } from "core/utils";
+import { EventManager, Event } from "core/events";
 import * as $diff from "core/object/diff";
 import { objectEach, transformObject } from "core/utils";
 import type { Connection, Schema } from "data";
@@ -117,9 +118,24 @@ interface T_INTERNAL_EM {
 
 const debug_modules = env("modules_debug");
 
+abstract class ModuleManagerEvent<A = {}> extends Event<{ ctx: ModuleBuildContext } & A> {}
+export class ModuleManagerConfigUpdateEvent<
+   Module extends keyof ModuleConfigs,
+> extends ModuleManagerEvent<{
+   module: Module;
+   config: ModuleConfigs[Module];
+}> {
+   static override slug = "mm-config-update";
+}
+export const ModuleManagerEvents = {
+   ModuleManagerConfigUpdateEvent,
+};
+
 // @todo: cleanup old diffs on upgrade
 // @todo: cleanup multiple backups on upgrade
 export class ModuleManager {
+   static Events = ModuleManagerEvents;
+
    protected modules: Modules;
    // internal em for __bknd config table
    __em!: EntityManager<T_INTERNAL_EM>;
@@ -142,7 +158,7 @@ export class ModuleManager {
    ) {
       this.__em = new EntityManager([__bknd], this.connection);
       this.modules = {} as Modules;
-      this.emgr = new EventManager();
+      this.emgr = new EventManager({ ...ModuleManagerEvents });
       this.logger = new DebugLogger(debug_modules);
       let initial = {} as Partial<ModuleConfigs>;
 
@@ -619,6 +635,13 @@ export class ModuleManager {
                try {
                   // overwrite listener to run build inside this try/catch
                   module.setListener(async () => {
+                     await this.emgr.emit(
+                        new ModuleManagerConfigUpdateEvent({
+                           ctx: this.ctx(),
+                           module: name,
+                           config: module.config as any,
+                        }),
+                     );
                      await this.buildModules();
                   });
 

@@ -1,4 +1,5 @@
-import { Exception, isDebug, $console } from "core";
+import { Exception, isDebug } from "core";
+import { $console } from "core/utils";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
 import { AuthException } from "auth/errors";

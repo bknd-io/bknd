@@ -2,7 +2,7 @@ import type { CompiledQuery, TableMetadata } from "kysely";
 import type { IndexMetadata, SchemaResponse } from "../connection/Connection";
 import type { Entity, EntityManager } from "../entities";
 import { PrimaryField } from "../fields";
-import { $console } from "core";
+import { $console } from "core/utils";
 
 type IntrospectedTable = TableMetadata & {
    indices: IndexMetadata[];

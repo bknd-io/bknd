@@ -1,4 +1,4 @@
-import { $console } from "core/console";
+import { $console } from "core/utils";
 import type { Entity, EntityData } from "../Entity";
 import type { EntityManager } from "../EntityManager";
 import { Result, type ResultJSON, type ResultOptions } from "../Result";
@@ -32,6 +32,7 @@ export class MutatorResult<T = EntityData[]> extends Result<T> {
          onError: (error) => {
             if (!options?.silent) {
                $console.error("[ERROR] Mutator:", error.message);
+               throw error;
             }
          },
          ...options,

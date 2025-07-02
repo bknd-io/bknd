@@ -4,7 +4,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { registerLocalMediaAdapter } from "adapter/node/storage";
 import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
 import { config as $config } from "bknd/core";
-import { $console } from "core";
+import { $console } from "core/utils";
 import type { App } from "App";
 
 type NodeEnv = NodeJS.ProcessEnv;

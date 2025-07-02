@@ -1,9 +1,8 @@
 import { type EmitsEvents, EventManager } from "core/events";
-import { isFile, detectImageDimensions } from "core/utils";
+import { $console, isFile, detectImageDimensions } from "core/utils";
 import { isMimeType } from "media/storage/mime-types-tiny";
 import * as StorageEvents from "./events";
 import type { FileUploadedEventData } from "./events";
-import { $console } from "core";
 import type { StorageAdapter } from "./StorageAdapter";
 
 export type FileListObject = {

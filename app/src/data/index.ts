@@ -30,9 +30,16 @@ export * as DataPermissions from "./permissions";
 
 export { MediaField, type MediaFieldConfig, type MediaItem } from "media/MediaField";
 
-export { libsql } from "./connection/sqlite/LibsqlConnection";
+export { libsql } from "./connection/sqlite/libsql/LibsqlConnection";
 export {
    genericSqlite,
    genericSqliteUtils,
    type GenericSqliteConnection,
 } from "./connection/sqlite/GenericSqliteConnection";
+
+export {
+   EntityTypescript,
+   type EntityTypescriptOptions,
+   type TEntityTSType,
+   type TFieldTSType,
+} from "./entities/EntityTypescript";

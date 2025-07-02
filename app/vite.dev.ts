@@ -1,20 +1,16 @@
 import { readFile } from "node:fs/promises";
-import { s } from "./src/core/object/schema";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { showRoutes } from "hono/dev";
-//import { registries } from "./src";
-import { App } from "./src/App";
-//import { StorageLocalAdapter } from "./src/adapter/node";
+import { App, registries } from "./src";
+import { StorageLocalAdapter } from "./src/adapter/node";
 import type { Connection } from "./src/data/connection/Connection";
-import { __bknd } from "./src/modules/ModuleManager";
+import { __bknd } from "modules/ModuleManager";
 import { nodeSqlite } from "./src/adapter/node/connection/NodeSqliteConnection";
-import { libsql } from "./src/data/connection/sqlite/LibsqlConnection";
-import { $console } from "./src/core/console";
+import { libsql } from "./src/data/connection/sqlite/libsql/LibsqlConnection";
+import { $console } from "core/utils";
 import { createClient } from "@libsql/client";
 
-const t = s.string();
-
-//registries.media.register("local", StorageLocalAdapter);
+registries.media.register("local", StorageLocalAdapter);
 
 const example = import.meta.env.VITE_EXAMPLE;
 

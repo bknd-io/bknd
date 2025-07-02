@@ -3,7 +3,7 @@ import type { App, CreateAppConfig } from "App";
 import { StorageLocalAdapter } from "adapter/node/storage";
 import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
-import { colorizeConsole, config } from "core";
+import { config } from "core";
 import dotenv from "dotenv";
 import { registries } from "modules/registries";
 import c from "picocolors";
@@ -17,7 +17,7 @@ import {
    startServer,
 } from "./platform";
 import { createRuntimeApp, makeConfig } from "adapter";
-import { isBun } from "core/utils";
+import { colorizeConsole, isBun } from "core/utils";
 
 const env_files = [".env", ".dev.vars"];
 dotenv.config({

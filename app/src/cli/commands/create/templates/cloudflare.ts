@@ -29,30 +29,8 @@ export const cloudflare = {
          { dir: ctx.dir },
       );
 
-      const db = ctx.skip
-         ? "d1"
-         : await $p.select({
-              message: "What database do you want to use?",
-              options: [
-                 { label: "Cloudflare D1", value: "d1" },
-                 { label: "LibSQL", value: "libsql" },
-              ],
-           });
-      if ($p.isCancel(db)) {
-         process.exit(1);
-      }
-
       try {
-         switch (db) {
-            case "d1":
-               await createD1(ctx);
-               break;
-            case "libsql":
-               await createLibsql(ctx);
-               break;
-            default:
-               throw new Error("Invalid database");
-         }
+         await createD1(ctx);
       } catch (e) {
          const message = (e as any).message || "An error occurred";
          $p.log.warn(
@@ -60,7 +38,14 @@ export const cloudflare = {
          );
       }
 
-      await createR2(ctx);
+      try {
+         await createR2(ctx);
+      } catch (e) {
+         const message = (e as any).message || "An error occurred";
+         $p.log.warn(
+            "Couldn't add R2 bucket. You can add it manually later. Error: " + c.red(message),
+         );
+      }
    },
 } as const satisfies Template;
 
@@ -89,6 +74,21 @@ async function createD1(ctx: TemplateSetupCtx) {
       })(),
    );
 
+   await overrideJson(
+      WRANGLER_FILE,
+      (json) => ({
+         ...json,
+         d1_databases: [
+            {
+               binding: "DB",
+               database_name: name,
+               database_id: "00000000-0000-0000-0000-000000000000",
+            },
+         ],
+      }),
+      { dir: ctx.dir },
+   );
+
    if (!ctx.skip) {
       exec(`npx wrangler d1 create ${name}`);
 
@@ -98,62 +98,6 @@ async function createD1(ctx: TemplateSetupCtx) {
          })(),
       );
    }
-
-   await overrideJson(
-      WRANGLER_FILE,
-      (json) => ({
-         ...json,
-         d1_databases: [
-            {
-               binding: "DB",
-               database_name: name,
-               database_id: uuid(),
-            },
-         ],
-      }),
-      { dir: ctx.dir },
-   );
-}
-
-async function createLibsql(ctx: TemplateSetupCtx) {
-   await overrideJson(
-      WRANGLER_FILE,
-      (json) => ({
-         ...json,
-         vars: {
-            DB_URL: "http://127.0.0.1:8080",
-         },
-      }),
-      { dir: ctx.dir },
-   );
-
-   await overridePackageJson(
-      (pkg) => ({
-         ...pkg,
-         scripts: {
-            ...pkg.scripts,
-            db: "turso dev",
-            dev: "npm run db && wrangler dev",
-         },
-      }),
-      { dir: ctx.dir },
-   );
-
-   await $p.stream.info(
-      (async function* () {
-         yield* typewriter("Database set to LibSQL");
-         await wait();
-         yield* typewriter(
-            `\nYou can now run ${c.cyan("npm run db")} to start the database and ${c.cyan("npm run dev")} to start the worker.`,
-            c.dim,
-         );
-         await wait();
-         yield* typewriter(
-            `\nAlso make sure you have Turso's CLI installed. Check their docs on how to install at ${c.cyan("https://docs.turso.tech/cli/introduction")}`,
-            c.dim,
-         );
-      })(),
-   );
 }
 
 async function createR2(ctx: TemplateSetupCtx) {
@@ -197,9 +141,11 @@ async function createR2(ctx: TemplateSetupCtx) {
       process.exit(1);
    }
 
-   if (!ctx.skip) {
-      exec(`npx wrangler r2 bucket create ${name}`);
-   }
+   await $p.stream.info(
+      (async function* () {
+         yield* typewriter("Now running wrangler to create a R2 bucket...");
+      })(),
+   );
 
    await overrideJson(
       WRANGLER_FILE,
@@ -214,4 +160,8 @@ async function createR2(ctx: TemplateSetupCtx) {
       }),
       { dir: ctx.dir },
    );
+
+   if (!ctx.skip) {
+      exec(`npx wrangler r2 bucket create ${name}`);
+   }
 }

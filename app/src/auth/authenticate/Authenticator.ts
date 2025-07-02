@@ -1,6 +1,6 @@
-import { $console, type DB, Exception } from "core";
+import { type DB, Exception } from "core";
 import { addFlashMessage } from "core/server/flash";
-import { runtimeSupports, truncate } from "core/utils";
+import { runtimeSupports, truncate, $console } from "core/utils";
 import type { Context, Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";

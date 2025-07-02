@@ -1,5 +1,6 @@
 import { App, type CreateAppConfig } from "bknd";
-import { config as $config, $console } from "bknd/core";
+import { config as $config } from "bknd/core";
+import { $console } from "bknd/utils";
 import type { MiddlewareHandler } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import { Connection } from "bknd/data";

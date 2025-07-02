@@ -1,6 +1,5 @@
 import { type Authenticator, InvalidCredentialsException, type User } from "auth";
-import { $console } from "core";
-import { hash } from "core/utils";
+import { hash, $console } from "core/utils";
 import { Hono } from "hono";
 import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
 import { Strategy } from "./Strategy";

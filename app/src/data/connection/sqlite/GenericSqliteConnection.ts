@@ -1,4 +1,4 @@
-import type { KyselyPlugin } from "kysely";
+import type { KyselyPlugin, QueryResult } from "kysely";
 import {
    type IGenericSqlite,
    type OnCreateConnection,
@@ -8,11 +8,16 @@ import {
    GenericSqliteDialect,
 } from "kysely-generic-sqlite";
 import { SqliteConnection } from "./SqliteConnection";
-import type { Features } from "../Connection";
+import type { ConnQuery, ConnQueryResults, Features } from "../Connection";
 
 export type { IGenericSqlite };
+export type TStatement = { sql: string; parameters?: any[] | readonly any[] };
+export interface IGenericCustomSqlite<DB = unknown> extends IGenericSqlite<DB> {
+   batch?: (stmts: TStatement[]) => Promisable<QueryResult<any>[]>;
+}
+
 export type GenericSqliteConnectionConfig = {
-   name: string;
+   name?: string;
    additionalPlugins?: KyselyPlugin[];
    excludeTables?: string[];
    onCreateConnection?: OnCreateConnection;
@@ -21,10 +26,11 @@ export type GenericSqliteConnectionConfig = {
 
 export class GenericSqliteConnection<DB = unknown> extends SqliteConnection<DB> {
    override name = "generic-sqlite";
+   #executor: IGenericCustomSqlite<DB> | undefined;
 
    constructor(
-      db: DB,
-      executor: () => Promisable<IGenericSqlite>,
+      public db: DB,
+      private executor: () => Promisable<IGenericCustomSqlite<DB>>,
       config?: GenericSqliteConnectionConfig,
    ) {
       super({
@@ -39,18 +45,43 @@ export class GenericSqliteConnection<DB = unknown> extends SqliteConnection<DB> 
       }
       if (config?.supports) {
          for (const [key, value] of Object.entries(config.supports)) {
-            if (value) {
+            if (value !== undefined) {
                this.supported[key] = value;
             }
          }
       }
+   }
+   private async getExecutor() {
+      if (!this.#executor) {
+         this.#executor = await this.executor();
+      }
+      return this.#executor;
+   }
+
+   override async executeQueries<O extends ConnQuery[]>(...qbs: O): Promise<ConnQueryResults<O>> {
+      const executor = await this.getExecutor();
+      if (!executor.batch) {
+         //$console.debug("Batching is not supported by this database");
+         return super.executeQueries(...qbs);
+      }
+
+      const compiled = this.getCompiled(...qbs);
+      const stms: TStatement[] = compiled.map((q) => {
+         return {
+            sql: q.sql,
+            parameters: q.parameters as any[],
+         };
+      });
+
+      const results = await executor.batch(stms);
+      return this.withTransformedRows(results) as any;
    }
 }
 
 export function genericSqlite<DB>(
    name: string,
    db: DB,
-   executor: (utils: typeof genericSqliteUtils) => Promisable<IGenericSqlite<DB>>,
+   executor: (utils: typeof genericSqliteUtils) => Promisable<IGenericCustomSqlite<DB>>,
    config?: GenericSqliteConnectionConfig,
 ) {
    return new GenericSqliteConnection(db, () => executor(genericSqliteUtils), {

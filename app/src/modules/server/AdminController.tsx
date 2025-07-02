@@ -1,7 +1,8 @@
 /** @jsxImportSource hono/jsx */
 
 import type { App } from "App";
-import { $console, config, isDebug } from "core";
+import { config, isDebug } from "core";
+import { $console } from "core/utils";
 import { addFlashMessage } from "core/server/flash";
 import { html } from "hono/html";
 import { Fragment } from "hono/jsx";

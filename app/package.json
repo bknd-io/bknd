@@ -3,7 +3,7 @@
   "type": "module",
   "sideEffects": false,
   "bin": "./dist/cli/index.js",
-  "version": "0.15.0-rc.3",
+  "version": "0.15.0-rc.8",
   "description": "Lightweight Firebase/Supabase alternative built to run anywhere — incl. Next.js, React Router, Astro, Cloudflare, Bun, Node, AWS Lambda & more.",
   "homepage": "https://bknd.io",
   "repository": {
@@ -82,7 +82,6 @@
     "@hono/vite-dev-server": "^0.19.1",
     "@hookform/resolvers": "^4.1.3",
     "@libsql/client": "^0.15.9",
-    "@libsql/kysely-libsql": "^0.4.1",
     "@mantine/modals": "^7.17.1",
     "@mantine/notifications": "^7.17.1",
     "@playwright/test": "^1.51.1",
@@ -188,6 +187,11 @@
       "import": "./dist/media/index.js",
       "require": "./dist/media/index.js"
     },
+    "./plugins": {
+      "types": "./dist/types/plugins/index.d.ts",
+      "import": "./dist/plugins/index.js",
+      "require": "./dist/plugins/index.js"
+    },
     "./adapter/sqlite": {
       "types": "./dist/types/adapter/sqlite/edge.d.ts",
       "import": {
@@ -201,11 +205,6 @@
         "default": "./dist/adapter/sqlite/node.js"
       },
       "require": "./dist/adapter/sqlite/node.js"
-    },
-    "./plugins": {
-      "types": "./dist/types/plugins/index.d.ts",
-      "import": "./dist/plugins/index.js",
-      "require": "./dist/plugins/index.js"
     },
     "./adapter/cloudflare": {
       "types": "./dist/types/adapter/cloudflare/index.d.ts",
@@ -263,14 +262,14 @@
       "cli": ["./dist/types/cli/index.d.ts"],
       "media": ["./dist/types/media/index.d.ts"],
       "plugins": ["./dist/types/plugins/index.d.ts"],
-      "sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"],
       "adapter": ["./dist/types/adapter/index.d.ts"],
       "adapter/cloudflare": ["./dist/types/adapter/cloudflare/index.d.ts"],
       "adapter/vite": ["./dist/types/adapter/vite/index.d.ts"],
       "adapter/nextjs": ["./dist/types/adapter/nextjs/index.d.ts"],
       "adapter/react-router": ["./dist/types/adapter/react-router/index.d.ts"],
       "adapter/bun": ["./dist/types/adapter/bun/index.d.ts"],
-      "adapter/node": ["./dist/types/adapter/node/index.d.ts"]
+      "adapter/node": ["./dist/types/adapter/node/index.d.ts"],
+      "adapter/sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"]
     }
   },
   "publishConfig": {

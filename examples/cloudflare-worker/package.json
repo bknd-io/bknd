@@ -8,8 +8,7 @@
     "typegen": "wrangler types"
   },
   "dependencies": {
-    "bknd": "file:../../app",
-    "kysely-d1": "^0.4.0"
+    "bknd": "file:../../app"
   },
   "devDependencies": {
     "typescript": "^5.8.3",

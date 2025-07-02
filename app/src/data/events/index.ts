@@ -1,4 +1,5 @@
-import { $console, type PrimaryFieldType } from "core";
+import type { PrimaryFieldType } from "core";
+import { $console } from "core/utils";
 import { Event, InvalidEventReturn } from "core/events";
 import type { Entity, EntityData } from "../entities";
 import type { RepoQuery } from "data/server/query";

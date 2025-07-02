@@ -1,5 +1,5 @@
-import { $console, type Permission } from "core";
-import { patternMatch } from "core/utils";
+import type { Permission } from "core";
+import { $console, patternMatch } from "core/utils";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { ServerEnv } from "modules/Controller";

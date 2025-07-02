@@ -1,11 +1,15 @@
 import { nodeSqlite } from "./NodeSqliteConnection";
 import { DatabaseSync } from "node:sqlite";
 import { connectionTestSuite } from "data/connection/connection-test-suite";
-import { describe, test, expect } from "vitest";
+import { describe } from "vitest";
+import { viTestRunner } from "../vitest";
 
 describe("NodeSqliteConnection", () => {
-   connectionTestSuite({ describe, test, expect } as any, {
-      makeConnection: () => nodeSqlite({ database: new DatabaseSync(":memory:") }),
+   connectionTestSuite(viTestRunner, {
+      makeConnection: () => ({
+         connection: nodeSqlite({ database: new DatabaseSync(":memory:") }),
+         dispose: async () => {},
+      }),
       rawDialectDetails: [],
    });
 });

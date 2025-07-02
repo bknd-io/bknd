@@ -38,7 +38,6 @@ export { getFlashMessage } from "./server/flash";
 } from "./object/schema"; */
 
 export * from "./drivers";
-export * from "./console";
 export * from "./events";
 
 // compatibility

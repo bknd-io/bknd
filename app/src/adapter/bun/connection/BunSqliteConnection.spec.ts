@@ -6,7 +6,10 @@ import { Database } from "bun:sqlite";
 
 describe("BunSqliteConnection", () => {
    connectionTestSuite(bunTestRunner, {
-      makeConnection: () => bunSqlite({ database: new Database(":memory:") }),
+      makeConnection: () => ({
+         connection: bunSqlite({ database: new Database(":memory:") }),
+         dispose: async () => {},
+      }),
       rawDialectDetails: [],
    });
 });

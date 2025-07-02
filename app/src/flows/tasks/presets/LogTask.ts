@@ -1,5 +1,5 @@
 import { Task } from "../Task";
-import { $console } from "core";
+import { $console } from "core/utils";
 import { s } from "core/object/schema";
 
 export class LogTask extends Task<typeof LogTask.schema> {

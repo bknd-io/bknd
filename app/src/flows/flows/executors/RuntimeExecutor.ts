@@ -1,5 +1,5 @@
 import type { Task } from "../../tasks/Task";
-import { $console } from "core";
+import { $console } from "core/utils";
 
 export class RuntimeExecutor {
    async run(

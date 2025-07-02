@@ -1,5 +1,5 @@
-import { $console, config } from "core";
-import { snakeToPascalWithSpaces, transformObject } from "core/utils";
+import { config } from "core";
+import { snakeToPascalWithSpaces, transformObject, $console } from "core/utils";
 import {
    type Field,
    PrimaryField,

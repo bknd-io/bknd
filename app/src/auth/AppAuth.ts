@@ -1,14 +1,15 @@
 import { Authenticator, AuthPermissions, Role, type Strategy } from "auth";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
-import { $console, type DB } from "core";
-import { secureRandomString, transformObject } from "core/utils";
+import type { DB } from "core";
+import { $console, secureRandomString, transformObject } from "core/utils";
 import type { Entity, EntityManager } from "data";
-import { em, entity, enumm, type FieldSchema, text } from "data/prototype";
+import { em, entity, enumm, type FieldSchema } from "data/prototype";
 import { Module } from "modules/Module";
 import { AuthController } from "./api/AuthController";
 import { type AppAuthSchema, authConfigSchema, STRATEGIES } from "./auth-schema";
 import { AppUserPool } from "auth/AppUserPool";
 import type { AppEntity } from "core/config";
+import { usersFields } from "./auth-entities";
 
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
 declare module "core" {
@@ -125,18 +126,7 @@ export class AppAuth extends Module<AppAuthSchema> {
       return this.em.entity(entity_name) as any;
    }
 
-   static usersFields = {
-      email: text().required(),
-      strategy: text({
-         fillable: ["create"],
-         hidden: ["update", "form"],
-      }).required(),
-      strategy_value: text({
-         fillable: ["create"],
-         hidden: ["read", "table", "update", "form"],
-      }).required(),
-      role: text(),
-   };
+   static usersFields = usersFields;
 
    registerEntities() {
       const users = this.getUsersEntity(true);

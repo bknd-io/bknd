@@ -1,5 +1,5 @@
 import path from "node:path";
-import { $console } from "core";
+import { $console } from "core/utils";
 import type { MiddlewareHandler } from "hono";
 import open from "open";
 import { fileExists, getRelativeDistPath } from "../../utils/sys";

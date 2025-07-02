@@ -1,5 +1,5 @@
 import type { DB as DefaultDB, PrimaryFieldType } from "core";
-import { $console } from "core";
+import { $console } from "core/utils";
 import { type EmitsEvents, EventManager } from "core/events";
 import { type SelectQueryBuilder, sql } from "kysely";
 import { InvalidSearchParamsException } from "../../errors";
@@ -57,7 +57,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       }
    }
 
-   getValidOptions(options?: RepoQuery): RepoQuery {
+   getValidOptions(options?: Partial<RepoQuery>): RepoQuery {
       const entity = this.entity;
       // @todo: if not cloned deep, it will keep references and error if multiple requests come in
       const validated = {

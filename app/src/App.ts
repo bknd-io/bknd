@@ -1,5 +1,5 @@
 import type { CreateUserPayload } from "auth/AppAuth";
-import { $console } from "core/console";
+import { $console } from "core/utils";
 import { Event } from "core/events";
 import type { em as prototypeEm } from "data/prototype";
 import { Connection } from "data/connection/Connection";
@@ -34,7 +34,10 @@ export type AppPluginConfig = {
 export type AppPlugin = (app: App) => AppPluginConfig;
 
 abstract class AppEvent<A = {}> extends Event<{ app: App } & A> {}
-export class AppConfigUpdatedEvent extends AppEvent {
+export class AppConfigUpdatedEvent extends AppEvent<{
+   module: string;
+   config: ModuleConfigs[keyof ModuleConfigs];
+}> {
    static override slug = "app-config-updated";
 }
 export class AppBuiltEvent extends AppEvent {
@@ -265,7 +268,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       $console.log("App config updated", module);
       // @todo: potentially double syncing
       await this.build({ sync: true });
-      await this.emgr.emit(new AppConfigUpdatedEvent({ app: this }));
+      await this.emgr.emit(new AppConfigUpdatedEvent({ app: this, module, config }));
    }
 
    protected async onFirstBoot() {

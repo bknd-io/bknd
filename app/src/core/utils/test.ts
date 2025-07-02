@@ -1,4 +1,4 @@
-import { $console } from "core";
+import { $console } from "./console";
 
 type ConsoleSeverity = "log" | "warn" | "error";
 const _oldConsoles = {
@@ -36,14 +36,14 @@ export function disableConsoleLog(severities: ConsoleSeverity[] = ["log", "warn"
    severities.forEach((severity) => {
       console[severity] = () => null;
    });
-   $console.setLevel("critical");
+   $console?.setLevel("critical");
 }
 
 export function enableConsoleLog() {
    Object.entries(_oldConsoles).forEach(([severity, fn]) => {
       console[severity as ConsoleSeverity] = fn;
    });
-   $console.resetLevel();
+   $console?.resetLevel();
 }
 
 export function formatMemoryUsage() {
