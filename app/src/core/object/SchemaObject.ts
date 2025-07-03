@@ -68,6 +68,7 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
 
    async set(config: s.Static<Schema>, noEmit?: boolean): Promise<s.Static<Schema>> {
       const valid = parse(this._schema, structuredClone(config) as any, {
+         coerce: false,
          forceParse: true,
          skipMark: this.isForceParse(),
       });

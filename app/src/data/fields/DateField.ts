@@ -7,7 +7,7 @@ import { s } from "core/object/schema";
 
 export const dateFieldConfigSchema = s
    .strictObject({
-      type: s.string({ enum: ["date", "datetime", "week"] }),
+      type: s.string({ enum: ["date", "datetime", "week"], default: "date" }),
       timezone: s.string(),
       min_date: s.string(),
       max_date: s.string(),

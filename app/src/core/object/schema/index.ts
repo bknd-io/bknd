@@ -67,7 +67,7 @@ export function parse<S extends s.Schema, Options extends ParseOptions = ParseOp
       });
    }
 
-   const result = schema.validate(value, {
+   const result = _schema.validate(value, {
       shortCircuit: true,
       ignoreUnsupported: true,
    });

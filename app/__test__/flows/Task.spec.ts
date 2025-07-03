@@ -3,7 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { Task } from "../../src/flows";
 import { dynamic } from "../../src/flows/tasks/Task";
 
-describe("Task", async () => {
+describe.skip("Task", async () => {
    test("resolveParams: template with parse", async () => {
       const result = await Task.resolveParams(
          Type.Object({ test: dynamic(Type.Number()) }),

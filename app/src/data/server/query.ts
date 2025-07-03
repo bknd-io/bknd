@@ -50,11 +50,19 @@ const sort = s.anyOf([s.string(), sortSchema], {
             const dir = v[0] === "-" ? "desc" : "asc";
             return { by: dir === "desc" ? v.slice(1) : v, dir } as any;
          } else if (/^{.*}$/.test(v)) {
-            return JSON.parse(v) as any;
+            return {
+               ...sortDefault,
+               ...JSON.parse(v),
+            } as any;
          }
 
          $console.warn(`Invalid sort given: '${JSON.stringify(v)}'`);
          return sortDefault as any;
+      } else if (isObject(v)) {
+         return {
+            ...sortDefault,
+            ...v,
+         } as any;
       }
       return v as any;
    },

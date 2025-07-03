@@ -27,7 +27,7 @@ export const baseFieldConfigSchema = s
    .strictObject({
       label: s.string(),
       description: s.string(),
-      required: s.boolean(),
+      required: s.boolean({ default: false }),
       fillable: s.anyOf([
          s.boolean({ title: "Boolean" }),
          s.array(s.string({ enum: ActionContext }), { title: "Context", uniqueItems: true }),

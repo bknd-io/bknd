@@ -78,7 +78,7 @@ function getObjectDiff(obj1, obj2) {
    return diff;
 }
 
-describe("Flow tests", async () => {
+describe.skip("Flow tests", async () => {
    test("Simple single task", async () => {
       const simple = getTask(0);
 

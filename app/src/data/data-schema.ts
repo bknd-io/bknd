@@ -16,7 +16,7 @@ export type FieldType = keyof typeof FIELDS;
 export const RELATIONS = RelationClassMap;
 
 export const fieldsSchemaObject = objectTransform(FIELDS, (field, name) => {
-   return s.object(
+   return s.strictObject(
       {
          type: s.literal(name),
          config: field.schema.optional(),
@@ -31,7 +31,7 @@ export const entityFields = s.record(fieldsSchema);
 export type TAppDataField = s.Static<typeof fieldsSchema>;
 export type TAppDataEntityFields = s.Static<typeof entityFields>;
 
-export const entitiesSchema = s.object({
+export const entitiesSchema = s.strictObject({
    type: s.string({ enum: entityTypes, default: "regular", readOnly: true }),
    config: entityConfigSchema.optional(),
    fields: entityFields.optional(),
@@ -39,7 +39,7 @@ export const entitiesSchema = s.object({
 export type TAppDataEntity = s.Static<typeof entitiesSchema>;
 
 export const relationsSchema = Object.entries(RelationClassMap).map(([name, relationClass]) => {
-   return s.object(
+   return s.strictObject(
       {
          type: s.literal(name),
          source: s.string(),

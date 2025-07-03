@@ -98,6 +98,7 @@ export function fieldTestSuite(
    test("toJSON", async () => {
       const _config = {
          ..._requiredConfig,
+         required: false,
       };
 
       function fieldJson(field: Field) {

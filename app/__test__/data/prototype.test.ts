@@ -35,7 +35,7 @@ import {
 } from "../../src/data/prototype";
 import { MediaField } from "../../src/media/MediaField";
 
-describe.skip("prototype", () => {
+describe("prototype", () => {
    test("...", () => {
       const fieldPrototype = new FieldPrototype("text", {}, false);
       //console.log("field", fieldPrototype, fieldPrototype.getField("name"));
