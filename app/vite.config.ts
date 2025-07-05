@@ -5,7 +5,6 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { devServerConfig } from "./src/adapter/vite/dev-server-config";
 import tailwindcss from "@tailwindcss/vite";
 import pkg from "./package.json" with { type: "json" };
-import circleDependency from "vite-plugin-circular-dependency";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -23,7 +22,6 @@ export default defineConfig({
       },
    },
    plugins: [
-      circleDependency(),
       react(),
       tsconfigPaths({
          // otherwise it'll throw an error because of examples/astro
