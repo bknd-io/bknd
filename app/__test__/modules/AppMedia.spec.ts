@@ -1,22 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import { registries } from "../../src";
 import { createApp } from "core/test/utils";
 import { em, entity, text } from "../../src/data";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 import { AppMedia } from "../../src/media/AppMedia";
-import { mediaConfigSchema } from "../../src/media/media-schema";
 import { moduleTestSuite } from "./module-test-suite";
 
 describe("AppMedia", () => {
-   test.only("...", () => {
-      const media = new AppMedia();
-      console.log(media.toJSON());
-   });
-
    moduleTestSuite(AppMedia);
 
    test("should allow additional fields", async () => {
-      registries.media.register("local", StorageLocalAdapter);
+      //registries.media.register("local", StorageLocalAdapter);
 
       const app = createApp({
          initialConfig: {
@@ -37,6 +30,7 @@ describe("AppMedia", () => {
             }).toJSON(),
          },
       });
+      app.module.media.adapters.set("local", StorageLocalAdapter);
 
       await app.build();
 

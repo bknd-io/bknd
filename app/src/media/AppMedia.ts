@@ -1,12 +1,15 @@
-import type { AppEntity } from "core";
-import { $console } from "core/utils";
+import type { AppEntity, Constructor } from "core";
+import { $console, objectTransform } from "core/utils";
 import type { Entity, EntityManager } from "data";
 import { type FileUploadedEventData, Storage, type StorageAdapter, MediaPermissions } from "media";
 import { Module } from "modules/Module";
 import { type FieldSchema, em, entity } from "../data/prototype";
 import { MediaController } from "./api/MediaController";
-import { buildMediaSchema, type mediaConfigSchema, registry, type TAppMediaConfig } from "./media-schema";
+import { mediaConfigSchema, type TAppMediaConfig } from "./media-schema";
 import { mediaFields } from "./media-entities";
+import { StorageS3Adapter } from "media/storage/adapters/s3/StorageS3Adapter";
+import { StorageCloudinaryAdapter } from "media/storage/adapters/cloudinary/StorageCloudinaryAdapter";
+import { s } from "core/object/schema";
 
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
 declare module "core" {
@@ -15,15 +18,26 @@ declare module "core" {
       media: Media;
    }
 }
+type ClassThatImplements<T> = Constructor<T> & { prototype: T };
 
 // @todo: current workaround to make it all required
 export class AppMedia extends Module<Required<TAppMediaConfig>> {
    private _storage?: Storage;
+   adapters: Map<string, ClassThatImplements<StorageAdapter>> = new Map();
 
    override async build() {
       if (!this.config.enabled) {
          this.setBuilt();
          return;
+      }
+
+      // register default adapters
+      if (!this.adapters.has("s3")) {
+         this.adapters.set("s3", StorageS3Adapter);
+      }
+
+      if (!this.adapters.has("cloudinary")) {
+         this.adapters.set("cloudinary", StorageCloudinaryAdapter);
       }
 
       if (!this.config.adapter) {
@@ -35,7 +49,11 @@ export class AppMedia extends Module<Required<TAppMediaConfig>> {
       let adapter: StorageAdapter;
       try {
          const { type, config } = this.config.adapter;
-         const cls = registry.get(type as any).cls;
+         const cls = this.adapters.get(type as any);
+         if (!cls) {
+            throw new Error(`Adapter ${type} not found`);
+         }
+
          adapter = new cls(config as any);
 
          this._storage = new Storage(adapter, this.config.storage, this.ctx.emgr);
@@ -59,7 +77,34 @@ export class AppMedia extends Module<Required<TAppMediaConfig>> {
    }
 
    getSchema() {
-      return buildMediaSchema();
+      if (!this.adapters) {
+         return mediaConfigSchema;
+      }
+      const adapterSchemaObject = objectTransform(
+         Object.fromEntries(this.adapters.entries()),
+         (adapter, name) => {
+            const schema = adapter.prototype.getSchema();
+            if (!schema) {
+               throw new Error(`Adapter ${name} has no schema`);
+            }
+
+            return s.strictObject(
+               {
+                  type: s.literal(name),
+                  config: schema,
+               },
+               {
+                  title: String(schema.title ?? name),
+                  description: schema.description,
+               },
+            );
+         },
+      );
+
+      return s.strictObject({
+         ...mediaConfigSchema.properties,
+         adapter: s.anyOf(Object.values(adapterSchemaObject)).optional(),
+      });
    }
 
    get basepath() {

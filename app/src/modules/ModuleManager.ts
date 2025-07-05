@@ -20,7 +20,7 @@ import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
 import { ModuleHelper } from "./ModuleHelper";
-import { s, mark, stripMark } from "core/object/schema";
+import { s } from "core/object/schema";
 
 export type { ModuleBuildContext };
 
@@ -166,7 +166,8 @@ export class ModuleManager {
          if ("version" in options.initial) {
             const { version, ...initialConfig } = options.initial;
             this._version = version;
-            initial = stripMark(initialConfig);
+            //initial = stripMark(initialConfig);
+            initial = initialConfig;
 
             this._booted_with = "provided";
          } else {
@@ -487,10 +488,11 @@ export class ModuleManager {
             // set version and config from fetched
             this._version = result.version;
 
-            if (this.options?.trustFetched === true) {
+            // @todo: add back?
+            /* if (this.options?.trustFetched === true) {
                this.logger.log("trusting fetched config (mark)");
                mark(result.json);
-            }
+            } */
 
             // if version doesn't match, migrate before building
             if (this.version() !== CURRENT_VERSION) {
@@ -732,7 +734,6 @@ export function getDefaultSchema() {
 export function getDefaultConfig(): ModuleConfigs {
    const config = transformObject(MODULES, (module) => {
       return module.prototype.getSchema().template();
-      //return Default(module.prototype.getSchema(), {});
    });
 
    return config as any;

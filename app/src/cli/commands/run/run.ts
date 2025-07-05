@@ -5,7 +5,6 @@ import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
 import { config } from "core";
 import dotenv from "dotenv";
-import { registries } from "modules/registries";
 import c from "picocolors";
 import path from "node:path";
 import {
@@ -58,10 +57,11 @@ export const run: CliCommand = (program) => {
 };
 
 // automatically register local adapter
-const local = StorageLocalAdapter.prototype.getName();
+// @todo: add back
+/* const local = StorageLocalAdapter.prototype.getName();
 if (!registries.media.has(local)) {
    registries.media.register(local, StorageLocalAdapter);
-}
+} */
 
 type MakeAppConfig = {
    connection?: CreateAppConfig["connection"];
