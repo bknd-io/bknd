@@ -11,6 +11,7 @@ import { useFlowCanvas, useFlowSelector } from "../../../hooks/use-flow";
 import { BaseNode } from "../BaseNode";
 import { Handle } from "../Handle";
 import { s } from "core/object/schema";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = s.object({
    trigger: s.anyOf(
@@ -45,8 +46,7 @@ export const TriggerNode = (props: NodeProps<Node<TAppFlowTriggerSchema & { labe
       watch,
       control,
    } = useForm({
-      // @todo: add resolver
-      //resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
       defaultValues: { trigger: state } as s.Static<typeof schema>,
       mode: "onChange",
    });

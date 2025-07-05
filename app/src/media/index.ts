@@ -1,4 +1,3 @@
-import type { TObject } from "@sinclair/typebox";
 import { type Constructor, Registry } from "core";
 
 export { guess as guessMimeType } from "./storage/mime-types-tiny";

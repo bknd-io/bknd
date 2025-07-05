@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { SchemaObject } from "../../../src/core";
-import { Type } from "@sinclair/typebox";
 import { s } from "core/object/schema";
 
 describe("SchemaObject", async () => {

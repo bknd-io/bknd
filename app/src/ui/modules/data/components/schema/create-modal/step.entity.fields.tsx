@@ -13,6 +13,7 @@ import {
 import { ModalBody, ModalFooter, type TCreateModalSchema, useStepContext } from "./CreateModal";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 import type { s } from "core/object/schema";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = entitiesSchema;
 type Schema = s.Static<typeof schema>;
@@ -41,8 +42,7 @@ export function StepEntityFields() {
       setValue,
    } = useForm({
       mode: "onTouched",
-      // @todo: add resolver
-      //resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
       defaultValues: initial as NonNullable<Schema>,
    });
 

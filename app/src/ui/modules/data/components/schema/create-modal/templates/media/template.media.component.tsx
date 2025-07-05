@@ -15,6 +15,7 @@ import {
    useStepContext,
 } from "../../CreateModal";
 import { s, stringIdentifier } from "core/object/schema";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = s.object({
    entity: stringIdentifier,
@@ -34,8 +35,7 @@ export function TemplateMediaComponent() {
       control,
    } = useForm({
       mode: "onChange",
-      // @todo: add resolver
-      //resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
       defaultValues: schema.template(state.initial ?? {}) as TCreateModalMediaSchema,
       //defaultValues: Default(schema, state.initial ?? {}) as TCreateModalMediaSchema,
    });

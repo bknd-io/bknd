@@ -22,6 +22,7 @@ import { useRoutePathState } from "ui/hooks/use-route-path-state";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
 import { s, stringIdentifier } from "core/object/schema";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
 const fieldsSchema = s.anyOf(Object.values(fieldsSchemaObject));
@@ -88,8 +89,7 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
          reset,
       } = useForm({
          mode: "all",
-         // @todo: add resolver
-         //resolver: typeboxResolver(schema),
+         resolver: standardSchemaResolver(schema),
          defaultValues: {
             fields: entityFields,
          } as TFieldsFormSchema,

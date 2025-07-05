@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { Type } from "@sinclair/typebox";
 import { Entity, EntityIndex, Field } from "../../../../src/data";
 import { s } from "core/object/schema";
 

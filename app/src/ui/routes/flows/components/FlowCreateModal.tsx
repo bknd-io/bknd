@@ -14,6 +14,7 @@ import {
 } from "../../../components/modal/Modal2";
 import { Step, Steps, useStepContext } from "../../../components/steps/Steps";
 import { s, stringIdentifier } from "core/object/schema";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 export type TCreateFlowModalSchema = any;
 const triggerNames = Object.keys(TRIGGERS) as unknown as (keyof typeof TRIGGERS)[];
@@ -55,8 +56,7 @@ export function StepCreate() {
       register,
       formState: { isValid, errors },
    } = useForm({
-      // @todo: implement resolver
-      //resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
       defaultValues: {
          name: "",
          trigger: "manual",

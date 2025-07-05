@@ -58,6 +58,7 @@
         "@mantine/notifications": "^7.17.1",
         "@playwright/test": "^1.51.1",
         "@rjsf/core": "5.22.2",
+        "@standard-schema/spec": "^1.0.0",
         "@tabler/icons-react": "3.18.0",
         "@tailwindcss/postcss": "^4.0.12",
         "@tailwindcss/vite": "^4.0.12",
@@ -73,7 +74,7 @@
         "dotenv": "^16.4.7",
         "jotai": "^2.12.2",
         "jsdom": "^26.0.0",
-        "jsonv-ts": "0.2.0-alpha.5",
+        "jsonv-ts": "^0.2.1",
         "kysely-d1": "^0.3.0",
         "kysely-generic-sqlite": "^1.2.1",
         "libsql-stateless-easy": "^1.8.0",
@@ -1150,6 +1151,8 @@
     "@socket.io/component-emitter": ["@socket.io/component-emitter@3.1.2", "", {}, "sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA=="],
 
     "@sqlite.org/sqlite-wasm": ["@sqlite.org/sqlite-wasm@3.48.0-build4", "", { "bin": { "sqlite-wasm": "bin/index.js" } }, "sha512-hI6twvUkzOmyGZhQMza1gpfqErZxXRw6JEsiVjUbo7tFanVD+8Oil0Ih3l2nGzHdxPI41zFmfUQG7GHqhciKZQ=="],
+
+    "@standard-schema/spec": ["@standard-schema/spec@1.0.0", "", {}, "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="],
 
     "@standard-schema/utils": ["@standard-schema/utils@0.3.0", "", {}, "sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g=="],
 
@@ -2503,7 +2506,7 @@
 
     "jsonpointer": ["jsonpointer@5.0.1", "", {}, "sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ=="],
 
-    "jsonv-ts": ["jsonv-ts@0.2.0-alpha.5", "", { "optionalDependencies": { "hono": "4.7.11" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-o1rnGgMY0TGiInweOizqak4JNGyvOGIv9UpGqJokq6Nj8RnrXLvdaU+K9v99iqrnbilKwBV8N/wYS8h0iNOQpA=="],
+    "jsonv-ts": ["jsonv-ts@0.2.1", "", { "optionalDependencies": { "hono": "4.7.11" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-k2uc4DdQgz5wk4eXx6jM0xOUEGbedVMPhP1mi8+NAg2pjo85cgBv1lCyo9Wqc9cmbZHTGfho7PvAsRIH33LfDA=="],
 
     "jsonwebtoken": ["jsonwebtoken@9.0.2", "", { "dependencies": { "jws": "^3.2.2", "lodash.includes": "^4.3.0", "lodash.isboolean": "^3.0.3", "lodash.isinteger": "^4.0.4", "lodash.isnumber": "^3.0.3", "lodash.isplainobject": "^4.0.6", "lodash.isstring": "^4.0.1", "lodash.once": "^4.0.0", "ms": "^2.1.1", "semver": "^7.5.4" } }, "sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ=="],
 

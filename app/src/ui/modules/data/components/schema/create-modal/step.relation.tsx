@@ -12,6 +12,7 @@ import { useStepContext } from "ui/components/steps/Steps";
 import { useEvent } from "ui/hooks/use-event";
 import { ModalBody, ModalFooter, type TCreateModalSchema } from "./CreateModal";
 import { s, stringIdentifier } from "core/object/schema";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const Relations: {
    type: RelationType;
@@ -66,8 +67,7 @@ export function StepRelation() {
       watch,
       control,
    } = useForm({
-      // @todo: implement resolver
-      //resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
       defaultValues: (state.relations?.create?.[0] ?? {}) as s.Static<typeof schema>,
    });
    const data = watch();

@@ -13,6 +13,7 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import type { TFlowNodeData } from "../../../hooks/use-flow";
 import { KeyValueInput } from "../../form/KeyValueInput";
 import { BaseNode } from "../BaseNode";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = s.object({
    query: s.record(s.string()).optional(),
@@ -37,8 +38,7 @@ export function FetchTaskForm({ onChange, params, ...props }: FetchTaskFormProps
       watch,
       control,
    } = useForm({
-      // @todo: add resolver
-      //resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
       defaultValues: params as s.Static<typeof schema>,
       mode: "onChange",
       //defaultValues: (state.relations?.create?.[0] ?? {}) as Static<typeof schema>
