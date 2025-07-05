@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Guard } from "../../src/auth";
-import { parse } from "../../src/core/utils";
 import { DataApi } from "../../src/data/api/DataApi";
 import { DataController } from "../../src/data/api/DataController";
 import { dataConfigSchema } from "../../src/data/data-schema";
 import * as proto from "../../src/data/prototype";
 import { schemaToEm } from "../helper";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+import { parse } from "core/object/schema";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);

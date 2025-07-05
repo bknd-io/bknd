@@ -5,7 +5,7 @@ import { type FileUploadedEventData, Storage, type StorageAdapter, MediaPermissi
 import { Module } from "modules/Module";
 import { type FieldSchema, em, entity } from "../data/prototype";
 import { MediaController } from "./api/MediaController";
-import { buildMediaSchema, type mediaConfigSchema, registry } from "./media-schema";
+import { buildMediaSchema, type mediaConfigSchema, registry, type TAppMediaConfig } from "./media-schema";
 import { mediaFields } from "./media-entities";
 
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
@@ -16,7 +16,8 @@ declare module "core" {
    }
 }
 
-export class AppMedia extends Module<typeof mediaConfigSchema> {
+// @todo: current workaround to make it all required
+export class AppMedia extends Module<Required<TAppMediaConfig>> {
    private _storage?: Storage;
 
    override async build() {

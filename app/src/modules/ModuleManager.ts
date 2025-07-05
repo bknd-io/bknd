@@ -3,15 +3,7 @@ import { BkndError, DebugLogger, env } from "core";
 import { $console } from "core/utils";
 import { EventManager, Event } from "core/events";
 import * as $diff from "core/object/diff";
-import {
-   Default,
-   type Static,
-   StringEnum,
-   mark,
-   objectEach,
-   stripMark,
-   transformObject,
-} from "core/utils";
+import { objectEach, transformObject } from "core/utils";
 import type { Connection, Schema } from "data";
 import { EntityManager } from "data/entities/EntityManager";
 import * as proto from "data/prototype";
@@ -27,9 +19,8 @@ import { AppFlows } from "../flows/AppFlows";
 import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
-import * as tbbox from "@sinclair/typebox";
 import { ModuleHelper } from "./ModuleHelper";
-const { Type } = tbbox;
+import { s, mark, stripMark } from "core/object/schema";
 
 export type { ModuleBuildContext };
 
@@ -54,7 +45,7 @@ export type ModuleSchemas = {
 };
 
 export type ModuleConfigs = {
-   [K in keyof ModuleSchemas]: Static<ModuleSchemas[K]>;
+   [K in keyof ModuleSchemas]: s.Static<ModuleSchemas[K]>;
 };
 type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 
@@ -102,14 +93,14 @@ export type ConfigTable<Json = ModuleConfigs> = {
    updated_at?: Date;
 };
 
-const configJsonSchema = Type.Union([
+const configJsonSchema = s.anyOf([
    getDefaultSchema(),
-   Type.Array(
-      Type.Object({
-         t: StringEnum(["a", "r", "e"]),
-         p: Type.Array(Type.Union([Type.String(), Type.Number()])),
-         o: Type.Optional(Type.Any()),
-         n: Type.Optional(Type.Any()),
+   s.array(
+      s.strictObject({
+         t: s.string({ enum: ["a", "r", "e"] }),
+         p: s.array(s.anyOf([s.string(), s.number()])),
+         o: s.any().optional(),
+         n: s.any().optional(),
       }),
    ),
 ]);
@@ -740,7 +731,8 @@ export function getDefaultSchema() {
 
 export function getDefaultConfig(): ModuleConfigs {
    const config = transformObject(MODULES, (module) => {
-      return Default(module.prototype.getSchema(), {});
+      return module.prototype.getSchema().template();
+      //return Default(module.prototype.getSchema(), {});
    });
 
    return config as any;

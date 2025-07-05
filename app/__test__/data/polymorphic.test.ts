@@ -1,5 +1,5 @@
 import { afterAll, expect as bunExpect, describe, test } from "bun:test";
-import { stripMark } from "../../src/core/utils";
+import { stripMark } from "core/object/schema";
 import { Entity, EntityManager, PolymorphicRelation, TextField } from "../../src/data";
 import { getDummyConnection } from "./helper";
 

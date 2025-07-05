@@ -6,15 +6,13 @@ import type { ComponentPropsWithoutRef } from "react";
 import { Button } from "ui/components/buttons/Button";
 import { Group, Input, Password, Label } from "ui/components/form/Formy/components";
 import { SocialLink } from "./SocialLink";
-import type { ValueError } from "@sinclair/typebox/value";
-import { type TSchema, Value } from "core/utils";
 import type { Validator } from "json-schema-form-react";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "core/object/schema";
+import type { ErrorDetail } from "jsonv-ts";
 
-class TypeboxValidator implements Validator<ValueError> {
-   async validate(schema: TSchema, data: any) {
-      return Value.Check(schema, data) ? [] : [...Value.Errors(schema, data)];
+class JsonvTsValidator implements Validator<ErrorDetail> {
+   async validate(schema: s.Schema, data: any) {
+      return schema.validate(data).errors;
    }
 }
 
@@ -27,12 +25,12 @@ export type LoginFormProps = Omit<ComponentPropsWithoutRef<"form">, "onSubmit" |
    buttonLabel?: string;
 };
 
-const validator = new TypeboxValidator();
-const schema = Type.Object({
-   email: Type.String({
+const validator = new JsonvTsValidator();
+const schema = s.strictObject({
+   email: s.string({
       pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
    }),
-   password: Type.String({
+   password: s.string({
       minLength: 8, // @todo: this should be configurable
    }),
 });

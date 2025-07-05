@@ -1,6 +1,6 @@
 import type { FileListObject, FileMeta } from "media";
 import type { FileBody, FileUploadPayload } from "media/storage/Storage";
-import type { TSchema } from "@sinclair/typebox";
+import type { s } from "core/object/schema";
 
 const SYMBOL = Symbol.for("bknd:storage");
 
@@ -32,6 +32,6 @@ export abstract class StorageAdapter {
    abstract getObject(key: string, headers: Headers): Promise<Response>;
    abstract getObjectUrl(key: string): string;
    abstract getObjectMeta(key: string): Promise<FileMeta>;
-   abstract getSchema(): TSchema | undefined;
+   abstract getSchema(): s.Schema | undefined;
    abstract toJSON(secrets?: boolean): any;
 }

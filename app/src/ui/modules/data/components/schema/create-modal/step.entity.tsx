@@ -1,5 +1,4 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
-
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { TextInput, Textarea } from "@mantine/core";
 import { useFocusTrap } from "@mantine/hooks";
 import { useForm } from "react-hook-form";
@@ -10,7 +9,6 @@ import {
    entitySchema,
    useStepContext,
 } from "./CreateModal";
-import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 
 export function StepEntity() {
    const focusTrapRef = useFocusTrap();
@@ -18,7 +16,7 @@ export function StepEntity() {
    const { nextStep, stepBack, state, setState } = useStepContext<TCreateModalSchema>();
    const { register, handleSubmit, formState, watch, control } = useForm({
       mode: "onTouched",
-      resolver: typeboxResolver(entitySchema),
+      resolver: standardSchemaResolver(entitySchema),
       defaultValues: state.entities?.create?.[0] ?? {},
    });
    /*const data = watch();

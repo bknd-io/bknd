@@ -1,4 +1,4 @@
-import { isDebug, tbValidator as tb } from "core";
+import { isDebug } from "core";
 import { HttpStatus, getFileFromContext } from "core/utils";
 import type { StorageAdapter } from "media";
 import { StorageEvents, getRandomizedFilename, MediaPermissions } from "media";

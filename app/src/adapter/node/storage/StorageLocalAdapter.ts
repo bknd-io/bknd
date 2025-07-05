@@ -1,17 +1,16 @@
 import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
-import { type Static, isFile, parse } from "bknd/utils";
+import { isFile } from "bknd/utils";
 import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd/media";
 import { StorageAdapter, guessMimeType as guess } from "bknd/media";
-import * as tb from "@sinclair/typebox";
-const { Type } = tb;
+import { parse, s } from "core/object/schema";
 
-export const localAdapterConfig = Type.Object(
+export const localAdapterConfig = s.object(
    {
-      path: Type.String({ default: "./" }),
+      path: s.string({ default: "./" }),
    },
    { title: "Local", description: "Local file system storage", additionalProperties: false },
 );
-export type LocalAdapterConfig = Static<typeof localAdapterConfig>;
+export type LocalAdapterConfig = s.Static<typeof localAdapterConfig>;
 
 export class StorageLocalAdapter extends StorageAdapter {
    private config: LocalAdapterConfig;
@@ -62,8 +61,7 @@ export class StorageLocalAdapter extends StorageAdapter {
       }
 
       const filePath = `${this.config.path}/${key}`;
-      const is_file = isFile(body);
-      await writeFile(filePath, is_file ? body.stream() : body);
+      await writeFile(filePath, isFile(body) ? body.stream() : body);
 
       return await this.computeEtag(body);
    }

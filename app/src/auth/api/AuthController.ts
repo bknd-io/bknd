@@ -1,9 +1,9 @@
 import { type AppAuth, AuthPermissions, type SafeUser, type Strategy } from "auth";
-import { TypeInvalidError, parse, transformObject } from "core/utils";
+import { transformObject } from "core/utils";
 import { DataPermissions } from "data";
 import type { Hono } from "hono";
 import { Controller, type ServerEnv } from "modules/Controller";
-import { describeRoute, jsc, s } from "core/object/schema";
+import { describeRoute, jsc, s, parse, InvalidSchemaError } from "core/object/schema";
 
 export type AuthActionResponse = {
    success: boolean;
@@ -58,7 +58,7 @@ export class AuthController extends Controller {
                try {
                   const body = await this.auth.authenticator.getBody(c);
                   const valid = parse(create.schema, body, {
-                     skipMark: true,
+                     //skipMark: true,
                   });
                   const processed = (await create.preprocess?.(valid)) ?? valid;
 
@@ -78,7 +78,7 @@ export class AuthController extends Controller {
                      data: created as unknown as SafeUser,
                   } as AuthActionResponse);
                } catch (e) {
-                  if (e instanceof TypeInvalidError) {
+                  if (e instanceof InvalidSchemaError) {
                      return c.json(
                         {
                            success: false,

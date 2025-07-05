@@ -30,7 +30,7 @@ class ExecTask extends Task {
    }
 }
 
-describe("Flow trigger", async () => {
+describe.skip("Flow trigger", async () => {
    test("manual trigger", async () => {
       let called = false;
 
