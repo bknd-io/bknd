@@ -25,7 +25,6 @@
         "@hono/swagger-ui": "^0.5.1",
         "@mantine/core": "^7.17.1",
         "@mantine/hooks": "^7.17.1",
-        "@sinclair/typebox": "0.34.30",
         "@tanstack/react-form": "^1.0.5",
         "@uiw/react-codemirror": "^4.23.10",
         "@xyflow/react": "^12.4.4",
@@ -74,7 +73,7 @@
         "dotenv": "^16.4.7",
         "jotai": "^2.12.2",
         "jsdom": "^26.0.0",
-        "jsonv-ts": "^0.2.1",
+        "jsonv-ts": "^0.2.2",
         "kysely-d1": "^0.3.0",
         "kysely-generic-sqlite": "^1.2.1",
         "libsql-stateless-easy": "^1.8.0",
@@ -2506,7 +2505,7 @@
 
     "jsonpointer": ["jsonpointer@5.0.1", "", {}, "sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ=="],
 
-    "jsonv-ts": ["jsonv-ts@0.2.1", "", { "optionalDependencies": { "hono": "4.7.11" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-k2uc4DdQgz5wk4eXx6jM0xOUEGbedVMPhP1mi8+NAg2pjo85cgBv1lCyo9Wqc9cmbZHTGfho7PvAsRIH33LfDA=="],
+    "jsonv-ts": ["jsonv-ts@0.2.2", "", { "optionalDependencies": { "hono": "4.7.11" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-g4kUDYYPBb32Nfbv3R55Se6G4CAv4UOXOPJIEPqw8XX+0SSy44T/AREkwFfGz9GwYuX9UxcvOILbgac2nshL4A=="],
 
     "jsonwebtoken": ["jsonwebtoken@9.0.2", "", { "dependencies": { "jws": "^3.2.2", "lodash.includes": "^4.3.0", "lodash.isboolean": "^3.0.3", "lodash.isinteger": "^4.0.4", "lodash.isnumber": "^3.0.3", "lodash.isplainobject": "^4.0.6", "lodash.isstring": "^4.0.1", "lodash.once": "^4.0.0", "ms": "^2.1.1", "semver": "^7.5.4" } }, "sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ=="],
 
