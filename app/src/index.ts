@@ -34,7 +34,6 @@ export type { ServerEnv } from "modules/Controller";
 export type { BkndConfig } from "bknd/adapter";
 
 export * as middlewares from "modules/middlewares";
-export { registries } from "modules/registries";
 
 export type { MediaFieldSchema } from "media/AppMedia";
 export type { UserFieldSchema } from "auth/AppAuth";

@@ -29,7 +29,7 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
       this._default = _schema.template({}, { withOptional: true }) as any;
       this._value = parse(_schema, structuredClone(initial ?? {}), {
          withDefaults: true,
-         withExtendedDefaults: true,
+         //withExtendedDefaults: true,
          forceParse: this.isForceParse(),
          skipMark: this.isForceParse(),
       });
