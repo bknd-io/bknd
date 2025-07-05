@@ -185,9 +185,7 @@ function UserMenu() {
       }
    }
 
-   if (!options.theme) {
-      items.push(() => <UserMenuThemeToggler />);
-   }
+   items.push(() => <UserMenuThemeToggler />);
    items.push(() => (
       <div className="font-mono leading-none text-xs text-primary/50 text-center pb-1 pt-2 mt-1 border-t border-primary/5">
          {getVersion()}

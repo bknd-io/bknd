@@ -31,7 +31,7 @@ function DataEntityUpdateImpl({ params }) {
 
    const entityId = params.id as PrimaryFieldType;
    const [error, setError] = useState<string | null>(null);
-   const [navigate] = useNavigate();
+   const [navigate, _, _goBack] = useNavigate();
    useBrowserTitle(["Data", entity.label, `#${entityId}`]);
    const targetRelations = relations.listableRelationsOf(entity);
 
@@ -52,9 +52,8 @@ function DataEntityUpdateImpl({ params }) {
       },
    );
 
-   function goBack() {
-      window.history.go(-1);
-   }
+   const backHref = routes.data.entity.list(entity.name);
+   const goBack = () => _goBack({ fallback: backHref });
 
    async function onSubmitted(changeSet?: EntityData) {
       //return;
@@ -162,10 +161,8 @@ function DataEntityUpdateImpl({ params }) {
             className="pl-3"
          >
             <Breadcrumbs2
-               path={[
-                  { label: entity.label, href: routes.data.entity.list(entity.name) },
-                  { label: `Edit #${entityId}` },
-               ]}
+               backTo={backHref}
+               path={[{ label: entity.label, href: backHref }, { label: `Edit #${entityId}` }]}
             />
          </AppShell.SectionHeader>
          {$q.isLoading ? (

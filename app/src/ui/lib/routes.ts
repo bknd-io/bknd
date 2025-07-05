@@ -102,13 +102,29 @@ export function useNavigate() {
             }
 
             const _url = options?.absolute ? `~/${basepath}${url}`.replace(/\/+/g, "/") : url;
+            const state = {
+               ...options?.state,
+               referrer: location,
+            };
+
             navigate(options?.query ? withQuery(_url, options?.query) : _url, {
                replace: options?.replace,
-               state: options?.state,
+               state,
             });
          });
       },
       location,
+      (opts?: { fallback?: string }) => {
+         const state = window.history.state;
+         if (state?.referrer) {
+            //window.history.replaceState(state, "", state.referrer);
+            navigate(state.referrer, { replace: true });
+         } else if (opts?.fallback) {
+            navigate(opts.fallback, { replace: true });
+         } else {
+            window.history.back();
+         }
+      },
    ] as const;
 }
 

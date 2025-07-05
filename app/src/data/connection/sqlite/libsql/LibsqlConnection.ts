@@ -1,4 +1,4 @@
-import type { Client, Config, ResultSet } from "@libsql/client";
+import type { Client, Config, InStatement, ResultSet, TransactionMode } from "@libsql/client";
 import { createClient } from "libsql-stateless-easy";
 import { FilterNumericKeysPlugin } from "data/plugins/FilterNumericKeysPlugin";
 import {
@@ -10,7 +10,12 @@ import type { QueryResult } from "kysely";
 export type LibsqlConnection = GenericSqliteConnection<Client>;
 export type LibSqlCredentials = Config;
 
-function getClient(clientOrCredentials: Client | LibSqlCredentials): Client {
+export type LibsqlClientFns = {
+   execute: (statement: InStatement) => Promise<ResultSet>;
+   batch: (statements: InStatement[], mode?: TransactionMode) => Promise<ResultSet[]>;
+};
+
+function getClient(clientOrCredentials: Client | LibSqlCredentials | LibsqlClientFns): Client {
    if (clientOrCredentials && "url" in clientOrCredentials) {
       const { url, authToken } = clientOrCredentials;
       return createClient({ url, authToken });
@@ -19,7 +24,7 @@ function getClient(clientOrCredentials: Client | LibSqlCredentials): Client {
    return clientOrCredentials as Client;
 }
 
-export function libsql(config: LibSqlCredentials | Client) {
+export function libsql(config: LibSqlCredentials | Client | LibsqlClientFns) {
    const db = getClient(config);
 
    return genericSqlite(

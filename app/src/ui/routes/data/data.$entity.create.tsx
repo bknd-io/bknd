@@ -8,13 +8,14 @@ import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import { useSearch } from "ui/hooks/use-search";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { Breadcrumbs2 } from "ui/layouts/AppShell/Breadcrumbs2";
-import { routes } from "ui/lib/routes";
+import { routes, useNavigate } from "ui/lib/routes";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
 import { s } from "core/object/schema";
 
 export function DataEntityCreate({ params }) {
    const { $data } = useBkndData();
+   const [navigate, _, _goBack] = useNavigate();
    const entity = $data.entity(params.entity as string);
    if (!entity) {
       return <Message.NotFound description={`Entity "${params.entity}" doesn't exist.`} />;
@@ -30,9 +31,8 @@ export function DataEntityCreate({ params }) {
    // @todo: use entity schema for prefilling
    const search = useSearch(s.object({}), {});
 
-   function goBack() {
-      window.history.go(-1);
-   }
+   const backHref = routes.data.entity.list(entity.name);
+   const goBack = () => _goBack({ fallback: backHref });
 
    async function onSubmitted(changeSet?: EntityData) {
       console.log("create:changeSet", changeSet);
@@ -80,12 +80,7 @@ export function DataEntityCreate({ params }) {
                </>
             }
          >
-            <Breadcrumbs2
-               path={[
-                  { label: entity.label, href: routes.data.entity.list(entity.name) },
-                  { label: "Create" },
-               ]}
-            />
+            <Breadcrumbs2 backTo={backHref} path={[{ label: entity.label }, { label: "Create" }]} />
          </AppShell.SectionHeader>
          <AppShell.Scrollable key={entity.name}>
             {error && (

@@ -37,3 +37,43 @@ To mount the data directory to the host, you can use the `-v` flag:
 ```bash
 docker run -p 1337:1337 -v /path/to/data:/data bknd
 ```
+
+## Docker compose example
+
+If you want to use docker compose and build the image directly from the git repository.
+
+```yaml compose.yml
+services:
+  bknd:
+    pull_policy: build
+    build: https://github.com/bknd-io/bknd.git#main:docker
+    ports:
+      - 1337:1337
+    environment:
+      ARGS: "--db-url file:/data/data.db"
+    volumes:
+      - ${DATA_DIR:-.}/data:/data
+```
+
+
+The docker compose file can be extended to build a specific version of bknd.
+Extend the `build` section with `args` and `labels`.
+Inside `args`, you can pass a `VERSION` build argument, and use `labels` so the built image receives a unique identifier.
+
+```yaml compose.yml
+services:
+  bknd:
+    pull_policy: build
+    build:
+      context: https://github.com/bknd-io/bknd.git#main:docker
+      args:
+        VERSION: <version>
+      labels:
+        - x-bknd-version=<version>
+    ports:
+      - 1337:1337
+    environment:
+      ARGS: "--db-url file:/data/data.db"
+    volumes:
+      - ${DATA_DIR:-.}/data:/data
+```

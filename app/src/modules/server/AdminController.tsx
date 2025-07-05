@@ -51,7 +51,7 @@ export class AdminController extends Controller {
          basepath: this._options.basepath ?? "/",
          adminBasepath: this._options.adminBasepath ?? "",
          assetsPath: this._options.assetsPath ?? config.server.assets_path,
-         theme: this._options.theme ?? "system",
+         //theme: this._options.theme ?? "system",
          logo_return_path: this._options.logoReturnPath ?? "/",
       };
    }
@@ -195,7 +195,7 @@ export class AdminController extends Controller {
       if (isProd) {
          let manifest: any;
          if (this.options.assetsPath.startsWith("http")) {
-            manifest = await fetch(this.options.assetsPath + "manifest.json", {
+            manifest = await fetch(this.options.assetsPath + ".vite/manifest.json", {
                headers: {
                   Accept: "application/json",
                },

@@ -107,8 +107,8 @@ import { libsql } from "bknd/data";
 
 export default {
    connection: libsql({ 
-      url: "libsql://your-database-url.turso.io",
-      authToken: "your-auth-token",
+      url: "libsql://<database>.turso.io",
+      authToken: "<auth-token>",
    }),
 } as const satisfies BkndConfig;
 ```
@@ -120,11 +120,13 @@ import type { BkndConfig } from "bknd";
 import { libsql } from "bknd/data";
 import { createClient } from "@libsql/client";
 
+const client = createClient({ 
+   url: "libsql://<database>.turso.io",
+   authToken: "<auth-token>",
+})
+
 export default {
-   connection: libsql(createClient({ 
-      url: "libsql://your-database-url.turso.io",
-      authToken: "your-auth-token",
-   })),
+   connection: libsql(client),
 } as const satisfies BkndConfig;
 ```
 

@@ -55,7 +55,7 @@ export default function Admin({
 
 const Skeleton = ({ theme }: { theme?: any }) => {
    const t = useTheme();
-   const actualTheme = theme ?? t.theme;
+   const actualTheme = theme && ["dark", "light"].includes(theme) ? theme : t.theme;
 
    return (
       <div id="bknd-admin" className={actualTheme + " antialiased"}>
