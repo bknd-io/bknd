@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { Type } from "@sinclair/typebox";
 import { Entity, EntityIndex, Field } from "../../../../src/data";
+import { s } from "core/object/schema";
 
 class TestField extends Field {
    protected getSchema(): any {
-      return Type.Any();
+      return s.any();
    }
 
    override schema() {

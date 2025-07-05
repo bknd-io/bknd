@@ -78,8 +78,8 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
 
          this.checkIndex(entity.name, options.sort.by, "sort");
          validated.sort = {
-            dir: "asc",
-            ...options.sort,
+            dir: options.sort.dir ?? "asc",
+            by: options.sort.by,
          };
       }
 
@@ -120,7 +120,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       if (options.where) {
          // @todo: auto-alias base entity when using joins! otherwise "id" is ambiguous
          const aliases = [entity.name];
-         if (validated.join.length > 0) {
+         if (validated.join?.length > 0) {
             aliases.push(...JoinBuilder.getJoinedEntityNames(this.em, entity, validated.join));
          }
 
@@ -345,7 +345,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          ...refQueryOptions,
          where: {
             ...refQueryOptions.where,
-            ..._options?.where,
+            ...(_options?.where ?? {}),
          },
       };
 

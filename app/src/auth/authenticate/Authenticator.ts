@@ -1,32 +1,23 @@
 import { type DB, Exception } from "core";
 import { addFlashMessage } from "core/server/flash";
-import {
-   $console,
-   type Static,
-   StringEnum,
-   type TObject,
-   parse,
-   runtimeSupports,
-   truncate,
-} from "core/utils";
+import { runtimeSupports, truncate, $console } from "core/utils";
 import type { Context, Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
 import type { CookieOptions } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
-import * as tbbox from "@sinclair/typebox";
 import { InvalidConditionsException } from "auth/errors";
-const { Type } = tbbox;
+import { s, parse, secret } from "core/object/schema";
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];
 
 export const strategyActions = ["create", "change"] as const;
 export type StrategyActionName = (typeof strategyActions)[number];
-export type StrategyAction<S extends TObject = TObject> = {
+export type StrategyAction<S extends s.ObjectSchema = s.ObjectSchema> = {
    schema: S;
-   preprocess: (input: Static<S>) => Promise<Omit<DB["users"], "id" | "strategy">>;
+   preprocess: (input: s.Static<S>) => Promise<Omit<DB["users"], "id" | "strategy">>;
 };
 export type StrategyActions = Partial<Record<StrategyActionName, StrategyAction>>;
 
@@ -60,43 +51,44 @@ export interface UserPool {
 }
 
 const defaultCookieExpires = 60 * 60 * 24 * 7; // 1 week in seconds
-export const cookieConfig = Type.Partial(
-   Type.Object({
-      path: Type.String({ default: "/" }),
-      sameSite: StringEnum(["strict", "lax", "none"], { default: "lax" }),
-      secure: Type.Boolean({ default: true }),
-      httpOnly: Type.Boolean({ default: true }),
-      expires: Type.Number({ default: defaultCookieExpires }), // seconds
-      renew: Type.Boolean({ default: true }),
-      pathSuccess: Type.String({ default: "/" }),
-      pathLoggedOut: Type.String({ default: "/" }),
-   }),
-   { default: {}, additionalProperties: false },
-);
+export const cookieConfig = s
+   .object({
+      path: s.string({ default: "/" }),
+      sameSite: s.string({ enum: ["strict", "lax", "none"], default: "lax" }),
+      secure: s.boolean({ default: true }),
+      httpOnly: s.boolean({ default: true }),
+      expires: s.number({ default: defaultCookieExpires }), // seconds
+      renew: s.boolean({ default: true }),
+      pathSuccess: s.string({ default: "/" }),
+      pathLoggedOut: s.string({ default: "/" }),
+   })
+   .partial()
+   .strict();
 
 // @todo: maybe add a config to not allow cookie/api tokens to be used interchangably?
 // see auth.integration test for further details
 
-export const jwtConfig = Type.Object(
-   {
-      // @todo: autogenerate a secret if not present. But it must be persisted from AppAuth
-      secret: Type.String({ default: "" }),
-      alg: Type.Optional(StringEnum(["HS256", "HS384", "HS512"], { default: "HS256" })),
-      expires: Type.Optional(Type.Number()), // seconds
-      issuer: Type.Optional(Type.String()),
-      fields: Type.Array(Type.String(), { default: ["id", "email", "role"] }),
-   },
-   {
-      default: {},
-      additionalProperties: false,
-   },
-);
-export const authenticatorConfig = Type.Object({
+export const jwtConfig = s
+   .object(
+      {
+         // @todo: autogenerate a secret if not present. But it must be persisted from AppAuth
+         secret: secret({ default: "" }),
+         alg: s.string({ enum: ["HS256", "HS384", "HS512"], default: "HS256" }).optional(),
+         expires: s.number().optional(), // seconds
+         issuer: s.string().optional(),
+         fields: s.array(s.string(), { default: ["id", "email", "role"] }),
+      },
+      {
+         default: {},
+      },
+   )
+   .strict();
+export const authenticatorConfig = s.object({
    jwt: jwtConfig,
    cookie: cookieConfig,
 });
 
-type AuthConfig = Static<typeof authenticatorConfig>;
+type AuthConfig = s.Static<typeof authenticatorConfig>;
 export type AuthAction = "login" | "register";
 export type AuthResolveOptions = {
    identifier?: "email" | string;

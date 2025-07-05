@@ -1,6 +1,5 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Radio, TextInput } from "@mantine/core";
-import { Default, type Static, StringEnum, StringIdentifier, transformObject } from "core/utils";
+import { transformObject } from "core/utils";
 import type { MediaFieldConfig } from "media/MediaField";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,16 +14,16 @@ import {
    type TFieldCreate,
    useStepContext,
 } from "../../CreateModal";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s, stringIdentifier } from "core/object/schema";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
-const schema = Type.Object({
-   entity: StringIdentifier,
-   cardinality_type: StringEnum(["single", "multiple"], { default: "multiple" }),
-   cardinality: Type.Optional(Type.Number({ minimum: 1 })),
-   name: StringIdentifier,
+const schema = s.object({
+   entity: stringIdentifier,
+   cardinality_type: s.string({ enum: ["single", "multiple"], default: "multiple" }),
+   cardinality: s.number({ minimum: 1 }).optional(),
+   name: stringIdentifier,
 });
-type TCreateModalMediaSchema = Static<typeof schema>;
+type TCreateModalMediaSchema = s.Static<typeof schema>;
 
 export function TemplateMediaComponent() {
    const { stepBack, setState, state, path, nextStep } = useStepContext<TCreateModalSchema>();
@@ -36,8 +35,9 @@ export function TemplateMediaComponent() {
       control,
    } = useForm({
       mode: "onChange",
-      resolver: typeboxResolver(schema),
-      defaultValues: Default(schema, state.initial ?? {}) as TCreateModalMediaSchema,
+      resolver: standardSchemaResolver(schema),
+      defaultValues: schema.template(state.initial ?? {}) as TCreateModalMediaSchema,
+      //defaultValues: Default(schema, state.initial ?? {}) as TCreateModalMediaSchema,
    });
    const [forbidden, setForbidden] = useState<boolean>(false);
 

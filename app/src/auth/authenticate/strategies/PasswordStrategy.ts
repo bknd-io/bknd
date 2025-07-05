@@ -1,19 +1,18 @@
 import { type Authenticator, InvalidCredentialsException, type User } from "auth";
-import { tbValidator as tb } from "core";
-import { $console, hash, parse, type Static, StrictObject, StringEnum } from "core/utils";
+import { hash, $console } from "core/utils";
 import { Hono } from "hono";
 import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
-import * as tbbox from "@sinclair/typebox";
 import { Strategy } from "./Strategy";
+import { s, parse, jsc } from "core/object/schema";
 
-const { Type } = tbbox;
+const schema = s
+   .object({
+      hashing: s.string({ enum: ["plain", "sha256", "bcrypt"], default: "sha256" }),
+      rounds: s.number({ minimum: 1, maximum: 10 }).optional(),
+   })
+   .strict();
 
-const schema = StrictObject({
-   hashing: StringEnum(["plain", "sha256", "bcrypt"], { default: "sha256" }),
-   rounds: Type.Optional(Type.Number({ minimum: 1, maximum: 10 })),
-});
-
-export type PasswordStrategyOptions = Static<typeof schema>;
+export type PasswordStrategyOptions = s.Static<typeof schema>;
 
 export class PasswordStrategy extends Strategy<typeof schema> {
    constructor(config: Partial<PasswordStrategyOptions> = {}) {
@@ -32,11 +31,11 @@ export class PasswordStrategy extends Strategy<typeof schema> {
    }
 
    private getPayloadSchema() {
-      return Type.Object({
-         email: Type.String({
-            pattern: "^[\\w-\\.\\+_]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+      return s.object({
+         email: s.string({
+            pattern: /^[\w-\.\+_]+@([\w-]+\.)+[\w-]{2,4}$/,
          }),
-         password: Type.String({
+         password: s.string({
             minLength: 8, // @todo: this should be configurable
          }),
       });
@@ -79,12 +78,12 @@ export class PasswordStrategy extends Strategy<typeof schema> {
 
    getController(authenticator: Authenticator): Hono<any> {
       const hono = new Hono();
-      const redirectQuerySchema = Type.Object({
-         redirect: Type.Optional(Type.String()),
+      const redirectQuerySchema = s.object({
+         redirect: s.string().optional(),
       });
       const payloadSchema = this.getPayloadSchema();
 
-      hono.post("/login", tb("query", redirectQuerySchema), async (c) => {
+      hono.post("/login", jsc("query", redirectQuerySchema), async (c) => {
          try {
             const body = parse(payloadSchema, await authenticator.getBody(c), {
                onError: (errors) => {
@@ -102,7 +101,7 @@ export class PasswordStrategy extends Strategy<typeof schema> {
          }
       });
 
-      hono.post("/register", tb("query", redirectQuerySchema), async (c) => {
+      hono.post("/register", jsc("query", redirectQuerySchema), async (c) => {
          try {
             const { redirect } = c.req.valid("query");
             const { password, email, ...body } = parse(

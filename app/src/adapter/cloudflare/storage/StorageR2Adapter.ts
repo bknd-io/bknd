@@ -1,16 +1,13 @@
 import { registries } from "bknd";
 import { isDebug } from "bknd/core";
-// @ts-ignore
-import { StringEnum } from "bknd/utils";
 import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
 import { getBindings } from "../bindings";
-import * as tb from "@sinclair/typebox";
-const { Type } = tb;
+import { s } from "core/object/schema";
 
 export function makeSchema(bindings: string[] = []) {
-   return Type.Object(
+   return s.object(
       {
-         binding: bindings.length > 0 ? StringEnum(bindings) : Type.Optional(Type.String()),
+         binding: bindings.length > 0 ? s.string({ enum: bindings }) : s.string().optional(),
       },
       { title: "R2", description: "Cloudflare R2 storage" },
    );

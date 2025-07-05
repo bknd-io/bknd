@@ -1,37 +1,28 @@
 import { Exception, isDebug } from "core";
-import { type Static, StringEnum, $console } from "core/utils";
+import { $console } from "core/utils";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
-import * as tbbox from "@sinclair/typebox";
 import { AuthException } from "auth/errors";
-const { Type } = tbbox;
+import { s } from "core/object/schema";
 
-const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"];
+const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"] as const;
 
-export const serverConfigSchema = Type.Object(
-   {
-      cors: Type.Object(
-         {
-            origin: Type.String({ default: "*" }),
-            allow_methods: Type.Array(StringEnum(serverMethods), {
-               default: serverMethods,
-               uniqueItems: true,
-            }),
-            allow_headers: Type.Array(Type.String(), {
-               default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
-            }),
-         },
-         { default: {}, additionalProperties: false },
-      ),
-   },
-   {
-      additionalProperties: false,
-   },
-);
+export const serverConfigSchema = s.strictObject({
+   cors: s.strictObject({
+      origin: s.string({ default: "*" }),
+      allow_methods: s.array(s.string({ enum: serverMethods }), {
+         default: serverMethods,
+         uniqueItems: true,
+      }),
+      allow_headers: s.array(s.string(), {
+         default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
+      }),
+   }),
+});
 
-export type AppServerConfig = Static<typeof serverConfigSchema>;
+export type AppServerConfig = s.Static<typeof serverConfigSchema>;
 
-export class AppServer extends Module<typeof serverConfigSchema> {
+export class AppServer extends Module<AppServerConfig> {
    override getRestrictedPaths() {
       return [];
    }

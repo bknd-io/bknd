@@ -5,7 +5,7 @@ import type { SafeUser } from "auth";
 import type { EntityManager } from "data";
 import { s } from "core/object/schema";
 
-export type ServerEnv = Env & {
+export interface ServerEnv extends Env {
    Variables: {
       app: App;
       // to prevent resolving auth multiple times
@@ -17,7 +17,22 @@ export type ServerEnv = Env & {
       };
       html?: string;
    };
-};
+   [key: string]: any;
+}
+
+/* export type ServerEnv = Env & {
+   Variables: {
+      app: App;
+      // to prevent resolving auth multiple times
+      auth?: {
+         resolved: boolean;
+         registered: boolean;
+         skip: boolean;
+         user?: SafeUser;
+      };
+      html?: string;
+   };
+}; */
 
 export class Controller {
    protected middlewares = middlewares;
