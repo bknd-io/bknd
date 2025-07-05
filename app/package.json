@@ -251,7 +251,8 @@
     },
     "./dist/main.css": "./dist/ui/main.css",
     "./dist/styles.css": "./dist/ui/styles.css",
-    "./dist/manifest.json": "./dist/static/.vite/manifest.json"
+    "./dist/manifest.json": "./dist/static/.vite/manifest.json",
+    "./static/*": "./dist/static/*"
   },
   "typesVersions": {
     "*": {

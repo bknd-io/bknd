@@ -25,7 +25,7 @@ export {
 } from "./object/query/query";
 export { Registry, type Constructor } from "./registry/Registry";
 export { getFlashMessage } from "./server/flash";
-/* export {
+export {
    s,
    parse,
    jsc,
@@ -34,7 +34,7 @@ export { getFlashMessage } from "./server/flash";
    openAPISpecs,
    type ParseOptions,
    InvalidSchemaError,
-} from "./object/schema"; */
+} from "./object/schema";
 
 export * from "./drivers";
 export * from "./events";

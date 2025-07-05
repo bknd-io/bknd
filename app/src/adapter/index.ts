@@ -1,9 +1,11 @@
 import { App, type CreateAppConfig } from "bknd";
 import { config as $config } from "bknd/core";
 import { $console } from "bknd/utils";
-import type { MiddlewareHandler } from "hono";
+import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import { Connection } from "bknd/data";
+import type { Manifest } from "vite";
+import { guessMimeType } from "media";
 
 export { Connection } from "bknd/data";
 
@@ -139,4 +141,47 @@ export async function createRuntimeApp<Args = DefaultArgs>(
    }
 
    return app;
+}
+
+/**
+ * Creates a middleware handler to serve static assets via dynamic imports.
+ * This is useful for environments where filesystem access is limited but bundled assets can be imported.
+ *
+ * @param manifest - Vite manifest object containing asset information
+ * @returns Hono middleware handler for serving static assets
+ *
+ * @example
+ * ```typescript
+ * import { serveStaticViaImport } from "bknd/adapter";
+ * import manifest from "bknd/dist/manifest.json";
+ *
+ * serve({
+ *   serveStatic: serveStaticViaImport({ manifest }),
+ * });
+ * ```
+ */
+export function serveStaticViaImport({ manifest }: { manifest: Manifest }) {
+   const files = Object.values(manifest).flatMap((asset) => [asset.file, ...(asset.css || [])]);
+
+   // @ts-ignore
+   return async (c: Context, next: Next) => {
+      const path = c.req.path.substring(1);
+      if (files.includes(path)) {
+         try {
+            const content = await import(`bknd/static/${path}?raw`, {
+               assert: { type: "text" },
+            }).then((m) => m.default);
+
+            if (content) {
+               return c.body(content, {
+                  headers: {
+                     "Content-Type": guessMimeType(path),
+                     "Cache-Control": "public, max-age=31536000, immutable",
+                  },
+               });
+            }
+         } catch (e) {}
+      }
+      await next();
+   };
 }
