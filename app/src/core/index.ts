@@ -23,7 +23,7 @@ export {
    type BooleanLike,
    isBooleanLike,
 } from "./object/query/query";
-export { Registry, type Constructor } from "./registry/Registry";
+export { Registry, type Constructor, type ClassThatImplements } from "./registry/Registry";
 export { getFlashMessage } from "./server/flash";
 /* export {
    s,

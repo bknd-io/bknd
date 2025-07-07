@@ -1,24 +1,25 @@
-import { cookieConfig, jwtConfig } from "auth/authenticate/Authenticator";
-import { CustomOAuthStrategy, OAuthStrategy, PasswordStrategy } from "auth/authenticate/strategies";
+import { cookieConfig, jwtConfig, type Strategy } from "auth/authenticate/Authenticator";
 import { objectTransform } from "core/utils";
 import { s } from "core/object/schema";
+import type { ProvidedOAuthConfig } from "./authenticate/strategies/oauth/OAuthStrategy";
+import type { OAuthConfigCustom } from "./authenticate/strategies/oauth/CustomOAuthStrategy";
+import { Registry, type Constructor } from "core";
+import { PasswordStrategy } from "./authenticate/strategies/PasswordStrategy";
+import { OAuthStrategy } from "./authenticate/strategies/oauth/OAuthStrategy";
+import { CustomOAuthStrategy } from "./authenticate/strategies/oauth/CustomOAuthStrategy";
 
-export const Strategies = {
-   password: {
-      cls: PasswordStrategy,
-      schema: PasswordStrategy.prototype.getSchema(),
-   },
-   oauth: {
-      cls: OAuthStrategy,
-      schema: OAuthStrategy.prototype.getSchema(),
-   },
-   custom_oauth: {
-      cls: CustomOAuthStrategy,
-      schema: CustomOAuthStrategy.prototype.getSchema(),
-   },
-} as const;
+export const AuthStrategyRegistry = new Registry<{
+   cls: Constructor<Strategy>;
+   schema: s.Schema;
+}>((cls: Constructor<Strategy>) => ({
+   cls,
+   schema: cls.prototype.getSchema() as s.Schema,
+}))
+   .register("password", PasswordStrategy)
+   .register("oauth", OAuthStrategy)
+   .register("custom_oauth", CustomOAuthStrategy);
 
-export const STRATEGIES = Strategies;
+export const STRATEGIES = AuthStrategyRegistry.all();
 const strategiesSchemaObject = objectTransform(STRATEGIES, (strategy, name) => {
    return s.strictObject(
       {
@@ -34,8 +35,8 @@ const strategiesSchemaObject = objectTransform(STRATEGIES, (strategy, name) => {
 
 const strategiesSchema = s.anyOf(Object.values(strategiesSchemaObject));
 export type AppAuthStrategies = s.Static<typeof strategiesSchema>;
-export type AppAuthOAuthStrategy = s.Static<typeof STRATEGIES.oauth.schema>;
-export type AppAuthCustomOAuthStrategy = s.Static<typeof STRATEGIES.custom_oauth.schema>;
+export type AppAuthOAuthStrategy = ProvidedOAuthConfig;
+export type AppAuthCustomOAuthStrategy = OAuthConfigCustom;
 
 const guardConfigSchema = s.object({
    enabled: s.boolean({ default: false }).optional(),
