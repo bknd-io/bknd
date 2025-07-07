@@ -1,16 +1,20 @@
 import { objectTransform } from "core/utils";
-import { Adapters } from "media";
-import { registries } from "modules/registries";
+import { type StorageAdapter, StorageS3Adapter, StorageCloudinaryAdapter } from "media";
 import { s } from "core/object/schema";
+import { Registry, type ClassThatImplements } from "core";
 
-export const ADAPTERS = {
-   ...Adapters,
-} as const;
-
-export const registry = registries.media;
+export const MediaAdapterRegistry = new Registry<{
+   cls: ClassThatImplements<StorageAdapter>;
+   schema: s.Schema;
+}>((cls: ClassThatImplements<StorageAdapter>) => ({
+   cls,
+   schema: cls.prototype.getSchema() as s.Schema,
+}))
+   .register("s3", StorageS3Adapter)
+   .register("cloudinary", StorageCloudinaryAdapter);
 
 export function buildMediaSchema() {
-   const adapterSchemaObject = objectTransform(registry.all(), (adapter, name) => {
+   const adapterSchemaObject = objectTransform(MediaAdapterRegistry.all(), (adapter, name) => {
       return s.strictObject(
          {
             type: s.literal(name),

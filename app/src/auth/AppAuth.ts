@@ -6,7 +6,7 @@ import type { Entity, EntityManager } from "data";
 import { em, entity, enumm, type FieldSchema } from "data/prototype";
 import { Module } from "modules/Module";
 import { AuthController } from "./api/AuthController";
-import { type AppAuthSchema, authConfigSchema, STRATEGIES } from "./auth-schema";
+import { type AppAuthSchema, authConfigSchema, AuthStrategyRegistry } from "./auth-schema";
 import { AppUserPool } from "auth/AppUserPool";
 import type { AppEntity } from "core/config";
 import { usersFields } from "./auth-entities";
@@ -65,7 +65,8 @@ export class AppAuth extends Module<AppAuthSchema> {
       // build strategies
       const strategies = transformObject(this.config.strategies ?? {}, (strategy, name) => {
          try {
-            return new STRATEGIES[strategy.type].cls(strategy.config as any);
+            const cls = AuthStrategyRegistry.get(strategy.type as any).cls;
+            return new cls(strategy.config as any);
          } catch (e) {
             throw new Error(
                `Could not build strategy ${String(

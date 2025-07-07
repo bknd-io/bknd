@@ -1,5 +1,5 @@
 export type Constructor<T> = new (...args: any[]) => T;
-
+export type ClassThatImplements<T> = Constructor<T> & { prototype: T };
 export type RegisterFn<Item> = (unknown: any) => Item;
 
 export class Registry<
