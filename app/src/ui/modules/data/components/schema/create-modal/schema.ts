@@ -4,8 +4,8 @@ import { entitiesSchema, fieldsSchema, relationsSchema } from "data/data-schema"
 export const ModalActions = ["entity", "relation", "media"] as const;
 
 export const entitySchema = s.object({
-   name: s.string(),
    ...entitiesSchema.properties,
+   name: s.string(),
 });
 
 // @todo: this union is not fully working, just "string"
