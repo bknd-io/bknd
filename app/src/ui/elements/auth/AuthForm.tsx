@@ -7,7 +7,7 @@ import { Button } from "ui/components/buttons/Button";
 import { Group, Input, Password, Label } from "ui/components/form/Formy/components";
 import { SocialLink } from "./SocialLink";
 import type { Validator } from "json-schema-form-react";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 import type { ErrorDetail } from "jsonv-ts";
 
 class JsonvTsValidator implements Validator<ErrorDetail> {

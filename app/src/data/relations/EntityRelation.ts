@@ -1,4 +1,4 @@
-import { parse } from "core/object/schema";
+import { parse } from "bknd/core";
 import type { ExpressionBuilder, SelectQueryBuilder } from "kysely";
 import type { Entity, EntityData, EntityManager } from "../entities";
 import {
@@ -9,7 +9,7 @@ import {
 import type { RepoQuery } from "../server/query";
 import type { RelationType } from "./relation-types";
 import type { PrimaryFieldType } from "core";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 const directions = ["source", "target"] as const;
 export type TDirection = (typeof directions)[number];

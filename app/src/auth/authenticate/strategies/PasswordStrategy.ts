@@ -3,7 +3,7 @@ import { hash, $console } from "core/utils";
 import { Hono } from "hono";
 import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
 import { Strategy } from "./Strategy";
-import { s, parse, jsc } from "core/object/schema";
+import { s, parse, jsc } from "bknd/core";
 
 const schema = s
    .object({

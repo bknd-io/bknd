@@ -8,7 +8,7 @@ import type { CookieOptions } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
-import { s, parse, secret } from "core/object/schema";
+import { s, parse, secret } from "bknd/core";
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];

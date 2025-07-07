@@ -8,7 +8,7 @@ import {
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec } from "core/object/schema";
+import { jsc, s, describeRoute, schemaToSpec } from "bknd/core";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
 import { omitKeys } from "core/utils";

@@ -7,14 +7,9 @@ import { useBknd } from "ui/client/bknd";
 import { MantineNumberInput } from "ui/components/form/hook-form-mantine/MantineNumberInput";
 import { MantineRadio } from "ui/components/form/hook-form-mantine/MantineRadio";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
-import {
-   ModalBody,
-   ModalFooter,
-   type TCreateModalSchema,
-   type TFieldCreate,
-   useStepContext,
-} from "../../CreateModal";
-import { s, stringIdentifier } from "core/object/schema";
+import { ModalBody, ModalFooter, useStepContext } from "../../CreateModal";
+import type { TCreateModalSchema, TFieldCreate } from "../../schema";
+import { s, stringIdentifier } from "bknd/core";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = s.object({

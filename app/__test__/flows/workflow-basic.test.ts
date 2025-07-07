@@ -2,7 +2,7 @@
 import { describe, expect, test } from "bun:test";
 import { isEqual } from "lodash-es";
 import { _jsonp, withDisabledConsole } from "../../src/core/utils";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 import { Condition, ExecutionEvent, FetchTask, Flow, LogTask, Task } from "../../src/flows";
 
 /*beforeAll(disableConsoleLog);

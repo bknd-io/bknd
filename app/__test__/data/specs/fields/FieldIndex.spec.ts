@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Entity, EntityIndex, Field } from "../../../../src/data";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 class TestField extends Field {
    protected getSchema(): any {

@@ -5,7 +5,7 @@ import type {
    StrategyActions,
 } from "../Authenticator";
 import type { Hono } from "hono";
-import { type s, parse } from "core/object/schema";
+import { type s, parse } from "bknd/core";
 
 export type StrategyMode = "form" | "external";
 

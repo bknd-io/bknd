@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { Authenticator, type User, type UserPool } from "../../src/auth";
 import { cookieConfig } from "../../src/auth/authenticate/Authenticator";
 import { PasswordStrategy } from "../../src/auth/authenticate/strategies/PasswordStrategy";
-import { parse } from "core/object/schema";
+import { parse } from "bknd/core";
 
 /*class MemoryUserPool implements UserPool {
    constructor(private users: User[] = []) {}

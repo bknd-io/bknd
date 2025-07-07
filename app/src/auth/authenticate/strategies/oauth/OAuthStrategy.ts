@@ -6,7 +6,7 @@ import { getSignedCookie, setSignedCookie } from "hono/cookie";
 import * as oauth from "oauth4webapi";
 import * as issuers from "./issuers";
 import { Strategy } from "auth/authenticate/strategies/Strategy";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 type ConfiguredIssuers = keyof typeof issuers;
 type SupportedTypes = "oauth2" | "oidc";

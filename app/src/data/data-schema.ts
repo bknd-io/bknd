@@ -4,7 +4,7 @@ import { FieldClassMap } from "data/fields";
 import { RelationClassMap, RelationFieldClassMap } from "data/relations";
 import { entityConfigSchema, entityTypes } from "data/entities";
 import { primaryFieldTypes } from "./fields";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const FIELDS = {
    ...FieldClassMap,
@@ -18,6 +18,7 @@ export const RELATIONS = RelationClassMap;
 export const fieldsSchemaObject = objectTransform(FIELDS, (field, name) => {
    return s.strictObject(
       {
+         name: s.string().optional(), // @todo: verify, old schema wasn't strict (req in UI)
          type: s.literal(name),
          config: field.schema.optional(),
       },
@@ -32,9 +33,10 @@ export type TAppDataField = s.Static<typeof fieldsSchema>;
 export type TAppDataEntityFields = s.Static<typeof entityFields>;
 
 export const entitiesSchema = s.strictObject({
-   type: s.string({ enum: entityTypes, default: "regular", readOnly: true }),
-   config: entityConfigSchema.optional(),
-   fields: entityFields.optional(),
+   name: s.string().optional(), // @todo: verify, old schema wasn't strict (req in UI)
+   type: s.string({ enum: entityTypes, default: "regular" }),
+   config: entityConfigSchema,
+   fields: entityFields,
 });
 export type TAppDataEntity = s.Static<typeof entitiesSchema>;
 

@@ -3,7 +3,7 @@ import { $console } from "core/utils";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
 import { AuthException } from "auth/errors";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"] as const;
 

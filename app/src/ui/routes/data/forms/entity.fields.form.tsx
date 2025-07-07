@@ -21,7 +21,7 @@ import { dataFieldsUiSchema } from "../../settings/routes/data.settings";
 import { useRoutePathState } from "ui/hooks/use-route-path-state";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
-import { s, stringIdentifier } from "core/object/schema";
+import { s, stringIdentifier } from "bknd/core";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const fieldsSchemaObject = originalFieldsSchemaObject;

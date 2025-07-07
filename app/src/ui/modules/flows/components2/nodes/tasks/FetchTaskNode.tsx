@@ -2,7 +2,7 @@ import { Input, TextInput } from "@mantine/core";
 import { useToggle } from "@mantine/hooks";
 import { IconMinus, IconPlus, IconWorld } from "@tabler/icons-react";
 import type { Node, NodeProps } from "@xyflow/react";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 import { FetchTask } from "flows";
 import { useState } from "react";
 import { useForm } from "react-hook-form";

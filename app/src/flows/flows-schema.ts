@@ -1,6 +1,6 @@
 import { transformObject } from "core/utils";
 import { TaskMap, TriggerMap } from "flows";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const TASKS = {
    ...TaskMap,

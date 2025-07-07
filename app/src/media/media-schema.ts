@@ -1,7 +1,7 @@
 import { objectTransform } from "core/utils";
 import { Adapters } from "media";
 import { registries } from "modules/registries";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const ADAPTERS = {
    ...Adapters,

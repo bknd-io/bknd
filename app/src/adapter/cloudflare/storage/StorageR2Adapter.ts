@@ -2,7 +2,7 @@ import { registries } from "bknd";
 import { isDebug } from "bknd/core";
 import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
 import { getBindings } from "../bindings";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export function makeSchema(bindings: string[] = []) {
    return s.object(

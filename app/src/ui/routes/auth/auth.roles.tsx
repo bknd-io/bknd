@@ -6,7 +6,7 @@ import { Button } from "../../components/buttons/Button";
 import { CellValue, DataTable } from "../../components/table/DataTable";
 import * as AppShell from "../../layouts/AppShell/AppShell";
 import { routes, useNavigate } from "../../lib/routes";
-import { stringIdentifier } from "core/object/schema";
+import { stringIdentifier } from "bknd/core";
 
 export function AuthRolesList() {
    const [navigate] = useNavigate();

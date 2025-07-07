@@ -3,7 +3,7 @@ import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { baseFieldConfigSchema, Field, type TActionContext, type TRenderContext } from "./Field";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const enumFieldConfigSchema = s
    .strictObject({

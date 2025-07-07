@@ -4,7 +4,7 @@ import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const jsonSchemaFieldConfigSchema = s
    .strictObject({

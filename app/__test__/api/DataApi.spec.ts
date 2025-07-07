@@ -6,7 +6,7 @@ import { dataConfigSchema } from "../../src/data/data-schema";
 import * as proto from "../../src/data/prototype";
 import { schemaToEm } from "../helper";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
-import { parse } from "core/object/schema";
+import { parse } from "bknd/core";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
