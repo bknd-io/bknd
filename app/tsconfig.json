@@ -49,5 +49,5 @@
     "__test__",
     "e2e/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "dist/types", "**/*.d.ts"]
+  "exclude": ["node_modules", "dist", "dist/types", "**/*.d.ts", "**/dist/**"]
 }

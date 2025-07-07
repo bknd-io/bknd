@@ -1,16 +1,11 @@
 /// <reference types="@types/bun" />
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { registries } from "../../src";
 import { createApp } from "core/test/utils";
 import { mergeObject, randomString } from "../../src/core/utils";
 import type { TAppMediaConfig } from "../../src/media/media-schema";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 import { assetsPath, assetsTmpPath, disableConsoleLog, enableConsoleLog } from "../helper";
-
-beforeAll(() => {
-   registries.media.register("local", StorageLocalAdapter);
-});
 
 const path = `${assetsPath}/image.png`;
 
@@ -31,6 +26,8 @@ async function makeApp(mediaOverride: Partial<TAppMediaConfig> = {}) {
          ),
       },
    });
+
+   app.module.media.adapters.set("local", StorageLocalAdapter);
 
    await app.build();
    return app;

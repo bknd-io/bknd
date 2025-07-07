@@ -14,7 +14,6 @@ export {
 } from "./bindings";
 export { constants } from "./config";
 export { StorageR2Adapter } from "./storage/StorageR2Adapter";
-export { registries } from "bknd";
 
 // for compatibility with old code
 export function d1<DB extends D1Database | D1DatabaseSession = D1Database>(

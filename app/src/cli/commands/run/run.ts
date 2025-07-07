@@ -1,6 +1,6 @@
 import type { Config } from "@libsql/client/node";
 import type { App, CreateAppConfig } from "App";
-import { StorageLocalAdapter } from "adapter/node/storage";
+import { registerLocalMediaAdapter } from "adapter/node/storage";
 import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
 import { config } from "core";
@@ -56,13 +56,6 @@ export const run: CliCommand = (program) => {
       .action(action);
 };
 
-// automatically register local adapter
-// @todo: add back
-/* const local = StorageLocalAdapter.prototype.getName();
-if (!registries.media.has(local)) {
-   registries.media.register(local, StorageLocalAdapter);
-} */
-
 type MakeAppConfig = {
    connection?: CreateAppConfig["connection"];
    server?: { platform?: Platform };
@@ -71,10 +64,12 @@ type MakeAppConfig = {
 };
 
 async function makeApp(config: MakeAppConfig) {
-   return await createRuntimeApp({
+   const app = await createRuntimeApp({
       serveStatic: await serveStatic(config.server?.platform ?? "node"),
       ...config,
    });
+   registerLocalMediaAdapter(app);
+   return app;
 }
 
 export async function makeConfigApp(_config: CliBkndConfig, platform?: Platform) {

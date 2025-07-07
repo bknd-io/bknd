@@ -3,9 +3,6 @@ import { registerLocalMediaAdapter } from "bknd/adapter/node";
 import { boolean, em, entity, text } from "bknd/data";
 import { secureRandomString } from "bknd/utils";
 
-// since we're running in node, we can register the local media adapter
-const local = registerLocalMediaAdapter();
-
 // the em() function makes it easy to create an initial schema
 const schema = em({
    todos: entity("todos", {
@@ -41,10 +38,16 @@ export default {
       // ... and media
       media: {
          enabled: true,
-         adapter: local({
-            path: "./public/uploads",
-         }),
+         adapter: {
+            type: "local",
+            config: {
+               path: "./public/uploads",
+            },
+         },
       },
+   },
+   beforeBuild: (app) => {
+      registerLocalMediaAdapter(app);
    },
    options: {
       // the seed option is only executed if the database was empty

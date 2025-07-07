@@ -3,9 +3,6 @@ import type { ReactRouterBkndConfig } from "bknd/adapter/react-router";
 import { boolean, em, entity, text } from "bknd/data";
 import { secureRandomString } from "bknd/utils";
 
-// since we're running in node, we can register the local media adapter
-const local = registerLocalMediaAdapter();
-
 const schema = em({
    todos: entity("todos", {
       title: text(),
@@ -40,10 +37,17 @@ export default {
       // ... and media
       media: {
          enabled: true,
-         adapter: local({
-            path: "./public/uploads",
-         }),
+         adapter: {
+            type: "local",
+            config: {
+               path: "./public/uploads",
+            },
+         },
       },
+   },
+   beforeBuild: (app) => {
+      // since we're running in node, we can register the local media adapter
+      registerLocalMediaAdapter(app);
    },
    options: {
       // the seed option is only executed if the database was empty

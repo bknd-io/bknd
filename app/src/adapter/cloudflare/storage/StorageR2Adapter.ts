@@ -1,4 +1,4 @@
-import { registries } from "bknd";
+import type { App } from "bknd";
 import { isDebug } from "bknd/core";
 import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
 import { getBindings } from "../bindings";
@@ -13,10 +13,10 @@ export function makeSchema(bindings: string[] = []) {
    );
 }
 
-export function registerMedia(env: Record<string, any>) {
+export function registerMedia(app: App, env: Record<string, any>) {
    const r2_bindings = getBindings(env, "R2Bucket");
 
-   registries.media.register(
+   app.module.media.adapters.set(
       "r2",
       class extends StorageR2Adapter {
          constructor(private config: any) {

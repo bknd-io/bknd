@@ -4,13 +4,14 @@ import { $console } from "bknd/utils";
 import type { MiddlewareHandler } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import { Connection } from "bknd/data";
+import type { MaybePromise } from "core/types";
 
 export { Connection } from "bknd/data";
 
 export type BkndConfig<Args = any> = CreateAppConfig & {
    app?: CreateAppConfig | ((args: Args) => CreateAppConfig);
-   onBuilt?: (app: App) => Promise<void>;
-   beforeBuild?: (app: App) => Promise<void>;
+   onBuilt?: (app: App) => MaybePromise<void>;
+   beforeBuild?: (app: App) => MaybePromise<void>;
    buildConfig?: Parameters<App["build"]>[0];
 };
 

@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { registries } from "../../src";
 import { createApp } from "core/test/utils";
 import * as proto from "../../src/data/prototype";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
@@ -14,8 +13,8 @@ describe("repros", async () => {
     * There was an issue that AppData had old configs because of system entity "media"
     */
    test("registers media entity correctly to relate to it", async () => {
-      registries.media.register("local", StorageLocalAdapter);
       const app = createApp();
+      app.module.media.adapters.set("local", StorageLocalAdapter);
       await app.build();
 
       {

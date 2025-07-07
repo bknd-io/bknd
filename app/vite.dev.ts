@@ -1,16 +1,14 @@
 import { readFile } from "node:fs/promises";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { showRoutes } from "hono/dev";
-import { App, registries } from "./src";
-import { StorageLocalAdapter } from "./src/adapter/node";
+import { App } from "./src/App";
+import { StorageLocalAdapter } from "./src/adapter/node/storage/StorageLocalAdapter";
 import type { Connection } from "./src/data/connection/Connection";
 import { __bknd } from "modules/ModuleManager";
 import { nodeSqlite } from "./src/adapter/node/connection/NodeSqliteConnection";
 import { libsql } from "./src/data/connection/sqlite/libsql/LibsqlConnection";
 import { $console } from "core/utils";
 import { createClient } from "@libsql/client";
-
-registries.media.register("local", StorageLocalAdapter);
 
 const example = import.meta.env.VITE_EXAMPLE;
 
@@ -70,7 +68,7 @@ if (import.meta.env.VITE_DB_LIBSQL_URL) {
 } */
 
 let app: App;
-const recreate = import.meta.env.VITE_APP_FRESH === "1";
+const recreate = true; //import.meta.env.VITE_APP_FRESH === "1";
 const debugRerenders = import.meta.env.VITE_DEBUG_RERENDERS === "1";
 let firstStart = true;
 export default {
@@ -78,6 +76,13 @@ export default {
       if (!app || recreate) {
          app = App.create({
             connection,
+            options: {
+               manager: {
+                  onModulesCreated: (modules, ctx) => {
+                     modules.media.adapters.set("local", StorageLocalAdapter);
+                  },
+               },
+            },
          });
          app.emgr.onEvent(
             App.Events.AppBuiltEvent,

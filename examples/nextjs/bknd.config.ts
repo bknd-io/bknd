@@ -3,16 +3,6 @@ import { boolean, em, entity, text } from "bknd/data";
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
 import { secureRandomString } from "bknd/utils";
 
-// The local media adapter works well in development, and server based
-// deployments. However, on vercel or any other serverless deployments,
-// you shouldn't use a filesystem based media adapter.
-//
-// Additionally, if you run the bknd api on the "edge" runtime,
-// this would not work as well.
-//
-// For production, it is recommended to uncomment the line below.
-const local = registerLocalMediaAdapter();
-
 const schema = em({
    todos: entity("todos", {
       title: text(),
@@ -50,10 +40,22 @@ export default {
       // ... and media
       media: {
          enabled: true,
-         adapter: local({
-            path: "./public/uploads",
-         }),
+         adapter: {
+            type: "local",
+            config: {
+               path: "./public/uploads",
+            },
+         },
       },
+   },
+   beforeBuild: (app) => {
+      // The local media adapter works well in development, and server based
+      // deployments. However, on vercel or any other serverless deployments,
+      // you shouldn't use a filesystem based media adapter.
+      //
+      // Additionally, if you run the bknd api on the "edge" runtime,
+      // this would not work as well.
+      registerLocalMediaAdapter(app);
    },
    options: {
       // the seed option is only executed if the database was empty

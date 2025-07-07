@@ -38,7 +38,10 @@ export abstract class Module<Schema extends object = object> {
          overwritePaths: this.getOverwritePaths(),
          onBeforeUpdate: this.onBeforeUpdate.bind(this),
       });
+      this.init();
    }
+
+   init() {}
 
    static ctx_flags = {
       sync_required: false,

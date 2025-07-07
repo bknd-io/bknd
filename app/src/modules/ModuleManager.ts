@@ -80,6 +80,8 @@ export type ModuleManagerOptions = {
    seed?: (ctx: ModuleBuildContext) => Promise<void>;
    // called right after modules are built, before finish
    onModulesBuilt?: (ctx: ModuleBuildContext) => Promise<void>;
+   // called right after modules are created, before build
+   onModulesCreated?: (modules: Modules, ctx: ModuleBuildContext) => void;
    /** @deprecated */
    verbosity?: Verbosity;
 };
@@ -127,8 +129,16 @@ export class ModuleManagerConfigUpdateEvent<
 }> {
    static override slug = "mm-config-update";
 }
+export class ModuleManagerModulesCreatedEvent extends ModuleManagerEvent<{
+   modules: Modules;
+   ctx: ModuleBuildContext;
+}> {
+   static override slug = "mm-modules-created";
+}
+
 export const ModuleManagerEvents = {
    ModuleManagerConfigUpdateEvent,
+   ModuleManagerModulesCreatedEvent,
 };
 
 // @todo: cleanup old diffs on upgrade
@@ -195,6 +205,11 @@ export class ModuleManager {
 
             this.modules[key] = module;
          }
+
+         if (this.options?.onModulesCreated) {
+            this.options.onModulesCreated(this.modules, context);
+         }
+
          this.logger.log("modules created");
       } catch (e) {
          this.logger.log("failed to create modules", e);

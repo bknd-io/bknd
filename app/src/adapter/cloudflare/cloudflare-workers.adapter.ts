@@ -8,6 +8,7 @@ import { getCached } from "./modes/cached";
 import { getDurable } from "./modes/durable";
 import type { App } from "bknd";
 import { $console } from "core/utils";
+import { registerMedia } from "./storage/StorageR2Adapter";
 
 declare global {
    namespace Cloudflare {
@@ -33,7 +34,7 @@ export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> &
    keepAliveSeconds?: number;
    forceHttps?: boolean;
    manifest?: string;
-   registerMedia?: boolean | ((env: Env) => void);
+   registerMedia?: boolean;
 };
 
 export type Context<Env = CloudflareEnv> = {
@@ -99,7 +100,16 @@ export function serve<Env extends CloudflareEnv = CloudflareEnv>(
                throw new Error(`Unknown mode ${mode}`);
          }
 
+         registerMediaInternal(app, config, context);
          return app.fetch(request, env, ctx);
       },
    };
+}
+
+let media_registered: boolean = false;
+function registerMediaInternal(app: App, config: CloudflareBkndConfig<any>, ctx?: Context) {
+   if (!media_registered && config.registerMedia !== false) {
+      registerMedia(app, ctx?.env as any);
+      media_registered = true;
+   }
 }

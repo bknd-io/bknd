@@ -17,9 +17,8 @@ export async function createApp<Env = BunEnv>(
    opts?: RuntimeOptions,
 ) {
    const root = path.resolve(distPath ?? "./node_modules/bknd/dist", "static");
-   registerLocalMediaAdapter();
 
-   return await createRuntimeApp(
+   const app = await createRuntimeApp(
       {
          ...config,
          serveStatic: serveStatic({ root }),
@@ -27,6 +26,8 @@ export async function createApp<Env = BunEnv>(
       args ?? (process.env as Env),
       opts,
    );
+   registerLocalMediaAdapter(app);
+   return app;
 }
 
 export function createHandler<Env = BunEnv>(

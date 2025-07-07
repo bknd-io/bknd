@@ -2,7 +2,7 @@ import type { AppEntity, Constructor } from "core";
 import { $console, objectTransform } from "core/utils";
 import type { Entity, EntityManager } from "data";
 import { type FileUploadedEventData, Storage, type StorageAdapter, MediaPermissions } from "media";
-import { Module } from "modules/Module";
+import { Module, type ModuleBuildContext } from "modules/Module";
 import { type FieldSchema, em, entity } from "../data/prototype";
 import { MediaController } from "./api/MediaController";
 import { mediaConfigSchema, type TAppMediaConfig } from "./media-schema";
@@ -25,19 +25,16 @@ export class AppMedia extends Module<Required<TAppMediaConfig>> {
    private _storage?: Storage;
    adapters: Map<string, ClassThatImplements<StorageAdapter>> = new Map();
 
+   constructor(initial?: Partial<TAppMediaConfig>, _ctx?: ModuleBuildContext) {
+      super(initial, _ctx);
+      this.adapters.set("s3", StorageS3Adapter);
+      this.adapters.set("cloudinary", StorageCloudinaryAdapter);
+   }
+
    override async build() {
       if (!this.config.enabled) {
          this.setBuilt();
          return;
-      }
-
-      // register default adapters
-      if (!this.adapters.has("s3")) {
-         this.adapters.set("s3", StorageS3Adapter);
-      }
-
-      if (!this.adapters.has("cloudinary")) {
-         this.adapters.set("cloudinary", StorageCloudinaryAdapter);
       }
 
       if (!this.config.adapter) {

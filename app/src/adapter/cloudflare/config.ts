@@ -1,6 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { registerMedia } from "./storage/StorageR2Adapter";
 import { getBinding } from "./bindings";
 import { d1Sqlite } from "./connection/D1Connection";
 import { Connection } from "bknd/data";
@@ -88,20 +87,10 @@ export function d1SessionHelper(config: CloudflareBkndConfig<any>) {
    };
 }
 
-let media_registered: boolean = false;
 export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
    args?: CfMakeConfigArgs<Env>,
 ) {
-   if (!media_registered && config.registerMedia !== false) {
-      if (typeof config.registerMedia === "function") {
-         config.registerMedia(args?.env as any);
-      } else {
-         registerMedia(args?.env as any);
-      }
-      media_registered = true;
-   }
-
    const appConfig = makeAdapterConfig(config, args?.env);
 
    // if connection instance is given, don't do anything

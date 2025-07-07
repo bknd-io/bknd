@@ -29,8 +29,7 @@ export async function createApp<Env = NodeEnv>(
       console.warn("relativeDistPath is deprecated, please use distPath instead");
    }
 
-   registerLocalMediaAdapter();
-   return await createRuntimeApp(
+   const app = await createRuntimeApp(
       {
          ...config,
          serveStatic: serveStatic({ root }),
@@ -39,6 +38,8 @@ export async function createApp<Env = NodeEnv>(
       args ?? { env: process.env },
       opts,
    );
+   registerLocalMediaAdapter(app);
+   return app;
 }
 
 export function createHandler<Env = NodeEnv>(

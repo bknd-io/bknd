@@ -32,8 +32,7 @@ async function createApp<ViteEnv>(
    env: ViteEnv = {} as ViteEnv,
    opts: FrameworkOptions = {},
 ): Promise<App> {
-   registerLocalMediaAdapter();
-   return await createRuntimeApp(
+   const app = await createRuntimeApp(
       {
          ...config,
          adminOptions: config.adminOptions ?? {
@@ -49,6 +48,8 @@ async function createApp<ViteEnv>(
       env,
       opts,
    );
+   registerLocalMediaAdapter(app);
+   return app;
 }
 
 export function serve<ViteEnv>(

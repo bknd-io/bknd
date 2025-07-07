@@ -30,6 +30,7 @@ export type AppPluginConfig = {
    onServerInit?: (server: Hono<ServerEnv>) => MaybePromise<void>;
    onFirstBoot?: () => MaybePromise<void>;
    onBoot?: () => MaybePromise<void>;
+   onModulesCreated?: (modules: Modules) => void;
 };
 export type AppPlugin = (app: App) => AppPluginConfig;
 
@@ -113,6 +114,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
          onFirstBoot: this.onFirstBoot.bind(this),
          onServerInit: this.onServerInit.bind(this),
          onModulesBuilt: this.onModulesBuilt.bind(this),
+         onModulesCreated: this.onModulesCreated.bind(this),
       });
       this.modules.ctx().emgr.registerEvents(AppEvents);
    }
@@ -324,6 +326,11 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
             }
          }
       }
+   }
+
+   protected async onModulesCreated(modules: Modules, ctx: ModuleBuildContext) {
+      await this.runPlugins("onModulesCreated", modules, ctx);
+      this.options?.manager?.onModulesCreated?.(modules, ctx);
    }
 }
 
