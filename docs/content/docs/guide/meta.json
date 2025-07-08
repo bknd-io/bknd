@@ -1,6 +1,8 @@
 {
   "title": "User Guide",
   "root": true,
+  "description": "User Guide description",
+  "icon": "Bolt",
   "pages": [
     "---User Guide---",
     "./(setup)/introduction",

@@ -1,6 +1,8 @@
 {
   "title": "Documentation",
   "root": true,
+  "description": "Documentations description",
+  "icon": "Book",
   "slug": "",
   "pages": [
     "---Getting Started---",

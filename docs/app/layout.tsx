@@ -1,5 +1,5 @@
 import "./global.css";
-import { DocsLayout } from "fumadocs-ui/layouts/notebook";
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { baseOptions } from "./layout.config";
 import { source } from "@/lib/source";
 import { GithubInfo } from "fumadocs-ui/components/github-info";
@@ -24,27 +24,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Provider>
           <DocsLayout
             tree={source.pageTree}
-            nav={{ ...baseOptions.nav, mode: "top" }}
+            // nav={{ ...baseOptions.nav, mode: "top" }}
             // or
-            // nav={{ ...baseOptions.nav }}
-            tabMode="navbar"
-            links={[
-              {
-                text: "Discord",
-                url: "https://discord.gg/952SFk8Tb8",
-              },
-              {
-                type: "custom",
-                children: (
-                  <GithubInfo
-                    owner="bknd-io"
-                    repo="bknd"
-                    className="lg:-mx-2"
-                    token={githubToken}
-                  />
-                ),
-              },
-            ]}
+            nav={{ ...baseOptions.nav }}
           >
             {children}
           </DocsLayout>

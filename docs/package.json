@@ -36,7 +36,7 @@
     "fumadocs-docgen": "^2.0.1",
     "postcss": "^8.5.4",
     "rimraf": "^6.0.1",
-    "tailwindcss": "^4.1.8",
+    "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3"
   },
   "trustedDependencies": [
