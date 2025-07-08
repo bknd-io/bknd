@@ -2,7 +2,7 @@ import "./global.css";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { baseOptions } from "./layout.config";
 import { source } from "@/lib/source";
-import { GithubInfo } from "fumadocs-ui/components/github-info";
+// import { GithubInfo } from "fumadocs-ui/components/github-info";
 import type { ReactNode } from "react";
 import { Provider } from "./provider";
 
