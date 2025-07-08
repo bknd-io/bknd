@@ -128,8 +128,16 @@ export class ModuleManagerConfigUpdateEvent<
 }> {
    static override slug = "mm-config-update";
 }
+
+export class ModuleManagerConfigDiffEvent extends ModuleManagerEvent<{
+   diffs: $diff.DiffEntry[];
+}> {
+   static override slug = "mm-config-diff";
+}
+
 export const ModuleManagerEvents = {
    ModuleManagerConfigUpdateEvent,
+   ModuleManagerConfigDiffEvent,
 };
 
 // @todo: cleanup old diffs on upgrade
@@ -348,6 +356,13 @@ export class ModuleManager {
             if (diffs.length > 0) {
                // validate diffs, it'll throw on invalid
                this.validateDiffs(diffs);
+
+               await this.emgr.emit(
+                  new ModuleManagerConfigDiffEvent({
+                     ctx: this.ctx(),
+                     diffs: $diff.clone(diffs),
+                  }),
+               );
 
                const date = new Date();
                // store diff
