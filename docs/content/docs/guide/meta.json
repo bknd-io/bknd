@@ -1,7 +1,7 @@
 {
   "title": "User Guide",
   "root": true,
-  "description": "User Guide description",
+  "description": "Instructions for building with bknd",
   "icon": "Bolt",
   "pages": [
     "---User Guide---",

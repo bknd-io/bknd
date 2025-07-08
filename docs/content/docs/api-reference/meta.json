@@ -1,6 +1,6 @@
 {
   "title": "API Reference",
-  "description": "API Reference description",
+  "description": "Specs for endpoints and options",
   "icon": "Webhook",
   "root": true,
   "pages": ["introduction", "..."]

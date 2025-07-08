@@ -1,7 +1,7 @@
 {
   "title": "Documentation",
   "root": true,
-  "description": "Documentations description",
+  "description": "Technical reference and integration",
   "icon": "Book",
   "slug": "",
   "pages": [
