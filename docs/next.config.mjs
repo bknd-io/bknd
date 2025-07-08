@@ -1,6 +1,7 @@
 import { createMDX } from "fumadocs-mdx/next";
 import { redirectsConfig } from "./redirects.config.mjs";
 import { rewritesConfig } from "./rewrites.config.mjs";
+import path from "path";
 
 const withMDX = createMDX();
 
@@ -10,6 +11,12 @@ const config = {
   trailingSlash: true,
   reactStrictMode: true,
   serverExternalPackages: ["typescript", "twoslash"],
+
+  webpack(config) {
+    config.resolve.alias["@/bknd"] = path.resolve(__dirname, "../app/src");
+    config.resolve.alias["@"] = path.resolve(__dirname);
+    return config;
+  },
 };
 
 if (process.env.NODE_ENV === "development") {
