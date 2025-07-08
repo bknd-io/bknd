@@ -16,10 +16,16 @@ import { Icon } from "@iconify/react";
 
 import * as Twoslash from "fumadocs-twoslash/ui";
 
+import { createGenerator } from "fumadocs-typescript";
+import { AutoTypeTable } from "fumadocs-typescript/ui";
+
+const generator = createGenerator({
+  tsconfigPath: "../tsconfig.json",
+});
+
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultMdxComponents,
-    APIPage: (props) => <APIPage {...openapi.getAPIPageProps(props)} />,
     ...TabsComponents,
     ...FilesComponents,
     ...Twoslash,
@@ -31,6 +37,10 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     CalloutDanger,
     StackBlitz,
     Icon,
+    APIPage: (props) => <APIPage {...openapi.getAPIPageProps(props)} />,
+    AutoTypeTable: (props) => (
+      <AutoTypeTable {...props} generator={generator} />
+    ),
     ...components,
   };
 }
