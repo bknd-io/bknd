@@ -27,6 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             // nav={{ ...baseOptions.nav, mode: "top" }}
             // or
             nav={{ ...baseOptions.nav }}
+            githubUrl="https://github.com/bknd-io/bknd"
           >
             {children}
           </DocsLayout>
