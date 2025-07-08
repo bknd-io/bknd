@@ -208,11 +208,11 @@ const app = createApp({ connection });
 
 To provide an initial database structure, you can pass `initialConfig` to the creation of an app. This will only be used if there isn't an existing configuration found in the database given. Here is a quick example:
 
-<CalloutInfo>
+<Callout type="info">
   The initial structure is only respected if the database is empty! If you made
   updates, ensure to delete the database first, or perform updates through the
   Admin UI.
-</CalloutInfo>
+</Callout>
 
 ```typescript
 import { createApp } from "bknd";
@@ -269,11 +269,11 @@ const app = createApp({
 
 Note that we didn't add relational fields directly to the entity, but instead defined them afterwards. That is because the relations are managed outside the entity scope to have an unified expierence for all kinds of relations (e.g. many-to-many).
 
-<CalloutInfo>
+<Callout type="info">
   Defined relations are currently not part of the produced types for the
   structure. We're working on that, but in the meantime, you can define them
   manually.
-</CalloutInfo>
+</Callout>
 
 ### Type completion
 
@@ -311,10 +311,10 @@ The type completion is available for the API as well as all provided [React hook
 To seed your database with initial data, you can pass a `seed` function to the configuration. It
 provides the `ModuleBuildContext` as the first argument.
 
-<CalloutInfo>
+<Callout type="info">
   Note that the seed function will only be executed on app's first boot. If a
   configuration already exists in the database, it will not be executed.
-</CalloutInfo>
+</Callout>
 
 ```typescript
 import { createApp, type ModuleBuildContext } from "bknd";
