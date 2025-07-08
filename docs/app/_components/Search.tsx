@@ -16,8 +16,7 @@ import {
 } from "fumadocs-ui/components/dialog/search";
 import { useI18n } from "fumadocs-ui/contexts/i18n";
 
-// @ts-ignore
-function initOrama(): any {
+function initOrama() {
   return create({
     schema: { _: "string" },
     // https://docs.orama.com/open-source/supported-languages

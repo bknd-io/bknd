@@ -17,7 +17,6 @@
     "format": "bunx biome format --write ./app",
     "lint": "bunx biome lint --changed ./app"
   },
-  "dependencies": {},
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@clack/prompts": "^0.10.0",
@@ -47,3 +46,4 @@
     "packages/*"
   ]
 }
+
