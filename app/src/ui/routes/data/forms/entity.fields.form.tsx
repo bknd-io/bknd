@@ -23,6 +23,7 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
 import { s, stringIdentifier } from "bknd/core";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import ErrorBoundary from "ui/components/display/ErrorBoundary";
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
 const fieldsSchema = s.anyOf(Object.values(fieldsSchemaObject));
@@ -453,19 +454,17 @@ function EntityField({
                   </Tabs.Panel>
                   <Tabs.Panel value="specific">
                      <div className="flex flex-col gap-2 pt-3 pb-1">
-                        <JsonSchemaForm
-                           key={type}
-                           schema={specificFieldSchema(type as any)}
-                           formData={specificData}
-                           uiSchema={dataFieldsUiSchema.config}
-                           className="legacy hide-required-mark fieldset-alternative mute-root"
-                           onChange={(value) => {
-                              setValue(`${prefix}.config`, {
-                                 ...getValues([`fields.${index}.config`])[0],
-                                 ...value,
-                              });
-                           }}
-                        />
+                        <ErrorBoundary fallback={`Error rendering JSON Schema for ${type}`}>
+                           <SpecificForm
+                              field={field}
+                              onChange={(value) => {
+                                 setValue(`${prefix}.config`, {
+                                    ...getValues([`fields.${index}.config`])[0],
+                                    ...value,
+                                 });
+                              }}
+                           />
+                        </ErrorBoundary>
                      </div>
                   </Tabs.Panel>
                   <Tabs.Panel value="code">
@@ -490,3 +489,25 @@ function EntityField({
       </div>
    );
 }
+
+const SpecificForm = ({
+   field,
+   onChange,
+}: {
+   field: FieldArrayWithId<TFieldsFormSchema, "fields", "id">;
+   onChange: (value: any) => void;
+}) => {
+   const type = field.field.type;
+   const specificData = omit(field.field.config, commonProps);
+
+   return (
+      <JsonSchemaForm
+         key={type}
+         schema={specificFieldSchema(type as any)?.toJSON()}
+         formData={specificData}
+         uiSchema={dataFieldsUiSchema.config}
+         className="legacy hide-required-mark fieldset-alternative mute-root"
+         onChange={onChange}
+      />
+   );
+};
