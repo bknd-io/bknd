@@ -1,20 +1,11 @@
 import type { AppAuthOAuthStrategy, AppAuthSchema } from "auth/auth-schema";
 import clsx from "clsx";
-import { Form } from "json-schema-form-react";
+import { NativeForm } from "ui/components/form/native-form/NativeForm";
 import { transform } from "lodash-es";
 import type { ComponentPropsWithoutRef } from "react";
 import { Button } from "ui/components/buttons/Button";
 import { Group, Input, Password, Label } from "ui/components/form/Formy/components";
 import { SocialLink } from "./SocialLink";
-import type { Validator } from "json-schema-form-react";
-import { s } from "bknd/core";
-import type { ErrorDetail } from "jsonv-ts";
-
-class JsonvTsValidator implements Validator<ErrorDetail> {
-   async validate(schema: s.Schema, data: any) {
-      return schema.validate(data).errors;
-   }
-}
 
 export type LoginFormProps = Omit<ComponentPropsWithoutRef<"form">, "onSubmit" | "action"> & {
    className?: string;
@@ -24,16 +15,6 @@ export type LoginFormProps = Omit<ComponentPropsWithoutRef<"form">, "onSubmit" |
    auth?: Partial<Pick<AppAuthSchema, "basepath" | "strategies">>;
    buttonLabel?: string;
 };
-
-const validator = new JsonvTsValidator();
-const schema = s.strictObject({
-   email: s.string({
-      pattern: "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
-   }),
-   password: s.string({
-      minLength: 8, // @todo: this should be configurable
-   }),
-});
 
 export function AuthForm({
    formData,
@@ -79,38 +60,31 @@ export function AuthForm({
                <Or />
             </>
          )}
-         <Form
+         <NativeForm
             method={method}
             action={password.action}
             {...(props as any)}
-            schema={schema}
-            validator={validator}
-            validationMode="change"
+            validateOn="change"
             className={clsx("flex flex-col gap-3 w-full", className)}
          >
-            {({ errors, submitting }) => (
-               <>
-                  <Group>
-                     <Label htmlFor="email">Email address</Label>
-                     <Input type="email" name="email" />
-                  </Group>
-                  <Group>
-                     <Label htmlFor="password">Password</Label>
-                     <Password name="password" />
-                  </Group>
+            <Group>
+               <Label htmlFor="email">Email address</Label>
+               <Input type="email" name="email" required />
+            </Group>
+            <Group>
+               <Label htmlFor="password">Password</Label>
+               <Password name="password" required minLength={8} />
+            </Group>
 
-                  <Button
-                     type="submit"
-                     variant="primary"
-                     size="large"
-                     className="w-full mt-2 justify-center"
-                     disabled={errors.length > 0 || submitting}
-                  >
-                     {buttonLabel}
-                  </Button>
-               </>
-            )}
-         </Form>
+            <Button
+               type="submit"
+               variant="primary"
+               size="large"
+               className="w-full mt-2 justify-center"
+            >
+               {buttonLabel}
+            </Button>
+         </NativeForm>
       </div>
    );
 }
