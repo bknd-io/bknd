@@ -5,7 +5,7 @@
 import { Suspense, lazy } from "react";
 import { getUserApi } from "../../lib/waku/server";
 
-const AdminComponent = lazy(() => import("../../bknd/admin"));
+const AdminComponent = lazy(() => import("./_components/AdminLoader"));
 
 export default async function HomePage() {
    const api = await getUserApi({ verify: true });

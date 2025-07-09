@@ -21,11 +21,9 @@ declare module "bknd/core" {
 
 export default {
    // we can use any libsql config, and if omitted, uses in-memory
-   app: (env) => ({
-      connection: {
-         url: env?.DB_URL ?? "file:data.db",
-      },
-   }),
+   connection: {
+      url: process.env.DB_URL ?? "file:data.db",
+   },
    // an initial config is only applied if the database is empty
    initialConfig: {
       data: schema.toJSON(),
@@ -33,7 +31,7 @@ export default {
       auth: {
          enabled: true,
          jwt: {
-            issuer: "bknd-remix-example",
+            issuer: "bknd-waku-example",
             secret: secureRandomString(64),
          },
       },

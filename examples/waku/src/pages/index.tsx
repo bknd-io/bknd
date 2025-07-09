@@ -1,16 +1,14 @@
 import { Link } from "waku";
 
 import { Counter } from "../components/counter";
-import { getUserApi, rerender } from "../lib/waku/server";
+import { rerender, getUserApi } from "../lib/waku/server";
 
 async function toggleTodo(todo: any, path: string) {
    "use server";
-   console.log("toggleTodo", todo, path);
    const api = await getUserApi();
    await api.data.updateOne("todos", todo.id, {
       done: !todo.done,
    });
-   console.log("rerender");
    rerender(path);
 }
 

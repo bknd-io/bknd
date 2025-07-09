@@ -1,5 +1,5 @@
 import { createFrameworkApp } from "bknd/adapter";
-import config from "../../bknd.config";
+import config from "../bknd.config";
 
 export async function getApp() {
    return await createFrameworkApp(config, process.env, {
