@@ -71,7 +71,7 @@
         "dotenv": "^16.4.7",
         "jotai": "^2.12.2",
         "jsdom": "^26.0.0",
-        "jsonv-ts": "^0.2.3",
+        "jsonv-ts": "^0.2.4",
         "kysely-d1": "^0.3.0",
         "kysely-generic-sqlite": "^1.2.1",
         "libsql-stateless-easy": "^1.8.0",
@@ -2496,7 +2496,7 @@
 
     "jsonpointer": ["jsonpointer@5.0.1", "", {}, "sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ=="],
 
-    "jsonv-ts": ["jsonv-ts@0.2.3", "", { "optionalDependencies": { "hono": "*" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-WvRQ/Eu9DNgohr/WbfzMS1kmvAJVDJWOYcImwRMee2RXNfRGcXgP8PDk0k1gaeb4OPzvJnFrbFNY2tZq3BvXEQ=="],
+    "jsonv-ts": ["jsonv-ts@0.2.4", "", { "optionalDependencies": { "hono": "*" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-GCbLh0udtsIvDeiLR09PGZo/roaTxxxxEYBqCjoMzfj8xvq5kV9x7uvMI9Qs6Ff9rboL5anOP4xKfAmZHAwJqA=="],
 
     "jsonwebtoken": ["jsonwebtoken@9.0.2", "", { "dependencies": { "jws": "^3.2.2", "lodash.includes": "^4.3.0", "lodash.isboolean": "^3.0.3", "lodash.isinteger": "^4.0.4", "lodash.isnumber": "^3.0.3", "lodash.isplainobject": "^4.0.6", "lodash.isstring": "^4.0.1", "lodash.once": "^4.0.0", "ms": "^2.1.1", "semver": "^7.5.4" } }, "sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ=="],
 

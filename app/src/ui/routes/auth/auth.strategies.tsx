@@ -76,7 +76,7 @@ function AuthStrategiesListInternal() {
 
    return (
       <Form
-         schema={schema.toJSON()}
+         schema={schema as any}
          initialValues={config}
          onSubmit={handleSubmit}
          options={formOptions}
