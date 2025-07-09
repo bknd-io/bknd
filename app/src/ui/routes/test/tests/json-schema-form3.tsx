@@ -73,7 +73,7 @@ export default function JsonSchemaForm3() {
    return (
       <Scrollable>
          <div className="flex flex-col p-3">
-            <Form schema={_schema.auth} options={formOptions} />
+            <Form schema={_schema.auth.toJSON()} options={formOptions} />
 
             {/*<Form
                onChange={(data) => console.log("change", data)}

@@ -70,7 +70,7 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
             connection = config.connection;
          } else {
             const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
-            const conf = config.connection ?? { url: ":memory:" };
+            const conf = appConfig.connection ?? { url: ":memory:" };
             connection = sqlite(conf);
             $console.info(`Using ${connection.name} connection`, conf.url);
          }

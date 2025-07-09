@@ -8,7 +8,7 @@ import {
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec } from "core/object/schema";
+import { jsc, s, describeRoute, schemaToSpec } from "bknd/core";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
 import { omitKeys } from "core/utils";
@@ -73,10 +73,12 @@ export class DataController extends Controller {
          }),
          jsc(
             "query",
-            s.partialObject({
-               force: s.boolean(),
-               drop: s.boolean(),
-            }),
+            s
+               .object({
+                  force: s.boolean(),
+                  drop: s.boolean(),
+               })
+               .partial(),
          ),
          async (c) => {
             const { force, drop } = c.req.valid("query");
@@ -257,12 +259,14 @@ export class DataController extends Controller {
        * Read endpoints
        */
       // read many
-      const saveRepoQuery = s.partialObject({
-         ...omitKeys(repoQuery.properties, ["with"]),
-         sort: s.string({ default: "id" }),
-         select: s.array(s.string()),
-         join: s.array(s.string()),
-      });
+      const saveRepoQuery = s
+         .object({
+            ...omitKeys(repoQuery.properties, ["with"]),
+            sort: s.string({ default: "id" }),
+            select: s.array(s.string()),
+            join: s.array(s.string()),
+         })
+         .partial();
       const saveRepoQueryParams = (pick: string[] = Object.keys(repoQuery.properties)) => [
          ...(schemaToSpec(saveRepoQuery, "query").parameters?.filter(
             // @ts-ignore
@@ -355,10 +359,12 @@ export class DataController extends Controller {
       );
 
       // func query
-      const fnQuery = s.partialObject({
-         ...saveRepoQuery.properties,
-         with: s.object({}),
-      });
+      const fnQuery = s
+         .object({
+            ...saveRepoQuery.properties,
+            with: s.object({}),
+         })
+         .partial();
       hono.post(
          "/:entity/query",
          describeRoute({

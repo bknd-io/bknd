@@ -14,7 +14,7 @@ import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate } from "ui/lib/routes";
 import { useCreateUserModal } from "ui/modules/auth/hooks/use-create-user-modal";
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 import { pick } from "core/utils/objects";
 
 const searchSchema = s.partialObject({

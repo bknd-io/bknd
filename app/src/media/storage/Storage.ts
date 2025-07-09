@@ -37,7 +37,8 @@ export class Storage implements EmitsEvents {
       this.#adapter = adapter;
       this.config = {
          ...config,
-         body_max_size: config.body_max_size,
+         body_max_size:
+            config.body_max_size && config.body_max_size > 0 ? config.body_max_size : undefined,
       };
 
       this.emgr = emgr ?? new EventManager();

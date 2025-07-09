@@ -46,7 +46,7 @@ export const flowStateAtom = atom<TFlowState>({
 
 const FlowCanvasContext = createContext<FlowContextType>(undefined!);
 
-const DEFAULT_FLOW = { trigger: {}, tasks: {}, connections: {} };
+const DEFAULT_FLOW: TAppFlowSchema = { trigger: { type: "manual" }, tasks: {}, connections: {} };
 export function FlowCanvasProvider({ children, name }: { children: any; name?: string }) {
    //const [dirty, setDirty] = useState(false);
    const setFlowState = useSetAtom(flowStateAtom);
@@ -71,7 +71,7 @@ export function FlowCanvasProvider({ children, name }: { children: any; name?: s
          update: async (trigger: TAppFlowTriggerSchema | any) => {
             console.log("update trigger", trigger);
             setFlowState((state) => {
-               const flow = state.flow || DEFAULT_FLOW;
+               const flow = state.flow || (DEFAULT_FLOW as any);
                return { ...state, dirty: true, flow: { ...flow, trigger } };
             });
             //return s.actions.patch("flows", `flows.flows.${name}`, { trigger });

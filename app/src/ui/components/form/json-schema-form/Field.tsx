@@ -64,7 +64,7 @@ const FieldImpl = ({
    const id = `${name}-${useId()}`;
    const required = typeof _required === "boolean" ? _required : ctx.required;
 
-   if (!isTypeSchema(schema))
+   if (!schema)
       return (
          <Pre>
             [Field] {path} has no schema ({JSON.stringify(schema)})
