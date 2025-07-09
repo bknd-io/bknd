@@ -225,7 +225,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
 
       await addFlashMessage(c, String(error), "error");
 
-      const referer = this.getSafeUrl(c, opts?.redirect ?? c.req.header("Referer") ?? "/");
+      const referer = this.getSafeUrl(c, c.req.header("Referer") ?? "/");
       return c.redirect(referer);
    }
 
