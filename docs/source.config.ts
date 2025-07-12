@@ -30,8 +30,8 @@ export default defineConfig({
       experimentalJSEngine: true,
       langs: ["ts", "js", "html", "tsx", "mdx"],
       themes: {
-        light: "github-light",
-        dark: "github-dark",
+        light: "light-plus",
+        dark: "dark-plus",
       },
       transformers: [
         ...(rehypeCodeDefaultOptions.transformers ?? []),
