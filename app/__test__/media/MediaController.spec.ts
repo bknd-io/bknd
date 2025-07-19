@@ -50,6 +50,8 @@ describe("MediaController", () => {
 
       const file = Bun.file(path);
       const name = makeName("png");
+      console.log("test");
+      console.log("files:assets", await readdir(assetsPath, { recursive: true }));
       const res = await app.server.request("/api/media/upload/" + name, {
          method: "POST",
          body: file,
