@@ -13,7 +13,7 @@ import {
 import { useBknd } from "ui/client/bknd";
 import type { TSchemaActions } from "ui/client/schema/actions";
 import { bkndModals } from "ui/modals";
-import { s, parse, InvalidSchemaError } from "core/object/schema";
+import { s, parse, InvalidSchemaError } from "bknd/core";
 
 export function useBkndData() {
    const { config, app, schema, actions: bkndActions } = useBknd();

@@ -1,6 +1,6 @@
 import { Flow } from "../../flows/Flow";
 import { Task, dynamic } from "../Task";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export class SubFlowTask<Output extends Record<string, any>> extends Task<
    typeof SubFlowTask.schema,

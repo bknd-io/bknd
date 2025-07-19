@@ -5,7 +5,7 @@ import type { Connection, EntityManager } from "data";
 import type { Hono } from "hono";
 import type { ServerEnv } from "modules/Controller";
 import type { ModuleHelper } from "./ModuleHelper";
-import type { s } from "core/object/schema";
+import type { s } from "bknd/core";
 
 type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 

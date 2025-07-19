@@ -1,5 +1,5 @@
 import type { JSONSchema7 } from "json-schema";
-import type { s } from "core/object/schema";
+import type { s } from "bknd/core";
 import { omitKeys } from "core/utils";
 
 export function extractSchema<

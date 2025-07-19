@@ -20,7 +20,8 @@ import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
 import { ModuleHelper } from "./ModuleHelper";
-import { s, mark, stripMark } from "core/object/schema";
+import { s } from "bknd/core";
+import { mark, stripMark } from "bknd/core";
 
 export type { ModuleBuildContext };
 

@@ -1,7 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { App } from "App";
-import { datetimeStringLocal, datetimeStringUTC, getTimezone, getTimezoneOffset, $console } from "core/utils";
+import {
+   datetimeStringLocal,
+   datetimeStringUTC,
+   getTimezone,
+   getTimezoneOffset,
+   $console,
+} from "core/utils";
 import { getRuntimeKey } from "core/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
@@ -14,7 +20,7 @@ import {
    type ModuleKey,
 } from "modules/ModuleManager";
 import * as SystemPermissions from "modules/permissions";
-import { jsc, s, describeRoute, InvalidSchemaError } from "core/object/schema";
+import { jsc, s, describeRoute, InvalidSchemaError } from "bknd/core";
 import { getVersion } from "core/env";
 import { SecretSchema } from "core/object/schema/secret";
 

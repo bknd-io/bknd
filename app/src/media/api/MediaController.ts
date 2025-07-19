@@ -6,7 +6,7 @@ import { DataPermissions } from "data";
 import { Controller } from "modules/Controller";
 import type { AppMedia } from "../AppMedia";
 import { MediaField } from "../MediaField";
-import { jsc, s, describeRoute } from "core/object/schema";
+import { jsc, s, describeRoute } from "bknd/core";
 
 export class MediaController extends Controller {
    constructor(private readonly media: AppMedia) {

@@ -10,8 +10,9 @@ import { MantineNumberInput } from "ui/components/form/hook-form-mantine/Mantine
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 import { useStepContext } from "ui/components/steps/Steps";
 import { useEvent } from "ui/hooks/use-event";
-import { ModalBody, ModalFooter, type TCreateModalSchema } from "./CreateModal";
-import { s, stringIdentifier } from "core/object/schema";
+import { ModalBody, ModalFooter } from "./CreateModal";
+import type { TCreateModalSchema } from "./schema";
+import { s, stringIdentifier } from "bknd/core";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const Relations: {

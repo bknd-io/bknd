@@ -1,5 +1,5 @@
 import { Task, dynamic } from "../Task";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 const FetchMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 

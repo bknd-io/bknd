@@ -2,7 +2,7 @@ import type { EntityManager } from "data";
 import { omitKeys } from "core/utils";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, baseFieldConfigSchema } from "./Field";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const textFieldConfigSchema = s
    .strictObject({

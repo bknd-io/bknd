@@ -8,7 +8,7 @@ import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField, type RelationFieldBaseConfig } from "./RelationField";
 import type { MutationInstructionResponse } from "./RelationMutator";
 import { type RelationType, RelationTypes } from "./relation-types";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 /**
  * Source entity receives the mapping field

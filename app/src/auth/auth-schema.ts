@@ -1,7 +1,7 @@
 import { cookieConfig, jwtConfig } from "auth/authenticate/Authenticator";
 import { CustomOAuthStrategy, OAuthStrategy, PasswordStrategy } from "auth/authenticate/strategies";
 import { objectTransform } from "core/utils";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const Strategies = {
    password: {

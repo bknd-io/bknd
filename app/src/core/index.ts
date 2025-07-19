@@ -27,6 +27,10 @@ export { Registry, type Constructor } from "./registry/Registry";
 export { getFlashMessage } from "./server/flash";
 export {
    s,
+   stripMark,
+   mark,
+   stringIdentifier,
+   secret,
    parse,
    jsc,
    describeRoute,

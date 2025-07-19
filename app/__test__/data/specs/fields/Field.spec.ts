@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { baseFieldConfigSchema, Field } from "../../../../src/data/fields/Field";
 import { fieldTestSuite } from "data/fields/field-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
-import { stripMark } from "core/object/schema";
+import { stripMark } from "bknd/core";
 
 describe("[data] Field", async () => {
    class FieldSpec extends Field {

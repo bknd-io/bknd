@@ -1,15 +1,9 @@
 import type { IconType } from "react-icons";
 import { TbBox, TbCirclesRelation, TbPhoto } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
-import {
-   type ModalActions,
-   ModalBody,
-   ModalFooter,
-   type TCreateModalSchema,
-   type TSchemaAction,
-   useStepContext,
-} from "./CreateModal";
+import { ModalBody, ModalFooter, useStepContext } from "./CreateModal";
 import Templates from "./templates/register";
+import type { TCreateModalSchema, TSchemaAction } from "./schema";
 
 export function StepSelect() {
    const { nextStep, stepBack, state, path, setState } = useStepContext<TCreateModalSchema>();

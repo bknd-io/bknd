@@ -1,6 +1,5 @@
 import type { ModalProps } from "@mantine/core";
 import type { ContextModalProps } from "@mantine/modals";
-import { entitiesSchema, fieldsSchema, relationsSchema } from "data/data-schema";
 import { useState } from "react";
 import { type Modal2Ref, ModalBody, ModalFooter, ModalTitle } from "ui/components/modal/Modal2";
 import { Step, Steps, useStepContext } from "ui/components/steps/Steps";
@@ -10,51 +9,9 @@ import { StepEntityFields } from "./step.entity.fields";
 import { StepRelation } from "./step.relation";
 import { StepSelect } from "./step.select";
 import Templates from "./templates/register";
-import { s } from "core/object/schema";
+import type { TCreateModalSchema } from "./schema";
 
 export type CreateModalRef = Modal2Ref;
-
-export const ModalActions = ["entity", "relation", "media"] as const;
-
-export const entitySchema = s.object({
-   name: s.string(),
-   ...entitiesSchema.properties,
-});
-
-// @todo: this union is not fully working, just "string"
-const schemaAction = s.anyOf([
-   s.string({ enum: ["entity", "relation", "media"] }),
-   s.string({ pattern: "^template-" }),
-]);
-export type TSchemaAction = s.Static<typeof schemaAction>;
-
-const createFieldSchema = s.object({
-   entity: s.string(),
-   name: s.string(),
-   field: s.array(fieldsSchema),
-});
-export type TFieldCreate = s.Static<typeof createFieldSchema>;
-
-const createModalSchema = s.strictObject({
-   action: schemaAction,
-   initial: s.any().optional(),
-   entities: s
-      .object({
-         create: s.array(entitySchema).optional(),
-      })
-      .optional(),
-   relations: s
-      .object({
-         create: s.array(s.anyOf(relationsSchema)).optional(),
-      })
-      .optional(),
-   fields: s
-      .object({
-         create: s.array(createFieldSchema).optional(),
-      })
-      .optional(),
-});
-export type TCreateModalSchema = s.Static<typeof createModalSchema>;
 
 export function CreateModal({
    context,
@@ -107,4 +64,4 @@ CreateModal.modalProps = {
    padding: 0,
 } satisfies Partial<ModalProps>;
 
-export { ModalBody, ModalFooter, ModalTitle, useStepContext, relationsSchema };
+export { ModalBody, ModalFooter, ModalTitle, useStepContext };

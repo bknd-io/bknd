@@ -5,7 +5,7 @@ import { Module } from "modules/Module";
 import { type ConfigTable, getDefaultConfig, ModuleManager } from "modules/ModuleManager";
 import { CURRENT_VERSION, TABLE_NAME } from "modules/migrations";
 import { getDummyConnection } from "../helper";
-import { s, stripMark } from "core/object/schema";
+import { s, stripMark } from "bknd/core";
 
 describe("ModuleManager", async () => {
    test("s1: no config, no build", async () => {

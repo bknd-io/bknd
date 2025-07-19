@@ -2,7 +2,7 @@ import { config } from "core";
 import { omitKeys, uuidv7 } from "core/utils";
 import { Field, baseFieldConfigSchema } from "./Field";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export const primaryFieldTypes = ["integer", "uuid"] as const;
 export type TPrimaryFieldFormat = (typeof primaryFieldTypes)[number];

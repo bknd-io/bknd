@@ -3,7 +3,7 @@ import { type Context, type Env, Hono } from "hono";
 import * as middlewares from "modules/middlewares";
 import type { SafeUser } from "auth";
 import type { EntityManager } from "data";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 export interface ServerEnv extends Env {
    Variables: {

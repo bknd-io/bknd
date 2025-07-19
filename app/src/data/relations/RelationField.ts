@@ -3,7 +3,7 @@ import { Field, baseFieldConfigSchema } from "../fields";
 import type { EntityRelation } from "./EntityRelation";
 import type { EntityRelationAnchor } from "./EntityRelationAnchor";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "core/object/schema";
+import { s } from "bknd/core";
 
 const CASCADES = ["cascade", "set null", "set default", "restrict", "no action"] as const;
 

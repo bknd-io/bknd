@@ -7,7 +7,7 @@ import {
    type TActionContext,
    type TRenderContext,
 } from "../fields";
-import { s, parse } from "core/object/schema";
+import { s, parse } from "bknd/core";
 
 // @todo: entity must be migrated to typebox
 export const entityConfigSchema = s

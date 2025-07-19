@@ -6,7 +6,6 @@ import {
    useRef,
    useState,
 } from "react";
-import { useEvent } from "ui/hooks/use-event";
 import {
    type CleanOptions,
    type InputElement,

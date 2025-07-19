@@ -18,7 +18,7 @@ import { Link, Route, useLocation } from "wouter";
 import { extractSchema } from "../utils/schema";
 import { SettingNewModal, type SettingsNewModalProps } from "./SettingNewModal";
 import { SettingSchemaModal, type SettingsSchemaModalRef } from "./SettingSchemaModal";
-import type { s } from "core/object/schema";
+import type { s } from "bknd/core";
 
 export type SettingProps<
    Schema extends s.ObjectSchema = s.ObjectSchema,

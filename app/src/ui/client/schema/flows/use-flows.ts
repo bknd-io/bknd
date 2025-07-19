@@ -1,4 +1,4 @@
-import { parse } from "core/object/schema";
+import { parse } from "bknd/core";
 import { type TAppFlowSchema, flowSchema } from "flows/flows-schema";
 import { useBknd } from "../../BkndProvider";
 

@@ -1,6 +1,6 @@
 import { get, has, omit, set } from "lodash-es";
 import { getFullPathKeys, mergeObjectWith } from "../utils";
-import { type s, parse, stripMark } from "core/object/schema";
+import { type s, parse, stripMark } from "bknd/core";
 
 export type SchemaObjectOptions<Schema extends s.Schema> = {
    onUpdate?: (config: s.Static<Schema>) => void | Promise<void>;
