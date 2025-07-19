@@ -1,17 +1,43 @@
-import { MarkerType, type Node, Position, ReactFlowProvider } from "@xyflow/react";
-import type { AppDataConfig, TAppDataEntity } from "data/data-schema";
+import { MarkerType, type Node, Position, ReactFlowProvider, useReactFlow } from "@xyflow/react";
+import type { AppDataConfig, TAppDataEntity, TAppDataField } from "data/data-schema";
 import { useBknd } from "ui/client/BkndProvider";
-import { Canvas } from "ui/components/canvas/Canvas";
+import { Canvas, type CanvasProps } from "ui/components/canvas/Canvas";
 import { layoutWithDagre } from "ui/components/canvas/layouts";
 import { Panels } from "ui/components/canvas/panels";
 import { EntityTableNode } from "./EntityTableNode";
 import { useTheme } from "ui/client/use-theme";
+import { useCallback } from "react";
+import { mergeObject, transformObject } from "core/utils";
 
-function entitiesToNodes(entities: AppDataConfig["entities"]): Node<TAppDataEntity>[] {
+export interface TCanvasEntityField extends TAppDataField {
+   name: string;
+   indexed?: boolean;
+}
+
+export interface TCanvasEntity extends TAppDataEntity {
+   label: string;
+   fields: Record<string, TCanvasEntityField>;
+   [key: string]: any;
+}
+
+function entitiesToNodes(
+   entities: AppDataConfig["entities"],
+   indices?: AppDataConfig["indices"],
+): Node<TCanvasEntity>[] {
+   const indexed_fields = Object.entries(indices ?? {}).flatMap(([, index]) => index.fields);
+
    return Object.entries(entities ?? {}).map(([name, entity]) => {
       return {
          id: name,
-         data: { label: name, ...entity },
+         data: {
+            ...entity,
+            label: name,
+            fields: transformObject(entity.fields ?? {}, (f, name) => ({
+               ...f,
+               name,
+               indexed: indexed_fields.includes(name),
+            })),
+         },
          type: "entity",
          dragHandle: ".drag-handle",
          position: { x: 0, y: 0 },
@@ -65,24 +91,29 @@ const nodeTypes = {
    entity: EntityTableNode.Component,
 } as const;
 
+const getEdgeStyle = (theme: string) => ({
+   stroke: theme === "light" ? "#ccc" : "#666",
+});
+
+const getMarkerEndStyle = (theme: string) => ({
+   type: MarkerType.Arrow,
+   width: 20,
+   height: 20,
+   color: theme === "light" ? "#aaa" : "#777",
+});
+
 export function DataSchemaCanvas() {
    const {
       config: { data },
    } = useBknd();
    const { theme } = useTheme();
-   const nodes = entitiesToNodes(data.entities);
+   const nodes = entitiesToNodes(data.entities, data.indices);
+   console.log(nodes);
    const edges = relationsToEdges(data.relations).map((e) => ({
       ...e,
-      style: {
-         stroke: theme === "light" ? "#ccc" : "#666",
-      },
+      style: getEdgeStyle(theme),
       type: "smoothstep",
-      markerEnd: {
-         type: MarkerType.Arrow,
-         width: 20,
-         height: 20,
-         color: theme === "light" ? "#aaa" : "#777",
-      },
+      markerEnd: getMarkerEndStyle(theme),
    }));
 
    const nodeLayout = layoutWithDagre({
@@ -107,7 +138,7 @@ export function DataSchemaCanvas() {
 
    return (
       <ReactFlowProvider>
-         <Canvas
+         <ActualCanvas
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
@@ -119,7 +150,49 @@ export function DataSchemaCanvas() {
             }}
          >
             <Panels zoom minimap />
-         </Canvas>
+         </ActualCanvas>
       </ReactFlowProvider>
    );
+}
+
+function toRecord(nodes: Node<TAppDataEntity>[]): Record<string, Node<TAppDataEntity>> {
+   return Object.fromEntries(nodes.map((n) => [n.id, n]));
+}
+
+function ActualCanvas(props: CanvasProps) {
+   const flow = useReactFlow();
+   const { theme } = useTheme();
+
+   const onNodesChange = useCallback((changes: any) => {
+      const nodes = mergeObject<Record<string, Node<TAppDataEntity>>>(
+         toRecord(flow.getNodes()),
+         toRecord(changes),
+      );
+      const selected = Object.values(nodes).filter((n) => n.selected);
+      const selected_names = selected.map((n) => n.id);
+      flow.setEdges((edges) =>
+         edges.map((edge) => {
+            if (selected_names.includes(edge.source) || selected_names.includes(edge.target)) {
+               return {
+                  ...edge,
+                  animated: true,
+                  style: { stroke: "#6495c6" },
+                  markerEnd: {
+                     ...getMarkerEndStyle(theme),
+                     color: "#6495c6",
+                  },
+               };
+            }
+
+            return {
+               ...edge,
+               style: getEdgeStyle(theme),
+               animated: false,
+               markerEnd: getMarkerEndStyle(theme),
+            };
+         }),
+      );
+   }, []);
+
+   return <Canvas {...props} onNodesChange={onNodesChange as any} />;
 }
