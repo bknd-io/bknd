@@ -153,18 +153,23 @@ export async function createRuntimeApp<Args = DefaultArgs>(
  * @example
  * ```typescript
  * import { serveStaticViaImport } from "bknd/adapter";
- * import manifest from "bknd/dist/manifest.json";
  *
  * serve({
- *   serveStatic: serveStaticViaImport({ manifest }),
+ *   serveStatic: serveStaticViaImport(),
  * });
  * ```
  */
-export function serveStaticViaImport({ manifest }: { manifest: Manifest }) {
-   const files = Object.values(manifest).flatMap((asset) => [asset.file, ...(asset.css || [])]);
+export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
+   let files: string[] | undefined;
 
    // @ts-ignore
    return async (c: Context, next: Next) => {
+      if (!files) {
+         const manifest =
+            opts?.manifest || ((await import("bknd/dist/manifest.json")).default as Manifest);
+         files = Object.values(manifest).flatMap((asset) => [asset.file, ...(asset.css || [])]);
+      }
+
       const path = c.req.path.substring(1);
       if (files.includes(path)) {
          try {
