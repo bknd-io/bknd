@@ -34,11 +34,13 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
    private renderFallback() {
       if (this.props.fallback) {
-         return typeof this.props.fallback === "function"
-            ? this.props.fallback({ error: this.state.error!, resetError: this.resetError })
-            : this.props.fallback;
+         return typeof this.props.fallback === "function" ? (
+            this.props.fallback({ error: this.state.error!, resetError: this.resetError })
+         ) : (
+            <BaseError>{this.props.fallback}</BaseError>
+         );
       }
-      return <BaseError>Error</BaseError>;
+      return <BaseError>Error1</BaseError>;
    }
 
    override render() {

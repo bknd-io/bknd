@@ -1,5 +1,5 @@
 import type { PrimaryFieldType } from "core";
-import { $console } from "core/utils";
+import { $console, isPlainObject } from "core/utils";
 import { isDebug } from "core/env";
 import { encodeSearch } from "core/utils/reqres";
 import type { ApiFetcher } from "Api";
@@ -95,7 +95,11 @@ export abstract class ModuleApi<Options extends BaseModuleApiOptions = BaseModul
       let body: any = _init?.body;
       if (_init && "body" in _init && ["POST", "PATCH", "PUT"].includes(method)) {
          const requestContentType = (headers.get("Content-Type") as string) ?? undefined;
-         if (!requestContentType || requestContentType.startsWith("application/json")) {
+         if (
+            !requestContentType ||
+            requestContentType.startsWith("application/json") ||
+            isPlainObject(body) // @todo: not entirely sure about this
+         ) {
             body = JSON.stringify(_init.body);
             headers.set("Content-Type", "application/json");
          }

@@ -10,6 +10,7 @@ import type { ApiFetcher } from "Api";
 
 export type MediaApiOptions = BaseModuleApiOptions & {
    upload_fetcher: ApiFetcher;
+   init?: RequestInit;
 };
 
 export class MediaApi extends ModuleApi<MediaApiOptions> {
@@ -17,6 +18,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
       return {
          basepath: "/api/media",
          upload_fetcher: fetch,
+         init: {},
       };
    }
 
@@ -67,7 +69,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
    }
 
    protected uploadFile(
-      body: File | ReadableStream,
+      body: File | Blob | ReadableStream,
       opts?: {
          filename?: string;
          path?: TInput;
@@ -93,6 +95,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
       }
 
       const init = {
+         ...this.options.init,
          ...(opts?._init || {}),
          headers,
       };
@@ -108,7 +111,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
    }
 
    async upload(
-      item: Request | Response | string | File | ReadableStream,
+      item: Request | Response | string | File | Blob | ReadableStream,
       opts: {
          filename?: string;
          _init?: Omit<RequestInit, "body">;
