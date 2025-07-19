@@ -54,7 +54,6 @@ describe("MediaController", () => {
          body: file,
       });
       const result = (await res.json()) as any;
-      console.log(result);
       expect(result.name).toBe(name);
 
       const destFile = Bun.file(assetsTmpPath + "/" + name);
