@@ -185,7 +185,10 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
                   },
                });
             }
-         } catch (e) {}
+         } catch (e) {
+            console.error("Error serving static file:", e);
+            return c.text("File not found", 404);
+         }
       }
       await next();
    };
