@@ -7,7 +7,6 @@ import { mergeObject, randomString } from "../../src/core/utils";
 import type { TAppMediaConfig } from "../../src/media/media-schema";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 import { assetsPath, assetsTmpPath, disableConsoleLog, enableConsoleLog } from "../helper";
-import { readdir } from "node:fs/promises";
 
 beforeAll(() => {
    registries.media.register("local", StorageLocalAdapter);
@@ -41,8 +40,8 @@ function makeName(ext: string) {
    return randomString(10) + "." + ext;
 }
 
-/*beforeAll(disableConsoleLog);
-afterAll(enableConsoleLog);*/
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("MediaController", () => {
    test("accepts direct", async () => {
@@ -50,15 +49,11 @@ describe("MediaController", () => {
 
       const file = Bun.file(path);
       const name = makeName("png");
-      console.log("test");
-      console.log("files:assets", await readdir(assetsPath, { recursive: true }));
       const res = await app.server.request("/api/media/upload/" + name, {
          method: "POST",
          body: file,
       });
       const result = (await res.json()) as any;
-      console.log("files", await readdir(assetsTmpPath));
-      console.log(result);
       expect(result.name).toBe(name);
 
       const destFile = Bun.file(assetsTmpPath + "/" + name);
