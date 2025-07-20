@@ -1,6 +1,6 @@
 import { isDebug } from "core";
 import { autoFormatString } from "core/utils";
-import { type ChangeEvent, useState } from "react";
+import type { ChangeEvent } from "react";
 import {
    TbAt,
    TbBrandAppleFilled,
@@ -13,7 +13,6 @@ import {
    TbBrandX,
    TbSettings,
 } from "react-icons/tb";
-import { twMerge } from "tailwind-merge";
 import { useBknd } from "ui/client/bknd";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { Button } from "ui/components/buttons/Button";
