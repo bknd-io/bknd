@@ -49,7 +49,7 @@ export function coerce(target: InputElement | null, value?: any) {
    } else if (target.type === "text") {
       const maxLength =
          "maxLength" in target && target.maxLength > -1 ? Number(target.maxLength) : undefined;
-      const pattern = "pattern" in target ? new RegExp(target.pattern) : undefined;
+      const pattern = "pattern" in target ? /target.pattern/g : undefined;
 
       if (maxLength && value.length > maxLength) return value.slice(0, maxLength);
       if (pattern && !pattern.test(value)) return "";
