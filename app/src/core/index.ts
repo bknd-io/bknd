@@ -39,6 +39,7 @@ export {
    type ParseOptions,
    InvalidSchemaError,
 } from "./object/schema";
+export * as $diff from "./object/diff";
 
 export * from "./drivers";
 export * from "./events";
