@@ -1,5 +1,5 @@
 import { afterAll, expect as bunExpect, describe, test } from "bun:test";
-import { stripMark } from "bknd/core";
+import { stripMark } from "core/utils/schema";
 import { Entity, EntityManager } from "data/entities";
 import { TextField } from "data/fields";
 import { PolymorphicRelation } from "data/relations";

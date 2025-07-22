@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createApp } from "core/test/utils";
-import { registries, em, entity, text } from "bknd";
+import { em, entity, text } from "data/prototype";
+import { registries } from "modules/registries";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 import { AppMedia } from "../../src/media/AppMedia";
 import { moduleTestSuite } from "./module-test-suite";

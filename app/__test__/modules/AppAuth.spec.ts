@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { createApp } from "core/test/utils";
 import { AuthController } from "../../src/auth/api/AuthController";
-import { em, entity, make, text } from "bknd";
+import { em, entity, make, text } from "data/prototype";
 import { AppAuth, type ModuleBuildContext } from "modules";
 import { disableConsoleLog, enableConsoleLog } from "../helper";
 import { makeCtx, moduleTestSuite } from "./module-test-suite";

@@ -107,7 +107,7 @@ const configJsonSchema = s.anyOf([
 export const __bknd = proto.entity(TABLE_NAME, {
    version: proto.number().required(),
    type: proto.enumm({ enum: ["config", "diff", "backup"] }).required(),
-   json: proto.jsonSchema({ schema: configJsonSchema }).required(),
+   json: proto.jsonSchema({ schema: configJsonSchema.toJSON() }).required(),
    created_at: proto.datetime(),
    updated_at: proto.datetime(),
 });
@@ -740,5 +740,5 @@ export function getDefaultConfig(): ModuleConfigs {
       );
    });
 
-   return config as any;
+   return structuredClone(config) as any;
 }

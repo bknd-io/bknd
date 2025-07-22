@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { s, stripMark } from "bknd/core";
-import { em, entity, index, text } from "bknd";
+import { s, stripMark } from "core/utils/schema";
+import { em, entity, index, text } from "data/prototype";
 import { EntityManager } from "data/entities/EntityManager";
 import { DummyConnection } from "../../src/data/connection/DummyConnection";
 import { Module } from "../../src/modules/Module";

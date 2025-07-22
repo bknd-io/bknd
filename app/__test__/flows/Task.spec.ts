@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { Task } from "../../src/flows";
 import { dynamic } from "../../src/flows/tasks/Task";
-import { s } from "bknd/utils";
+import { s } from "core/utils/schema";
 
 describe.skip("Task", async () => {
    test("resolveParams: template with parse", async () => {

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
 import { Guard } from "../../src/auth/authorize/Guard";
-import { parse } from "bknd/core";
+import { parse } from "core/utils/schema";
 
 import { DataController } from "../../src/data/api/DataController";
 import { dataConfigSchema } from "../../src/data/data-schema";

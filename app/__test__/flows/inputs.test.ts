@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { Hono } from "hono";
 import { Event, EventManager } from "../../src/core/events";
-import { s, parse } from "bknd/utils";
+import { s, parse } from "core/utils/schema";
 import { EventTrigger, Flow, HttpTrigger, type InputsMap, Task } from "../../src/flows";
 import { dynamic } from "../../src/flows/tasks/Task";
 
