@@ -88,7 +88,8 @@ export class AppReduced {
 
    get options() {
       return {
-         logo_return_path: "/",
+         admin_basepath: '',
+         logo_return_path: '/',
          ...this._options,
       };
    }

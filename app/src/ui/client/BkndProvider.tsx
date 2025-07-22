@@ -8,7 +8,9 @@ import { Message } from "ui/components/display/Message";
 import { useNavigate } from "ui/lib/routes";
 import type { AdminBkndWindowContext } from "modules/server/AdminController";
 
-export type BkndAdminOptions = Omit<AdminBkndWindowContext, "user" | "logout_route">
+export type BkndAdminOptions = Omit<AdminBkndWindowContext, "user" | "logout_route" | "admin_basepath"> & {
+   admin_basepath?: string;
+}
 type BkndContext = {
    version: number;
    schema: ModuleSchemas;
