@@ -31,8 +31,8 @@ export async function createApp<Env = NodeEnv>(
    registerLocalMediaAdapter();
    return await createRuntimeApp(
       {
-         ...config,
          serveStatic: serveStatic({ root }),
+         ...config,
       },
       // @ts-ignore
       args ?? { env: process.env },
