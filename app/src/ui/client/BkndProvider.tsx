@@ -9,7 +9,7 @@ import { Message } from "ui/components/display/Message";
 import { useNavigate } from "ui/lib/routes";
 
 export type BkndAdminOptions = {
-   basepath?: string;
+   admin_basepath?: string;
    logo_return_path?: string;
    theme?: AppTheme;
 };
@@ -169,7 +169,7 @@ export function useBkndOptions(): BkndAdminOptions {
    const ctx = useContext(BkndContext);
    return (
       ctx.options ?? {
-         basepath: "/",
+         admin_basepath: "/",
       }
    );
 }
