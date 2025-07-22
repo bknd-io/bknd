@@ -36,8 +36,8 @@ export class AppReduced {
    constructor(
       protected appJson: AppType,
       protected _options: BkndAdminOptions = {
-         admin_basepath: '',
-         logo_return_path: '/'
+         admin_basepath: "",
+         logo_return_path: "/",
       },
    ) {
       //console.log("received appjson", appJson);
@@ -88,20 +88,20 @@ export class AppReduced {
 
    get options() {
       return {
-         admin_basepath: '',
-         logo_return_path: '/',
+         admin_basepath: "",
+         logo_return_path: "/",
          ...this._options,
       };
    }
 
    getSettingsPath(path: string[] = []): string {
-      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : '~';
-      const base = `${basePath}/settings`
+      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : "~";
+      const base = `${basePath}/settings`;
       return normalizeAdminPath([base, ...path].join("/"));
    }
 
    getAbsolutePath(path?: string): string {
-      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : '~';
+      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : "~";
       return normalizeAdminPath(path ? `${basePath}/${path}` : basePath);
    }
 
