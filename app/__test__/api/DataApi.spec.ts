@@ -202,7 +202,7 @@ describe("DataApi", () => {
       {
          // create many
          const res = await api.createMany("posts", payload);
-         expect(res.data.length).toEqual(4);
+         expect(res.data?.length).toEqual(4);
          expect(res.ok).toBeTrue();
       }
 
