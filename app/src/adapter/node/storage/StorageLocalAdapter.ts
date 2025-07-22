@@ -1,17 +1,15 @@
 import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
-import { type Static, isFile, parse } from "bknd/utils";
-import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd/media";
-import { StorageAdapter, guessMimeType as guess } from "bknd/media";
-import * as tb from "@sinclair/typebox";
-const { Type } = tb;
+import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd";
+import { StorageAdapter, guessMimeType } from "bknd";
+import { parse, s, isFile } from "bknd/utils";
 
-export const localAdapterConfig = Type.Object(
+export const localAdapterConfig = s.object(
    {
-      path: Type.String({ default: "./" }),
+      path: s.string({ default: "./" }),
    },
    { title: "Local", description: "Local file system storage", additionalProperties: false },
 );
-export type LocalAdapterConfig = Static<typeof localAdapterConfig>;
+export type LocalAdapterConfig = s.Static<typeof localAdapterConfig>;
 
 export class StorageLocalAdapter extends StorageAdapter {
    private config: LocalAdapterConfig;
@@ -62,8 +60,7 @@ export class StorageLocalAdapter extends StorageAdapter {
       }
 
       const filePath = `${this.config.path}/${key}`;
-      const is_file = isFile(body);
-      await writeFile(filePath, is_file ? body.stream() : body);
+      await writeFile(filePath, isFile(body) ? body.stream() : body);
 
       return await this.computeEtag(body);
    }
@@ -86,7 +83,7 @@ export class StorageLocalAdapter extends StorageAdapter {
    async getObject(key: string, headers: Headers): Promise<Response> {
       try {
          const content = await readFile(`${this.config.path}/${key}`);
-         const mimeType = guess(key);
+         const mimeType = guessMimeType(key);
 
          return new Response(content, {
             status: 200,
@@ -108,7 +105,7 @@ export class StorageLocalAdapter extends StorageAdapter {
    async getObjectMeta(key: string): Promise<FileMeta> {
       const stats = await stat(`${this.config.path}/${key}`);
       return {
-         type: guess(key) || "application/octet-stream",
+         type: guessMimeType(key) || "application/octet-stream",
          size: stats.size,
       };
    }

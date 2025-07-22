@@ -1,9 +1,10 @@
-import type { StaticDecode, TSchema } from "@sinclair/typebox";
-import { BkndError, SimpleRenderer } from "core";
-import { type Static, type TObject, Value, parse, ucFirst } from "core/utils";
+//import { BkndError, SimpleRenderer } from "core";
+import { BkndError } from "core/errors";
+
+import { s, parse } from "bknd/utils";
 import type { InputsMap } from "../flows/Execution";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { SimpleRenderer } from "core/template/SimpleRenderer";
+
 //type InstanceOf<T> = T extends new (...args: any) => infer R ? R : never;
 
 export type TaskResult<Output = any> = {
@@ -16,7 +17,9 @@ export type TaskResult<Output = any> = {
 
 export type TaskRenderProps<T extends Task = Task> = any;
 
-export function dynamic<Type extends TSchema>(
+export const dynamic = <S extends s.Schema>(a: S, b?: any) => a;
+
+/* export function dynamic<Type extends TSchema>(
    type: Type,
    parse?: (val: any | string) => Static<Type>,
 ) {
@@ -51,23 +54,23 @@ export function dynamic<Type extends TSchema>(
          // @ts-ignore
          .Encode((val) => val)
    );
-}
+} */
 
-export abstract class Task<Params extends TObject = TObject, Output = unknown> {
+export abstract class Task<Params extends s.Schema = s.Schema, Output = unknown> {
    abstract type: string;
    name: string;
 
    /**
     * The schema of the task's parameters.
     */
-   static schema = Type.Object({});
+   static schema = s.any();
 
    /**
     * The task's parameters.
     */
-   _params: Static<Params>;
+   _params: s.Static<Params>;
 
-   constructor(name: string, params?: Static<Params>) {
+   constructor(name: string, params?: s.Static<Params>) {
       if (typeof name !== "string") {
          throw new Error(`Task name must be a string, got ${typeof name}`);
       }
@@ -81,7 +84,7 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
       if (
          schema === Task.schema &&
          typeof params !== "undefined" &&
-         Object.keys(params).length > 0
+         Object.keys(params || {}).length > 0
       ) {
          throw new Error(
             `Task "${name}" has no schema defined but params passed: ${JSON.stringify(params)}`,
@@ -93,18 +96,18 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
    }
 
    get params() {
-      return this._params as StaticDecode<Params>;
+      return this._params as s.StaticCoerced<Params>;
    }
 
-   protected clone(name: string, params: Static<Params>): Task {
+   protected clone(name: string, params: s.Static<Params>): Task {
       return new (this.constructor as any)(name, params);
    }
 
-   static async resolveParams<S extends TSchema>(
+   static async resolveParams<S extends s.Schema>(
       schema: S,
       params: any,
       inputs: object = {},
-   ): Promise<StaticDecode<S>> {
+   ): Promise<s.StaticCoerced<S>> {
       const newParams: any = {};
       const renderer = new SimpleRenderer(inputs, { renderKeys: true });
 
@@ -134,7 +137,8 @@ export abstract class Task<Params extends TObject = TObject, Output = unknown> {
          newParams[key] = value;
       }
 
-      return Value.Decode(schema, newParams);
+      return schema.coerce(newParams);
+      //return Value.Decode(schema, newParams);
    }
 
    private async cloneWithResolvedParams(_inputs: Map<string, any>) {

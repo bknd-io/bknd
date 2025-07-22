@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { type FileBody, Storage } from "../../src/media/storage/Storage";
 import * as StorageEvents from "../../src/media/storage/events";
-import { StorageAdapter } from "media";
+import { StorageAdapter } from "media/storage/StorageAdapter";
 
 class TestAdapter extends StorageAdapter {
    files: Record<string, FileBody> = {};

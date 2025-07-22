@@ -1,16 +1,16 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { Connection } from "bknd";
+import { sqlite } from "bknd/adapter/sqlite";
+import { makeConfig as makeAdapterConfig } from "bknd/adapter";
 import { registerMedia } from "./storage/StorageR2Adapter";
 import { getBinding } from "./bindings";
 import { d1Sqlite } from "./connection/D1Connection";
-import { Connection } from "bknd/data";
 import type { CloudflareBkndConfig, CloudflareEnv } from ".";
 import { App } from "bknd";
-import { makeConfig as makeAdapterConfig } from "bknd/adapter";
 import type { Context, ExecutionContext } from "hono";
 import { $console } from "core/utils";
 import { setCookie } from "hono/cookie";
-import { sqlite } from "bknd/adapter/sqlite";
 
 export const constants = {
    exec_async_event_id: "cf_register_waituntil",

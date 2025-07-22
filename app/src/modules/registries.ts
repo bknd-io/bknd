@@ -1,4 +1,4 @@
-import { MediaAdapterRegistry } from "media";
+import { MediaAdapterRegistry } from "media/media-registry";
 
 const registries = {
    media: MediaAdapterRegistry,

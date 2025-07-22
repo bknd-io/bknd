@@ -1,4 +1,5 @@
-import { type Static, parse } from "core/utils";
+import type { PrimaryFieldType } from "bknd";
+import { s, parse } from "bknd/utils";
 import type { ExpressionBuilder, SelectQueryBuilder } from "kysely";
 import type { Entity, EntityData, EntityManager } from "../entities";
 import {
@@ -8,9 +9,6 @@ import {
 } from "../relations";
 import type { RepoQuery } from "../server/query";
 import type { RelationType } from "./relation-types";
-import * as tbbox from "@sinclair/typebox";
-import type { PrimaryFieldType } from "core";
-const { Type } = tbbox;
 
 const directions = ["source", "target"] as const;
 export type TDirection = (typeof directions)[number];
@@ -18,13 +16,13 @@ export type TDirection = (typeof directions)[number];
 export type KyselyJsonFrom = any;
 export type KyselyQueryBuilder = SelectQueryBuilder<any, any, any>;
 
-export type BaseRelationConfig = Static<typeof EntityRelation.schema>;
+export type BaseRelationConfig = s.Static<typeof EntityRelation.schema>;
 
 // @todo: add generic type for relation config
 export abstract class EntityRelation<
    Schema extends typeof EntityRelation.schema = typeof EntityRelation.schema,
 > {
-   config: Static<Schema>;
+   config: s.Static<Schema>;
 
    source: EntityRelationAnchor;
    target: EntityRelationAnchor;
@@ -33,17 +31,17 @@ export abstract class EntityRelation<
    // allowed directions, used in RelationAccessor for visibility
    directions: TDirection[] = ["source", "target"];
 
-   static schema = Type.Object({
-      mappedBy: Type.Optional(Type.String()),
-      inversedBy: Type.Optional(Type.String()),
-      required: Type.Optional(Type.Boolean()),
+   static schema = s.strictObject({
+      mappedBy: s.string().optional(),
+      inversedBy: s.string().optional(),
+      required: s.boolean().optional(),
    });
 
    // don't make protected, App requires it to instantiatable
    constructor(
       source: EntityRelationAnchor,
       target: EntityRelationAnchor,
-      config: Partial<Static<Schema>> = {},
+      config: Partial<s.Static<Schema>> = {},
    ) {
       this.source = source;
       this.target = target;

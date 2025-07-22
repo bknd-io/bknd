@@ -1,6 +1,8 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { Entity, EntityManager, ManyToOneRelation, TextField } from "../../../src/data";
-import { JoinBuilder } from "../../../src/data/entities/query/JoinBuilder";
+import { Entity, EntityManager } from "data/entities";
+import { ManyToOneRelation } from "data/relations";
+import { TextField } from "data/fields";
+import { JoinBuilder } from "data/entities/query/JoinBuilder";
 import { getDummyConnection } from "../helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

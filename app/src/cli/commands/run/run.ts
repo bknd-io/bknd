@@ -1,9 +1,8 @@
 import type { Config } from "@libsql/client/node";
-import type { App, CreateAppConfig } from "App";
 import { StorageLocalAdapter } from "adapter/node/storage";
 import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
-import { config } from "core";
+import { config, type App, type CreateAppConfig } from "bknd";
 import dotenv from "dotenv";
 import { registries } from "modules/registries";
 import c from "picocolors";
@@ -16,8 +15,8 @@ import {
    serveStatic,
    startServer,
 } from "./platform";
-import { createRuntimeApp, makeConfig } from "adapter";
-import { colorizeConsole, isBun } from "core/utils";
+import { createRuntimeApp, makeConfig } from "bknd/adapter";
+import { colorizeConsole, isBun } from "bknd/utils";
 
 const env_files = [".env", ".dev.vars"];
 dotenv.config({

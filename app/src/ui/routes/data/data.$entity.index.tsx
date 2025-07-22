@@ -1,4 +1,5 @@
-import { type Entity, repoQuery } from "data";
+import type { Entity } from "bknd";
+import { repoQuery } from "data/server/query";
 import { Fragment } from "react";
 import { TbDots } from "react-icons/tb";
 import { useApiQuery } from "ui/client";
@@ -14,7 +15,7 @@ import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate } from "ui/lib/routes";
 import { useCreateUserModal } from "ui/modules/auth/hooks/use-create-user-modal";
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 import { pick } from "core/utils/objects";
 
 const searchSchema = s.partialObject({

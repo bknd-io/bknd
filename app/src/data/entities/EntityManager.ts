@@ -1,5 +1,5 @@
-import type { DB as DefaultDB } from "core";
-import { $console } from "core/utils";
+import type { DB as DefaultDB } from "bknd";
+import { $console } from "bknd/utils";
 import { EventManager } from "core/events";
 import { sql } from "kysely";
 import { Connection } from "../connection/Connection";
@@ -65,6 +65,13 @@ export class EntityManager<TBD extends object = DefaultDB> {
     */
    fork(): EntityManager {
       return new EntityManager(this._entities, this.connection, this._relations, this._indices);
+   }
+
+   clear(): this {
+      this._entities = [];
+      this._relations = [];
+      this._indices = [];
+      return this;
    }
 
    get entities(): Entity[] {

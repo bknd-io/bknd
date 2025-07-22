@@ -1,10 +1,11 @@
+import { bunTestRunner } from "adapter/bun/test";
 import { describe, expect, test } from "bun:test";
-import { JsonField } from "../../../../src/data";
+import { JsonField } from "data/fields";
 import { fieldTestSuite, transformPersist } from "data/fields/field-test-suite";
 
 describe("[data] JsonField", async () => {
    const field = new JsonField("test");
-   fieldTestSuite({ expect, test }, JsonField, {
+   fieldTestSuite(bunTestRunner, JsonField, {
       defaultValue: { a: 1 },
       sampleValues: ["string", { test: 1 }, 1],
       schemaType: "text",

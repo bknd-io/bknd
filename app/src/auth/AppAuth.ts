@@ -1,8 +1,9 @@
-import { Authenticator, AuthPermissions, Role, type Strategy } from "auth";
-import type { PasswordStrategy } from "auth/authenticate/strategies";
-import type { DB } from "core";
+import type { DB } from "bknd";
+import * as AuthPermissions from "auth/auth-permissions";
+import type { AuthStrategy } from "auth/authenticate/strategies/Strategy";
+import type { PasswordStrategy } from "auth/authenticate/strategies/PasswordStrategy";
 import { $console, secureRandomString, transformObject } from "core/utils";
-import type { Entity, EntityManager } from "data";
+import type { Entity, EntityManager } from "data/entities";
 import { em, entity, enumm, type FieldSchema } from "data/prototype";
 import { Module } from "modules/Module";
 import { AuthController } from "./api/AuthController";
@@ -10,9 +11,11 @@ import { type AppAuthSchema, authConfigSchema, STRATEGIES } from "./auth-schema"
 import { AppUserPool } from "auth/AppUserPool";
 import type { AppEntity } from "core/config";
 import { usersFields } from "./auth-entities";
+import { Authenticator } from "./authenticate/Authenticator";
+import { Role } from "./authorize/Role";
 
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
-declare module "core" {
+declare module "bknd" {
    interface Users extends AppEntity, UserFieldSchema {}
    interface DB {
       users: Users;
@@ -21,7 +24,7 @@ declare module "core" {
 
 export type CreateUserPayload = { email: string; password: string; [key: string]: any };
 
-export class AppAuth extends Module<typeof authConfigSchema> {
+export class AppAuth extends Module<AppAuthSchema> {
    private _authenticator?: Authenticator;
    cache: Record<string, any> = {};
    _controller!: AuthController;
@@ -88,7 +91,7 @@ export class AppAuth extends Module<typeof authConfigSchema> {
       this.ctx.guard.registerPermissions(AuthPermissions);
    }
 
-   isStrategyEnabled(strategy: Strategy | string) {
+   isStrategyEnabled(strategy: AuthStrategy | string) {
       const name = typeof strategy === "string" ? strategy : strategy.getName();
       // for now, password is always active
       if (name === "password") return true;
@@ -187,6 +190,6 @@ export class AppAuth extends Module<typeof authConfigSchema> {
             enabled: this.isStrategyEnabled(strategy),
             ...strategy.toJSON(secrets),
          })),
-      };
+      } as AppAuthSchema;
    }
 }

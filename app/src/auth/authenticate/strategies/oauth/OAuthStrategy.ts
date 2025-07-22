@@ -1,31 +1,32 @@
-import type { AuthAction, Authenticator } from "auth";
-import { Exception, isDebug } from "core";
-import { type Static, StringEnum, filterKeys, StrictObject } from "core/utils";
+import type { Authenticator, AuthAction } from "auth/authenticate/Authenticator";
 import { type Context, Hono } from "hono";
 import { getSignedCookie, setSignedCookie } from "hono/cookie";
 import * as oauth from "oauth4webapi";
 import * as issuers from "./issuers";
-import * as tbbox from "@sinclair/typebox";
-import { Strategy } from "auth/authenticate/strategies/Strategy";
-const { Type } = tbbox;
+import { s, filterKeys } from "bknd/utils";
+import { Exception } from "core/errors";
+import { isDebug } from "core/env";
+import { AuthStrategy } from "../Strategy";
 
 type ConfiguredIssuers = keyof typeof issuers;
 type SupportedTypes = "oauth2" | "oidc";
 
 type RequireKeys<T extends object, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
 
-const schemaProvided = Type.Object(
+const schemaProvided = s.object(
    {
-      name: StringEnum(Object.keys(issuers) as ConfiguredIssuers[]),
-      type: StringEnum(["oidc", "oauth2"] as const, { default: "oauth2" }),
-      client: StrictObject({
-         client_id: Type.String(),
-         client_secret: Type.String(),
-      }),
+      name: s.string({ enum: Object.keys(issuers) as ConfiguredIssuers[] }),
+      type: s.string({ enum: ["oidc", "oauth2"] as const, default: "oauth2" }),
+      client: s
+         .object({
+            client_id: s.string(),
+            client_secret: s.string(),
+         })
+         .strict(),
    },
    { title: "OAuth" },
 );
-type ProvidedOAuthConfig = Static<typeof schemaProvided>;
+type ProvidedOAuthConfig = s.Static<typeof schemaProvided>;
 
 export type CustomOAuthConfig = {
    type: SupportedTypes;
@@ -69,7 +70,7 @@ export class OAuthCallbackException extends Exception {
    }
 }
 
-export class OAuthStrategy extends Strategy<typeof schemaProvided> {
+export class OAuthStrategy extends AuthStrategy<typeof schemaProvided> {
    constructor(config: ProvidedOAuthConfig) {
       super(config, "oauth", config.name, "external");
    }

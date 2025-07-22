@@ -1,4 +1,5 @@
-import type { EntityData, EntityManager, Field } from "data";
+import type { EntityData, EntityManager } from "data/entities";
+import type { Field } from "data/fields";
 import { transform } from "lodash-es";
 
 export function getDefaultValues(fields: Field[], data: EntityData): EntityData {

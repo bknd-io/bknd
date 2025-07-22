@@ -1,8 +1,8 @@
 import type { CompiledQuery, TableMetadata } from "kysely";
-import type { IndexMetadata, SchemaResponse } from "../connection/Connection";
-import type { Entity, EntityManager } from "../entities";
-import { PrimaryField } from "../fields";
-import { $console } from "core/utils";
+import type { IndexMetadata, SchemaResponse } from "data/connection/Connection";
+import type { Entity, EntityManager } from "data/entities";
+import { PrimaryField } from "data/fields";
+import { $console } from "bknd/utils";
 
 type IntrospectedTable = TableMetadata & {
    indices: IndexMetadata[];

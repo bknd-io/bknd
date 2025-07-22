@@ -1,7 +1,9 @@
 // eslint-disable-next-line import/no-unresolved
 import { afterAll, describe, expect, test } from "bun:test";
-import { randomString } from "../../../src/core/utils";
-import { Entity, EntityIndex, EntityManager, SchemaManager, TextField } from "../../../src/data";
+import { randomString } from "core/utils";
+import { Entity, EntityManager } from "data/entities";
+import { TextField, EntityIndex } from "data/fields";
+import { SchemaManager } from "data/schema/SchemaManager";
 import { getDummyConnection } from "../helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

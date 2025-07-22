@@ -1,4 +1,4 @@
-import { Permission } from "core";
+import { Permission } from "core/security/Permission";
 
 export const accessAdmin = new Permission("system.access.admin");
 export const accessApi = new Permission("system.access.api");

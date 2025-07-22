@@ -1,4 +1,4 @@
-import { Permission } from "core";
+import { Permission } from "core/security/Permission";
 
 export const entityRead = new Permission("data.entity.read");
 export const entityCreate = new Permission("data.entity.create");

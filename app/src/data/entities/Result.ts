@@ -1,4 +1,4 @@
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import { pick } from "core/utils";
 import type { Connection } from "data/connection";
 import type {

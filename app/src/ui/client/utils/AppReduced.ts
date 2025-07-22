@@ -1,5 +1,7 @@
 import type { App } from "App";
-import { type Entity, type EntityRelation, constructEntity, constructRelation } from "data";
+import type { Entity } from "data/entities";
+import type { EntityRelation } from "data/relations";
+import { constructEntity, constructRelation } from "data/schema/constructor";
 import { RelationAccessor } from "data/relations/RelationAccessor";
 import { Flow, TaskMap } from "flows";
 import type { BkndAdminOptions } from "ui/client/BkndProvider";

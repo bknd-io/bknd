@@ -1,4 +1,9 @@
-import { StringIdentifier, transformObject, ucFirstAllSnakeToPascalWithSpaces } from "core/utils";
+import {
+   transformObject,
+   ucFirstAllSnakeToPascalWithSpaces,
+   s,
+   stringIdentifier,
+} from "bknd/utils";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { Alert } from "ui/components/display/Alert";
 import { bkndModals } from "ui/modals";
@@ -28,13 +33,9 @@ export function AuthRolesList() {
       bkndModals.open(
          "form",
          {
-            schema: {
-               type: "object",
-               properties: {
-                  name: StringIdentifier,
-               },
-               required: ["name"],
-            },
+            schema: s.strictObject({
+               name: stringIdentifier,
+            }),
             uiSchema: {
                name: {
                   "ui:title": "Role name",

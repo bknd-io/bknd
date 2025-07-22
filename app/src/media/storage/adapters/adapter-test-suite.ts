@@ -1,6 +1,6 @@
 import { retry, type TestRunner } from "core/test";
-import type { StorageAdapter } from "media";
-import { randomString } from "core/utils";
+import type { StorageAdapter } from "media/storage/StorageAdapter";
+import { randomString } from "bknd/utils";
 import type { BunFile } from "bun";
 
 export async function adapterTestSuite(

@@ -1,7 +1,6 @@
-import { Const, type Static, StringRecord, transformObject } from "core/utils";
+import { transformObject } from "core/utils";
 import { TaskMap, TriggerMap } from "flows";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 export const TASKS = {
    ...TaskMap,
@@ -10,77 +9,59 @@ export const TASKS = {
 export const TRIGGERS = TriggerMap;
 
 const taskSchemaObject = transformObject(TASKS, (task, name) => {
-   return Type.Object(
+   return s.strictObject(
       {
-         type: Const(name),
+         type: s.literal(name),
          params: task.cls.schema,
       },
-      { title: String(name), additionalProperties: false },
+      { title: String(name) },
    );
 });
-const taskSchema = Type.Union(Object.values(taskSchemaObject));
-export type TAppFlowTaskSchema = Static<typeof taskSchema>;
+const taskSchema = s.anyOf(Object.values(taskSchemaObject));
+export type TAppFlowTaskSchema = s.Static<typeof taskSchema>;
 
 const triggerSchemaObject = transformObject(TRIGGERS, (trigger, name) => {
-   return Type.Object(
+   return s.strictObject(
       {
-         type: Const(name),
-         config: trigger.cls.schema,
+         type: s.literal(name),
+         config: trigger.cls.schema.optional(),
       },
-      { title: String(name), additionalProperties: false },
+      { title: String(name) },
    );
 });
+const triggerSchema = s.anyOf(Object.values(triggerSchemaObject));
+export type TAppFlowTriggerSchema = s.Static<typeof triggerSchema>;
 
-const connectionSchema = Type.Object({
-   source: Type.String(),
-   target: Type.String(),
-   config: Type.Object(
-      {
-         condition: Type.Optional(
-            Type.Union([
-               Type.Object(
-                  { type: Const("success") },
-                  { additionalProperties: false, title: "success" },
-               ),
-               Type.Object(
-                  { type: Const("error") },
-                  { additionalProperties: false, title: "error" },
-               ),
-               Type.Object(
-                  { type: Const("matches"), path: Type.String(), value: Type.String() },
-                  { additionalProperties: false, title: "matches" },
-               ),
-            ]),
-         ),
-         max_retries: Type.Optional(Type.Number()),
-      },
-      { default: {}, additionalProperties: false },
-   ),
+const connectionSchema = s.strictObject({
+   source: s.string(),
+   target: s.string(),
+   config: s
+      .strictObject({
+         condition: s.anyOf([
+            s.strictObject({ type: s.literal("success") }, { title: "success" }),
+            s.strictObject({ type: s.literal("error") }, { title: "error" }),
+            s.strictObject(
+               { type: s.literal("matches"), path: s.string(), value: s.string() },
+               { title: "matches" },
+            ),
+         ]),
+         max_retries: s.number(),
+      })
+      .partial(),
 });
 
 // @todo: rework to have fixed ids per task and connections (and preferrably arrays)
 // causes issues with canvas
-export const flowSchema = Type.Object(
-   {
-      trigger: Type.Union(Object.values(triggerSchemaObject)),
-      tasks: Type.Optional(StringRecord(Type.Union(Object.values(taskSchemaObject)))),
-      connections: Type.Optional(StringRecord(connectionSchema)),
-      start_task: Type.Optional(Type.String()),
-      responding_task: Type.Optional(Type.String()),
-   },
-   {
-      additionalProperties: false,
-   },
-);
-export type TAppFlowSchema = Static<typeof flowSchema>;
+export const flowSchema = s.strictObject({
+   trigger: s.anyOf(Object.values(triggerSchemaObject)),
+   tasks: s.record(s.anyOf(Object.values(taskSchemaObject))).optional(),
+   connections: s.record(connectionSchema).optional(),
+   start_task: s.string().optional(),
+   responding_task: s.string().optional(),
+});
+export type TAppFlowSchema = s.Static<typeof flowSchema>;
 
-export const flowsConfigSchema = Type.Object(
-   {
-      basepath: Type.String({ default: "/api/flows" }),
-      flows: StringRecord(flowSchema, { default: {} }),
-   },
-   {
-      default: {},
-      additionalProperties: false,
-   },
-);
+export const flowsConfigSchema = s.strictObject({
+   basepath: s.string({ default: "/api/flows" }),
+   flows: s.record(flowSchema, { default: {} }),
+});

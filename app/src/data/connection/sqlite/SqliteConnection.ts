@@ -8,7 +8,7 @@ import {
 } from "kysely";
 import { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/sqlite";
 import { Connection, type DbFunctions, type FieldSpec, type SchemaResponse } from "../Connection";
-import type { Constructor } from "core";
+import type { Constructor } from "core/registry/Registry";
 import { customIntrospector } from "../Connection";
 import { SqliteIntrospector } from "./SqliteIntrospector";
 import type { Field } from "data/fields/Field";

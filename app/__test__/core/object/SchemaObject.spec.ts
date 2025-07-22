@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { SchemaObject } from "../../../src/core";
-import { Type } from "@sinclair/typebox";
+import { s } from "core/utils/schema";
+import { SchemaObject } from "core/object/SchemaObject";
 
 describe("SchemaObject", async () => {
    test("basic", async () => {
       const m = new SchemaObject(
-         Type.Object({ a: Type.String({ default: "b" }) }),
+         s.strictObject({ a: s.string({ default: "b" }) }),
          { a: "test" },
          {
             forceParse: true,
@@ -23,19 +23,19 @@ describe("SchemaObject", async () => {
 
    test("patch", async () => {
       const m = new SchemaObject(
-         Type.Object({
-            s: Type.Object(
+         s.strictObject({
+            s: s.strictObject(
                {
-                  a: Type.String({ default: "b" }),
-                  b: Type.Object(
+                  a: s.string({ default: "b" }),
+                  b: s.strictObject(
                      {
-                        c: Type.String({ default: "d" }),
-                        e: Type.String({ default: "f" }),
+                        c: s.string({ default: "d" }),
+                        e: s.string({ default: "f" }),
                      },
                      { default: {} },
                   ),
                },
-               { default: {}, additionalProperties: false },
+               { default: {} },
             ),
          }),
       );
@@ -44,7 +44,7 @@ describe("SchemaObject", async () => {
       await m.patch("s.a", "c");
 
       // non-existing path on no additional properties
-      expect(() => m.patch("s.s.s", "c")).toThrow();
+      expect(m.patch("s.s.s", "c")).rejects.toThrow();
       // wrong type
       expect(() => m.patch("s.a", 1)).toThrow();
 
@@ -58,8 +58,8 @@ describe("SchemaObject", async () => {
 
    test("patch array", async () => {
       const m = new SchemaObject(
-         Type.Object({
-            methods: Type.Array(Type.String(), { default: ["GET", "PATCH"] }),
+         s.strictObject({
+            methods: s.array(s.string(), { default: ["GET", "PATCH"] }),
          }),
       );
       expect(m.get()).toEqual({ methods: ["GET", "PATCH"] });
@@ -75,13 +75,13 @@ describe("SchemaObject", async () => {
 
    test("remove", async () => {
       const m = new SchemaObject(
-         Type.Object({
-            s: Type.Object(
+         s.object({
+            s: s.object(
                {
-                  a: Type.String({ default: "b" }),
-                  b: Type.Object(
+                  a: s.string({ default: "b" }),
+                  b: s.object(
                      {
-                        c: Type.String({ default: "d" }),
+                        c: s.string({ default: "d" }),
                      },
                      { default: {} },
                   ),
@@ -107,8 +107,8 @@ describe("SchemaObject", async () => {
 
    test("set", async () => {
       const m = new SchemaObject(
-         Type.Object({
-            methods: Type.Array(Type.String(), { default: ["GET", "PATCH"] }),
+         s.strictObject({
+            methods: s.array(s.string(), { default: ["GET", "PATCH"] }),
          }),
       );
       expect(m.get()).toEqual({ methods: ["GET", "PATCH"] });
@@ -124,8 +124,8 @@ describe("SchemaObject", async () => {
       let called = false;
       let result: any;
       const m = new SchemaObject(
-         Type.Object({
-            methods: Type.Array(Type.String(), { default: ["GET", "PATCH"] }),
+         s.strictObject({
+            methods: s.array(s.string(), { default: ["GET", "PATCH"] }),
          }),
          undefined,
          {
@@ -145,8 +145,8 @@ describe("SchemaObject", async () => {
    test("listener: onBeforeUpdate", async () => {
       let called = false;
       const m = new SchemaObject(
-         Type.Object({
-            methods: Type.Array(Type.String(), { default: ["GET", "PATCH"] }),
+         s.strictObject({
+            methods: s.array(s.string(), { default: ["GET", "PATCH"] }),
          }),
          undefined,
          {
@@ -167,7 +167,7 @@ describe("SchemaObject", async () => {
    });
 
    test("throwIfRestricted", async () => {
-      const m = new SchemaObject(Type.Object({}), undefined, {
+      const m = new SchemaObject(s.strictObject({}), undefined, {
          restrictPaths: ["a.b"],
       });
 
@@ -179,13 +179,13 @@ describe("SchemaObject", async () => {
 
    test("restriction bypass", async () => {
       const m = new SchemaObject(
-         Type.Object({
-            s: Type.Object(
+         s.strictObject({
+            s: s.strictObject(
                {
-                  a: Type.String({ default: "b" }),
-                  b: Type.Object(
+                  a: s.string({ default: "b" }),
+                  b: s.strictObject(
                      {
-                        c: Type.String({ default: "d" }),
+                        c: s.string({ default: "d" }),
                      },
                      { default: {} },
                   ),
@@ -205,7 +205,21 @@ describe("SchemaObject", async () => {
       expect(m.get()).toEqual({ s: { a: "b", b: { c: "e" } } });
    });
 
-   const dataEntitiesSchema = Type.Object(
+   const dataEntitiesSchema = s.strictObject({
+      entities: s.record(
+         s.object({
+            fields: s.record(
+               s.object({
+                  type: s.string(),
+                  config: s.object({}).optional(),
+               }),
+            ),
+            config: s.record(s.string()).optional(),
+         }),
+      ),
+   });
+
+   /* const dataEntitiesSchema = Type.Object(
       {
          entities: Type.Object(
             {},
@@ -230,7 +244,7 @@ describe("SchemaObject", async () => {
       {
          additionalProperties: false,
       },
-   );
+   ); */
    test("patch safe object, overwrite", async () => {
       const data = {
          entities: {

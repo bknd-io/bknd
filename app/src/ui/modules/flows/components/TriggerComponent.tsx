@@ -1,11 +1,10 @@
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
-import { Const, transformObject } from "core/utils";
+import { transformObject } from "core/utils";
 import { type Trigger, TriggerMap } from "flows";
 import type { IconType } from "react-icons";
 import { TbCircleLetterT } from "react-icons/tb";
 import { JsonSchemaForm } from "ui/components/form/json-schema";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 export type TaskComponentProps = NodeProps<Node<{ trigger: Trigger }>> & {
    Icon?: IconType;
@@ -14,9 +13,9 @@ export type TaskComponentProps = NodeProps<Node<{ trigger: Trigger }>> & {
 
 const triggerSchemas = Object.values(
    transformObject(TriggerMap, (trigger, name) =>
-      Type.Object(
+      s.object(
          {
-            type: Const(name),
+            type: s.literal(name),
             config: trigger.cls.schema,
          },
          { title: String(name), additionalProperties: false },
@@ -47,7 +46,7 @@ export function TriggerComponent({
             <div className="flex flex-col gap-2 px-3 py-2">
                <JsonSchemaForm
                   className="legacy"
-                  schema={Type.Union(triggerSchemas)}
+                  schema={s.anyOf(triggerSchemas)}
                   onChange={console.log}
                   formData={trigger}
                   {...props}

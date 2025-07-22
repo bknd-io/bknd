@@ -1,18 +1,9 @@
-import {
-   parse,
-   snakeToPascalWithSpaces,
-   type Static,
-   StringEnum,
-   type TSchema,
-   TypeInvalidError,
-} from "core/utils";
 import type { HTMLInputTypeAttribute, InputHTMLAttributes } from "react";
 import type { EntityManager } from "../entities";
 import { InvalidFieldConfigException, TransformPersistFailedException } from "../errors";
 import type { FieldSpec } from "data/connection/Connection";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s, parse, InvalidSchemaError, snakeToPascalWithSpaces } from "bknd/utils";
 
 // @todo: contexts need to be reworked
 // e.g. "table" is irrelevant, because if read is not given, it fails
@@ -31,43 +22,26 @@ const DEFAULT_FILLABLE = true;
 const DEFAULT_HIDDEN = false;
 
 // @todo: add refine functions (e.g. if required, but not fillable, needs default value)
-export const baseFieldConfigSchema = Type.Object(
-   {
-      label: Type.Optional(Type.String()),
-      description: Type.Optional(Type.String()),
-      required: Type.Optional(Type.Boolean({ default: DEFAULT_REQUIRED })),
-      fillable: Type.Optional(
-         Type.Union(
-            [
-               Type.Boolean({ title: "Boolean", default: DEFAULT_FILLABLE }),
-               Type.Array(StringEnum(ActionContext), { title: "Context", uniqueItems: true }),
-            ],
-            {
-               default: DEFAULT_FILLABLE,
-            },
-         ),
-      ),
-      hidden: Type.Optional(
-         Type.Union(
-            [
-               Type.Boolean({ title: "Boolean", default: DEFAULT_HIDDEN }),
-               // @todo: tmp workaround
-               Type.Array(StringEnum(TmpContext), { title: "Context", uniqueItems: true }),
-            ],
-            {
-               default: DEFAULT_HIDDEN,
-            },
-         ),
-      ),
+export const baseFieldConfigSchema = s
+   .strictObject({
+      label: s.string(),
+      description: s.string(),
+      required: s.boolean({ default: false }),
+      fillable: s.anyOf([
+         s.boolean({ title: "Boolean" }),
+         s.array(s.string({ enum: ActionContext }), { title: "Context", uniqueItems: true }),
+      ]),
+      hidden: s.anyOf([
+         s.boolean({ title: "Boolean" }),
+         // @todo: tmp workaround
+         s.array(s.string({ enum: TmpContext }), { title: "Context", uniqueItems: true }),
+      ]),
       // if field is virtual, it will not call transformPersist & transformRetrieve
-      virtual: Type.Optional(Type.Boolean()),
-      default_value: Type.Optional(Type.Any()),
-   },
-   {
-      additionalProperties: false,
-   },
-);
-export type BaseFieldConfig = Static<typeof baseFieldConfigSchema>;
+      virtual: s.boolean(),
+      default_value: s.any(),
+   })
+   .partial();
+export type BaseFieldConfig = s.Static<typeof baseFieldConfigSchema>;
 
 export abstract class Field<
    Config extends BaseFieldConfig = BaseFieldConfig,
@@ -92,7 +66,7 @@ export abstract class Field<
       try {
          this.config = parse(this.getSchema(), config || {}) as Config;
       } catch (e) {
-         if (e instanceof TypeInvalidError) {
+         if (e instanceof InvalidSchemaError) {
             throw new InvalidFieldConfigException(this, config, e);
          }
 
@@ -104,7 +78,7 @@ export abstract class Field<
       return this.type;
    }
 
-   protected abstract getSchema(): TSchema;
+   protected abstract getSchema(): s.ObjectSchema;
 
    /**
     * Used in SchemaManager.ts
@@ -115,7 +89,9 @@ export abstract class Field<
          name: this.name,
          type: "text",
          nullable: true,
-         dflt: this.getDefault(),
+         // see field-test-suite.ts:41
+         dflt: undefined,
+         //dflt: this.getDefault(),
       });
    }
 
@@ -131,14 +107,14 @@ export abstract class Field<
       if (Array.isArray(this.config.fillable)) {
          return context ? this.config.fillable.includes(context) : DEFAULT_FILLABLE;
       }
-      return !!this.config.fillable;
+      return this.config.fillable ?? DEFAULT_FILLABLE;
    }
 
    isHidden(context?: TmpActionAndRenderContext): boolean {
       if (Array.isArray(this.config.hidden)) {
          return context ? this.config.hidden.includes(context as any) : DEFAULT_HIDDEN;
       }
-      return this.config.hidden ?? false;
+      return this.config.hidden ?? DEFAULT_HIDDEN;
    }
 
    isRequired(): boolean {
@@ -224,16 +200,16 @@ export abstract class Field<
       return value;
    }
 
-   protected toSchemaWrapIfRequired<Schema extends TSchema>(schema: Schema) {
-      return this.isRequired() ? schema : Type.Optional(schema);
+   protected toSchemaWrapIfRequired<Schema extends s.Schema>(schema: Schema): Schema {
+      return this.isRequired() ? schema : (schema.optional() as any);
    }
 
    protected nullish(value: any) {
       return value === null || value === undefined;
    }
 
-   toJsonSchema(): TSchema {
-      return this.toSchemaWrapIfRequired(Type.Any());
+   toJsonSchema(): s.Schema {
+      return this.toSchemaWrapIfRequired(s.any());
    }
 
    toType(): TFieldTSType {

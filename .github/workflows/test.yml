@@ -20,7 +20,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: "1.2.14"
+          bun-version: "1.2.19"
 
       - name: Install dependencies
         working-directory: ./app

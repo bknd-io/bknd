@@ -1,9 +1,6 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Switch, TextInput } from "@mantine/core";
-import { TypeRegistry } from "@sinclair/typebox";
 import { IconDatabase } from "@tabler/icons-react";
-import { type Static, StringEnum, StringIdentifier, registerCustomTypeboxKinds } from "core/utils";
-import { ManyToOneRelation, type RelationType, RelationTypes } from "data";
+import { ManyToOneRelation, type RelationType, RelationTypes } from "data/relations";
 import type { ReactNode } from "react";
 import { type Control, type FieldValues, type UseFormRegister, useForm } from "react-hook-form";
 import { TbRefresh } from "react-icons/tb";
@@ -13,12 +10,10 @@ import { MantineNumberInput } from "ui/components/form/hook-form-mantine/Mantine
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 import { useStepContext } from "ui/components/steps/Steps";
 import { useEvent } from "ui/hooks/use-event";
-import { ModalBody, ModalFooter, type TCreateModalSchema } from "./CreateModal";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
-
-// @todo: check if this could become an issue
-registerCustomTypeboxKinds(TypeRegistry);
+import { ModalBody, ModalFooter } from "./CreateModal";
+import type { TCreateModalSchema } from "./schema";
+import { s, stringIdentifier } from "bknd/utils";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const Relations: {
    type: RelationType;
@@ -47,11 +42,11 @@ const Relations: {
    },
 ];
 
-const schema = Type.Object({
-   type: StringEnum(Relations.map((r) => r.type)),
-   source: StringIdentifier,
-   target: StringIdentifier,
-   config: Type.Object({}),
+const schema = s.strictObject({
+   type: s.string({ enum: Relations.map((r) => r.type) }),
+   source: stringIdentifier,
+   target: stringIdentifier,
+   config: s.object({}),
 });
 
 type ComponentCtx<T extends FieldValues = FieldValues> = {
@@ -73,8 +68,8 @@ export function StepRelation() {
       watch,
       control,
    } = useForm({
-      resolver: typeboxResolver(schema),
-      defaultValues: (state.relations?.create?.[0] ?? {}) as Static<typeof schema>,
+      resolver: standardSchemaResolver(schema),
+      defaultValues: (state.relations?.create?.[0] ?? {}) as s.Static<typeof schema>,
    });
    const data = watch();
 

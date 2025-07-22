@@ -9,7 +9,7 @@ import {
    IconSettings,
    IconSwitchHorizontal,
 } from "@tabler/icons-react";
-import type { Entity, TEntityType } from "data";
+import type { Entity, TEntityType } from "bknd";
 import { TbDatabasePlus } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";

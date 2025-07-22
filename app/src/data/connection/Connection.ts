@@ -18,7 +18,8 @@ import {
    sql,
 } from "kysely";
 import type { BaseIntrospector, BaseIntrospectorConfig } from "./BaseIntrospector";
-import type { Constructor, DB } from "core";
+import type { DB } from "bknd";
+import type { Constructor } from "core/registry/Registry";
 import { KyselyPluginRunner } from "data/plugins/KyselyPluginRunner";
 import type { Field } from "data/fields/Field";
 
@@ -38,7 +39,7 @@ export interface SelectQueryBuilderExpression<O> extends AliasableExpression<O> 
 
 export type SchemaResponse = [string, ColumnDataType, ColumnBuilderCallback] | undefined;
 
-const FieldSpecTypes = [
+export const FieldSpecTypes = [
    "text",
    "integer",
    "real",

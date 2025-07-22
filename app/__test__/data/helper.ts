@@ -2,7 +2,7 @@ import { unlink } from "node:fs/promises";
 import type { SqliteDatabase } from "kysely";
 // @ts-ignore
 import Database from "libsql";
-import { SqliteLocalConnection } from "../../src/data";
+import { SqliteLocalConnection } from "data/connection/sqlite/SqliteLocalConnection";
 
 export function getDummyDatabase(memory: boolean = true): {
    dummyDb: SqliteDatabase;

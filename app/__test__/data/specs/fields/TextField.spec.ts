@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { TextField } from "../../../../src/data";
+import { TextField } from "data/fields";
 import { fieldTestSuite, transformPersist } from "data/fields/field-test-suite";
+import { bunTestRunner } from "adapter/bun/test";
 
 describe("[data] TextField", async () => {
    test("transformPersist (config)", async () => {
@@ -11,5 +12,5 @@ describe("[data] TextField", async () => {
       expect(transformPersist(field, "abc")).resolves.toBe("abc");
    });
 
-   fieldTestSuite({ expect, test }, TextField, { defaultValue: "abc", schemaType: "text" });
+   fieldTestSuite(bunTestRunner, TextField, { defaultValue: "abc", schemaType: "text" });
 });

@@ -1,4 +1,4 @@
-import type { Entity, EntityData } from "data";
+import type { Entity, EntityData } from "bknd";
 import { CellValue, DataTable, type DataTableProps } from "ui/components/table/DataTable";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
 

@@ -6,19 +6,18 @@ import type {
    ListObjectsV2Request,
    PutObjectRequest,
 } from "@aws-sdk/client-s3";
-import { AwsClient, isDebug } from "core";
-import { type Static, isFile, parse, pickHeaders2 } from "core/utils";
+import { AwsClient } from "core/clients/aws/AwsClient";
+import { isDebug } from "core/env";
+import { isFile, pickHeaders2, parse, s } from "bknd/utils";
 import { transform } from "lodash-es";
 import type { FileBody, FileListObject } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
 
-export const s3AdapterConfig = Type.Object(
+export const s3AdapterConfig = s.object(
    {
-      access_key: Type.String(),
-      secret_access_key: Type.String(),
-      url: Type.String({
+      access_key: s.string(),
+      secret_access_key: s.string(),
+      url: s.string({
          pattern: "^https?://(?:.*)?[^/.]+$",
          description: "URL to S3 compatible endpoint without trailing slash",
          examples: [
@@ -33,7 +32,7 @@ export const s3AdapterConfig = Type.Object(
    },
 );
 
-export type S3AdapterConfig = Static<typeof s3AdapterConfig>;
+export type S3AdapterConfig = s.Static<typeof s3AdapterConfig>;
 
 export class StorageS3Adapter extends StorageAdapter {
    readonly #config: S3AdapterConfig;

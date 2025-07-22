@@ -1,4 +1,4 @@
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import { autoFormatString } from "core/utils";
 import { type ChangeEvent, useState } from "react";
 import {
@@ -64,8 +64,7 @@ function AuthStrategiesListInternal() {
    const config = $auth.config.strategies;
    const schema = $auth.schema.properties.strategies;
    const schemas = Object.fromEntries(
-      // @ts-ignore
-      $auth.schema.properties.strategies.additionalProperties.anyOf.map((s) => [
+      $auth.schema.properties.strategies?.additionalProperties?.anyOf.map((s) => [
          s.properties.type.const,
          s,
       ]),
@@ -76,7 +75,12 @@ function AuthStrategiesListInternal() {
    }
 
    return (
-      <Form schema={schema} initialValues={config} onSubmit={handleSubmit} options={formOptions}>
+      <Form
+         schema={schema as any}
+         initialValues={config}
+         onSubmit={handleSubmit}
+         options={formOptions}
+      >
          <Subscribe
             selector={(state) => ({
                dirty: state.dirty,

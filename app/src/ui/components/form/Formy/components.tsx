@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { getBrowser } from "core/utils";
-import type { Field } from "data";
+import type { Field } from "data/fields";
 import { Switch as RadixSwitch } from "radix-ui";
 import {
    type ComponentPropsWithoutRef,

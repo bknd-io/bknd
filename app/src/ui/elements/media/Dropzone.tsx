@@ -1,4 +1,4 @@
-import type { DB } from "core";
+import type { DB } from "bknd";
 import {
    type ComponentPropsWithRef,
    createContext,

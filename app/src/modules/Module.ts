@@ -1,11 +1,14 @@
-import type { Guard } from "auth";
-import { type DebugLogger, SchemaObject } from "core";
 import type { EventManager } from "core/events";
-import type { Static, TSchema } from "core/utils";
-import type { Connection, EntityManager } from "data";
+import type { Connection } from "data/connection";
+import type { EntityManager } from "data/entities";
 import type { Hono } from "hono";
 import type { ServerEnv } from "modules/Controller";
 import type { ModuleHelper } from "./ModuleHelper";
+import { SchemaObject } from "core/object/SchemaObject";
+import type { DebugLogger } from "core/utils/DebugLogger";
+import type { Guard } from "auth/authorize/Guard";
+
+type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 
 export type ModuleBuildContext = {
    connection: Connection;
@@ -18,13 +21,13 @@ export type ModuleBuildContext = {
    helper: ModuleHelper;
 };
 
-export abstract class Module<Schema extends TSchema = TSchema, ConfigSchema = Static<Schema>> {
+export abstract class Module<Schema extends object = object> {
    private _built = false;
    private _schema: SchemaObject<ReturnType<(typeof this)["getSchema"]>>;
    private _listener: any = () => null;
 
    constructor(
-      initial?: Partial<Static<Schema>>,
+      initial?: PartialRec<Schema>,
       protected _ctx?: ModuleBuildContext,
    ) {
       this._schema = new SchemaObject(this.getSchema(), initial, {
@@ -47,7 +50,7 @@ export abstract class Module<Schema extends TSchema = TSchema, ConfigSchema = St
       ctx_reload_required: boolean;
    };
 
-   onBeforeUpdate(from: ConfigSchema, to: ConfigSchema): ConfigSchema | Promise<ConfigSchema> {
+   onBeforeUpdate(from: Schema, to: Schema): Schema | Promise<Schema> {
       return to;
    }
 
@@ -75,11 +78,13 @@ export abstract class Module<Schema extends TSchema = TSchema, ConfigSchema = St
       return undefined;
    }
 
-   get configDefault(): Static<ReturnType<(typeof this)["getSchema"]>> {
-      return this._schema.default();
+   //get configDefault(): s.Static<ReturnType<(typeof this)["getSchema"]>> {
+   get configDefault(): Schema {
+      return this._schema.default() as any;
    }
 
-   get config(): Static<ReturnType<(typeof this)["getSchema"]>> {
+   //get config(): s.Static<ReturnType<(typeof this)["getSchema"]>> {
+   get config(): Schema {
       return this._schema.get();
    }
 
@@ -130,7 +135,8 @@ export abstract class Module<Schema extends TSchema = TSchema, ConfigSchema = St
       }
    }
 
-   toJSON(secrets?: boolean): Static<ReturnType<(typeof this)["getSchema"]>> {
+   //toJSON(secrets?: boolean): s.Static<ReturnType<(typeof this)["getSchema"]>> {
+   toJSON(secrets?: boolean): Schema {
       return this.config;
    }
 }

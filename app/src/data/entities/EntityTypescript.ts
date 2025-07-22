@@ -1,4 +1,5 @@
-import type { Entity, EntityManager, EntityRelation, TEntityType } from "data";
+import type { Entity, EntityManager, TEntityType } from "data/entities";
+import type { EntityRelation } from "data/relations";
 import { autoFormatString } from "core/utils";
 import { usersFields } from "auth/auth-entities";
 import { mediaFields } from "media/media-entities";

@@ -1,5 +1,6 @@
-import { Exception, Permission } from "core";
+import { Exception } from "core/errors";
 import { $console, objectTransform } from "core/utils";
+import { Permission } from "core/security/Permission";
 import type { Context } from "hono";
 import type { ServerEnv } from "modules/Controller";
 import { Role } from "./Role";

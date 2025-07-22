@@ -1,29 +1,23 @@
-import type { Static } from "core/utils";
-import type { EntityManager } from "data";
+import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
+import { omitKeys } from "core/utils";
 
-export const numberFieldConfigSchema = Type.Composite(
-   [
-      Type.Object({
-         default_value: Type.Optional(Type.Number()),
-         minimum: Type.Optional(Type.Number()),
-         maximum: Type.Optional(Type.Number()),
-         exclusiveMinimum: Type.Optional(Type.Number()),
-         exclusiveMaximum: Type.Optional(Type.Number()),
-         multipleOf: Type.Optional(Type.Number()),
-      }),
-      baseFieldConfigSchema,
-   ],
-   {
-      additionalProperties: false,
-   },
-);
+export const numberFieldConfigSchema = s
+   .strictObject({
+      default_value: s.number(),
+      minimum: s.number(),
+      maximum: s.number(),
+      exclusiveMinimum: s.number(),
+      exclusiveMaximum: s.number(),
+      multipleOf: s.number(),
+      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+   })
+   .partial();
 
-export type NumberFieldConfig = Static<typeof numberFieldConfigSchema>;
+export type NumberFieldConfig = s.Static<typeof numberFieldConfigSchema>;
 
 export class NumberField<Required extends true | false = false> extends Field<
    NumberFieldConfig,
@@ -93,7 +87,7 @@ export class NumberField<Required extends true | false = false> extends Field<
 
    override toJsonSchema() {
       return this.toSchemaWrapIfRequired(
-         Type.Number({
+         s.number({
             default: this.getDefault(),
             minimum: this.config?.minimum,
             maximum: this.config?.maximum,

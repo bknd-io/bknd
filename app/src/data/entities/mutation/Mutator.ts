@@ -1,7 +1,7 @@
-import type { DB as DefaultDB, PrimaryFieldType } from "core";
+import type { DB as DefaultDB, PrimaryFieldType } from "bknd";
 import { type EmitsEvents, EventManager } from "core/events";
 import type { DeleteQueryBuilder, InsertQueryBuilder, UpdateQueryBuilder } from "kysely";
-import type { TActionContext } from "../..";
+import type { TActionContext } from "data/fields";
 import { WhereBuilder } from "../query/WhereBuilder";
 import type { Entity, EntityData, EntityManager } from "../../entities";
 import { InvalidSearchParamsException } from "../../errors";
@@ -9,7 +9,6 @@ import { MutatorEvents } from "../../events";
 import { RelationMutator } from "../../relations";
 import type { RepoQuery } from "../../server/query";
 import { MutatorResult, type MutatorResultOptions } from "./MutatorResult";
-import { transformObject } from "core/utils";
 
 type MutatorQB =
    | InsertQueryBuilder<any, any, any>

@@ -1,42 +1,24 @@
-import type { EntityManager } from "data";
-import type { Static } from "core/utils";
+import type { EntityManager } from "data/entities";
+import { omitKeys } from "core/utils";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, baseFieldConfigSchema } from "./Field";
-import * as tb from "@sinclair/typebox";
-const { Type } = tb;
+import { s } from "bknd/utils";
 
-export const textFieldConfigSchema = Type.Composite(
-   [
-      Type.Object({
-         default_value: Type.Optional(Type.String()),
-         minLength: Type.Optional(Type.Number()),
-         maxLength: Type.Optional(Type.Number()),
-         pattern: Type.Optional(Type.String()),
-         html_config: Type.Optional(
-            Type.Object({
-               element: Type.Optional(Type.String({ default: "input" })),
-               props: Type.Optional(
-                  Type.Object(
-                     {},
-                     {
-                        additionalProperties: Type.Union([
-                           Type.String({ title: "String" }),
-                           Type.Number({ title: "Number" }),
-                        ]),
-                     },
-                  ),
-               ),
-            }),
-         ),
+export const textFieldConfigSchema = s
+   .strictObject({
+      default_value: s.string(),
+      minLength: s.number(),
+      maxLength: s.number(),
+      pattern: s.string(),
+      html_config: s.partialObject({
+         element: s.string(),
+         props: s.record(s.anyOf([s.string({ title: "String" }), s.number({ title: "Number" })])),
       }),
-      baseFieldConfigSchema,
-   ],
-   {
-      additionalProperties: false,
-   },
-);
+      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+   })
+   .partial();
 
-export type TextFieldConfig = Static<typeof textFieldConfigSchema>;
+export type TextFieldConfig = s.Static<typeof textFieldConfigSchema>;
 
 export class TextField<Required extends true | false = false> extends Field<
    TextFieldConfig,
@@ -113,7 +95,7 @@ export class TextField<Required extends true | false = false> extends Field<
 
    override toJsonSchema() {
       return this.toSchemaWrapIfRequired(
-         Type.String({
+         s.string({
             default: this.getDefault(),
             minLength: this.config?.minLength,
             maxLength: this.config?.maxLength,

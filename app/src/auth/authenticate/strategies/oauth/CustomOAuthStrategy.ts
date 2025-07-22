@@ -1,38 +1,36 @@
-import { type Static, StrictObject, StringEnum } from "core/utils";
-import * as tbbox from "@sinclair/typebox";
 import type * as oauth from "oauth4webapi";
 import { OAuthStrategy } from "./OAuthStrategy";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 type SupportedTypes = "oauth2" | "oidc";
 
 type RequireKeys<T extends object, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
 
-const UrlString = Type.String({ pattern: "^(https?|wss?)://[^\\s/$.?#].[^\\s]*$" });
-const oauthSchemaCustom = StrictObject(
+const UrlString = s.string({ pattern: "^(https?|wss?)://[^\\s/$.?#].[^\\s]*$" });
+const oauthSchemaCustom = s.strictObject(
    {
-      type: StringEnum(["oidc", "oauth2"] as const, { default: "oidc" }),
-      name: Type.String(),
-      client: StrictObject({
-         client_id: Type.String(),
-         client_secret: Type.String(),
-         token_endpoint_auth_method: StringEnum(["client_secret_basic"]),
+      type: s.string({ enum: ["oidc", "oauth2"] as const, default: "oidc" }),
+      name: s.string(),
+      client: s.object({
+         client_id: s.string(),
+         client_secret: s.string(),
+         token_endpoint_auth_method: s.string({ enum: ["client_secret_basic"] }),
       }),
-      as: StrictObject({
-         issuer: Type.String(),
-         code_challenge_methods_supported: Type.Optional(StringEnum(["S256"])),
-         scopes_supported: Type.Optional(Type.Array(Type.String())),
-         scope_separator: Type.Optional(Type.String({ default: " " })),
-         authorization_endpoint: Type.Optional(UrlString),
-         token_endpoint: Type.Optional(UrlString),
-         userinfo_endpoint: Type.Optional(UrlString),
+      as: s.strictObject({
+         issuer: s.string(),
+         code_challenge_methods_supported: s.string({ enum: ["S256"] }).optional(),
+         scopes_supported: s.array(s.string()).optional(),
+         scope_separator: s.string({ default: " " }).optional(),
+         authorization_endpoint: UrlString.optional(),
+         token_endpoint: UrlString.optional(),
+         userinfo_endpoint: UrlString.optional(),
       }),
       // @todo: profile mapping
    },
    { title: "Custom OAuth" },
 );
 
-type OAuthConfigCustom = Static<typeof oauthSchemaCustom>;
+type OAuthConfigCustom = s.Static<typeof oauthSchemaCustom>;
 
 export type UserProfile = {
    sub: string;

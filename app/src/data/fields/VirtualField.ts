@@ -1,11 +1,13 @@
-import type { Static } from "core/utils";
 import { Field, baseFieldConfigSchema } from "./Field";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
-export const virtualFieldConfigSchema = Type.Composite([baseFieldConfigSchema, Type.Object({})]);
+export const virtualFieldConfigSchema = s
+   .strictObject({
+      ...baseFieldConfigSchema.properties,
+   })
+   .partial();
 
-export type VirtualFieldConfig = Static<typeof virtualFieldConfigSchema>;
+export type VirtualFieldConfig = s.Static<typeof virtualFieldConfigSchema>;
 
 export class VirtualField extends Field<VirtualFieldConfig> {
    override readonly type = "virtual";
@@ -25,7 +27,7 @@ export class VirtualField extends Field<VirtualFieldConfig> {
 
    override toJsonSchema() {
       return this.toSchemaWrapIfRequired(
-         Type.Any({
+         s.any({
             default: this.getDefault(),
             readOnly: true,
          }),

@@ -1,7 +1,8 @@
 // eslint-disable-next-line import/no-unresolved
 import { afterAll, describe, expect, test } from "bun:test";
-import { Entity, EntityManager, Mutator, NumberField, TextField } from "../../src/data";
-import { TransformPersistFailedException } from "../../src/data/errors";
+import { Entity, EntityManager } from "data/entities";
+import { NumberField, TextField } from "data/fields";
+import { TransformPersistFailedException } from "data/errors";
 import { getDummyConnection } from "./helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

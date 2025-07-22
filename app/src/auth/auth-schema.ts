@@ -1,8 +1,6 @@
 import { cookieConfig, jwtConfig } from "auth/authenticate/Authenticator";
 import { CustomOAuthStrategy, OAuthStrategy, PasswordStrategy } from "auth/authenticate/strategies";
-import { type Static, StringRecord, objectTransform } from "core/utils";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { objectTransform, s } from "bknd/utils";
 
 export const Strategies = {
    password: {
@@ -21,64 +19,58 @@ export const Strategies = {
 
 export const STRATEGIES = Strategies;
 const strategiesSchemaObject = objectTransform(STRATEGIES, (strategy, name) => {
-   return Type.Object(
+   return s.strictObject(
       {
-         enabled: Type.Optional(Type.Boolean({ default: true })),
-         type: Type.Const(name, { default: name, readOnly: true }),
+         enabled: s.boolean({ default: true }).optional(),
+         type: s.literal(name),
          config: strategy.schema,
       },
       {
          title: name,
-         additionalProperties: false,
       },
    );
 });
-const strategiesSchema = Type.Union(Object.values(strategiesSchemaObject));
-export type AppAuthStrategies = Static<typeof strategiesSchema>;
-export type AppAuthOAuthStrategy = Static<typeof STRATEGIES.oauth.schema>;
-export type AppAuthCustomOAuthStrategy = Static<typeof STRATEGIES.custom_oauth.schema>;
 
-const guardConfigSchema = Type.Object({
-   enabled: Type.Optional(Type.Boolean({ default: false })),
+const strategiesSchema = s.anyOf(Object.values(strategiesSchemaObject));
+export type AppAuthStrategies = s.Static<typeof strategiesSchema>;
+export type AppAuthOAuthStrategy = s.Static<typeof STRATEGIES.oauth.schema>;
+export type AppAuthCustomOAuthStrategy = s.Static<typeof STRATEGIES.custom_oauth.schema>;
+
+const guardConfigSchema = s.object({
+   enabled: s.boolean({ default: false }).optional(),
 });
-export const guardRoleSchema = Type.Object(
-   {
-      permissions: Type.Optional(Type.Array(Type.String())),
-      is_default: Type.Optional(Type.Boolean()),
-      implicit_allow: Type.Optional(Type.Boolean()),
-   },
-   { additionalProperties: false },
-);
+export const guardRoleSchema = s.strictObject({
+   permissions: s.array(s.string()).optional(),
+   is_default: s.boolean().optional(),
+   implicit_allow: s.boolean().optional(),
+});
 
-export const authConfigSchema = Type.Object(
+export const authConfigSchema = s.strictObject(
    {
-      enabled: Type.Boolean({ default: false }),
-      basepath: Type.String({ default: "/api/auth" }),
-      entity_name: Type.String({ default: "users" }),
-      allow_register: Type.Optional(Type.Boolean({ default: true })),
+      enabled: s.boolean({ default: false }),
+      basepath: s.string({ default: "/api/auth" }),
+      entity_name: s.string({ default: "users" }),
+      allow_register: s.boolean({ default: true }).optional(),
       jwt: jwtConfig,
       cookie: cookieConfig,
-      strategies: Type.Optional(
-         StringRecord(strategiesSchema, {
-            title: "Strategies",
-            default: {
-               password: {
-                  type: "password",
-                  enabled: true,
-                  config: {
-                     hashing: "sha256",
-                  },
+      strategies: s.record(strategiesSchema, {
+         title: "Strategies",
+         default: {
+            password: {
+               type: "password",
+               enabled: true,
+               config: {
+                  hashing: "sha256",
                },
             },
-         }),
-      ),
-      guard: Type.Optional(guardConfigSchema),
-      roles: Type.Optional(StringRecord(guardRoleSchema, { default: {} })),
+         },
+      }),
+      guard: guardConfigSchema.optional(),
+      roles: s.record(guardRoleSchema, { default: {} }).optional(),
    },
-   {
-      title: "Authentication",
-      additionalProperties: false,
-   },
+   { title: "Authentication" },
 );
 
-export type AppAuthSchema = Static<typeof authConfigSchema>;
+export type AppAuthJWTConfig = s.Static<typeof jwtConfig>;
+
+export type AppAuthSchema = s.Static<typeof authConfigSchema>;

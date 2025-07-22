@@ -1,26 +1,22 @@
-import { type Static, StringEnum } from "core/utils";
 import type { EntityManager } from "../entities";
-import { Field, baseFieldConfigSchema, primaryFieldTypes } from "../fields";
+import { Field, baseFieldConfigSchema } from "../fields";
 import type { EntityRelation } from "./EntityRelation";
 import type { EntityRelationAnchor } from "./EntityRelationAnchor";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 const CASCADES = ["cascade", "set null", "set default", "restrict", "no action"] as const;
 
-export const relationFieldConfigSchema = Type.Composite([
-   baseFieldConfigSchema,
-   Type.Object({
-      reference: Type.String(),
-      target: Type.String(), // @todo: potentially has to be an instance!
-      target_field: Type.Optional(Type.String({ default: "id" })),
-      target_field_type: Type.Optional(StringEnum(["integer", "text"], { default: "integer" })),
-      on_delete: Type.Optional(StringEnum(CASCADES, { default: "set null" })),
-   }),
-]);
+export const relationFieldConfigSchema = s.strictObject({
+   reference: s.string(),
+   target: s.string(), // @todo: potentially has to be an instance!
+   target_field: s.string({ default: "id" }).optional(),
+   target_field_type: s.string({ enum: ["text", "integer"], default: "integer" }).optional(),
+   on_delete: s.string({ enum: CASCADES, default: "set null" }).optional(),
+   ...baseFieldConfigSchema.properties,
+});
 
-export type RelationFieldConfig = Static<typeof relationFieldConfigSchema>;
+export type RelationFieldConfig = s.Static<typeof relationFieldConfigSchema>;
 export type RelationFieldBaseConfig = { label?: string };
 
 export class RelationField extends Field<RelationFieldConfig> {
@@ -81,7 +77,7 @@ export class RelationField extends Field<RelationFieldConfig> {
 
    override toJsonSchema() {
       return this.toSchemaWrapIfRequired(
-         Type.Number({
+         s.number({
             $ref: `${this.config?.target}#/properties/${this.config?.target_field}`,
          }),
       );

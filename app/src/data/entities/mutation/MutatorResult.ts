@@ -2,7 +2,7 @@ import { $console } from "core/utils";
 import type { Entity, EntityData } from "../Entity";
 import type { EntityManager } from "../EntityManager";
 import { Result, type ResultJSON, type ResultOptions } from "../Result";
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 
 export type MutatorResultOptions = ResultOptions & {
    silent?: boolean;

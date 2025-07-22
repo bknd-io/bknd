@@ -1,4 +1,4 @@
-import type { EntityData } from "data";
+import type { EntityData } from "bknd";
 import { useState } from "react";
 import { useEntityMutate } from "ui/client";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
@@ -11,7 +11,7 @@ import { Breadcrumbs2 } from "ui/layouts/AppShell/Breadcrumbs2";
 import { routes, useNavigate } from "ui/lib/routes";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 
 export function DataEntityCreate({ params }) {
    const { $data } = useBkndData();

@@ -1,23 +1,19 @@
-import { StringEnum } from "core/utils";
 import type { Context, Hono } from "hono";
 import type { Flow } from "../Flow";
 import { Trigger } from "./Trigger";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 
 export class HttpTrigger extends Trigger<typeof HttpTrigger.schema> {
    override type = "http";
 
-   static override schema = Type.Composite([
-      Trigger.schema,
-      Type.Object({
-         path: Type.String({ pattern: "^/.*$" }),
-         method: StringEnum(httpMethods, { default: "GET" }),
-         response_type: StringEnum(["json", "text", "html"], { default: "json" }),
-      }),
-   ]);
+   static override schema = s.strictObject({
+      path: s.string({ pattern: "^/.*$" }),
+      method: s.string({ enum: httpMethods, default: "GET" }),
+      response_type: s.string({ enum: ["json", "text", "html"], default: "json" }),
+      ...Trigger.schema.properties,
+   });
 
    override async register(flow: Flow, hono: Hono<any>) {
       const method = this.config.method.toLowerCase() as any;

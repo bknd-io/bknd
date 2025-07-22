@@ -1,12 +1,5 @@
-import { config } from "core";
-import {
-   $console,
-   type Static,
-   StringEnum,
-   parse,
-   snakeToPascalWithSpaces,
-   transformObject,
-} from "core/utils";
+import { config } from "core/config";
+import { snakeToPascalWithSpaces, transformObject, $console, s, parse } from "bknd/utils";
 import {
    type Field,
    PrimaryField,
@@ -14,25 +7,20 @@ import {
    type TActionContext,
    type TRenderContext,
 } from "../fields";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
 
 // @todo: entity must be migrated to typebox
-export const entityConfigSchema = Type.Object(
-   {
-      name: Type.Optional(Type.String()),
-      name_singular: Type.Optional(Type.String()),
-      description: Type.Optional(Type.String()),
-      sort_field: Type.Optional(Type.String({ default: config.data.default_primary_field })),
-      sort_dir: Type.Optional(StringEnum(["asc", "desc"], { default: "asc" })),
-      primary_format: Type.Optional(StringEnum(primaryFieldTypes)),
-   },
-   {
-      additionalProperties: false,
-   },
-);
+export const entityConfigSchema = s
+   .strictObject({
+      name: s.string(),
+      name_singular: s.string(),
+      description: s.string(),
+      sort_field: s.string({ default: config.data.default_primary_field }),
+      sort_dir: s.string({ enum: ["asc", "desc"], default: "asc" }),
+      primary_format: s.string({ enum: primaryFieldTypes }),
+   })
+   .partial();
 
-export type EntityConfig = Static<typeof entityConfigSchema>;
+export type EntityConfig = s.Static<typeof entityConfigSchema>;
 
 export type EntityData = Record<string, any>;
 export type EntityJSON = ReturnType<Entity["toJSON"]>;
@@ -288,8 +276,10 @@ export class Entity<
       }
 
       const _fields = Object.fromEntries(fields.map((field) => [field.name, field]));
-      const schema = Type.Object(
-         transformObject(_fields, (field) => {
+      const schema = {
+         type: "object",
+         additionalProperties: false,
+         properties: transformObject(_fields, (field) => {
             const fillable = field.isFillable(options?.context);
             return {
                title: field.config.label,
@@ -299,8 +289,7 @@ export class Entity<
                ...field.toJsonSchema(),
             };
          }),
-         { additionalProperties: false },
-      );
+      };
 
       return options?.clean ? JSON.parse(JSON.stringify(schema)) : schema;
    }

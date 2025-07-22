@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { EntityManager } from "../../../../src/data";
+import { EntityManager } from "data/entities/EntityManager";
 import { getDummyConnection } from "../../helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

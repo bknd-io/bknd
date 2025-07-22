@@ -1,11 +1,11 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { TextInput } from "@mantine/core";
-import { Type } from "@sinclair/typebox";
 import { useForm } from "react-hook-form";
+import { s } from "bknd/utils";
 
-const schema = Type.Object({
-   example: Type.Optional(Type.String()),
-   exampleRequired: Type.String({ minLength: 2 }),
+const schema = s.object({
+   example: s.string().optional(),
+   exampleRequired: s.string({ minLength: 2 }),
 });
 
 export default function ReactHookErrors() {
@@ -15,8 +15,10 @@ export default function ReactHookErrors() {
       watch,
       formState: { errors },
    } = useForm({
-      resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
    });
+   const data = watch();
+
    const onSubmit = (data) => console.log(data);
 
    console.log(watch("example")); // watch input value by passing the name of it

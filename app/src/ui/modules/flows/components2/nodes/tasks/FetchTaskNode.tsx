@@ -1,30 +1,26 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
-import { Input, NativeSelect, Select, TextInput } from "@mantine/core";
+import { Input, TextInput } from "@mantine/core";
 import { useToggle } from "@mantine/hooks";
 import { IconMinus, IconPlus, IconWorld } from "@tabler/icons-react";
 import type { Node, NodeProps } from "@xyflow/react";
-import type { Static } from "core/utils";
+import { s } from "bknd/utils";
 import { FetchTask } from "flows";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "ui/components/buttons/Button";
 import { JsonViewer } from "ui/components/code/JsonViewer";
 import { SegmentedControl } from "ui/components/form/SegmentedControl";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
-import { type TFlowNodeData, useFlowSelector } from "../../../hooks/use-flow";
+import type { TFlowNodeData } from "../../../hooks/use-flow";
 import { KeyValueInput } from "../../form/KeyValueInput";
 import { BaseNode } from "../BaseNode";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
-const schema = Type.Composite([
-   FetchTask.schema,
-   Type.Object({
-      query: Type.Optional(Type.Record(Type.String(), Type.String())),
-   }),
-]);
+const schema = s.object({
+   query: s.record(s.string()).optional(),
+   ...FetchTask.schema.properties,
+});
 
-type TFetchTaskSchema = Static<typeof FetchTask.schema>;
+type TFetchTaskSchema = s.Static<typeof FetchTask.schema>;
 type FetchTaskFormProps = NodeProps<Node<TFlowNodeData>> & {
    params: TFetchTaskSchema;
    onChange: (params: any) => void;
@@ -42,8 +38,8 @@ export function FetchTaskForm({ onChange, params, ...props }: FetchTaskFormProps
       watch,
       control,
    } = useForm({
-      resolver: typeboxResolver(schema),
-      defaultValues: params as Static<typeof schema>,
+      resolver: standardSchemaResolver(schema),
+      defaultValues: params as s.Static<typeof schema>,
       mode: "onChange",
       //defaultValues: (state.relations?.create?.[0] ?? {}) as Static<typeof schema>
    });

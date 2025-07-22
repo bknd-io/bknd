@@ -94,16 +94,14 @@ export function transformObject<T extends Record<string, any>, U>(
    object: T,
    transform: (value: T[keyof T], key: keyof T) => U | undefined,
 ): { [K in keyof T]: U } {
-   return Object.entries(object).reduce(
-      (acc, [key, value]) => {
-         const t = transform(value, key as keyof T);
-         if (typeof t !== "undefined") {
-            acc[key as keyof T] = t;
-         }
-         return acc;
-      },
-      {} as { [K in keyof T]: U },
-   );
+   const result = {} as { [K in keyof T]: U };
+   for (const [key, value] of Object.entries(object) as [keyof T, T[keyof T]][]) {
+      const t = transform(value, key);
+      if (typeof t !== "undefined") {
+         result[key] = t;
+      }
+   }
+   return result;
 }
 export const objectTransform = transformObject;
 
@@ -418,4 +416,22 @@ export function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pi
       },
       {} as Pick<T, K>,
    );
+}
+
+export function deepFreeze<T extends object>(object: T): T {
+   if (Object.isFrozen(object)) return object;
+
+   // Retrieve the property names defined on object
+   const propNames = Reflect.ownKeys(object);
+
+   // Freeze properties before freezing self
+   for (const name of propNames) {
+      const value = object[name];
+
+      if ((value && typeof value === "object") || typeof value === "function") {
+         deepFreeze(value);
+      }
+   }
+
+   return Object.freeze(object);
 }

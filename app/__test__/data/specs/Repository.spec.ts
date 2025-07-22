@@ -1,17 +1,10 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import type { Kysely, Transaction } from "kysely";
-import { Perf } from "core/utils";
-import {
-   Entity,
-   EntityManager,
-   LibsqlConnection,
-   ManyToOneRelation,
-   RepositoryEvents,
-   TextField,
-   entity as $entity,
-   text as $text,
-   em as $em,
-} from "data";
+import { TextField } from "data/fields";
+import { em as $em, entity as $entity, text as $text } from "data/prototype";
+import { Entity, EntityManager } from "data/entities";
+import { ManyToOneRelation } from "data/relations";
+import { RepositoryEvents } from "data/events";
 import { getDummyConnection } from "../helper";
 
 type E = Kysely<any> | Transaction<any>;

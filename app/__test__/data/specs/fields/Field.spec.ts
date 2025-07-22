@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { Default, stripMark } from "../../../../src/core/utils";
 import { baseFieldConfigSchema, Field } from "../../../../src/data/fields/Field";
 import { fieldTestSuite } from "data/fields/field-test-suite";
+import { bunTestRunner } from "adapter/bun/test";
+import { stripMark } from "core/utils/schema";
 
 describe("[data] Field", async () => {
    class FieldSpec extends Field {
@@ -19,10 +20,10 @@ describe("[data] Field", async () => {
       });
    });
 
-   fieldTestSuite({ expect, test }, FieldSpec, { defaultValue: "test", schemaType: "text" });
+   fieldTestSuite(bunTestRunner, FieldSpec, { defaultValue: "test", schemaType: "text" });
 
    test("default config", async () => {
-      const config = Default(baseFieldConfigSchema, {});
+      const config = baseFieldConfigSchema.template({});
       expect(stripMark(new FieldSpec("test").config)).toEqual(config as any);
    });
 

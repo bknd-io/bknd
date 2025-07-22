@@ -1,8 +1,6 @@
 import { useDisclosure, useFocusTrap } from "@mantine/hooks";
-import type { TObject } from "core/utils";
 import { omit } from "lodash-es";
 import { useRef, useState } from "react";
-import { TbCirclePlus, TbVariable } from "react-icons/tb";
 import { useBknd } from "ui/client/BkndProvider";
 import { Button } from "ui/components/buttons/Button";
 import * as Formy from "ui/components/form/Formy";
@@ -10,9 +8,10 @@ import { JsonSchemaForm, type JsonSchemaFormRef } from "ui/components/form/json-
 import { Dropdown } from "ui/components/overlay/Dropdown";
 import { Modal } from "ui/components/overlay/Modal";
 import { useLocation } from "wouter";
+import type { s } from "bknd/utils";
 
 export type SettingsNewModalProps = {
-   schema: TObject;
+   schema: s.ObjectSchema;
    uiSchema?: object;
    anyOfValues?: Record<string, { label: string; icon?: any }>;
    path: string[];

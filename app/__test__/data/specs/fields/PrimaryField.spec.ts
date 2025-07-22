@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { PrimaryField } from "../../../../src/data";
+import { PrimaryField } from "data/fields";
 
 describe("[data] PrimaryField", async () => {
    const field = new PrimaryField("primary");

@@ -1,5 +1,5 @@
 import { IconHierarchy2 } from "@tabler/icons-react";
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import { TbSettings } from "react-icons/tb";
 import { useBknd } from "../../client/BkndProvider";
 import { IconButton } from "../../components/buttons/IconButton";

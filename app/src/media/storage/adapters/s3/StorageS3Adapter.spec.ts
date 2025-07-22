@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { StorageS3Adapter } from "./StorageS3Adapter";
 
 import { config } from "dotenv";
-import { adapterTestSuite } from "media";
+import { adapterTestSuite } from "media/storage/adapters/adapter-test-suite";
 import { assetsPath } from "../../../../../__test__/helper";
 import { bunTestRunner } from "adapter/bun/test";
 //import { enableFetchLogging } from "../../helper";

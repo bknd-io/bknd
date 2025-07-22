@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import { TbChevronDown, TbChevronUp } from "react-icons/tb";
 import { useBknd } from "ui/client/BkndProvider";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";

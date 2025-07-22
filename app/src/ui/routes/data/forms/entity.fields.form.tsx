@@ -1,13 +1,11 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { Tabs, TextInput, Textarea, Tooltip, Switch } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import {
-   Default,
-   type Static,
-   StringIdentifier,
    objectCleanEmpty,
+   omitKeys,
    ucFirstAllSnakeToPascalWithSpaces,
-} from "core/utils";
+   s,
+   stringIdentifier,
+} from "bknd/utils";
 import {
    type TAppDataEntityFields,
    fieldsSchemaObject as originalFieldsSchemaObject,
@@ -26,31 +24,26 @@ import { type SortableItemProps, SortableList } from "ui/components/list/Sortabl
 import { Popover } from "ui/components/overlay/Popover";
 import { type TFieldSpec, fieldSpecs } from "ui/modules/data/components/fields-specs";
 import { dataFieldsUiSchema } from "../../settings/routes/data.settings";
-import * as tbbox from "@sinclair/typebox";
 import { useRoutePathState } from "ui/hooks/use-route-path-state";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
-const { Type } = tbbox;
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import ErrorBoundary from "ui/components/display/ErrorBoundary";
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
-const fieldsSchema = Type.Union(Object.values(fieldsSchemaObject));
+const fieldsSchema = s.anyOf(Object.values(fieldsSchemaObject));
 
-const fieldSchema = Type.Object(
-   {
-      name: StringIdentifier,
-      new: Type.Optional(Type.Boolean({ const: true })),
-      field: fieldsSchema,
-   },
-   {
-      additionalProperties: false,
-   },
-);
-type TFieldSchema = Static<typeof fieldSchema>;
-
-const schema = Type.Object({
-   fields: Type.Array(fieldSchema),
+const fieldSchema = s.strictObject({
+   name: stringIdentifier,
+   new: s.boolean({ const: true }).optional(),
+   field: fieldsSchema,
 });
-type TFieldsFormSchema = Static<typeof schema>;
+type TFieldSchema = s.Static<typeof fieldSchema>;
+
+const schema = s.strictObject({
+   fields: s.array(fieldSchema),
+});
+type TFieldsFormSchema = s.Static<typeof schema>;
 
 const fieldTypes = Object.keys(fieldsSchemaObject);
 const defaultType = fieldTypes[0];
@@ -58,7 +51,9 @@ const commonProps = ["label", "description", "required", "fillable", "hidden", "
 
 function specificFieldSchema(type: keyof typeof fieldsSchemaObject) {
    //console.log("specificFieldSchema", type);
-   return Type.Omit(fieldsSchemaObject[type]?.properties.config, commonProps);
+   return s.object(
+      omitKeys(fieldsSchemaObject[type]?.properties.config.properties, commonProps as any),
+   );
 }
 
 export type EntityFieldsFormProps = {
@@ -100,7 +95,7 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
          reset,
       } = useForm({
          mode: "all",
-         resolver: typeboxResolver(schema),
+         resolver: standardSchemaResolver(schema),
          defaultValues: {
             fields: entityFields,
          } as TFieldsFormSchema,
@@ -135,15 +130,14 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
       }));
 
       function handleAppend(_type: keyof typeof fieldsSchemaObject) {
-         const newField = {
+         append({
             name: "",
             new: true,
             field: {
                type: _type,
-               config: Default(fieldsSchemaObject[_type]?.properties.config, {}) as any,
+               config: fieldsSchemaObject[_type]?.properties.config.template() as any,
             },
-         };
-         append(newField);
+         });
       }
 
       const formProps = {
@@ -465,19 +459,17 @@ function EntityField({
                   </Tabs.Panel>
                   <Tabs.Panel value="specific">
                      <div className="flex flex-col gap-2 pt-3 pb-1">
-                        <JsonSchemaForm
-                           key={type}
-                           schema={specificFieldSchema(type as any)}
-                           formData={specificData}
-                           uiSchema={dataFieldsUiSchema.config}
-                           className="legacy hide-required-mark fieldset-alternative mute-root"
-                           onChange={(value) => {
-                              setValue(`${prefix}.config`, {
-                                 ...getValues([`fields.${index}.config`])[0],
-                                 ...value,
-                              });
-                           }}
-                        />
+                        <ErrorBoundary fallback={`Error rendering JSON Schema for ${type}`}>
+                           <SpecificForm
+                              field={field}
+                              onChange={(value) => {
+                                 setValue(`${prefix}.config`, {
+                                    ...getValues([`fields.${index}.config`])[0],
+                                    ...value,
+                                 });
+                              }}
+                           />
+                        </ErrorBoundary>
                      </div>
                   </Tabs.Panel>
                   <Tabs.Panel value="code">
@@ -502,3 +494,25 @@ function EntityField({
       </div>
    );
 }
+
+const SpecificForm = ({
+   field,
+   onChange,
+}: {
+   field: FieldArrayWithId<TFieldsFormSchema, "fields", "id">;
+   onChange: (value: any) => void;
+}) => {
+   const type = field.field.type;
+   const specificData = omit(field.field.config, commonProps);
+
+   return (
+      <JsonSchemaForm
+         key={type}
+         schema={specificFieldSchema(type as any)?.toJSON()}
+         formData={specificData}
+         uiSchema={dataFieldsUiSchema.config}
+         className="legacy hide-required-mark fieldset-alternative mute-root"
+         onChange={onChange}
+      />
+   );
+};

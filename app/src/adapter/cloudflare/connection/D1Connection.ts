@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { genericSqlite, type GenericSqliteConnection } from "bknd/data";
+import { genericSqlite, type GenericSqliteConnection } from "bknd";
 import type { QueryResult } from "kysely";
 
 export type D1SqliteConnection = GenericSqliteConnection<D1Database>;

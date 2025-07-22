@@ -1,5 +1,4 @@
-import { App, type AppPlugin } from "bknd";
-import { EntityTypescript } from "bknd/data";
+import { App, type AppPlugin, EntityTypescript } from "bknd";
 
 export type SyncTypesOptions = {
    enabled?: boolean;

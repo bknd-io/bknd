@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { parse } from "../../src/core/utils";
+import { parse } from "core/utils/schema";
 import { fieldsSchema } from "../../src/data/data-schema";
 import { AppData, type ModuleBuildContext } from "../../src/modules";
 import { makeCtx, moduleTestSuite } from "./module-test-suite";

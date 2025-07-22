@@ -1,20 +1,18 @@
-import { type Static, StringEnum, parse } from "core/utils";
 import type { Execution } from "../Execution";
 import type { Flow } from "../Flow";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s, parse } from "bknd/utils";
 
 export class Trigger<Schema extends typeof Trigger.schema = typeof Trigger.schema> {
    // @todo: remove this
    executions: Execution[] = [];
    type = "manual";
-   config: Static<Schema>;
+   config: s.Static<Schema>;
 
-   static schema = Type.Object({
-      mode: StringEnum(["sync", "async"], { default: "async" }),
+   static schema = s.strictObject({
+      mode: s.string({ enum: ["sync", "async"], default: "async" }),
    });
 
-   constructor(config?: Partial<Static<Schema>>) {
+   constructor(config?: Partial<s.Static<Schema>>) {
       const schema = (this.constructor as typeof Trigger).schema;
       // @ts-ignore for now
       this.config = parse(schema, config ?? {});
