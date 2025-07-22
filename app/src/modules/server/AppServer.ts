@@ -17,6 +17,7 @@ export const serverConfigSchema = s.strictObject({
       allow_headers: s.array(s.string(), {
          default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
       }),
+      allow_credentials: s.boolean({ default: true }),
    }),
 });
 
@@ -36,12 +37,14 @@ export class AppServer extends Module<AppServerConfig> {
    }
 
    override async build() {
+      const origin = this.config.cors.origin ?? "";
       this.client.use(
          "*",
          cors({
-            origin: this.config.cors.origin,
+            origin: origin.includes(",") ? origin.split(",").map((o) => o.trim()) : origin,
             allowMethods: this.config.cors.allow_methods,
             allowHeaders: this.config.cors.allow_headers,
+            credentials: this.config.cors.allow_credentials,
          }),
       );
 

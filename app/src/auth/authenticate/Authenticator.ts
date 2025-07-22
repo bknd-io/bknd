@@ -4,7 +4,7 @@ import { runtimeSupports, truncate, $console } from "core/utils";
 import type { Context, Hono } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
-import type { CookieOptions } from "hono/utils/cookie";
+import { type CookieOptions, serializeSigned } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
@@ -58,6 +58,7 @@ export const cookieConfig = s
       secure: s.boolean({ default: true }),
       httpOnly: s.boolean({ default: true }),
       expires: s.number({ default: defaultCookieExpires }), // seconds
+      partitioned: s.boolean({ default: false }),
       renew: s.boolean({ default: true }),
       pathSuccess: s.string({ default: "/" }),
       pathLoggedOut: s.string({ default: "/" }),
@@ -332,6 +333,11 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       $console.debug("setting auth cookie", truncate(token));
       const secret = this.config.jwt.secret;
       await setSignedCookie(c, "auth", token, secret, this.cookieOptions);
+   }
+
+   async unsafeGetAuthCookie(token: string): Promise<string | undefined> {
+      // this works for as long as cookieOptions.prefix is not set
+      return serializeSigned("auth", token, this.config.jwt.secret, this.cookieOptions);
    }
 
    private deleteAuthCookie(c: Context) {

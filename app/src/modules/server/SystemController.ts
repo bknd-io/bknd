@@ -323,6 +323,7 @@ export class SystemController extends Controller {
                   local: datetimeStringLocal(),
                   utc: datetimeStringUTC(),
                },
+               origin: new URL(c.req.raw.url).origin,
                plugins: Array.from(this.app.plugins.keys()),
                walk: {
                   auth: [
