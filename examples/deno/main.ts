@@ -5,6 +5,7 @@ const app = await createRuntimeApp({
       url: "file:./data.db",
    },
    adminOptions: {
+      // currently needs a hosted version of the static assets
       assetsPath: "https://cdn.bknd.io/bknd/static/0.15.0-rc.9/",
    },
 });
