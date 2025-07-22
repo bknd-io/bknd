@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
-import { Connection, entity, text } from "data";
+
 import { Module } from "modules/Module";
 import { type ConfigTable, getDefaultConfig, ModuleManager } from "modules/ModuleManager";
 import { CURRENT_VERSION, TABLE_NAME } from "modules/migrations";
 import { getDummyConnection } from "../helper";
-import { s, stripMark } from "bknd/core";
+import { s, stripMark } from "core/utils/schema";
+import { Connection } from "data/connection/Connection";
+import { entity, text } from "data/prototype";
 
 describe("ModuleManager", async () => {
    test("s1: no config, no build", async () => {

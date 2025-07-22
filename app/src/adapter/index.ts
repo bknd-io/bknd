@@ -1,13 +1,8 @@
-import { App, type CreateAppConfig } from "bknd";
-import { config as $config } from "bknd/core";
+import { config as $config, App, type CreateAppConfig, Connection, guessMimeType } from "bknd";
 import { $console } from "bknd/utils";
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
-import { Connection } from "bknd/data";
 import type { Manifest } from "vite";
-import { guessMimeType } from "media";
-
-export { Connection } from "bknd/data";
 
 export type BkndConfig<Args = any> = CreateAppConfig & {
    app?: CreateAppConfig | ((args: Args) => CreateAppConfig);
@@ -74,7 +69,7 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
             const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
             const conf = appConfig.connection ?? { url: ":memory:" };
             connection = sqlite(conf);
-            $console.info(`Using ${connection.name} connection`, conf.url);
+            $console.info(`Using ${connection!.name} connection`, conf.url);
          }
          appConfig.connection = connection;
       }

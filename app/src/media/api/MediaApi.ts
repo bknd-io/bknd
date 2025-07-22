@@ -1,11 +1,10 @@
-import type { FileListObject } from "media";
+import type { FileListObject } from "media/storage/Storage";
 import {
    type BaseModuleApiOptions,
    ModuleApi,
    type PrimaryFieldType,
    type TInput,
 } from "modules/ModuleApi";
-import type { FileWithPath } from "ui/elements/media/file-selector";
 import type { ApiFetcher } from "Api";
 
 export type MediaApiOptions = BaseModuleApiOptions & {

@@ -1,5 +1,5 @@
 import { Task } from "../Task";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export class RenderTask<Output extends Record<string, any>> extends Task<
    typeof RenderTask.schema,

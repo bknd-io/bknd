@@ -1,4 +1,4 @@
-import type { DB as DefaultDB, PrimaryFieldType } from "core";
+import type { DB as DefaultDB, PrimaryFieldType } from "bknd";
 import { $console } from "core/utils";
 import { type EmitsEvents, EventManager } from "core/events";
 import { type SelectQueryBuilder, sql } from "kysely";
@@ -14,7 +14,6 @@ import {
 } from "../index";
 import { JoinBuilder } from "./JoinBuilder";
 import { RepositoryResult, type RepositoryResultOptions } from "./RepositoryResult";
-import type { ResultOptions } from "../Result";
 
 export type RepositoryQB = SelectQueryBuilder<any, any, any>;
 

@@ -4,7 +4,7 @@ import { FieldClassMap } from "data/fields";
 import { RelationClassMap, RelationFieldClassMap } from "data/relations";
 import { entityConfigSchema, entityTypes } from "data/entities";
 import { primaryFieldTypes } from "./fields";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export const FIELDS = {
    ...FieldClassMap,

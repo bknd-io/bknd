@@ -1,4 +1,4 @@
-import type { SafeUser } from "auth";
+import type { SafeUser } from "bknd";
 import { AuthApi, type AuthApiOptions } from "auth/api/AuthApi";
 import { DataApi, type DataApiOptions } from "data/api/DataApi";
 import { decode } from "hono/jwt";

@@ -1,8 +1,8 @@
 import { omitKeys } from "core/utils";
-import type { EntityManager } from "data";
+import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export const booleanFieldConfigSchema = s
    .strictObject({

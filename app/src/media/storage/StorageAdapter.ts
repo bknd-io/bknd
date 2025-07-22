@@ -1,6 +1,5 @@
-import type { FileListObject, FileMeta } from "media";
-import type { FileBody, FileUploadPayload } from "media/storage/Storage";
-import type { s } from "bknd/core";
+import type { FileListObject, FileMeta, FileBody, FileUploadPayload } from "media/storage/Storage";
+import type { s } from "bknd/utils";
 
 const SYMBOL = Symbol.for("bknd:storage");
 

@@ -1,4 +1,4 @@
-import { Permission } from "core";
+import { Permission } from "core/security/Permission";
 
 export class RolePermission {
    constructor(

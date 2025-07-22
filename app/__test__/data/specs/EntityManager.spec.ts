@@ -1,12 +1,8 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import {
-   Entity,
-   EntityManager,
-   ManyToManyRelation,
-   ManyToOneRelation,
-   SchemaManager,
-} from "../../../src/data";
-import { UnableToConnectException } from "../../../src/data/errors";
+import { Entity, EntityManager } from "data/entities";
+import { ManyToManyRelation, ManyToOneRelation } from "data/relations";
+import { SchemaManager } from "data/schema/SchemaManager";
+import { UnableToConnectException } from "data/errors";
 import { getDummyConnection } from "../helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

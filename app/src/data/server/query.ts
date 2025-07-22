@@ -1,4 +1,4 @@
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 import { WhereBuilder, type WhereQuery } from "data/entities/query/WhereBuilder";
 import { isObject, $console } from "core/utils";
 import type { anyOf, CoercionOptions, Schema } from "jsonv-ts";

@@ -1,10 +1,11 @@
-import { Guard } from "auth";
-import { BkndError, DebugLogger, env } from "core";
-import { $console } from "core/utils";
+import { mark, stripMark, $console, s, objectEach, transformObject } from "bknd/utils";
+import { Guard } from "auth/authorize/Guard";
+import { env } from "core/env";
+import { BkndError } from "core/errors";
+import { DebugLogger } from "core/utils/DebugLogger";
 import { EventManager, Event } from "core/events";
 import * as $diff from "core/object/diff";
-import { objectEach, transformObject } from "core/utils";
-import type { Connection, Schema } from "data";
+import type { Connection } from "data/connection";
 import { EntityManager } from "data/entities/EntityManager";
 import * as proto from "data/prototype";
 import { TransformPersistFailedException } from "data/errors";
@@ -20,8 +21,6 @@ import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
 import { ModuleHelper } from "./ModuleHelper";
-import { s } from "bknd/core";
-import { mark, stripMark } from "bknd/core";
 
 export type { ModuleBuildContext };
 
@@ -108,11 +107,11 @@ const configJsonSchema = s.anyOf([
 export const __bknd = proto.entity(TABLE_NAME, {
    version: proto.number().required(),
    type: proto.enumm({ enum: ["config", "diff", "backup"] }).required(),
-   json: proto.jsonSchema({ schema: configJsonSchema }).required(),
+   json: proto.jsonSchema({ schema: configJsonSchema.toJSON() }).required(),
    created_at: proto.datetime(),
    updated_at: proto.datetime(),
 });
-type ConfigTable2 = Schema<typeof __bknd>;
+type ConfigTable2 = proto.Schema<typeof __bknd>;
 interface T_INTERNAL_EM {
    __bknd: ConfigTable2;
 }
@@ -732,9 +731,14 @@ export function getDefaultSchema() {
 
 export function getDefaultConfig(): ModuleConfigs {
    const config = transformObject(MODULES, (module) => {
-      return module.prototype.getSchema().template();
-      //return Default(module.prototype.getSchema(), {});
+      return module.prototype.getSchema().template(
+         {},
+         {
+            withOptional: true,
+            withExtendedOptional: true,
+         },
+      );
    });
 
-   return config as any;
+   return structuredClone(config) as any;
 }

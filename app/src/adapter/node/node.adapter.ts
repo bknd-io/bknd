@@ -3,9 +3,8 @@ import { serve as honoServe } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { registerLocalMediaAdapter } from "adapter/node/storage";
 import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
-import { config as $config } from "bknd/core";
-import { $console } from "core/utils";
-import type { App } from "App";
+import { config as $config, type App } from "bknd";
+import { $console } from "bknd/utils";
 
 type NodeEnv = NodeJS.ProcessEnv;
 export type NodeBkndConfig<Env = NodeEnv> = RuntimeBkndConfig<Env> & {

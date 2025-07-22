@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Guard } from "../../../src/auth";
+import { Guard } from "../../../src/auth/authorize/Guard";
 
 describe("authorize", () => {
    test("basic", async () => {

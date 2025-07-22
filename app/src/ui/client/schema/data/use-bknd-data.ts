@@ -1,5 +1,4 @@
-import { transformObject } from "core/utils";
-import { constructEntity } from "data";
+import { constructEntity } from "data/schema/constructor";
 import {
    type TAppDataEntity,
    type TAppDataEntityFields,
@@ -13,7 +12,7 @@ import {
 import { useBknd } from "ui/client/bknd";
 import type { TSchemaActions } from "ui/client/schema/actions";
 import { bkndModals } from "ui/modals";
-import { s, parse, InvalidSchemaError } from "bknd/core";
+import { s, parse, InvalidSchemaError, transformObject } from "bknd/utils";
 
 export function useBkndData() {
    const { config, app, schema, actions: bkndActions } = useBknd();

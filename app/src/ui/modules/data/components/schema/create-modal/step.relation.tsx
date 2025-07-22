@@ -1,6 +1,6 @@
 import { Switch, TextInput } from "@mantine/core";
 import { IconDatabase } from "@tabler/icons-react";
-import { ManyToOneRelation, type RelationType, RelationTypes } from "data";
+import { ManyToOneRelation, type RelationType, RelationTypes } from "data/relations";
 import type { ReactNode } from "react";
 import { type Control, type FieldValues, type UseFormRegister, useForm } from "react-hook-form";
 import { TbRefresh } from "react-icons/tb";
@@ -12,7 +12,7 @@ import { useStepContext } from "ui/components/steps/Steps";
 import { useEvent } from "ui/hooks/use-event";
 import { ModalBody, ModalFooter } from "./CreateModal";
 import type { TCreateModalSchema } from "./schema";
-import { s, stringIdentifier } from "bknd/core";
+import { s, stringIdentifier } from "bknd/utils";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const Relations: {

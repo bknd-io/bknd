@@ -2,7 +2,7 @@ import type { EventManager } from "core/events";
 import type { Flow } from "../Flow";
 import { Trigger } from "./Trigger";
 import { $console } from "core/utils";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export class EventTrigger extends Trigger<typeof EventTrigger.schema> {
    override type = "event";

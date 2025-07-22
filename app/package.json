@@ -99,7 +99,7 @@
     "dotenv": "^16.4.7",
     "jotai": "^2.12.2",
     "jsdom": "^26.0.0",
-    "jsonv-ts": "^0.3.1",
+    "jsonv-ts": "^0.3.2",
     "kysely-d1": "^0.3.0",
     "kysely-generic-sqlite": "^1.2.1",
     "libsql-stateless-easy": "^1.8.0",
@@ -160,16 +160,6 @@
       "import": "./dist/ui/client/index.js",
       "require": "./dist/ui/client/index.js"
     },
-    "./data": {
-      "types": "./dist/types/data/index.d.ts",
-      "import": "./dist/data/index.js",
-      "require": "./dist/data/index.js"
-    },
-    "./core": {
-      "types": "./dist/types/core/index.d.ts",
-      "import": "./dist/core/index.js",
-      "require": "./dist/core/index.js"
-    },
     "./utils": {
       "types": "./dist/types/core/utils/index.d.ts",
       "import": "./dist/core/utils/index.js",
@@ -179,11 +169,6 @@
       "types": "./dist/types/cli/index.d.ts",
       "import": "./dist/cli/index.js",
       "require": "./dist/cli/index.js"
-    },
-    "./media": {
-      "types": "./dist/types/media/index.d.ts",
-      "import": "./dist/media/index.js",
-      "require": "./dist/media/index.js"
     },
     "./plugins": {
       "types": "./dist/types/plugins/index.d.ts",
@@ -255,11 +240,8 @@
   },
   "typesVersions": {
     "*": {
-      "data": ["./dist/types/data/index.d.ts"],
-      "core": ["./dist/types/core/index.d.ts"],
       "utils": ["./dist/types/core/utils/index.d.ts"],
       "cli": ["./dist/types/cli/index.d.ts"],
-      "media": ["./dist/types/media/index.d.ts"],
       "plugins": ["./dist/types/plugins/index.d.ts"],
       "adapter": ["./dist/types/adapter/index.d.ts"],
       "adapter/cloudflare": ["./dist/types/adapter/cloudflare/index.d.ts"],

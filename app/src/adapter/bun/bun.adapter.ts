@@ -3,10 +3,9 @@
 import path from "node:path";
 import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
 import { registerLocalMediaAdapter } from ".";
-import { config } from "bknd/core";
+import { config, type App } from "bknd";
 import type { ServeOptions } from "bun";
 import { serveStatic } from "hono/bun";
-import type { App } from "App";
 
 type BunEnv = Bun.Env;
 export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOptions, "fetch">;

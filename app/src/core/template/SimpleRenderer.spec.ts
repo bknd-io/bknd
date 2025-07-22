@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { SimpleRenderer } from "core";
+import { SimpleRenderer } from "./SimpleRenderer";
 
 describe(SimpleRenderer, () => {
    const renderer = new SimpleRenderer(

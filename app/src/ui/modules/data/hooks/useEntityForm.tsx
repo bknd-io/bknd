@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import type { Entity, EntityData } from "data";
+import type { Entity, EntityData } from "bknd";
 import { getChangeSet, getDefaultValues } from "data/helper";
 
 type EntityFormProps = {
