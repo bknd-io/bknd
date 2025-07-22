@@ -1,6 +1,6 @@
 import type { AuthActionResponse } from "auth/api/AuthController";
 import type { AppAuthSchema } from "auth/auth-schema";
-import type { AuthResponse, SafeUser, Strategy } from "auth/authenticate/Authenticator";
+import type { AuthResponse, SafeUser, AuthStrategy } from "bknd";
 import { type BaseModuleApiOptions, ModuleApi } from "modules/ModuleApi";
 
 export type AuthApiOptions = BaseModuleApiOptions & {
@@ -39,7 +39,7 @@ export class AuthApi extends ModuleApi<AuthApiOptions> {
    }
 
    async actionSchema(strategy: string, action: string) {
-      return this.get<Strategy>([strategy, "actions", action, "schema.json"]);
+      return this.get<AuthStrategy>([strategy, "actions", action, "schema.json"]);
    }
 
    async action(strategy: string, action: string, input: any) {

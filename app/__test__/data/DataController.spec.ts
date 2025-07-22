@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
-import { Guard } from "../../src/auth";
+import { Guard } from "../../src/auth/authorize/Guard";
 import { parse } from "bknd/core";
 import {
    Entity,

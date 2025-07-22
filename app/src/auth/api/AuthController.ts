@@ -1,4 +1,7 @@
-import { type AppAuth, AuthPermissions, type SafeUser, type Strategy } from "auth";
+import type { SafeUser } from "bknd";
+import type { AuthStrategy } from "auth/authenticate/strategies/Strategy";
+import type { AppAuth } from "auth/AppAuth";
+import * as AuthPermissions from "auth/auth-permissions";
 import { DataPermissions } from "data";
 import type { Hono } from "hono";
 import { Controller, type ServerEnv } from "modules/Controller";
@@ -29,7 +32,7 @@ export class AuthController extends Controller {
       return this.em.repo(entity_name as "users");
    }
 
-   private registerStrategyActions(strategy: Strategy, mainHono: Hono<ServerEnv>) {
+   private registerStrategyActions(strategy: AuthStrategy, mainHono: Hono<ServerEnv>) {
       if (!this.auth.isStrategyEnabled(strategy)) {
          return;
       }

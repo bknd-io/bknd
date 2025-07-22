@@ -1,15 +1,15 @@
 import type { DB } from "bknd";
 import { Exception } from "core/errors";
 import { addFlashMessage } from "core/server/flash";
-import { runtimeSupports, truncate, $console } from "core/utils";
-import type { Context, Hono } from "hono";
+import type { Context } from "hono";
 import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
 import { type CookieOptions, serializeSigned } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
-import { s, parse, secret } from "bknd/utils";
+import { s, parse, secret, runtimeSupports, truncate, $console } from "bknd/utils";
+import type { AuthStrategy } from "./strategies/Strategy";
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];
@@ -21,17 +21,6 @@ export type StrategyAction<S extends s.ObjectSchema = s.ObjectSchema> = {
    preprocess: (input: s.Static<S>) => Promise<Omit<DB["users"], "id" | "strategy">>;
 };
 export type StrategyActions = Partial<Record<StrategyActionName, StrategyAction>>;
-
-// @todo: add schema to interface to ensure proper inference
-// @todo: add tests (e.g. invalid strategy_value)
-export interface Strategy {
-   getController: (auth: Authenticator) => Hono<any>;
-   getType: () => string;
-   getMode: () => "form" | "external";
-   getName: () => string;
-   toJSON: (secrets?: boolean) => any;
-   getActions?: () => StrategyActions;
-}
 
 export type User = DB["users"];
 
@@ -99,7 +88,7 @@ export type AuthResolveOptions = {
 };
 export type AuthUserResolver = (
    action: AuthAction,
-   strategy: Strategy,
+   strategy: AuthStrategy,
    profile: ProfileExchange,
    opts?: AuthResolveOptions,
 ) => Promise<ProfileExchange | undefined>;
@@ -109,7 +98,9 @@ type AuthClaims = SafeUser & {
    exp?: number;
 };
 
-export class Authenticator<Strategies extends Record<string, Strategy> = Record<string, Strategy>> {
+export class Authenticator<
+   Strategies extends Record<string, AuthStrategy> = Record<string, AuthStrategy>,
+> {
    private readonly config: AuthConfig;
 
    constructor(
@@ -122,7 +113,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
 
    async resolveLogin(
       c: Context,
-      strategy: Strategy,
+      strategy: AuthStrategy,
       profile: Partial<SafeUser>,
       verify: (user: User) => Promise<void>,
       opts?: AuthResolveOptions,
@@ -160,7 +151,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
 
    async resolveRegister(
       c: Context,
-      strategy: Strategy,
+      strategy: AuthStrategy,
       profile: CreateUser,
       verify: (user: User) => Promise<void>,
       opts?: AuthResolveOptions,
@@ -229,7 +220,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
 
    strategy<
       StrategyName extends keyof Strategies,
-      Strat extends Strategy = Strategies[StrategyName],
+      Strat extends AuthStrategy = Strategies[StrategyName],
    >(strategy: StrategyName): Strat {
       try {
          return this.strategies[strategy] as unknown as Strat;

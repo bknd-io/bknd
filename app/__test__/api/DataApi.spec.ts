@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Guard } from "../../src/auth";
+import { Guard } from "../../src/auth/authorize/Guard";
 import { DataApi } from "../../src/data/api/DataApi";
 import { DataController } from "../../src/data/api/DataController";
 import { dataConfigSchema } from "../../src/data/data-schema";

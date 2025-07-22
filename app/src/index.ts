@@ -36,9 +36,6 @@ export type { BkndConfig } from "bknd/adapter";
 export * as middlewares from "modules/middlewares";
 export { registries } from "modules/registries";
 
-export type { MediaFieldSchema } from "media/AppMedia";
-export type { UserFieldSchema } from "auth/AppAuth";
-
 /**
  * Core
  */
@@ -48,7 +45,33 @@ export { type PrimaryFieldType, config, type DB, type AppEntity } from "core/con
 export { Permission } from "core/security/Permission";
 export { getFlashMessage } from "core/server/flash";
 export * from "core/drivers";
-export * from "core/events";
+export { Event, InvalidEventReturn } from "core/events/Event";
+export type {
+   ListenerMode,
+   ListenerHandler,
+} from "core/events/EventListener";
+export { EventManager, type EmitsEvents, type EventClass } from "core/events/EventManager";
+
+/**
+ * Auth
+ */
+export {
+   UserExistsException,
+   UserNotFoundException,
+   InvalidCredentialsException,
+} from "auth/errors";
+export type {
+   ProfileExchange,
+   User,
+   SafeUser,
+   CreateUser,
+   AuthResponse,
+   UserPool,
+   AuthAction,
+   AuthUserResolver,
+} from "auth/authenticate/Authenticator";
+export { AuthStrategy } from "auth/authenticate/strategies/Strategy";
+export * as AuthPermissions from "auth/auth-permissions";
 
 /**
  * Media

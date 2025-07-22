@@ -1,4 +1,3 @@
-import type { Guard } from "auth";
 import type { EventManager } from "core/events";
 import type { Connection, EntityManager } from "data";
 import type { Hono } from "hono";
@@ -6,6 +5,7 @@ import type { ServerEnv } from "modules/Controller";
 import type { ModuleHelper } from "./ModuleHelper";
 import { SchemaObject } from "core/object/SchemaObject";
 import type { DebugLogger } from "core/utils/DebugLogger";
+import type { Guard } from "auth/authorize/Guard";
 
 type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 

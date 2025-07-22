@@ -9,7 +9,7 @@ import { type s, parse } from "bknd/utils";
 
 export type StrategyMode = "form" | "external";
 
-export abstract class Strategy<Schema extends s.Schema = s.Schema> {
+export abstract class AuthStrategy<Schema extends s.Schema = s.Schema> {
    protected actions: StrategyActions = {};
 
    constructor(
