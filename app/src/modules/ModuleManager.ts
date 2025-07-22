@@ -731,8 +731,13 @@ export function getDefaultSchema() {
 
 export function getDefaultConfig(): ModuleConfigs {
    const config = transformObject(MODULES, (module) => {
-      return module.prototype.getSchema().template();
-      //return Default(module.prototype.getSchema(), {});
+      return module.prototype.getSchema().template(
+         {},
+         {
+            withOptional: true,
+            withExtendedOptional: true,
+         },
+      );
    });
 
    return config as any;
