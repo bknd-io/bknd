@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
-import { Connection, entity, text } from "data";
+import { Connection, entity, text } from "bknd";
 import { Module } from "modules/Module";
 import { type ConfigTable, getDefaultConfig, ModuleManager } from "modules/ModuleManager";
 import { CURRENT_VERSION, TABLE_NAME } from "modules/migrations";

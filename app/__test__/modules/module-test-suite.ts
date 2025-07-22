@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 
 import { Hono } from "hono";
-import { Guard } from "../../src/auth/authorize/Guard";
-import { DebugLogger } from "../../src/core/utils/DebugLogger";
-import { EventManager } from "../../src/core/events";
-import { EntityManager } from "../../src/data";
-import { Module, type ModuleBuildContext } from "../../src/modules/Module";
+import { Guard } from "auth/authorize/Guard";
+import { DebugLogger } from "core/utils/DebugLogger";
+import { EventManager } from "core/events";
+import { EntityManager } from "data/entities/EntityManager";
+import { Module, type ModuleBuildContext } from "modules/Module";
 import { getDummyConnection } from "../helper";
 import { ModuleHelper } from "modules/ModuleHelper";
 

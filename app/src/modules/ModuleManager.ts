@@ -5,7 +5,7 @@ import { BkndError } from "core/errors";
 import { DebugLogger } from "core/utils/DebugLogger";
 import { EventManager, Event } from "core/events";
 import * as $diff from "core/object/diff";
-import type { Connection, Schema } from "data";
+import type { Connection } from "data/connection";
 import { EntityManager } from "data/entities/EntityManager";
 import * as proto from "data/prototype";
 import { TransformPersistFailedException } from "data/errors";
@@ -111,7 +111,7 @@ export const __bknd = proto.entity(TABLE_NAME, {
    created_at: proto.datetime(),
    updated_at: proto.datetime(),
 });
-type ConfigTable2 = Schema<typeof __bknd>;
+type ConfigTable2 = proto.Schema<typeof __bknd>;
 interface T_INTERNAL_EM {
    __bknd: ConfigTable2;
 }

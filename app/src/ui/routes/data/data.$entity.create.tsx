@@ -1,4 +1,4 @@
-import type { EntityData } from "data";
+import type { EntityData } from "bknd";
 import { useState } from "react";
 import { useEntityMutate } from "ui/client";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";

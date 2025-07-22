@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Entity, NumberField, TextField } from "data";
-import * as p from "data/prototype";
+import { Entity } from "data/entities";
+import { NumberField, TextField } from "data/fields";
 
 describe("[data] Entity", async () => {
    const entity = new Entity("test", [

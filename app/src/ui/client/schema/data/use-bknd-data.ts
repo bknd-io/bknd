@@ -1,4 +1,4 @@
-import { constructEntity } from "data";
+import { constructEntity } from "data/schema/constructor";
 import {
    type TAppDataEntity,
    type TAppDataEntityFields,

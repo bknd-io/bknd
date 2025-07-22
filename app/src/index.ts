@@ -90,3 +90,73 @@ export {
    type FileUploadPayload,
 } from "media/storage/Storage";
 export { StorageAdapter } from "media/storage/StorageAdapter";
+
+/**
+ * Data
+ */
+import { MutatorEvents, RepositoryEvents } from "data/events";
+export const DataEvents = { ...MutatorEvents, ...RepositoryEvents };
+export type {
+   RepoQuery,
+   RepoQueryIn,
+} from "data/server/query";
+export type { WhereQuery } from "data/entities/query/WhereBuilder";
+export { KyselyPluginRunner } from "data/plugins/KyselyPluginRunner";
+export * as DataPermissions from "data/permissions";
+export { libsql } from "data/connection/sqlite/libsql/LibsqlConnection";
+export {
+   genericSqlite,
+   genericSqliteUtils,
+   type GenericSqliteConnection,
+} from "data/connection/sqlite/GenericSqliteConnection";
+export {
+   EntityTypescript,
+   type EntityTypescriptOptions,
+   type TEntityTSType,
+   type TFieldTSType,
+} from "data/entities/EntityTypescript";
+export * from "data/fields/Field";
+export * from "data/errors";
+export type { EntityRelation } from "data/relations";
+export type * from "data/entities/Entity";
+export type { EntityManager } from "data/entities/EntityManager";
+export type { SchemaManager } from "data/schema/SchemaManager";
+export {
+   BaseIntrospector,
+   Connection,
+   customIntrospector,
+   type FieldSpec,
+   type IndexSpec,
+   type DbFunctions,
+   type SchemaResponse,
+   type ConnQuery,
+   type ConnQueryResults,
+} from "data/connection";
+export { SqliteConnection } from "data/connection/sqlite/SqliteConnection";
+export { SqliteIntrospector } from "data/connection/sqlite/SqliteIntrospector";
+export { SqliteLocalConnection } from "data/connection/sqlite/SqliteLocalConnection";
+export {
+   text,
+   number,
+   date,
+   datetime,
+   week,
+   boolean,
+   enumm,
+   json,
+   jsonSchema,
+   media,
+   medium,
+   make,
+   entity,
+   relation,
+   index,
+   em,
+   type InferEntityFields,
+   type InferFields,
+   type Simplify,
+   type InferField,
+   type InsertSchema,
+   type Schema,
+   type FieldSchema,
+} from "data/prototype";

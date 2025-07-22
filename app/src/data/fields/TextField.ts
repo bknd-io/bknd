@@ -1,4 +1,4 @@
-import type { EntityManager } from "data";
+import type { EntityManager } from "data/entities";
 import { omitKeys } from "core/utils";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, baseFieldConfigSchema } from "./Field";

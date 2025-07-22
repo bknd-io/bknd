@@ -1,15 +1,10 @@
-import {
-   type EntityIndex,
-   type EntityRelation,
-   type Field,
-   type em as prototypeEm,
-   FieldPrototype,
-   make,
-   Entity,
-   entityTypes,
-} from "data";
+import { type em as prototypeEm, FieldPrototype, make } from "data/prototype";
+import { Entity } from "data/entities";
+import type { EntityIndex, Field } from "data/fields";
+import { entityTypes } from "data/entities/Entity";
 import { isEqual } from "lodash-es";
 import type { ModuleBuildContext } from "./Module";
+import type { EntityRelation } from "data/relations";
 
 export class ModuleHelper {
    constructor(protected ctx: Omit<ModuleBuildContext, "helper">) {}

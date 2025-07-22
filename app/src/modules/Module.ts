@@ -1,5 +1,6 @@
 import type { EventManager } from "core/events";
-import type { Connection, EntityManager } from "data";
+import type { Connection } from "data/connection";
+import type { EntityManager } from "data/entities";
 import type { Hono } from "hono";
 import type { ServerEnv } from "modules/Controller";
 import type { ModuleHelper } from "./ModuleHelper";

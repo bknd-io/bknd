@@ -1,4 +1,5 @@
-import { type Entity, repoQuery } from "data";
+import type { Entity } from "bknd";
+import { repoQuery } from "data/server/query";
 import { Fragment } from "react";
 import { TbDots } from "react-icons/tb";
 import { useApiQuery } from "ui/client";

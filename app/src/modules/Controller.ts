@@ -1,7 +1,7 @@
 import type { App, SafeUser } from "bknd";
 import { type Context, type Env, Hono } from "hono";
 import * as middlewares from "modules/middlewares";
-import type { EntityManager } from "data";
+import type { EntityManager } from "data/entities";
 import { s } from "bknd/utils";
 
 export interface ServerEnv extends Env {

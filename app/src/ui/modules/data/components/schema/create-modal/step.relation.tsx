@@ -1,6 +1,6 @@
 import { Switch, TextInput } from "@mantine/core";
 import { IconDatabase } from "@tabler/icons-react";
-import { ManyToOneRelation, type RelationType, RelationTypes } from "data";
+import { ManyToOneRelation, type RelationType, RelationTypes } from "data/relations";
 import type { ReactNode } from "react";
 import { type Control, type FieldValues, type UseFormRegister, useForm } from "react-hook-form";
 import { TbRefresh } from "react-icons/tb";

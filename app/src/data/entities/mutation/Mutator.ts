@@ -1,7 +1,7 @@
 import type { DB as DefaultDB, PrimaryFieldType } from "bknd";
 import { type EmitsEvents, EventManager } from "core/events";
 import type { DeleteQueryBuilder, InsertQueryBuilder, UpdateQueryBuilder } from "kysely";
-import type { TActionContext } from "../..";
+import type { TActionContext } from "data/fields";
 import { WhereBuilder } from "../query/WhereBuilder";
 import type { Entity, EntityData, EntityManager } from "../../entities";
 import { InvalidSearchParamsException } from "../../errors";

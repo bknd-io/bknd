@@ -1,16 +1,12 @@
-import {
-   DataPermissions,
-   type EntityData,
-   type EntityManager,
-   type RepoQuery,
-   repoQuery,
-} from "data";
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
 import { jsc, s, describeRoute, schemaToSpec, omitKeys } from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
+import type { EntityManager, EntityData } from "data/entities";
+import * as DataPermissions from "data/permissions";
+import { repoQuery, type RepoQuery } from "data/server/query";
 
 export class DataController extends Controller {
    constructor(

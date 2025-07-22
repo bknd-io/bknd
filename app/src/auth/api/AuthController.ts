@@ -2,7 +2,7 @@ import type { SafeUser } from "bknd";
 import type { AuthStrategy } from "auth/authenticate/strategies/Strategy";
 import type { AppAuth } from "auth/AppAuth";
 import * as AuthPermissions from "auth/auth-permissions";
-import { DataPermissions } from "data";
+import * as DataPermissions from "data/permissions";
 import type { Hono } from "hono";
 import { Controller, type ServerEnv } from "modules/Controller";
 import { describeRoute, jsc, s, parse, InvalidSchemaError, transformObject } from "bknd/utils";

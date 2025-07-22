@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { TextField, textFieldConfigSchema } from "../../../../src/data";
+import { TextField } from "data/fields";
 import { fieldTestSuite, transformPersist } from "data/fields/field-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
 

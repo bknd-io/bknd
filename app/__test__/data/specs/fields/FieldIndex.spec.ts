@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Entity, EntityIndex, Field } from "../../../../src/data";
+import { Entity } from "data/entities";
+import { Field, EntityIndex } from "data/fields";
 import { s } from "bknd/utils";
 
 class TestField extends Field {

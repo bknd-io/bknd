@@ -1,6 +1,6 @@
 import { isDebug } from "core/env";
 import type { StorageAdapter } from "media/storage/StorageAdapter";
-import { DataPermissions } from "data";
+import * as DataPermissions from "data/permissions";
 import { Controller } from "modules/Controller";
 import type { AppMedia } from "../AppMedia";
 import { MediaField } from "../MediaField";

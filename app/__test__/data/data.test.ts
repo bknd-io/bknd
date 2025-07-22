@@ -1,12 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import {
-   Entity,
-   EntityManager,
-   NumberField,
-   PrimaryField,
-   Repository,
-   TextField,
-} from "../../src/data";
+import { Entity, EntityManager } from "data/entities";
+import { TextField, PrimaryField, NumberField } from "data/fields";
 import { getDummyConnection } from "./helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

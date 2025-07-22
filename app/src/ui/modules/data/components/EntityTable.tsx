@@ -1,5 +1,5 @@
 import { useToggle } from "@mantine/hooks";
-import type { Entity, EntityData } from "data";
+import type { Entity, EntityData } from "bknd";
 import {
    TbArrowDown,
    TbArrowUp,
