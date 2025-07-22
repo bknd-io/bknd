@@ -1,4 +1,4 @@
-import type { DB as DefaultDB } from "core";
+import type { DB as DefaultDB } from "bknd";
 import { $console } from "core/utils";
 import { EventManager } from "core/events";
 import { sql } from "kysely";

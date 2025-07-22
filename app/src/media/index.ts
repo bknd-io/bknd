@@ -1,4 +1,4 @@
-import { type Constructor, Registry } from "core";
+import { type Constructor, Registry } from "core/registry/Registry";
 
 export { guess as guessMimeType } from "./storage/mime-types-tiny";
 export {
@@ -15,7 +15,7 @@ import {
    StorageCloudinaryAdapter,
 } from "./storage/adapters/cloudinary/StorageCloudinaryAdapter";
 import { type S3AdapterConfig, StorageS3Adapter } from "./storage/adapters/s3/StorageS3Adapter";
-import type { s } from "bknd/core";
+import type { s } from "bknd/utils";
 
 export { StorageAdapter };
 export { StorageS3Adapter, type S3AdapterConfig, StorageCloudinaryAdapter, type CloudinaryConfig };

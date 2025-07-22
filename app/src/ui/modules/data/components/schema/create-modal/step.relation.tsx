@@ -12,7 +12,7 @@ import { useStepContext } from "ui/components/steps/Steps";
 import { useEvent } from "ui/hooks/use-event";
 import { ModalBody, ModalFooter } from "./CreateModal";
 import type { TCreateModalSchema } from "./schema";
-import { s, stringIdentifier } from "bknd/core";
+import { s, stringIdentifier } from "bknd/utils";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const Relations: {

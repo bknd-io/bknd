@@ -13,7 +13,7 @@ import {
    ModalTitle,
 } from "../../../components/modal/Modal2";
 import { Step, Steps, useStepContext } from "../../../components/steps/Steps";
-import { s, stringIdentifier } from "bknd/core";
+import { s, stringIdentifier } from "bknd/utils";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 export type TCreateFlowModalSchema = any;

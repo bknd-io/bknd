@@ -2,7 +2,7 @@ import type { EntityManager } from "data";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 import { omitKeys } from "core/utils";
 
 export const numberFieldConfigSchema = s

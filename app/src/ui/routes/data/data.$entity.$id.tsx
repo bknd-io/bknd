@@ -1,5 +1,5 @@
-import type { PrimaryFieldType } from "core";
-import { ucFirst } from "core/utils";
+import type { PrimaryFieldType } from "bknd";
+import { ucFirst } from "bknd/utils";
 import type { Entity, EntityData, EntityRelation } from "data";
 import { Fragment, useState } from "react";
 import { TbDots } from "react-icons/tb";

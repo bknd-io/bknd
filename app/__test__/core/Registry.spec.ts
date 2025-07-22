@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Registry } from "core";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 type Constructor<T> = new (...args: any[]) => T;
 

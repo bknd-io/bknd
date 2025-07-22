@@ -1,3 +1,4 @@
+import type { PrimaryFieldType } from "bknd";
 import type { FieldApi, ReactFormExtendedApi } from "@tanstack/react-form";
 import type { JSX } from "react";
 import {
@@ -22,7 +23,6 @@ import { EntityRelationalFormField } from "./fields/EntityRelationalFormField";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
 import { Alert } from "ui/components/display/Alert";
 import { bkndModals } from "ui/modals";
-import type { PrimaryFieldType } from "core";
 
 // simplify react form types 🤦
 export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any>;

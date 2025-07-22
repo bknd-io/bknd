@@ -1,9 +1,10 @@
-import { Guard } from "auth";
-import { BkndError, DebugLogger, env } from "core";
-import { $console } from "core/utils";
+import { mark, stripMark, $console, s, objectEach, transformObject } from "bknd/utils";
+import { Guard } from "auth/authorize/Guard";
+import { env } from "core/env";
+import { BkndError } from "core/errors";
+import { DebugLogger } from "core/utils/DebugLogger";
 import { EventManager, Event } from "core/events";
 import * as $diff from "core/object/diff";
-import { objectEach, transformObject } from "core/utils";
 import type { Connection, Schema } from "data";
 import { EntityManager } from "data/entities/EntityManager";
 import * as proto from "data/prototype";
@@ -20,8 +21,6 @@ import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
 import { ModuleHelper } from "./ModuleHelper";
-import { s } from "bknd/core";
-import { mark, stripMark } from "bknd/core";
 
 export type { ModuleBuildContext };
 

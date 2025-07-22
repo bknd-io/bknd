@@ -1,5 +1,4 @@
-import { App, type CreateAppConfig } from "bknd";
-import { config as $config } from "bknd/core";
+import { config as $config, App, type CreateAppConfig } from "bknd";
 import { $console } from "bknd/utils";
 import type { MiddlewareHandler } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";

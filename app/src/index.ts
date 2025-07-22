@@ -38,3 +38,14 @@ export { registries } from "modules/registries";
 
 export type { MediaFieldSchema } from "media/AppMedia";
 export type { UserFieldSchema } from "auth/AppAuth";
+
+/**
+ * CORE
+ */
+export { Exception, BkndError } from "core/errors";
+export { isDebug, env } from "core/env";
+export { type PrimaryFieldType, config, type DB, type AppEntity } from "core/config";
+export { Permission } from "core/security/Permission";
+export { getFlashMessage } from "core/server/flash";
+export * from "core/drivers";
+export * from "core/events";

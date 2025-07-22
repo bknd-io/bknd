@@ -1,4 +1,5 @@
-import { type DB, Exception } from "core";
+import type { DB } from "bknd";
+import { Exception } from "core/errors";
 import { addFlashMessage } from "core/server/flash";
 import { runtimeSupports, truncate, $console } from "core/utils";
 import type { Context, Hono } from "hono";
@@ -8,7 +9,7 @@ import { type CookieOptions, serializeSigned } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
-import { s, parse, secret } from "bknd/core";
+import { s, parse, secret } from "bknd/utils";
 
 type Input = any; // workaround
 export type JWTPayload = Parameters<typeof sign>[0];

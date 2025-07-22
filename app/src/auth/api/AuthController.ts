@@ -1,9 +1,8 @@
 import { type AppAuth, AuthPermissions, type SafeUser, type Strategy } from "auth";
-import { transformObject } from "core/utils";
 import { DataPermissions } from "data";
 import type { Hono } from "hono";
 import { Controller, type ServerEnv } from "modules/Controller";
-import { describeRoute, jsc, s, parse, InvalidSchemaError } from "bknd/core";
+import { describeRoute, jsc, s, parse, InvalidSchemaError, transformObject } from "bknd/utils";
 
 export type AuthActionResponse = {
    success: boolean;

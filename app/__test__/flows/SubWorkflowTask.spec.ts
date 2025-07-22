@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Flow, LogTask, SubFlowTask, RenderTask, Task } from "../../src/flows";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export class StringifyTask<Output extends string> extends Task<
    typeof StringifyTask.schema,

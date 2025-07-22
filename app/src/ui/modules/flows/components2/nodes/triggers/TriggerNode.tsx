@@ -10,7 +10,7 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import { useFlowCanvas, useFlowSelector } from "../../../hooks/use-flow";
 import { BaseNode } from "../BaseNode";
 import { Handle } from "../Handle";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = s.object({

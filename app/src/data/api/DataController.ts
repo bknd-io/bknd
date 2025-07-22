@@ -8,10 +8,9 @@ import {
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec } from "bknd/core";
+import { jsc, s, describeRoute, schemaToSpec, omitKeys } from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
-import { omitKeys } from "core/utils";
 
 export class DataController extends Controller {
    constructor(

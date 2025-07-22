@@ -1,4 +1,4 @@
-import type { PrimaryFieldType } from "core";
+import type { PrimaryFieldType } from "core/config";
 
 export type Primitive = PrimaryFieldType | string | number | boolean;
 export function isPrimitive(value: any): value is Primitive {

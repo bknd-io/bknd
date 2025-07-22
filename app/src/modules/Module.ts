@@ -1,11 +1,11 @@
 import type { Guard } from "auth";
-import { type DebugLogger, SchemaObject } from "core";
 import type { EventManager } from "core/events";
 import type { Connection, EntityManager } from "data";
 import type { Hono } from "hono";
 import type { ServerEnv } from "modules/Controller";
 import type { ModuleHelper } from "./ModuleHelper";
-import type { s } from "bknd/core";
+import { SchemaObject } from "core/object/SchemaObject";
+import type { DebugLogger } from "core/utils/DebugLogger";
 
 type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 

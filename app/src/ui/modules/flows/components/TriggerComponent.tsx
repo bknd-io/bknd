@@ -4,7 +4,7 @@ import { type Trigger, TriggerMap } from "flows";
 import type { IconType } from "react-icons";
 import { TbCircleLetterT } from "react-icons/tb";
 import { JsonSchemaForm } from "ui/components/form/json-schema";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export type TaskComponentProps = NodeProps<Node<{ trigger: Trigger }>> & {
    Icon?: IconType;

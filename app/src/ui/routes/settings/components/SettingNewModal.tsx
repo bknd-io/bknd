@@ -8,7 +8,7 @@ import { JsonSchemaForm, type JsonSchemaFormRef } from "ui/components/form/json-
 import { Dropdown } from "ui/components/overlay/Dropdown";
 import { Modal } from "ui/components/overlay/Modal";
 import { useLocation } from "wouter";
-import type { s } from "bknd/core";
+import type { s } from "bknd/utils";
 
 export type SettingsNewModalProps = {
    schema: s.ObjectSchema;

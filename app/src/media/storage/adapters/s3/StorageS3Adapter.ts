@@ -6,12 +6,12 @@ import type {
    ListObjectsV2Request,
    PutObjectRequest,
 } from "@aws-sdk/client-s3";
-import { AwsClient, isDebug } from "core";
-import { isFile, pickHeaders2 } from "core/utils";
+import { AwsClient } from "core/clients/aws/AwsClient";
+import { isDebug } from "core/env";
+import { isFile, pickHeaders2, parse, s } from "bknd/utils";
 import { transform } from "lodash-es";
 import type { FileBody, FileListObject } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
-import { parse, s } from "bknd/core";
 
 export const s3AdapterConfig = s.object(
    {

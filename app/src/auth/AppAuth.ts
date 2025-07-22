@@ -1,6 +1,6 @@
 import { Authenticator, AuthPermissions, Role, type Strategy } from "auth";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
-import type { DB } from "core";
+import type { DB } from "bknd";
 import { $console, secureRandomString, transformObject } from "core/utils";
 import type { Entity, EntityManager } from "data";
 import { em, entity, enumm, type FieldSchema } from "data/prototype";
@@ -12,7 +12,7 @@ import type { AppEntity } from "core/config";
 import { usersFields } from "./auth-entities";
 
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
-declare module "core" {
+declare module "bknd" {
    interface Users extends AppEntity, UserFieldSchema {}
    interface DB {
       users: Users;

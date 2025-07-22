@@ -11,7 +11,7 @@ import { Breadcrumbs2 } from "ui/layouts/AppShell/Breadcrumbs2";
 import { routes, useNavigate } from "ui/lib/routes";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export function DataEntityCreate({ params }) {
    const { $data } = useBkndData();

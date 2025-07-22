@@ -4,8 +4,8 @@ import { useFocusTrap } from "@mantine/hooks";
 import { useForm } from "react-hook-form";
 import { ModalBody, ModalFooter, useStepContext } from "./CreateModal";
 import { entitySchema, type TCreateModalSchema } from "./schema";
-import { s } from "bknd/core";
-import { cloneSchema } from "core/object/schema";
+import { s } from "bknd/utils";
+import { cloneSchema } from "core/utils/schema";
 
 const schema = s.object({
    name: entitySchema.properties.name,

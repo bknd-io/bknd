@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { SchemaObject } from "../../../src/core";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
+import { SchemaObject } from "core/object/SchemaObject";
 
 describe("SchemaObject", async () => {
    test("basic", async () => {

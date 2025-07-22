@@ -1,5 +1,5 @@
 import { Api, type ApiOptions, type AuthState } from "Api";
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import type { AdminBkndWindowContext } from "modules/server/AdminController";
 

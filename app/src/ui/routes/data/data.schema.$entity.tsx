@@ -4,7 +4,7 @@ import {
    IconCirclesRelation,
    IconSettings,
 } from "@tabler/icons-react";
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import type { Entity } from "data";
 import { cloneDeep } from "lodash-es";
 import { useRef, useState } from "react";
