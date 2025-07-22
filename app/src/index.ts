@@ -40,7 +40,7 @@ export type { MediaFieldSchema } from "media/AppMedia";
 export type { UserFieldSchema } from "auth/AppAuth";
 
 /**
- * CORE
+ * Core
  */
 export { Exception, BkndError } from "core/errors";
 export { isDebug, env } from "core/env";
@@ -49,3 +49,21 @@ export { Permission } from "core/security/Permission";
 export { getFlashMessage } from "core/server/flash";
 export * from "core/drivers";
 export * from "core/events";
+
+/**
+ * Media
+ */
+export { getExtensionFromName, getRandomizedFilename } from "media/utils";
+export * as StorageEvents from "media/storage/events";
+export * as MediaPermissions from "media/media-permissions";
+export type { FileUploadedEventData } from "media/storage/events";
+export { guess as guessMimeType } from "media/storage/mime-types-tiny";
+export {
+   Storage,
+   type FileMeta,
+   type FileListObject,
+   type StorageConfig,
+   type FileBody,
+   type FileUploadPayload,
+} from "media/storage/Storage";
+export { StorageAdapter } from "media/storage/StorageAdapter";

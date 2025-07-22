@@ -1,4 +1,4 @@
-import { type Constructor, Registry } from "core/registry/Registry";
+/* import { type Constructor, Registry } from "core/registry/Registry";
 
 export { guess as guessMimeType } from "./storage/mime-types-tiny";
 export {
@@ -23,7 +23,7 @@ export { StorageS3Adapter, type S3AdapterConfig, StorageCloudinaryAdapter, type 
 export * as StorageEvents from "./storage/events";
 export * as MediaPermissions from "./media-permissions";
 export type { FileUploadedEventData } from "./storage/events";
-export * from "./utils";
+
 
 type ClassThatImplements<T> = Constructor<T> & { prototype: T };
 
@@ -49,3 +49,4 @@ export const Adapters = {
 } as const;
 
 export { adapterTestSuite } from "./storage/adapters/adapter-test-suite";
+ */

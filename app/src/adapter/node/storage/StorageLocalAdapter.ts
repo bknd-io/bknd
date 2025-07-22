@@ -1,6 +1,6 @@
 import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
-import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd/media";
-import { StorageAdapter, guessMimeType as guess } from "bknd/media";
+import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd";
+import { StorageAdapter, guessMimeType } from "bknd";
 import { parse, s, isFile } from "bknd/utils";
 
 export const localAdapterConfig = s.object(
@@ -83,7 +83,7 @@ export class StorageLocalAdapter extends StorageAdapter {
    async getObject(key: string, headers: Headers): Promise<Response> {
       try {
          const content = await readFile(`${this.config.path}/${key}`);
-         const mimeType = guess(key);
+         const mimeType = guessMimeType(key);
 
          return new Response(content, {
             status: 200,
@@ -105,7 +105,7 @@ export class StorageLocalAdapter extends StorageAdapter {
    async getObjectMeta(key: string): Promise<FileMeta> {
       const stats = await stat(`${this.config.path}/${key}`);
       return {
-         type: guess(key) || "application/octet-stream",
+         type: guessMimeType(key) || "application/octet-stream",
          size: stats.size,
       };
    }

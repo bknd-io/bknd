@@ -1,9 +1,9 @@
-import { Adapters } from "media";
+import { MediaAdapters } from "media/media-registry";
 import { registries } from "modules/registries";
 import { s, objectTransform } from "bknd/utils";
 
 export const ADAPTERS = {
-   ...Adapters,
+   ...MediaAdapters,
 } as const;
 
 export const registry = registries.media;
