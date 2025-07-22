@@ -206,7 +206,7 @@ export class DataController extends Controller {
 
       const entitiesEnum = this.getEntitiesEnum(this.em);
       // @todo: make dynamic based on entity
-      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as any });
+      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as number | string });
 
       /**
        * Function endpoints
@@ -387,7 +387,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const options = (await c.req.json()) as RepoQuery;
+            const options = c.req.valid("json") as RepoQuery;
             const result = await this.em.repository(entity).findMany(options);
 
             return c.json(result, { status: result.data ? 200 : 404 });
@@ -397,7 +397,7 @@ export class DataController extends Controller {
       /**
        * Mutation endpoints
        */
-      // insert one
+      // insert one or many
       hono.post(
          "/:entity",
          describeRoute({

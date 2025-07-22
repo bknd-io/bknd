@@ -64,7 +64,7 @@ export class Controller {
       return c.notFound();
    }
 
-   protected getEntitiesEnum(em: EntityManager<any>) {
+   protected getEntitiesEnum(em: EntityManager<any>): s.StringSchema {
       const entities = em.entities.map((e) => e.name);
       // @todo: current workaround to allow strings (sometimes building is not fast enough to get the entities)
       return entities.length > 0 ? s.anyOf([s.string({ enum: entities }), s.string()]) : s.string();
