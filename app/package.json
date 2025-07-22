@@ -47,6 +47,7 @@
   "license": "FSL-1.1-MIT",
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
+    "@clack/prompts": "^0.11.0",
     "@codemirror/lang-html": "^6.4.9",
     "@codemirror/lang-json": "^6.0.1",
     "@hello-pangea/dnd": "^18.0.1",

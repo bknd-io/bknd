@@ -10,6 +10,7 @@ import { css, Style } from "hono/css";
 import { Controller } from "modules/Controller";
 import * as SystemPermissions from "modules/permissions";
 import type { TApiUser } from "Api";
+import type { AppTheme } from "ui/client/use-theme";
 
 const htmlBkndContextReplace = "<!-- BKND_CONTEXT -->";
 
@@ -18,7 +19,7 @@ export type AdminBkndWindowContext = {
    logout_route: string;
    admin_basepath: string;
    logo_return_path?: string;
-   theme?: "dark" | "light" | "system";
+   theme?: AppTheme;
 };
 
 // @todo: add migration to remove admin path from config
@@ -29,7 +30,7 @@ export type AdminControllerOptions = {
    html?: string;
    forceDev?: boolean | { mainPath: string };
    debugRerenders?: boolean;
-   theme?: "dark" | "light" | "system";
+   theme?: AppTheme;
    logoReturnPath?: string;
 };
 

@@ -7,6 +7,23 @@ import type { BkndAdminOptions } from "ui/client/BkndProvider";
 export type AppType = ReturnType<App["toJSON"]>;
 
 /**
+ * Normalize admin path by removing duplicate slashes and ensuring proper format
+ * @param path - The path to normalize
+ * @returns Normalized path
+ * @private
+ */
+function normalizeAdminPath(path: string): string {
+   // Remove duplicate slashes
+   const normalized = path.replace(/\/+/g, "/");
+   // Don't remove trailing slash if it's the only character or if path ends with entity/
+   if (normalized === "/" || normalized.endsWith("/entity/")) {
+      return normalized;
+   }
+   // Remove trailing slash for other paths
+   return normalized.replace(/\/$/, "") || "/";
+}
+
+/**
  * Reduced version of the App class for frontend use
  * @todo: remove this class
  */
@@ -18,7 +35,10 @@ export class AppReduced {
 
    constructor(
       protected appJson: AppType,
-      protected _options: BkndAdminOptions = {},
+      protected _options: BkndAdminOptions = {
+         admin_basepath: "",
+         logo_return_path: "/",
+      },
    ) {
       //console.log("received appjson", appJson);
 
@@ -68,20 +88,21 @@ export class AppReduced {
 
    get options() {
       return {
-         basepath: "",
+         admin_basepath: "",
          logo_return_path: "/",
          ...this._options,
       };
    }
 
    getSettingsPath(path: string[] = []): string {
-      const base = `~/${this.options.basepath}/settings`.replace(/\/+/g, "/");
-      return [base, ...path].join("/");
+      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : "~";
+      const base = `${basePath}/settings`;
+      return normalizeAdminPath([base, ...path].join("/"));
    }
 
    getAbsolutePath(path?: string): string {
-      const { basepath } = this.options;
-      return (path ? `~/${basepath}/${path}` : `~/${basepath}`).replace(/\/+/g, "/");
+      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : "~";
+      return normalizeAdminPath(path ? `${basePath}/${path}` : basePath);
    }
 
    getAuthConfig() {
