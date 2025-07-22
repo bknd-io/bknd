@@ -268,7 +268,9 @@ export class ModuleManager {
    ctx(rebuild?: boolean): ModuleBuildContext {
       if (rebuild) {
          this.rebuildServer();
-         this.em = new EntityManager([], this.connection, [], [], this.emgr);
+         this.em = this.em
+            ? this.em.clear()
+            : new EntityManager([], this.connection, [], [], this.emgr);
          this.guard = new Guard();
       }
 
