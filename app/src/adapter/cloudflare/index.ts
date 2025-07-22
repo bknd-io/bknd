@@ -13,7 +13,7 @@ export {
    type BindingMap,
 } from "./bindings";
 export { constants } from "./config";
-export { StorageR2Adapter } from "./storage/StorageR2Adapter";
+export { StorageR2Adapter, registerMedia } from "./storage/StorageR2Adapter";
 export { registries } from "bknd";
 
 // for compatibility with old code

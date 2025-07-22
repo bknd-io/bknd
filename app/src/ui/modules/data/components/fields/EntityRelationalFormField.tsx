@@ -1,6 +1,7 @@
 import { getHotkeyHandler, useHotkeys } from "@mantine/hooks";
 import { ucFirst } from "core/utils";
-import type { EntityData, RelationField } from "data";
+import type { EntityData } from "bknd";
+import type { RelationField } from "data/relations";
 import { useEffect, useRef, useState } from "react";
 import { TbEye } from "react-icons/tb";
 import { useEntityQuery } from "ui/client";

@@ -3,7 +3,7 @@ import type { EntityManager } from "../entities";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
 import { $console } from "core/utils";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 
 export const dateFieldConfigSchema = s
    .strictObject({

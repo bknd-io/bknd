@@ -1,6 +1,6 @@
 import type * as oauth from "oauth4webapi";
 import { OAuthStrategy } from "./OAuthStrategy";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 
 type SupportedTypes = "oauth2" | "oidc";
 

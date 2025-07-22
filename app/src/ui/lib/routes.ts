@@ -1,5 +1,5 @@
-import type { PrimaryFieldType } from "core";
-import { encodeSearch } from "core/utils";
+import type { PrimaryFieldType } from "bknd";
+import { encodeSearch } from "bknd/utils";
 import { useLocation, useRouter } from "wouter";
 import { useBknd } from "../client/BkndProvider";
 

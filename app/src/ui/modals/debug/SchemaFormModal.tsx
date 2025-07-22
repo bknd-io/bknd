@@ -65,7 +65,7 @@ export function SchemaFormModal({
             <JsonSchemaForm
                tagName="form"
                ref={formRef}
-               schema={schema}
+               schema={JSON.parse(JSON.stringify(schema))}
                uiSchema={uiSchema}
                className="legacy hide-required-mark fieldset-alternative mute-root"
                onChange={handleChange}

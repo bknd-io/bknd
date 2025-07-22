@@ -1,4 +1,9 @@
-import { transformObject, ucFirstAllSnakeToPascalWithSpaces } from "core/utils";
+import {
+   transformObject,
+   ucFirstAllSnakeToPascalWithSpaces,
+   s,
+   stringIdentifier,
+} from "bknd/utils";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { Alert } from "ui/components/display/Alert";
 import { bkndModals } from "ui/modals";
@@ -6,7 +11,6 @@ import { Button } from "../../components/buttons/Button";
 import { CellValue, DataTable } from "../../components/table/DataTable";
 import * as AppShell from "../../layouts/AppShell/AppShell";
 import { routes, useNavigate } from "../../lib/routes";
-import { stringIdentifier } from "core/object/schema";
 
 export function AuthRolesList() {
    const [navigate] = useNavigate();
@@ -29,13 +33,9 @@ export function AuthRolesList() {
       bkndModals.open(
          "form",
          {
-            schema: {
-               type: "object",
-               properties: {
-                  name: stringIdentifier,
-               },
-               required: ["name"],
-            },
+            schema: s.strictObject({
+               name: stringIdentifier,
+            }),
             uiSchema: {
                name: {
                   "ui:title": "Role name",

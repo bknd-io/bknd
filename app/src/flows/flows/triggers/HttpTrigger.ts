@@ -1,7 +1,7 @@
 import type { Context, Hono } from "hono";
 import type { Flow } from "../Flow";
 import { Trigger } from "./Trigger";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 
 const httpMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 

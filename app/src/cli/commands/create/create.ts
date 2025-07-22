@@ -5,7 +5,7 @@ import type { CliCommand } from "cli/types";
 import { typewriter, wait } from "cli/utils/cli";
 import { execAsync, getVersion } from "cli/utils/sys";
 import { Option } from "commander";
-import { env } from "core";
+import { env } from "bknd";
 import color from "picocolors";
 import { overridePackageJson, updateBkndPackages } from "./npm";
 import { type Template, templates, type TemplateSetupCtx } from "./templates";

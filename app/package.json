@@ -13,6 +13,7 @@
   "bugs": {
     "url": "https://github.com/bknd-io/bknd/issues"
   },
+  "packageManager": "bun@1.2.19",
   "engines": {
     "node": ">=22"
   },
@@ -60,8 +61,7 @@
     "bcryptjs": "^3.0.2",
     "dayjs": "^1.11.13",
     "fast-xml-parser": "^5.0.8",
-    "hono": "^4.7.11",
-    "json-schema-form-react": "^0.0.2",
+    "hono": "4.8.3",
     "json-schema-library": "10.0.0-rc7",
     "json-schema-to-ts": "^3.1.1",
     "kysely": "^0.27.6",
@@ -100,7 +100,7 @@
     "dotenv": "^16.4.7",
     "jotai": "^2.12.2",
     "jsdom": "^26.0.0",
-    "jsonv-ts": "^0.2.2",
+    "jsonv-ts": "^0.3.2",
     "kysely-d1": "^0.3.0",
     "kysely-generic-sqlite": "^1.2.1",
     "libsql-stateless-easy": "^1.8.0",
@@ -161,16 +161,6 @@
       "import": "./dist/ui/client/index.js",
       "require": "./dist/ui/client/index.js"
     },
-    "./data": {
-      "types": "./dist/types/data/index.d.ts",
-      "import": "./dist/data/index.js",
-      "require": "./dist/data/index.js"
-    },
-    "./core": {
-      "types": "./dist/types/core/index.d.ts",
-      "import": "./dist/core/index.js",
-      "require": "./dist/core/index.js"
-    },
     "./utils": {
       "types": "./dist/types/core/utils/index.d.ts",
       "import": "./dist/core/utils/index.js",
@@ -180,11 +170,6 @@
       "types": "./dist/types/cli/index.d.ts",
       "import": "./dist/cli/index.js",
       "require": "./dist/cli/index.js"
-    },
-    "./media": {
-      "types": "./dist/types/media/index.d.ts",
-      "import": "./dist/media/index.js",
-      "require": "./dist/media/index.js"
     },
     "./plugins": {
       "types": "./dist/types/plugins/index.d.ts",
@@ -251,15 +236,13 @@
     },
     "./dist/main.css": "./dist/ui/main.css",
     "./dist/styles.css": "./dist/ui/styles.css",
-    "./dist/manifest.json": "./dist/static/.vite/manifest.json"
+    "./dist/manifest.json": "./dist/static/.vite/manifest.json",
+    "./static/*": "./dist/static/*"
   },
   "typesVersions": {
     "*": {
-      "data": ["./dist/types/data/index.d.ts"],
-      "core": ["./dist/types/core/index.d.ts"],
       "utils": ["./dist/types/core/utils/index.d.ts"],
       "cli": ["./dist/types/cli/index.d.ts"],
-      "media": ["./dist/types/media/index.d.ts"],
       "plugins": ["./dist/types/plugins/index.d.ts"],
       "adapter": ["./dist/types/adapter/index.d.ts"],
       "adapter/cloudflare": ["./dist/types/adapter/cloudflare/index.d.ts"],

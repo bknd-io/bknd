@@ -1,6 +1,6 @@
 import type { Execution } from "../Execution";
 import type { Flow } from "../Flow";
-import { s, parse } from "core/object/schema";
+import { s, parse } from "bknd/utils";
 
 export class Trigger<Schema extends typeof Trigger.schema = typeof Trigger.schema> {
    // @todo: remove this

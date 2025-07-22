@@ -1,14 +1,6 @@
+import type { PrimaryFieldType, Entity, EntityData, Field } from "bknd";
 import type { FieldApi, ReactFormExtendedApi } from "@tanstack/react-form";
 import type { JSX } from "react";
-import {
-   type Entity,
-   type EntityData,
-   EnumField,
-   type Field,
-   JsonField,
-   JsonSchemaField,
-   RelationField,
-} from "data";
 import { useStore } from "@tanstack/react-store";
 import { MediaField } from "media/MediaField";
 import { type ComponentProps, Suspense } from "react";
@@ -22,7 +14,8 @@ import { EntityRelationalFormField } from "./fields/EntityRelationalFormField";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
 import { Alert } from "ui/components/display/Alert";
 import { bkndModals } from "ui/modals";
-import type { PrimaryFieldType } from "core";
+import type { EnumField, JsonField, JsonSchemaField } from "data/fields";
+import type { RelationField } from "data/relations";
 
 // simplify react form types 🤦
 export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any>;
@@ -162,11 +155,11 @@ function EntityFormField({ fieldApi, field, action, data, ...props }: EntityForm
    //const required = field.isRequired();
    //const customFieldProps = { ...props, action, required };
 
-   if (field instanceof RelationField) {
+   if (field.type === "relation") {
       return (
          <EntityRelationalFormField
             fieldApi={fieldApi}
-            field={field}
+            field={field as RelationField}
             data={data}
             disabled={props.disabled}
             tabIndex={props.tabIndex}
@@ -174,15 +167,15 @@ function EntityFormField({ fieldApi, field, action, data, ...props }: EntityForm
       );
    }
 
-   if (field instanceof JsonField) {
-      return <EntityJsonFormField fieldApi={fieldApi} field={field} {...props} />;
+   if (field.type === "json") {
+      return <EntityJsonFormField fieldApi={fieldApi} field={field as JsonField} {...props} />;
    }
 
-   if (field instanceof JsonSchemaField) {
+   if (field.type === "jsonschema") {
       return (
          <EntityJsonSchemaFormField
             fieldApi={fieldApi}
-            field={field}
+            field={field as JsonSchemaField}
             data={data}
             disabled={props.disabled}
             tabIndex={props.tabIndex}
@@ -191,8 +184,8 @@ function EntityFormField({ fieldApi, field, action, data, ...props }: EntityForm
       );
    }
 
-   if (field instanceof EnumField) {
-      return <EntityEnumFormField fieldApi={fieldApi} field={field} {...props} />;
+   if (field.type === "enum") {
+      return <EntityEnumFormField fieldApi={fieldApi} field={field as EnumField} {...props} />;
    }
 
    const fieldElement = field.getHtmlConfig().element;

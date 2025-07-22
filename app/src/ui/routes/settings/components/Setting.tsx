@@ -1,5 +1,5 @@
 import { useHotkeys } from "@mantine/hooks";
-import { ucFirst } from "core/utils";
+import { ucFirst, type s } from "bknd/utils";
 import { omit } from "lodash-es";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 import { TbSettings } from "react-icons/tb";
@@ -18,7 +18,6 @@ import { Link, Route, useLocation } from "wouter";
 import { extractSchema } from "../utils/schema";
 import { SettingNewModal, type SettingsNewModalProps } from "./SettingNewModal";
 import { SettingSchemaModal, type SettingsSchemaModalRef } from "./SettingSchemaModal";
-import type { s } from "core/object/schema";
 
 export type SettingProps<
    Schema extends s.ObjectSchema = s.ObjectSchema,

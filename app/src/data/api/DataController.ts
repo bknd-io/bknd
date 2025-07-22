@@ -1,17 +1,12 @@
-import {
-   DataPermissions,
-   type EntityData,
-   type EntityManager,
-   type RepoQuery,
-   repoQuery,
-} from "data";
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec } from "core/object/schema";
+import { jsc, s, describeRoute, schemaToSpec, omitKeys } from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
-import { omitKeys } from "core/utils";
+import type { EntityManager, EntityData } from "data/entities";
+import * as DataPermissions from "data/permissions";
+import { repoQuery, type RepoQuery } from "data/server/query";
 
 export class DataController extends Controller {
    constructor(
@@ -206,7 +201,7 @@ export class DataController extends Controller {
 
       const entitiesEnum = this.getEntitiesEnum(this.em);
       // @todo: make dynamic based on entity
-      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as any });
+      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as number | string });
 
       /**
        * Function endpoints
@@ -387,7 +382,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const options = (await c.req.json()) as RepoQuery;
+            const options = c.req.valid("json") as RepoQuery;
             const result = await this.em.repository(entity).findMany(options);
 
             return c.json(result, { status: result.data ? 200 : 404 });
@@ -397,7 +392,7 @@ export class DataController extends Controller {
       /**
        * Mutation endpoints
        */
-      // insert one
+      // insert one or many
       hono.post(
          "/:entity",
          describeRoute({

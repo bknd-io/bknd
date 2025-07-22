@@ -1,6 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import { getDummyConnection } from "../helper";
-import { type WhereQuery, WhereBuilder } from "data";
+import { WhereBuilder, type WhereQuery } from "data/entities/query/WhereBuilder";
 
 function qb() {
    const c = getDummyConnection();

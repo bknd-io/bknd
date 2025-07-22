@@ -1,5 +1,4 @@
-//import { typeboxResolver } from "@hookform/resolvers/typebox";
-import { objectCleanEmpty } from "core/utils";
+import { objectCleanEmpty, type s } from "bknd/utils";
 import { type TAppDataEntityFields, entitiesSchema } from "data/data-schema";
 import { mergeWith } from "lodash-es";
 import { useRef } from "react";
@@ -10,12 +9,12 @@ import {
    EntityFieldsForm,
    type EntityFieldsFormRef,
 } from "ui/routes/data/forms/entity.fields.form";
-import { ModalBody, ModalFooter, type TCreateModalSchema, useStepContext } from "./CreateModal";
+import { ModalBody, ModalFooter, useStepContext } from "./CreateModal";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
-import type { s } from "core/object/schema";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { entitySchema, type TCreateModalSchema } from "./schema";
 
-const schema = entitiesSchema;
+const schema = entitySchema;
 type Schema = s.Static<typeof schema>;
 
 export function StepEntityFields() {

@@ -3,7 +3,7 @@ import * as s from "jsonv-ts";
 export { validator as jsc, type Options } from "jsonv-ts/hono";
 export { describeRoute, schemaToSpec, openAPISpecs } from "jsonv-ts/hono";
 
-export { secret } from "./secret";
+export { secret, SecretSchema } from "./secret";
 
 export { s };
 
@@ -42,6 +42,7 @@ export type ParseOptions = {
    withDefaults?: boolean;
    withExtendedDefaults?: boolean;
    coerce?: boolean;
+   coerceDropUnknown?: boolean;
    clone?: boolean;
    skipMark?: boolean; // @todo: do something with this
    forceParse?: boolean; // @todo: do something with this
@@ -59,7 +60,10 @@ export function parse<S extends s.Schema, Options extends ParseOptions = ParseOp
    opts?: Options,
 ): Options extends { coerce: true } ? s.StaticCoerced<S> : s.Static<S> {
    const schema = (opts?.clone ? cloneSchema(_schema as any) : _schema) as s.Schema;
-   let value = opts?.coerce !== false ? schema.coerce(v) : v;
+   let value =
+      opts?.coerce !== false
+         ? schema.coerce(v, { dropUnknown: opts?.coerceDropUnknown ?? false })
+         : v;
    if (opts?.withDefaults !== false) {
       value = schema.template(value, {
          withOptional: true,

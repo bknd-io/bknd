@@ -1,6 +1,6 @@
 import { test, describe, expect } from "bun:test";
 import * as q from "./query";
-import { s as schema, parse as $parse, type ParseOptions } from "core/object/schema";
+import { parse as $parse, type ParseOptions } from "bknd/utils";
 
 const parse = (v: unknown, o: ParseOptions = {}) =>
    $parse(q.repoQuery, v, {

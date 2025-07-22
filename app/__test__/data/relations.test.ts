@@ -1,13 +1,14 @@
 // eslint-disable-next-line import/no-unresolved
 import { afterAll, describe, expect, test } from "bun:test";
-import { Entity, EntityManager, TextField } from "../../src/data";
+import { Entity, EntityManager } from "data/entities";
+import { TextField } from "data/fields";
 import {
    ManyToManyRelation,
    ManyToOneRelation,
    OneToOneRelation,
    PolymorphicRelation,
    RelationField,
-} from "../../src/data/relations";
+} from "data/relations";
 import { getDummyConnection } from "./helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
@@ -77,7 +78,7 @@ describe("Relations", async () => {
       const em = new EntityManager(entities, dummyConnection, relations);
 
       // verify naming
-      const rel = em.relations.all[0];
+      const rel = em.relations.all[0]!;
       expect(rel.source.entity.name).toBe(posts.name);
       expect(rel.source.reference).toBe(posts.name);
       expect(rel.target.entity.name).toBe(users.name);
@@ -89,11 +90,11 @@ describe("Relations", async () => {
       // verify low level relation
       expect(em.relationsOf(users.name).length).toBe(1);
       expect(em.relationsOf(users.name).length).toBe(1);
-      expect(em.relationsOf(users.name)[0].source.entity).toBe(posts);
+      expect(em.relationsOf(users.name)[0]!.source.entity).toBe(posts);
       expect(posts.field("author_id")).toBeInstanceOf(RelationField);
       expect(em.relationsOf(users.name).length).toBe(1);
       expect(em.relationsOf(users.name).length).toBe(1);
-      expect(em.relationsOf(users.name)[0].source.entity).toBe(posts);
+      expect(em.relationsOf(users.name)[0]!.source.entity).toBe(posts);
 
       // verify high level relation (from users)
       const userPostsRel = em.relationOf(users.name, "posts");
@@ -191,7 +192,7 @@ describe("Relations", async () => {
       const em = new EntityManager(entities, dummyConnection, relations);
 
       // verify naming
-      const rel = em.relations.all[0];
+      const rel = em.relations.all[0]!;
       expect(rel.source.entity.name).toBe(users.name);
       expect(rel.source.reference).toBe(users.name);
       expect(rel.target.entity.name).toBe(settings.name);
@@ -202,8 +203,8 @@ describe("Relations", async () => {
 
       expect(em.relationsOf(users.name).length).toBe(1);
       expect(em.relationsOf(users.name).length).toBe(1);
-      expect(em.relationsOf(users.name)[0].source.entity).toBe(users);
-      expect(em.relationsOf(users.name)[0].target.entity).toBe(settings);
+      expect(em.relationsOf(users.name)[0]!.source.entity).toBe(users);
+      expect(em.relationsOf(users.name)[0]!.target.entity).toBe(settings);
 
       // verify high level relation (from users)
       const userSettingRel = em.relationOf(users.name, settings.name);
@@ -323,7 +324,7 @@ describe("Relations", async () => {
       );
 
       // mutation info
-      expect(relations[0].helper(posts.name)!.getMutationInfo()).toEqual({
+      expect(relations[0]!.helper(posts.name)!.getMutationInfo()).toEqual({
          reference: "categories",
          local_field: undefined,
          $set: false,
@@ -334,7 +335,7 @@ describe("Relations", async () => {
          cardinality: undefined,
          relation_type: "m:n",
       });
-      expect(relations[0].helper(categories.name)!.getMutationInfo()).toEqual({
+      expect(relations[0]!.helper(categories.name)!.getMutationInfo()).toEqual({
          reference: "posts",
          local_field: undefined,
          $set: false,

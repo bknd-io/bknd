@@ -1,5 +1,5 @@
 import { Radio, TextInput } from "@mantine/core";
-import { transformObject } from "core/utils";
+import { transformObject, s, stringIdentifier } from "bknd/utils";
 import type { MediaFieldConfig } from "media/MediaField";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -7,14 +7,8 @@ import { useBknd } from "ui/client/bknd";
 import { MantineNumberInput } from "ui/components/form/hook-form-mantine/MantineNumberInput";
 import { MantineRadio } from "ui/components/form/hook-form-mantine/MantineRadio";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
-import {
-   ModalBody,
-   ModalFooter,
-   type TCreateModalSchema,
-   type TFieldCreate,
-   useStepContext,
-} from "../../CreateModal";
-import { s, stringIdentifier } from "core/object/schema";
+import { ModalBody, ModalFooter, useStepContext } from "../../CreateModal";
+import type { TCreateModalSchema, TFieldCreate } from "../../schema";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = s.object({

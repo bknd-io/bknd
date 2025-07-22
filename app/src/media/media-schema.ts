@@ -1,7 +1,8 @@
-import { objectTransform } from "core/utils";
-import { type StorageAdapter, StorageS3Adapter, StorageCloudinaryAdapter } from "media";
-import { s } from "core/object/schema";
-import { Registry, type ClassThatImplements } from "core";
+import { s, objectTransform } from "bknd/utils";
+import { Registry, type ClassThatImplements } from "core/registry/Registry";
+import type { StorageAdapter } from "./storage/StorageAdapter";
+import { StorageS3Adapter } from "./storage/adapters/s3/StorageS3Adapter";
+import { StorageCloudinaryAdapter } from "./storage/adapters/cloudinary/StorageCloudinaryAdapter";
 
 export const MediaAdapterRegistry = new Registry<{
    cls: ClassThatImplements<StorageAdapter>;

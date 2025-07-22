@@ -2,11 +2,12 @@ import { unlink } from "node:fs/promises";
 import type { SelectQueryBuilder, SqliteDatabase } from "kysely";
 import Database from "libsql";
 import { format as sqlFormat } from "sql-formatter";
-import { type Connection, EntityManager, SqliteLocalConnection } from "../src/data";
 import type { em as protoEm } from "../src/data/prototype";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { slugify } from "core/utils/strings";
+import { type Connection, SqliteLocalConnection } from "data/connection";
+import { EntityManager } from "data/entities/EntityManager";
 
 export function getDummyDatabase(memory: boolean = true): {
    dummyDb: SqliteDatabase;

@@ -1,8 +1,19 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { App } from "App";
-import { datetimeStringLocal, datetimeStringUTC, getTimezone, getTimezoneOffset, $console } from "core/utils";
-import { getRuntimeKey } from "core/utils";
+import {
+   datetimeStringLocal,
+   datetimeStringUTC,
+   getTimezone,
+   getTimezoneOffset,
+   $console,
+   getRuntimeKey,
+   SecretSchema,
+   jsc,
+   s,
+   describeRoute,
+   InvalidSchemaError,
+} from "bknd/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
 import { openAPISpecs } from "jsonv-ts/hono";
@@ -14,9 +25,7 @@ import {
    type ModuleKey,
 } from "modules/ModuleManager";
 import * as SystemPermissions from "modules/permissions";
-import { jsc, s, describeRoute, InvalidSchemaError } from "core/object/schema";
 import { getVersion } from "core/env";
-import { SecretSchema } from "core/object/schema/secret";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -317,6 +326,7 @@ export class SystemController extends Controller {
                   local: datetimeStringLocal(),
                   utc: datetimeStringUTC(),
                },
+               origin: new URL(c.req.raw.url).origin,
                plugins: Array.from(this.app.plugins.keys()),
                walk: {
                   auth: [

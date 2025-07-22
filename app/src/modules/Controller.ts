@@ -1,9 +1,8 @@
-import type { App } from "App";
+import type { App, SafeUser } from "bknd";
 import { type Context, type Env, Hono } from "hono";
 import * as middlewares from "modules/middlewares";
-import type { SafeUser } from "auth";
-import type { EntityManager } from "data";
-import { s } from "core/object/schema";
+import type { EntityManager } from "data/entities";
+import { s } from "bknd/utils";
 
 export interface ServerEnv extends Env {
    Variables: {
@@ -64,7 +63,7 @@ export class Controller {
       return c.notFound();
    }
 
-   protected getEntitiesEnum(em: EntityManager<any>) {
+   protected getEntitiesEnum(em: EntityManager<any>): s.StringSchema {
       const entities = em.entities.map((e) => e.name);
       // @todo: current workaround to allow strings (sometimes building is not fast enough to get the entities)
       return entities.length > 0 ? s.anyOf([s.string({ enum: entities }), s.string()]) : s.string();

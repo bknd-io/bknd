@@ -1,12 +1,11 @@
 import { Input, Switch, Tooltip } from "@mantine/core";
 import { guardRoleSchema } from "auth/auth-schema";
-import { ucFirst } from "core/utils";
+import { ucFirst, type s } from "bknd/utils";
 import { forwardRef, useImperativeHandle } from "react";
 import { type UseControllerProps, useController, useForm } from "react-hook-form";
 import { useBknd } from "ui/client/bknd";
 import { Button } from "ui/components/buttons/Button";
 import { MantineSwitch } from "ui/components/form/hook-form-mantine/MantineSwitch";
-import type { s } from "core/object/schema";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 const schema = guardRoleSchema;

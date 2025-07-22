@@ -1,5 +1,5 @@
 import { Field, baseFieldConfigSchema } from "data/fields";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 
 export const mediaFieldConfigSchema = s
    .strictObject({

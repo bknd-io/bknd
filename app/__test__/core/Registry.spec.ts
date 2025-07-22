@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Registry } from "core";
-import { s } from "core/object/schema";
+import { Registry } from "core/registry/Registry";
+import { s } from "core/utils/schema";
 
 type Constructor<T> = new (...args: any[]) => T;
 

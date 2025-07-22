@@ -1,9 +1,11 @@
-import { type AppAuth, AuthPermissions, type SafeUser, type Strategy } from "auth";
-import { transformObject } from "core/utils";
-import { DataPermissions } from "data";
+import type { SafeUser } from "bknd";
+import type { AuthStrategy } from "auth/authenticate/strategies/Strategy";
+import type { AppAuth } from "auth/AppAuth";
+import * as AuthPermissions from "auth/auth-permissions";
+import * as DataPermissions from "data/permissions";
 import type { Hono } from "hono";
 import { Controller, type ServerEnv } from "modules/Controller";
-import { describeRoute, jsc, s, parse, InvalidSchemaError } from "core/object/schema";
+import { describeRoute, jsc, s, parse, InvalidSchemaError, transformObject } from "bknd/utils";
 
 export type AuthActionResponse = {
    success: boolean;
@@ -30,7 +32,7 @@ export class AuthController extends Controller {
       return this.em.repo(entity_name as "users");
    }
 
-   private registerStrategyActions(strategy: Strategy, mainHono: Hono<ServerEnv>) {
+   private registerStrategyActions(strategy: AuthStrategy, mainHono: Hono<ServerEnv>) {
       if (!this.auth.isStrategyEnabled(strategy)) {
          return;
       }

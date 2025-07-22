@@ -1,7 +1,6 @@
-import { decodeSearch, encodeSearch, mergeObject } from "core/utils";
+import { decodeSearch, encodeSearch, mergeObject, type s, parse } from "bknd/utils";
 import { isEqual, transform } from "lodash-es";
 import { useLocation, useSearch as useWouterSearch } from "wouter";
-import { type s, parse } from "core/object/schema";
 import { useEffect, useMemo, useState } from "react";
 
 export type UseSearchOptions<Schema extends s.Schema = s.Schema> = {

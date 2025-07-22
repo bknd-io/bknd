@@ -5,7 +5,7 @@
 // .current at the right timing."
 // So we will have to make do with this "close enough" approach for now.
 import { useLayoutEffect, useRef } from "react";
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 
 export const useEvent = <Fn>(fn: Fn): Fn => {
    if (isDebug()) {

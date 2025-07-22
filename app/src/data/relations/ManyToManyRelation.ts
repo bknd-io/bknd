@@ -6,7 +6,7 @@ import { EntityRelation, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField } from "./RelationField";
 import { type RelationType, RelationTypes } from "./relation-types";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 
 export type ManyToManyRelationConfig = s.Static<typeof ManyToManyRelation.schema>;
 

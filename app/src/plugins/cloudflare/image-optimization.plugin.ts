@@ -1,15 +1,38 @@
 import type { App, AppPlugin } from "bknd";
+import { s, jsc, mergeObject, pickHeaders2 } from "bknd/utils";
+
+/**
+ * check RequestInitCfPropertiesImage
+ */
+const schema = s.partialObject({
+   dpr: s.number({ minimum: 1, maximum: 3 }),
+   fit: s.string({ enum: ["scale-down", "contain", "cover", "crop", "pad"] }),
+   format: s.string({
+      enum: ["auto", "avif", "webp", "jpeg", "baseline-jpeg", "json"],
+      default: "auto",
+   }),
+   height: s.number(),
+   width: s.number(),
+   metadata: s.string({ enum: ["copyright", "keep", "none"] }),
+   quality: s.number({ minimum: 1, maximum: 100 }),
+});
+type ImageOptimizationSchema = s.Static<typeof schema>;
 
 export type CloudflareImageOptimizationOptions = {
    accessUrl?: string;
    resolvePath?: string;
-   autoFormat?: boolean;
+   explain?: boolean;
+   defaultOptions?: ImageOptimizationSchema;
+   fixedOptions?: ImageOptimizationSchema;
+   cacheControl?: string;
 };
 
 export function cloudflareImageOptimization({
    accessUrl = "/_plugin/image/optimize",
    resolvePath = "/api/media/file",
-   autoFormat = true,
+   explain = false,
+   defaultOptions = {},
+   fixedOptions = {},
 }: CloudflareImageOptimizationOptions = {}): AppPlugin {
    const disallowedAccessUrls = ["/api", "/admin", "/_optimize"];
    if (disallowedAccessUrls.includes(accessUrl) || accessUrl.length < 2) {
@@ -19,7 +42,14 @@ export function cloudflareImageOptimization({
    return (app: App) => ({
       name: "cf-image-optimization",
       onBuilt: () => {
-         app.server.get(`${accessUrl}/:path{.+$}`, async (c) => {
+         if (explain) {
+            app.server.get(accessUrl, async (c) => {
+               return c.json({
+                  searchParams: schema.toJSON(),
+               });
+            });
+         }
+         app.server.get(`${accessUrl}/:path{.+$}`, jsc("query", schema), async (c) => {
             const request = c.req.raw;
             const url = new URL(request.url);
 
@@ -34,26 +64,25 @@ export function cloudflareImageOptimization({
             }
 
             const imageURL = `${url.origin}${resolvePath}/${path}`;
-            const metadata = await storage.objectMetadata(path);
-
-            // Cloudflare-specific options are in the cf object.
-            const params = Object.fromEntries(url.searchParams.entries());
-            const options: RequestInitCfPropertiesImage = {};
+            //const metadata = await storage.objectMetadata(path);
 
             // Copy parameters from query string to request options.
             // You can implement various different parameters here.
-            if ("fit" in params) options.fit = params.fit as any;
-            if ("width" in params) options.width = Number.parseInt(params.width);
-            if ("height" in params) options.height = Number.parseInt(params.height);
-            if ("quality" in params) options.quality = Number.parseInt(params.quality);
+            const options = mergeObject(
+               structuredClone(defaultOptions),
+               c.req.valid("query"),
+               structuredClone(fixedOptions),
+            );
 
             // Your Worker is responsible for automatic format negotiation. Check the Accept header.
-            if (autoFormat) {
-               const accept = request.headers.get("Accept")!;
-               if (/image\/avif/.test(accept)) {
-                  options.format = "avif";
-               } else if (/image\/webp/.test(accept)) {
-                  options.format = "webp";
+            if (options.format) {
+               if (options.format === "auto") {
+                  const accept = request.headers.get("Accept")!;
+                  if (/image\/avif/.test(accept)) {
+                     options.format = "avif";
+                  } else if (/image\/webp/.test(accept)) {
+                     options.format = "webp";
+                  }
                }
             }
 
@@ -63,16 +92,20 @@ export function cloudflareImageOptimization({
             });
 
             // Returning fetch() with resizing options will pass through response with the resized image.
-            const res = await fetch(imageRequest, { cf: { image: options } });
+            const res = await fetch(imageRequest, { cf: { image: options as any } });
+            const headers = pickHeaders2(res.headers, [
+               "Content-Type",
+               "Content-Length",
+               "Age",
+               "Date",
+               "Last-Modified",
+            ]);
+            headers.set("Cache-Control", "public, max-age=31536000, immutable");
 
             return new Response(res.body, {
                status: res.status,
                statusText: res.statusText,
-               headers: {
-                  "Cache-Control": "public, max-age=600",
-                  "Content-Type": metadata.type,
-                  "Content-Length": metadata.size.toString(),
-               },
+               headers,
             });
          });
       },

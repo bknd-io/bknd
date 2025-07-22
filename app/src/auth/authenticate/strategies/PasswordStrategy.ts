@@ -1,9 +1,11 @@
-import { type Authenticator, InvalidCredentialsException, type User } from "auth";
+import type { User } from "bknd";
+import type { Authenticator } from "auth/authenticate/Authenticator";
+import { InvalidCredentialsException } from "auth/errors";
 import { hash, $console } from "core/utils";
 import { Hono } from "hono";
 import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
-import { Strategy } from "./Strategy";
-import { s, parse, jsc } from "core/object/schema";
+import { AuthStrategy } from "./Strategy";
+import { s, parse, jsc } from "bknd/utils";
 
 const schema = s
    .object({
@@ -14,7 +16,7 @@ const schema = s
 
 export type PasswordStrategyOptions = s.Static<typeof schema>;
 
-export class PasswordStrategy extends Strategy<typeof schema> {
+export class PasswordStrategy extends AuthStrategy<typeof schema> {
    constructor(config: Partial<PasswordStrategyOptions> = {}) {
       super(config as any, "password", "password", "form");
 
@@ -33,7 +35,7 @@ export class PasswordStrategy extends Strategy<typeof schema> {
    private getPayloadSchema() {
       return s.object({
          email: s.string({
-            pattern: /^[\w-\.\+_]+@([\w-]+\.)+[\w-]{2,4}$/,
+            format: "email",
          }),
          password: s.string({
             minLength: 8, // @todo: this should be configurable

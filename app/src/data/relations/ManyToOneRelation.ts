@@ -1,5 +1,5 @@
-import type { PrimaryFieldType } from "core";
-import { snakeToPascalWithSpaces } from "core/utils";
+import type { PrimaryFieldType } from "bknd";
+import { snakeToPascalWithSpaces, s } from "bknd/utils";
 import type { ExpressionBuilder } from "kysely";
 import type { Entity, EntityManager } from "../entities";
 import type { RepoQuery } from "../server/query";
@@ -8,7 +8,6 @@ import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField, type RelationFieldBaseConfig } from "./RelationField";
 import type { MutationInstructionResponse } from "./RelationMutator";
 import { type RelationType, RelationTypes } from "./relation-types";
-import { s } from "core/object/schema";
 
 /**
  * Source entity receives the mapping field

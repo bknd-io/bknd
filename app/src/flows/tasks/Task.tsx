@@ -1,7 +1,7 @@
 //import { BkndError, SimpleRenderer } from "core";
 import { BkndError } from "core/errors";
 
-import { s, parse } from "core/object/schema";
+import { s, parse } from "bknd/utils";
 import type { InputsMap } from "../flows/Execution";
 import { SimpleRenderer } from "core/template/SimpleRenderer";
 

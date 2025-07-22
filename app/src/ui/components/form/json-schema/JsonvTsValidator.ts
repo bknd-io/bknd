@@ -23,7 +23,7 @@ export class JsonvTsValidator<T = any, S extends StrictRJSFSchema = RJSFSchema>
          return { errors: [], validationError: null as any };
       }
 
-      const jsSchema = s.fromSchema(schema as any);
+      const jsSchema = s.fromSchema(JSON.parse(JSON.stringify(schema)) as any);
       const result = jsSchema.validate(formData);
 
       if (result.valid) {

@@ -1,7 +1,7 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { TextInput } from "@mantine/core";
 import { useForm } from "react-hook-form";
-import { s } from "core/object/schema";
+import { s } from "bknd/utils";
 
 const schema = s.object({
    example: s.string().optional(),

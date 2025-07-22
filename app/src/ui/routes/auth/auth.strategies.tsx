@@ -1,4 +1,4 @@
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import { autoFormatString } from "core/utils";
 import { type ChangeEvent, useState } from "react";
 import {
