@@ -21,8 +21,8 @@ export async function createApp<Env = BunEnv>(
 
    return await createRuntimeApp(
       {
-         ...config,
          serveStatic: serveStatic({ root }),
+         ...config,
       },
       args ?? (process.env as Env),
       opts,
@@ -53,6 +53,7 @@ export function serve<Env = BunEnv>(
       onBuilt,
       buildConfig,
       adminOptions,
+      serveStatic,
       ...serveOptions
    }: BunBkndConfig<Env> = {},
    args: Env = {} as Env,
@@ -70,6 +71,7 @@ export function serve<Env = BunEnv>(
             buildConfig,
             adminOptions,
             distPath,
+            serveStatic,
          },
          args,
          opts,
