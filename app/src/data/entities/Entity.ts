@@ -1,5 +1,5 @@
-import { config } from "core";
-import { snakeToPascalWithSpaces, transformObject, $console } from "core/utils";
+import { config } from "core/config";
+import { snakeToPascalWithSpaces, transformObject, $console, s, parse } from "bknd/utils";
 import {
    type Field,
    PrimaryField,
@@ -7,7 +7,6 @@ import {
    type TActionContext,
    type TRenderContext,
 } from "../fields";
-import { s, parse } from "bknd/core";
 
 // @todo: entity must be migrated to typebox
 export const entityConfigSchema = s

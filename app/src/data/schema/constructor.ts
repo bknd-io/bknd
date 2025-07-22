@@ -1,5 +1,6 @@
 import { transformObject } from "core/utils";
-import { Entity, type Field } from "data";
+import { Entity } from "data/entities";
+import type { Field } from "data/fields";
 import { FIELDS, RELATIONS, type TAppDataEntity, type TAppDataRelation } from "data/data-schema";
 
 export function constructEntity(name: string, entityConfig: TAppDataEntity) {

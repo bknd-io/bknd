@@ -1,6 +1,5 @@
 import type { JSONSchema7 } from "json-schema";
-import type { s } from "bknd/core";
-import { omitKeys } from "core/utils";
+import { omitKeys, type s } from "bknd/utils";
 
 export function extractSchema<
    Schema extends s.ObjectSchema,

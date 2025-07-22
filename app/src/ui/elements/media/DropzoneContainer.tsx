@@ -1,6 +1,5 @@
 import type { Api } from "bknd/client";
-import type { PrimaryFieldType } from "core";
-import type { RepoQueryIn } from "data";
+import type { PrimaryFieldType, RepoQueryIn } from "bknd";
 import type { MediaFieldSchema } from "media/AppMedia";
 import type { TAppMediaConfig } from "media/media-schema";
 import { useId, useEffect, useRef, useState } from "react";

@@ -1,12 +1,12 @@
-import type { AuthAction, Authenticator } from "auth";
-import { Exception, isDebug } from "core";
-import { filterKeys } from "core/utils";
+import type { Authenticator, AuthAction } from "auth/authenticate/Authenticator";
 import { type Context, Hono } from "hono";
 import { getSignedCookie, setSignedCookie } from "hono/cookie";
 import * as oauth from "oauth4webapi";
 import * as issuers from "./issuers";
-import { Strategy } from "auth/authenticate/strategies/Strategy";
-import { s } from "bknd/core";
+import { s, filterKeys } from "bknd/utils";
+import { Exception } from "core/errors";
+import { isDebug } from "core/env";
+import { AuthStrategy } from "../Strategy";
 
 type ConfiguredIssuers = keyof typeof issuers;
 type SupportedTypes = "oauth2" | "oidc";
@@ -70,7 +70,7 @@ export class OAuthCallbackException extends Exception {
    }
 }
 
-export class OAuthStrategy extends Strategy<typeof schemaProvided> {
+export class OAuthStrategy extends AuthStrategy<typeof schemaProvided> {
    constructor(config: ProvidedOAuthConfig) {
       super(config, "oauth", config.name, "external");
    }

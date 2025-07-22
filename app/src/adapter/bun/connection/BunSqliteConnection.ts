@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { genericSqlite, type GenericSqliteConnection } from "bknd/data";
+import { genericSqlite, type GenericSqliteConnection } from "bknd";
 
 export type BunSqliteConnection = GenericSqliteConnection<Database>;
 export type BunSqliteConnectionConfig = {

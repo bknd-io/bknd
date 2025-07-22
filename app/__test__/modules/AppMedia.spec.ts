@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { registries } from "../../src";
 import { createApp } from "core/test/utils";
-import { em, entity, text } from "../../src/data";
+import { em, entity, text } from "data/prototype";
+import { registries } from "modules/registries";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 import { AppMedia } from "../../src/media/AppMedia";
-import { mediaConfigSchema } from "../../src/media/media-schema";
 import { moduleTestSuite } from "./module-test-suite";
 
 describe("AppMedia", () => {

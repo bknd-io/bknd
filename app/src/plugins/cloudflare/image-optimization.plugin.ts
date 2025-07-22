@@ -1,6 +1,5 @@
 import type { App, AppPlugin } from "bknd";
-import { s, jsc } from "bknd/core";
-import { mergeObject, pickHeaders2 } from "core/utils";
+import { s, jsc, mergeObject, pickHeaders2 } from "bknd/utils";
 
 /**
  * check RequestInitCfPropertiesImage

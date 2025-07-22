@@ -1,6 +1,5 @@
 import { get, has, omit, set } from "lodash-es";
-import { getFullPathKeys, mergeObjectWith } from "../utils";
-import { type s, parse, stripMark } from "bknd/core";
+import { type s, parse, stripMark, getFullPathKeys, mergeObjectWith, deepFreeze } from "bknd/utils";
 
 export type SchemaObjectOptions<Schema extends s.Schema> = {
    onUpdate?: (config: s.Static<Schema>) => void | Promise<void>;
@@ -26,14 +25,16 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
       initial?: Partial<s.Static<Schema>>,
       private options?: SchemaObjectOptions<Schema>,
    ) {
-      this._default = _schema.template({}, { withOptional: true }) as any;
-      this._value = parse(_schema, structuredClone(initial ?? {}), {
-         withDefaults: true,
-         withExtendedDefaults: true,
-         forceParse: this.isForceParse(),
-         skipMark: this.isForceParse(),
-      });
-      this._config = Object.freeze(this._value);
+      this._default = deepFreeze(_schema.template({}, { withOptional: true }) as any);
+      this._value = deepFreeze(
+         parse(_schema, structuredClone(initial ?? {}), {
+            withDefaults: true,
+            withExtendedDefaults: true,
+            forceParse: this.isForceParse(),
+            skipMark: this.isForceParse(),
+         }),
+      );
+      this._config = deepFreeze(this._value);
    }
 
    protected isForceParse(): boolean {
@@ -76,8 +77,8 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
       // regardless of "noEmit" – this should always be triggered
       const updatedConfig = await this.onBeforeUpdate(this._config, valid);
 
-      this._value = updatedConfig;
-      this._config = Object.freeze(updatedConfig);
+      this._value = deepFreeze(updatedConfig);
+      this._config = deepFreeze(updatedConfig);
 
       if (noEmit !== true) {
          await this.options?.onUpdate?.(this._config);

@@ -1,9 +1,9 @@
 import { omitKeys } from "core/utils";
-import type { EntityManager } from "data";
+import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { baseFieldConfigSchema, Field, type TActionContext, type TRenderContext } from "./Field";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export const enumFieldConfigSchema = s
    .strictObject({

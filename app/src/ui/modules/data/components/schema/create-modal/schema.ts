@@ -1,4 +1,4 @@
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 import { entitiesSchema, fieldsSchema, relationsSchema } from "data/data-schema";
 
 export const ModalActions = ["entity", "relation", "media"] as const;

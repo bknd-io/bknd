@@ -1,7 +1,6 @@
-import type { PrimaryFieldType } from "core";
-import { $console, isPlainObject } from "core/utils";
+import type { PrimaryFieldType } from "bknd";
+import { $console, isPlainObject, encodeSearch } from "bknd/utils";
 import { isDebug } from "core/env";
-import { encodeSearch } from "core/utils/reqres";
 import type { ApiFetcher } from "Api";
 
 export type { PrimaryFieldType };

@@ -1,4 +1,4 @@
-import type { Connection } from "bknd/data";
+import type { Connection } from "bknd";
 import { bunSqlite } from "../bun/connection/BunSqliteConnection";
 
 export function sqlite(config?: { url: string }): Connection {

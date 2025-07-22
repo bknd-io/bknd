@@ -5,7 +5,7 @@ import type { RepoQuery } from "../server/query";
 import { EntityRelation, type KyselyJsonFrom, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { type RelationType, RelationTypes } from "./relation-types";
-import { s } from "bknd/core";
+import { s } from "bknd/utils";
 
 export type PolymorphicRelationConfig = s.Static<typeof PolymorphicRelation.schema>;
 

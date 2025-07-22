@@ -1,5 +1,11 @@
 import { Tabs, TextInput, Textarea, Tooltip, Switch } from "@mantine/core";
-import { objectCleanEmpty, omitKeys, ucFirstAllSnakeToPascalWithSpaces } from "core/utils";
+import {
+   objectCleanEmpty,
+   omitKeys,
+   ucFirstAllSnakeToPascalWithSpaces,
+   s,
+   stringIdentifier,
+} from "bknd/utils";
 import {
    type TAppDataEntityFields,
    fieldsSchemaObject as originalFieldsSchemaObject,
@@ -21,7 +27,6 @@ import { dataFieldsUiSchema } from "../../settings/routes/data.settings";
 import { useRoutePathState } from "ui/hooks/use-route-path-state";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
 import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
-import { s, stringIdentifier } from "bknd/core";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
 

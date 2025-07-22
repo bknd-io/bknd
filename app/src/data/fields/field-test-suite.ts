@@ -1,4 +1,4 @@
-import type { BaseFieldConfig, Field, TActionContext } from "data";
+import type { BaseFieldConfig, Field, TActionContext } from "data/fields";
 import type { ColumnDataType } from "kysely";
 import { omit } from "lodash-es";
 import type { TestRunner } from "core/test";

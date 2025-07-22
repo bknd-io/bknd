@@ -6,7 +6,7 @@ import {
    isBooleanLike,
    isPrimitive,
    makeValidator,
-} from "core";
+} from "core/object/query/query";
 import type {
    DeleteQueryBuilder,
    ExpressionBuilder,
