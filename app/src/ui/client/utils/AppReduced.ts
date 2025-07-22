@@ -95,12 +95,14 @@ export class AppReduced {
    }
 
    getSettingsPath(path: string[] = []): string {
-      const base = `~/${this.options.admin_basepath}/settings`
+      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : '~';
+      const base = `${basePath}/settings`
       return normalizeAdminPath([base, ...path].join("/"));
    }
 
    getAbsolutePath(path?: string): string {
-      return normalizeAdminPath((path ? `~/${this.options.admin_basepath}/${path}` : `~/${this.options.admin_basepath}`));
+      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : '~';
+      return normalizeAdminPath(path ? `${basePath}/${path}` : basePath);
    }
 
    getAuthConfig() {

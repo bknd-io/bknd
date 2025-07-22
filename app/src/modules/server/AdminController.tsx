@@ -30,7 +30,7 @@ export type AdminControllerOptions = {
    html?: string;
    forceDev?: boolean | { mainPath: string };
    debugRerenders?: boolean;
-   theme?: "dark" | "light" | "system";
+   theme?: AppTheme;
    logoReturnPath?: string;
 };
 
