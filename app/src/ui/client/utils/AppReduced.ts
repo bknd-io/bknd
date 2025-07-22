@@ -35,7 +35,10 @@ export class AppReduced {
 
    constructor(
       protected appJson: AppType,
-      protected _options: BkndAdminOptions = {},
+      protected _options: BkndAdminOptions = {
+         admin_basepath: '',
+         logo_return_path: '/'
+      },
    ) {
       //console.log("received appjson", appJson);
 
@@ -85,7 +88,6 @@ export class AppReduced {
 
    get options() {
       return {
-         admin_basepath: "",
          logo_return_path: "/",
          ...this._options,
       };
