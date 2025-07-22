@@ -67,6 +67,13 @@ export class EntityManager<TBD extends object = DefaultDB> {
       return new EntityManager(this._entities, this.connection, this._relations, this._indices);
    }
 
+   clear(): this {
+      this._entities = [];
+      this._relations = [];
+      this._indices = [];
+      return this;
+   }
+
    get entities(): Entity[] {
       return this._entities;
    }
