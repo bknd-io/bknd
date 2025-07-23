@@ -39,11 +39,12 @@ POST /api/data/entity/teacher/query
 Body:
 ```json
 {
-   "where": {
-     "subject.name": "Math"
-   },
-   "join": ["subject"],
-   "with": ["subject"]
+  "limit": 10,
+  "offset": 0,
+  "sort": "id",
+  "where": { "subject.name": "Math" },
+  "join": ["subject"],
+  "with": ["subject"]
 }
 ```
 
