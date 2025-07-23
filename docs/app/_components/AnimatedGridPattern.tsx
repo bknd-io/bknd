@@ -42,12 +42,12 @@ export function AnimatedGridPattern({
   const containerRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const getPos = () => {
+  const getPos = useCallback(() => {
     return [
       Math.floor((Math.random() * dimensions.width) / width),
       Math.floor((Math.random() * dimensions.height) / height),
     ];
-  };
+  }, [dimensions.width, dimensions.height, width, height]);
 
   const generateSquares = useCallback(
     (count: number) => {
@@ -56,7 +56,7 @@ export function AnimatedGridPattern({
         pos: getPos(),
       }));
     },
-    [dimensions, width, height],
+    [getPos],
   );
 
   const [squares, setSquares] = useState(() => generateSquares(numSquares));
