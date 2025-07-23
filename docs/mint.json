@@ -167,7 +167,8 @@
         "api-reference/data/create",
         "api-reference/data/get",
         "api-reference/data/update",
-        "api-reference/data/delete"
+        "api-reference/data/delete",
+        "api-reference/data/filter"
       ]
     },
     {

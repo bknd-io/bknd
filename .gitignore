@@ -32,3 +32,5 @@ packages/media/.env
 docker/tmp
 .debug
 .history
+# Ignore generated spec files from Amazon's Kiro IDE
+/.kiro

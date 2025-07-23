@@ -2,9 +2,11 @@
   "name": "bknd-docs",
   "private": true,
   "scripts": {
-    "dev": "mintlify dev"
+    "dev": "mintlify dev",
+    "validate:openapi": "lint-openapi ./api-reference/openapi.json -e"
   },
   "devDependencies": {
-    "mintlify": "4.0.510"
+    "mintlify": "4.0.510",
+    "ibm-openapi-validator": "^1.35.2"
   }
 }

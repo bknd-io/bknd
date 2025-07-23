@@ -118,6 +118,52 @@ const { data } = await api.data.readMany("posts", {
 ```
 The `with` property automatically adds the related entries to the response.
 
+#### Automatic Endpoint Selection
+
+The SDK intelligently chooses between GET and POST endpoints based on query complexity:
+
+**Simple queries use GET** (better for caching):
+```ts
+// This will use GET /api/data/entity/posts
+const { data } = await api.data.readMany("posts", {
+   where: { title: "Hello World" },
+   limit: 10
+});
+```
+
+**Complex queries automatically use POST** (no URL length limits):
+```ts
+// This will automatically use POST /api/data/entity/posts/query
+const { data } = await api.data.readMany("posts", {
+   where: {
+      "$or": [
+         { "author.department.name": "Engineering" },
+         { "tags": { "$contains": ["featured", "popular"] } },
+         { 
+            "$and": [
+               { "views": { "$gt": 1000 } },
+               { "created_at": { "$gte": "2024-01-01" } }
+            ]
+         }
+      ]
+   },
+   join: ["author", "author.department", "tags"],
+   with: {
+      author: {
+         select: ["name", "email"],
+         with: {
+            department: { select: ["name"] }
+         }
+      },
+      tags: {}
+   },
+   sort: "-views",
+   limit: 50
+});
+```
+
+The SDK handles this switching transparently - you use the same `readMany` method regardless of query complexity.
+
 ### `data.readOne([entity], [id])`
 To retrieve a single record from an entity, use the `readOne` method:
 ```ts
@@ -169,6 +215,89 @@ const { data } = await api.data.deleteOne("posts", 1);
 To delete many records of an entity, use the `deleteMany` method:
 ```ts
 const { data } = await api.data.deleteMany("posts", { views: { $lte: 1 } });
+```
+
+### Relationship Filtering
+
+The SDK supports advanced relationship filtering using `join` and `with` parameters:
+
+#### Filter by Related Data
+```ts
+// Get posts by authors from the "Engineering" department
+const { data } = await api.data.readMany("posts", {
+   where: {
+      "author.department.name": "Engineering"
+   },
+   join: ["author", "author.department"] // Required for dot notation filtering
+});
+```
+
+#### Embed Related Data
+```ts
+// Get posts with author information included
+const { data } = await api.data.readMany("posts", {
+   with: {
+      author: {
+         select: ["name", "email"]
+      }
+   }
+});
+```
+
+#### Filter and Embed Combined
+```ts
+// Get engineering posts with author data embedded
+const { data } = await api.data.readMany("posts", {
+   where: {
+      "author.department.name": "Engineering"
+   },
+   join: ["author", "author.department"],
+   with: {
+      author: {
+         select: ["name", "email"],
+         with: {
+            department: { select: ["name"] }
+         }
+      }
+   }
+});
+```
+
+#### Best Practices for Complex Queries
+
+1. **Use specific selects** to reduce payload size:
+```ts
+const { data } = await api.data.readMany("posts", {
+   select: ["id", "title", "created_at"], // Only get needed fields
+   with: {
+      author: {
+         select: ["name"] // Don't fetch all author fields
+      }
+   }
+});
+```
+
+2. **Minimize joins** for better performance:
+```ts
+// Good: Only join what you filter by
+const { data } = await api.data.readMany("posts", {
+   where: { "author.name": "John" },
+   join: ["author"], // Only join for filtering
+   with: {
+      tags: {} // Can embed without joining
+   }
+});
+```
+
+3. **Use pagination** for large datasets:
+```ts
+const { data, meta } = await api.data.readMany("posts", {
+   limit: 50,
+   offset: 0,
+   sort: "-created_at"
+});
+
+console.log(`Showing ${data.length} of ${meta.total} posts`);
 ```
 
 ## Auth (`api.auth`)
