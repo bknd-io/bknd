@@ -308,6 +308,199 @@
         "tags": ["data"]
       }
     },
+    "/api/data/entity/{entity}/query": {
+      "post": {
+        "summary": "Query entities with complex parameters",
+        "description": "Alternative to GET endpoint for complex queries that may exceed URL length limits. Accepts all query parameters in the request body.",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The entity type to query"
+          }
+        ],
+        "requestBody": {
+          "description": "Query parameters for filtering, sorting, and relationship inclusion",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "where": {
+                    "type": "object",
+                    "description": "Filter conditions using object notation. Supports operators like $gt, $lt, $in, etc.",
+                    "example": {
+                      "name": "John",
+                      "age": { "$gt": 18 }
+                    }
+                  },
+                  "join": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Relations to join for filtering (enables dot notation in where clause)",
+                    "example": ["profile", "posts"]
+                  },
+                  "with": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Relations to embed in the response",
+                    "example": ["profile", "posts"]
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000,
+                    "default": 50,
+                    "description": "Maximum number of records to return",
+                    "example": 20
+                  },
+                  "offset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0,
+                    "description": "Number of records to skip for pagination",
+                    "example": 10
+                  },
+                  "sort": {
+                    "type": "string",
+                    "description": "Field to sort by. Prefix with '-' for descending order",
+                    "example": "-created_at"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "examples": {
+                "simple_query": {
+                  "summary": "Simple filtering query",
+                  "value": {
+                    "where": {
+                      "status": "active",
+                      "age": { "$gte": 18 }
+                    },
+                    "limit": 10,
+                    "sort": "-created_at"
+                  }
+                },
+                "complex_relationship_query": {
+                  "summary": "Complex query with relationships",
+                  "value": {
+                    "where": {
+                      "status": "active",
+                      "profile.verified": true,
+                      "posts.published": true
+                    },
+                    "join": ["profile", "posts"],
+                    "with": ["profile"],
+                    "limit": 20,
+                    "offset": 0,
+                    "sort": "profile.created_at"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of entities with optional metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": { 
+                          "id": { "type": "number" }
+                        },
+                        "required": ["id"],
+                        "additionalProperties": true
+                      },
+                      "description": "Simple array response when no pagination metadata is needed"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": { 
+                              "id": { "type": "number" }
+                            },
+                            "required": ["id"],
+                            "additionalProperties": true
+                          }
+                        },
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "integer",
+                              "description": "Total number of records matching the query"
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "description": "Maximum number of records returned"
+                            },
+                            "offset": {
+                              "type": "integer",
+                              "description": "Number of records skipped"
+                            }
+                          },
+                          "required": ["total", "limit", "offset"]
+                        }
+                      },
+                      "required": ["data", "meta"],
+                      "description": "Object response with pagination metadata"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_PARAMETER"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid where field(s): subject.name"
+                        },
+                        "details": {
+                          "type": "string",
+                          "example": "To filter by related fields, include the relation in the 'join' parameter"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["data"]
+      }
+    },
     "/api/data/entity/{entity}/{id}": {
       "get": {
         "summary": "Get entity",
