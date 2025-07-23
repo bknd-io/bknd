@@ -5,6 +5,16 @@ description: 'How to filter entities based on related data in many-to-many relat
 
 You often need to retrieve entries from one entity based on properties of a related entity (for example, get all Teachers who teach "Math"). In bknd, this is handled via the REST API using the `where` clause with dot notation, together with the `join` parameter.
 
+## Understanding `join` vs `with`
+
+Before diving into examples, it's crucial to understand the functional difference between these two parameters:
+
+- **`join`**: Enables filtering by related entity fields using dot notation. This parameter tells the database to join the related table so you can reference its fields in your `where` conditions. The related data is **not** included in the response unless you also use `with`.
+
+- **`with`**: Embeds related entity data in the response. This parameter tells the API to include the full related objects in the returned results. You can use `with` without `join` if you only want to embed data without filtering by it.
+
+**Key Point**: `join` is about **filtering capabilities**, while `with` is about **response structure**.
+
 ## Example Use Case
 
 You have:
@@ -14,24 +24,102 @@ You have:
 
 You want to find Teachers that have a Subject with the name 'Math'.
 
-## 1. GET Endpoint (recommended for shorter queries)
+## Examples by Use Case
+
+### 1. Filter by Related Data (join only)
+
+When you want to filter by related entity fields but don't need the related data in the response:
+
+```
+GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject
+```
+
+**Result**: Returns teachers who teach Math, but the response only contains teacher data (no embedded subject information).
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "John Smith",
+      "email": "john@school.edu"
+    }
+  ]
+}
+```
+
+### 2. Embed Related Data (with only)
+
+When you want to include related data in the response without filtering by it:
+
+```
+GET /api/data/entity/teacher?with=subject
+```
+
+**Result**: Returns all teachers with their subjects embedded in the response.
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "John Smith",
+      "email": "john@school.edu",
+      "subject": [
+        {
+          "id": 1,
+          "name": "Math",
+          "description": "Mathematics course"
+        },
+        {
+          "id": 2,
+          "name": "Physics",
+          "description": "Physics course"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 3. Filter and Embed (join + with)
+
+When you want both to filter by related data AND include it in the response:
 
 ```
 GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject&with=subject
 ```
 
-- `join`: Add the related entity to the query so you can filter by its fields.
-- `where`: Use dot notation (`subject.name`) to specify conditions on the related entity.
-- `with` (optional): Embed the relation in the returned results.
+**Result**: Returns teachers who teach Math, with their subject data embedded.
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "John Smith",
+      "email": "john@school.edu",
+      "subject": [
+        {
+          "id": 1,
+          "name": "Math",
+          "description": "Mathematics course"
+        }
+      ]
+    }
+  ]
+}
+```
 
 <Note>
 If no operation is provided in the where clause, `$eq` (equals) is assumed by default. So `{"subject.name": "Math"}` is the same as `{"subject.name": {"$eq": "Math"}}`.
 </Note>
 
-## 2. POST Endpoint (recommended for longer/complex queries)
+## POST Endpoint for Complex Queries
 
-If your query gets too long, use the POST endpoint:
+For longer or more complex queries, use the POST endpoint. The same `join` and `with` logic applies:
 
+### Filter Only (join without with)
 ```
 POST /api/data/entity/teacher/query
 ```
@@ -39,29 +127,77 @@ POST /api/data/entity/teacher/query
 Body:
 ```json
 {
-  "limit": 10,
-  "offset": 0,
-  "sort": "id",
+  "where": { "subject.name": "Math" },
+  "join": ["subject"]
+}
+```
+
+### Filter and Embed (join with with)
+```
+POST /api/data/entity/teacher/query
+```
+
+Body:
+```json
+{
   "where": { "subject.name": "Math" },
   "join": ["subject"],
   "with": ["subject"]
 }
 ```
 
-## 3. Read Many by Reference
+### Complex Multi-Relation Example
+```json
+{
+  "where": { 
+    "subject.name": "Math",
+    "department.budget": { "$gt": 50000 }
+  },
+  "join": ["subject", "department"],
+  "with": ["subject"],
+  "limit": 10,
+  "sort": "name"
+}
+```
+
+This example filters by both subject name and department budget, but only embeds subject data in the response.
+
+## Read Many by Reference
 
 If you have the Subject's ID and want to get all related Teachers quickly:
 
 ```
-GET /api/data/entity/subject/<subject_id>/teacher
+GET /api/data/entity/subject/1/teacher
 ```
 
-This returns all Teachers related to the specific Subject.
+This returns all Teachers related to Subject ID 1. You can still use `with` to embed additional relations:
 
-## Tips
+```
+GET /api/data/entity/subject/1/teacher?with=department
+```
 
-- The `join` parameter is required for being able to filter on nested fields via dot notation.
-- The `with` parameter is optional; it determines whether to embed the relation object in the results.
+This returns teachers related to the subject, with their department information embedded.
+
+## When to Use Each Parameter
+
+### Use `join` when:
+- You need to filter by related entity fields using dot notation
+- You want to reference related data in your `where` conditions
+- You don't necessarily need the related data in the response
+
+### Use `with` when:
+- You want to include related entity data in the response
+- You need to avoid making additional API calls to fetch related data
+- You want to reduce the number of requests for better performance
+
+### Use both `join` and `with` when:
+- You need to filter by related fields AND want the related data in the response
+- You're building a UI that shows both the main entity and its relationships
+
+### Performance Considerations:
+- Using `join` without `with` is more efficient if you only need to filter
+- Using `with` includes additional data transfer, so only request what you need
+- Multiple joins can impact query performance on large datasets
 
 ## Example in TypeScript SDK
 
@@ -90,12 +226,37 @@ const { data: teachers } = await api.data.readMany("teacher", {
 
 A: No. `join` allows you to use dot notation in filters. `with` specifies embedding related entities in the response. Use both if you want to both filter and receive the related data inline.
 
-## Summary Table
+**Q: Can I use `with` without `join`?**
 
-| Parameter | Purpose |
-|-----------|---------|
-| `join` | Allows filtering using dot notation for related fields |
-| `with` | Embeds the joined/related entity in the response |
-| `where` | Filters results; can use dot notation with `join` |
+A: Yes! If you want to embed related data without filtering by it, you only need `with`. For example: `GET /api/data/entity/teacher?with=subject` returns all teachers with their subjects embedded.
 
-This guidance will help you construct effective API calls that filter results based on related entity properties. If the request gets too complex for the GET endpoint, switch to POST as shown above.
+**Q: What happens if I use dot notation in `where` without `join`?**
+
+A: You'll get an error like "Invalid where field: subject.name". The `join` parameter is required to enable dot notation filtering.
+
+**Q: Can I join multiple relations?**
+
+A: Yes! Use arrays: `join=subject,department` or in POST: `"join": ["subject", "department"]`. You can then filter by fields from any joined relation: `where={"subject.name":"Math","department.budget":{"$gt":50000}}`.
+
+**Q: Does `join` affect the response structure?**
+
+A: No. `join` only enables filtering capabilities. It doesn't change what data is returned unless you also use `with`.
+
+## Quick Reference
+
+| Parameter | Purpose | When to Use | Example |
+|-----------|---------|-------------|---------|
+| `join` | Enables dot notation filtering | Need to filter by related fields | `join=subject` allows `where={"subject.name":"Math"}` |
+| `with` | Embeds related data in response | Want related data included | `with=subject` includes subject objects in response |
+| `where` | Filters results | Need to limit which records are returned | `where={"name":"John"}` or `where={"subject.name":"Math"}` (with join) |
+
+## Common Patterns
+
+| Use Case | Parameters | Example |
+|----------|------------|---------|
+| Filter only | `join` + `where` | `?where={"subject.name":"Math"}&join=subject` |
+| Embed only | `with` | `?with=subject` |
+| Filter + Embed | `join` + `with` + `where` | `?where={"subject.name":"Math"}&join=subject&with=subject` |
+| Multiple relations | Arrays of relations | `?join=subject,department&with=subject` |
+
+This guidance will help you construct effective API calls that filter results based on related entity properties. Remember: use `join` for filtering capabilities, `with` for response structure, and both when you need to do both.
