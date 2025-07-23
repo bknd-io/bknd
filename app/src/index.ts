@@ -69,6 +69,7 @@ export type {
    UserPool,
    AuthAction,
    AuthUserResolver,
+   Authenticator,
 } from "auth/authenticate/Authenticator";
 export { AuthStrategy } from "auth/authenticate/strategies/Strategy";
 export * as AuthPermissions from "auth/auth-permissions";

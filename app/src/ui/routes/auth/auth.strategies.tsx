@@ -13,7 +13,6 @@ import {
    TbBrandX,
    TbSettings,
 } from "react-icons/tb";
-import { twMerge } from "tailwind-merge";
 import { useBknd } from "ui/client/bknd";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { Button } from "ui/components/buttons/Button";
@@ -76,7 +75,7 @@ function AuthStrategiesListInternal() {
 
    return (
       <Form
-         schema={schema as any}
+         schema={JSON.parse(JSON.stringify(schema))}
          initialValues={config}
          onSubmit={handleSubmit}
          options={formOptions}

@@ -1,15 +1,21 @@
-import { MediaAdapters } from "media/media-registry";
-import { registries } from "modules/registries";
 import { s, objectTransform } from "bknd/utils";
+import { Registry, type ClassThatImplements } from "core/registry/Registry";
+import type { StorageAdapter } from "./storage/StorageAdapter";
+import { StorageS3Adapter } from "./storage/adapters/s3/StorageS3Adapter";
+import { StorageCloudinaryAdapter } from "./storage/adapters/cloudinary/StorageCloudinaryAdapter";
 
-export const ADAPTERS = {
-   ...MediaAdapters,
-} as const;
-
-export const registry = registries.media;
+export const MediaAdapterRegistry = new Registry<{
+   cls: ClassThatImplements<StorageAdapter>;
+   schema: s.Schema;
+}>((cls: ClassThatImplements<StorageAdapter>) => ({
+   cls,
+   schema: cls.prototype.getSchema() as s.Schema,
+}))
+   .register("s3", StorageS3Adapter)
+   .register("cloudinary", StorageCloudinaryAdapter);
 
 export function buildMediaSchema() {
-   const adapterSchemaObject = objectTransform(registry.all(), (adapter, name) => {
+   const adapterSchemaObject = objectTransform(MediaAdapterRegistry.all(), (adapter, name) => {
       return s.strictObject(
          {
             type: s.literal(name),
