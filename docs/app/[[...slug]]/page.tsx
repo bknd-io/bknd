@@ -54,5 +54,8 @@ export async function generateMetadata(props: {
   return {
     title: page.data.title,
     description: page.data.description,
+    icons: {
+      icon: "/favicon.svg",
+    },
   };
 }
