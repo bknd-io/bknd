@@ -259,4 +259,253 @@ A: No. `join` only enables filtering capabilities. It doesn't change what data i
 | Filter + Embed | `join` + `with` + `where` | `?where={"subject.name":"Math"}&join=subject&with=subject` |
 | Multiple relations | Arrays of relations | `?join=subject,department&with=subject` |
 
-This guidance will help you construct effective API calls that filter results based on related entity properties. Remember: use `join` for filtering capabilities, `with` for response structure, and both when you need to do both.
+## Troubleshooting
+
+### Common Error Scenarios
+
+#### "Invalid where field" Error
+
+**Error Message**: `Invalid where field(s): subject.name`
+
+**Cause**: You're trying to use dot notation in a `where` clause without including the relation in the `join` parameter.
+
+**Example of Incorrect Usage**:
+```
+GET /api/data/entity/teacher?where={"subject.name":"Math"}
+```
+
+**Solution**: Add the relation to the `join` parameter:
+```
+GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject
+```
+
+**Why This Happens**: The database needs to know which tables to join before it can reference fields from related entities. The `join` parameter tells the API which relationships to include in the SQL query.
+
+#### Malformed JSON in where Parameter
+
+**Error Message**: `Invalid JSON in where parameter`
+
+**Cause**: The `where` parameter contains invalid JSON syntax.
+
+**Example of Incorrect Usage**:
+```
+GET /api/data/entity/teacher?where={name:"John"}  // Missing quotes around key
+```
+
+**Solution**: Ensure proper JSON formatting:
+```
+GET /api/data/entity/teacher?where={"name":"John"}
+```
+
+**Common JSON Mistakes**:
+- Missing quotes around keys: `{name:"John"}` → `{"name":"John"}`
+- Single quotes instead of double: `{'name':'John'}` → `{"name":"John"}`
+- Trailing commas: `{"name":"John",}` → `{"name":"John"}`
+
+#### Unknown Relation Error
+
+**Error Message**: `Unknown relation: subjects`
+
+**Cause**: You're referencing a relation that doesn't exist in the entity schema.
+
+**Example of Incorrect Usage**:
+```
+GET /api/data/entity/teacher?join=subjects  // Relation name is wrong
+```
+
+**Solution**: Use the correct relation name:
+```
+GET /api/data/entity/teacher?join=subject  // Correct singular form
+```
+
+**How to Find Correct Relation Names**:
+- Check your entity schema definition
+- Use the `/api/system/schema` endpoint to see all available relations
+- Relation names are typically singular (e.g., `subject`, not `subjects`)
+
+#### URL Too Long Error
+
+**Error Message**: `Request-URI Too Large` or `414 URI Too Long`
+
+**Cause**: Your query parameters are too long for a GET request, typically when using complex `where` clauses.
+
+**Example of Problematic Query**:
+```
+GET /api/data/entity/teacher?where={"$or":[{"subject.name":"Math"},{"subject.name":"Physics"},{"subject.name":"Chemistry"},{"department.name":"Science"},{"department.budget":{"$gt":50000},"$and":[{"experience":{"$gte":5}},{"rating":{"$gte":4.0}}]}]}&join=subject,department&with=subject,department
+```
+
+**Solution**: Switch to the POST endpoint:
+```
+POST /api/data/entity/teacher/query
+Content-Type: application/json
+
+{
+  "where": {
+    "$or": [
+      {"subject.name": "Math"},
+      {"subject.name": "Physics"},
+      {"subject.name": "Chemistry"},
+      {"department.name": "Science"},
+      {
+        "department.budget": {"$gt": 50000},
+        "$and": [
+          {"experience": {"$gte": 5}},
+          {"rating": {"$gte": 4.0}}
+        ]
+      }
+    ]
+  },
+  "join": ["subject", "department"],
+  "with": ["subject", "department"]
+}
+```
+
+### When to Switch from GET to POST
+
+#### URL Length Guidelines
+
+**Use GET when**:
+- Simple filtering with 1-3 conditions
+- Basic sorting and pagination
+- URL length is under 2000 characters
+- Query is cacheable and idempotent
+
+**Switch to POST when**:
+- Complex `where` clauses with multiple conditions
+- Using `$or`, `$and` operators with many conditions
+- URL approaches or exceeds 2000 characters
+- Query contains special characters that need encoding
+
+#### Complexity Indicators
+
+**Simple Query (Use GET)**:
+```
+GET /api/data/entity/teacher?where={"name":"John"}&limit=10
+```
+
+**Medium Complexity (GET is OK)**:
+```
+GET /api/data/entity/teacher?where={"subject.name":"Math","experience":{"$gte":5}}&join=subject&with=subject
+```
+
+**High Complexity (Use POST)**:
+```json
+{
+  "where": {
+    "$or": [
+      {
+        "$and": [
+          {"subject.name": {"$in": ["Math", "Physics", "Chemistry"]}},
+          {"department.budget": {"$gt": 50000}}
+        ]
+      },
+      {
+        "$and": [
+          {"experience": {"$gte": 10}},
+          {"rating": {"$gte": 4.5}},
+          {"certifications": {"$contains": "Advanced"}}
+        ]
+      }
+    ]
+  },
+  "join": ["subject", "department", "certifications"],
+  "with": ["subject"],
+  "sort": "-rating",
+  "limit": 50
+}
+```
+
+### Performance Troubleshooting
+
+#### Slow Query Performance
+
+**Symptoms**: Queries taking longer than expected to return results.
+
+**Common Causes and Solutions**:
+
+1. **Too Many Joins**
+   - **Problem**: Joining multiple large tables
+   - **Solution**: Only join relations you actually filter by
+   - **Example**: If you only need to embed data, use `with` without `join`
+
+2. **Missing Indexes**
+   - **Problem**: Filtering by unindexed fields
+   - **Solution**: Ensure database indexes exist on frequently filtered fields
+   - **Check**: Review your database schema for proper indexing
+
+3. **Large Result Sets**
+   - **Problem**: Returning too many records
+   - **Solution**: Use `limit` parameter to paginate results
+   - **Example**: `?limit=50&offset=0` for first page
+
+#### Memory Issues
+
+**Error Message**: `Request entity too large` or timeout errors
+
+**Cause**: Trying to return too much data in a single request.
+
+**Solutions**:
+- Reduce `limit` parameter (default is 50, max is usually 1000)
+- Use pagination with `offset`
+- Avoid embedding large relations with `with` unless necessary
+- Filter results more specifically with `where`
+
+### Debugging Tips
+
+#### Test Your Queries Step by Step
+
+1. **Start Simple**: Begin with basic filtering without relations
+   ```
+   GET /api/data/entity/teacher?where={"name":"John"}
+   ```
+
+2. **Add Relations Gradually**: Add one relation at a time
+   ```
+   GET /api/data/entity/teacher?where={"name":"John"}&join=subject
+   ```
+
+3. **Add Dot Notation**: Test filtering by related fields
+   ```
+   GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject
+   ```
+
+4. **Add Embedding**: Include related data in response
+   ```
+   GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject&with=subject
+   ```
+
+#### Use Browser Developer Tools
+
+- Check the **Network** tab to see the actual request being sent
+- Look at the **Response** tab to see error details
+- Copy the request as cURL to test outside the browser
+
+#### Validate JSON
+
+Before using complex `where` clauses, validate your JSON:
+- Use online JSON validators
+- Test JSON parsing in your browser console: `JSON.parse('{"name":"John"}')`
+- Use proper escaping for special characters
+
+### Error Response Format
+
+All API errors follow this format:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": "Additional context about the error"
+  }
+}
+```
+
+**Common Error Codes**:
+- `INVALID_PARAMETER`: Invalid query parameter format
+- `UNKNOWN_RELATION`: Referenced relation doesn't exist
+- `INVALID_WHERE_FIELD`: Dot notation used without proper join
+- `REQUEST_TOO_LARGE`: Query too complex for GET request
+- `MALFORMED_JSON`: Invalid JSON in where parameter
+
+This troubleshooting guide will help you identify and resolve common issues when working with the bknd filtering API. Remember: start simple, test incrementally, and switch to POST for complex queries.
