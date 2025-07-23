@@ -45,7 +45,7 @@ bun add bknd
 If you don't choose anything specific, the following code will use the `warm` mode and uses the first D1 binding it finds. See the
 chapter [Using a different mode](#using-a-different-mode) for available modes.
 
-```ts title="src/index.ts"
+```ts src/index.ts
 import { serve, d1 } from "bknd/adapter/cloudflare";
 
 // scans your environment for the first D1 binding it finds
@@ -82,50 +82,49 @@ your browser.
 
 Now in order to also server the static admin files, you have to modify the `wrangler.toml` to include the static assets. You can do so by either serving the static using the new [Assets feature](https://developers.cloudflare.com/workers/static-assets/), or the deprecated [Workers Site](https://developers.cloudflare.com/workers/configuration/sites/configuration/).
 
-### Assets
+<Tabs>
+   <Tab title="Assets">
+      Make sure your assets point to the static assets included in the bknd package:
 
-Make sure your assets point to the static assets included in the bknd package:
+      ```toml wrangler.toml
+      assets = { directory = "node_modules/bknd/dist/static" }
+      ```
 
-```toml title="wrangler.toml"
-assets = { directory = "node_modules/bknd/dist/static" }
-```
+   </Tab>
+   <Tab title="Workers Sites">
+      Make sure your site points to the static assets included in the bknd package:
 
-### Workers Sites
+      ```toml wrangler.toml
+      [site]
+      bucket = "node_modules/bknd/dist/static"
+      ```
 
-Make sure your site points to the static assets included in the bknd package:
+      And then modify the worker entry as follows:
+      ```ts {2, 6} src/index.ts
+      import { serve } from "bknd/adapter/cloudflare";
+      import manifest from "__STATIC_CONTENT_MANIFEST";
 
-```toml title="wrangler.toml"
-[site]
-bucket = "node_modules/bknd/dist/static"
-```
+      export default serve<Env>({
+         app: () => ({/* ... */}),
+         manifest
+      });
+      ```
 
-And then modify the worker entry as follows:
-
-```ts title="src/index.ts"
-import { serve } from "bknd/adapter/cloudflare";
-import manifest from "__STATIC_CONTENT_MANIFEST"; // [!code highlight]
-
-export default serve<Env>({
-  app: () => ({
-    /* ... */
-  }),
-  manifest, // [!code highlight]
-});
-```
+   </Tab>
+</Tabs>
 
 ## Adding custom routes
 
 You can also add custom routes by defining them after the app has been built, like so:
 
-```ts
+```ts {5-7}
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve<Env>({
   // ...
   onBuilt: async (app) => {
-    // [!code highlight]
-    app.server.get("/hello", (c) => c.json({ hello: "world" })); // [!code highlight]
-  }, // [!code highlight]
+    app.server.get("/hello", (c) => c.json({ hello: "world" }));
+  },
 });
 ```
 
@@ -246,7 +245,7 @@ deleted_classes = ["DurableBkndApp"]
 
 D1 now supports to enable [global read replication](https://developers.cloudflare.com/d1/best-practices/read-replication/). This allows to reduce latency by reading from the closest region. In order for this to work, D1 has to be started from a bookmark. You can enable this behavior on bknd by setting the `d1.session` property:
 
-```typescript title="src/index.ts"
+```typescript src/index.ts
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve({

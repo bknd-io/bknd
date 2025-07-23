@@ -45,14 +45,13 @@ bun add bknd
 The `serve` function of the Bun adapter makes sure to also serve the static files required for
 the admin panel.
 
-```tsx title="server.ts"
+```tsx title="index.ts"
 import { serve } from "bknd/adapter/bun";
 
 // if the configuration is omitted, it uses an in-memory database
 serve({
   connection: {
-    url: process.env.DB_URL!,
-    authToken: process.env.DB_AUTH_TOKEN!,
+    url: "file:data.db",
   },
 });
 ```
@@ -62,5 +61,5 @@ For more information about the connection object, refer to the [Database](/usage
 Run the application using Bun by executing:
 
 ```bash
-bun run server.ts
+bun run index.ts
 ```
