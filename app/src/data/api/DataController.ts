@@ -256,10 +256,12 @@ export class DataController extends Controller {
       // read many
       const saveRepoQuery = s
          .object({
-            ...omitKeys(repoQuery.properties, ["with"]),
+            ...omitKeys(repoQuery.properties, ["with", "where"]),
             sort: s.string({ default: "id" }),
             select: s.array(s.string()),
             join: s.array(s.string()),
+            with: s.anyOf([s.array(s.string()), s.record(s.object({}))]),
+            where: s.object({}),
          })
          .partial();
       const saveRepoQueryParams = (pick: string[] = Object.keys(repoQuery.properties)) => [
@@ -273,7 +275,15 @@ export class DataController extends Controller {
          "/:entity",
          describeRoute({
             summary: "Read many",
-            parameters: saveRepoQueryParams(["limit", "offset", "sort", "select", "join"]),
+            parameters: saveRepoQueryParams([
+               "limit",
+               "offset",
+               "sort",
+               "select",
+               "join",
+               "with",
+               "where",
+            ]),
             tags: ["data"],
          }),
          permission(DataPermissions.entityRead),

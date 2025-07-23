@@ -169,6 +169,7 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
       if (files.includes(path)) {
          try {
             const content = await import(`bknd/static/${path}?raw`, {
+               /* @vite-ignore */
                assert: { type: "text" },
             }).then((m) => m.default);
 
