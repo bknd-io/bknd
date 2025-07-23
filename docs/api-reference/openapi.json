@@ -593,6 +593,231 @@
         "tags": ["data"]
       }
     },
+    "/api/data/entity/{entity}/{id}/{relation}": {
+      "get": {
+        "summary": "Read many entities by reference",
+        "description": "Get entities related to a specific parent entity. Supports the same query parameters as the main list endpoint for filtering and pagination.",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The parent entity type"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "The ID of the parent entity"
+          },
+          {
+            "name": "relation",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The name of the relationship to query"
+          },
+          {
+            "name": "where",
+            "in": "query",
+            "required": false,
+            "schema": { 
+              "type": "string",
+              "description": "JSON object containing filter conditions. Supports operators like $gt, $lt, $in, etc."
+            },
+            "description": "Filter conditions using JSON object notation",
+            "example": "{\"status\": \"active\", \"age\": {\"$gt\": 18}}"
+          },
+          {
+            "name": "join",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Relations to join for filtering (enables dot notation in where clause)",
+            "example": ["profile", "posts"]
+          },
+          {
+            "name": "with",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Relations to embed in the response",
+            "example": ["profile", "posts"]
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 50
+            },
+            "description": "Maximum number of records to return",
+            "example": 20
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Number of records to skip for pagination",
+            "example": 10
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by. Prefix with '-' for descending order",
+            "example": "-created_at"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of related entities with optional metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": { 
+                          "id": { "type": "number" }
+                        },
+                        "required": ["id"],
+                        "additionalProperties": true
+                      },
+                      "description": "Simple array response when no pagination metadata is needed"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": { 
+                              "id": { "type": "number" }
+                            },
+                            "required": ["id"],
+                            "additionalProperties": true
+                          }
+                        },
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "integer",
+                              "description": "Total number of related records matching the query"
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "description": "Maximum number of records returned"
+                            },
+                            "offset": {
+                              "type": "integer",
+                              "description": "Number of records skipped"
+                            }
+                          },
+                          "required": ["total", "limit", "offset"]
+                        }
+                      },
+                      "required": ["data", "meta"],
+                      "description": "Object response with pagination metadata"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query parameters or relationship",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_PARAMETER"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid relationship: posts"
+                        },
+                        "details": {
+                          "type": "string",
+                          "example": "The specified relationship does not exist for this entity type"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Parent entity does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "example": "NOT_FOUND"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Entity not found"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["data"]
+      }
+    },
     "/api/auth/password/login": {
       "post": {
         "summary": "Login",
