@@ -1,6 +1,5 @@
-import type { DB, EntityData, RepoQueryIn } from "bknd";
+import type { DB, EntityData, RepoQueryIn, Insertable, Selectable, Updateable } from "bknd";
 
-import type { Insertable, Selectable, Updateable } from "kysely";
 import { type BaseModuleApiOptions, ModuleApi, type PrimaryFieldType } from "modules";
 import type { FetchPromise, ResponseObject } from "modules/ModuleApi";
 import type { RepositoryResultJSON } from "data/entities/query/RepositoryResult";
