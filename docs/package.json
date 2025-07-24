@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
     "build": "bun generate:openapi && next build",
     "start": "next start",
     "generate:openapi": "bun scripts/generate-openapi.mjs",
@@ -12,6 +13,7 @@
   "dependencies": {
     "@iconify/react": "^6.0.0",
     "@orama/orama": "^3.1.10",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "fumadocs-core": "^15.6.1",
     "fumadocs-mdx": "^11.6.10",
@@ -24,6 +26,7 @@
     "next": "15.3.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "tailwind-merge": "^3.3.1",
     "twoslash": "^0.3.2"
   },
   "devDependencies": {

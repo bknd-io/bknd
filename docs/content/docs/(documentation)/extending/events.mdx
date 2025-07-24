@@ -81,7 +81,14 @@ import { AppEvents } from "bknd";
 
 Available events:
 
-<AutoTypeTable path="../app/src/App.ts" name="AppEventsType" />
+{/* <AutoTypeTable path="../app/src/App.ts" name="AppEvents" />  */}
+| Event | Params | Description |
+|:------|:--------|:------------|
+| `AppConfigUpdatedEvent` | `{ app: App }` | Emitted when the app configuration is updated |
+| `AppBuiltEvent` | `{ app: App }` | Emitted when the app is built |
+| `AppFirstBoot` | `{ app: App }` | Emitted when the app is first booted |
+| `AppRequest` | `{ app: App, request: Request }` | Emitted when a request is received |
+| `AppBeforeResponse` | `{ app: App, request: Request, response: Response }` | Emitted before a response is sent |
 
 ## Database Events
 
