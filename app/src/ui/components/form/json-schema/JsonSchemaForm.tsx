@@ -5,10 +5,10 @@ import { cloneDeep } from "lodash-es";
 import { forwardRef, useId, useImperativeHandle, useRef, useState } from "react";
 import { fields as Fields } from "./fields";
 import { templates as Templates } from "./templates";
-import { RJSFTypeboxValidator } from "./typebox/RJSFTypeboxValidator";
 import { widgets as Widgets } from "./widgets";
+import { JsonvTsValidator } from "./JsonvTsValidator";
 
-const validator = new RJSFTypeboxValidator();
+const validator = new JsonvTsValidator();
 
 // @todo: don't import FormProps, instead, copy it here instead of "any"
 export type JsonSchemaFormProps = any & {

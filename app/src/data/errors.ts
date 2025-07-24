@@ -1,5 +1,5 @@
-import { Exception } from "core";
-import { HttpStatus, type TypeInvalidError } from "core/utils";
+import { Exception } from "core/errors";
+import { type InvalidSchemaError, HttpStatus } from "bknd/utils";
 import type { Entity } from "./entities";
 import type { Field } from "./fields";
 
@@ -42,11 +42,11 @@ export class InvalidFieldConfigException extends Exception {
    constructor(
       field: Field<any, any, any>,
       public given: any,
-      error: TypeInvalidError,
+      error: InvalidSchemaError,
    ) {
       console.error("InvalidFieldConfigException", {
          given,
-         error: error.firstToString(),
+         error: error.first(),
       });
       super(`Invalid Field config given for field "${field.name}": ${error.firstToString()}`);
    }

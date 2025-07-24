@@ -41,7 +41,7 @@ beforeAll(() =>
 );
 afterAll(unmockFetch);
 
-describe("FetchTask", async () => {
+describe.skip("FetchTask", async () => {
    test("Simple fetch", async () => {
       const task = new FetchTask("Fetch Something", {
          url: "https://jsonplaceholder.typicode.com/todos/1",

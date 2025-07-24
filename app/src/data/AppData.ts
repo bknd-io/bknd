@@ -1,17 +1,14 @@
 import { transformObject } from "core/utils";
-import {
-   DataPermissions,
-   type Entity,
-   EntityIndex,
-   type EntityManager,
-   constructEntity,
-   constructRelation,
-} from "data";
+
 import { Module } from "modules/Module";
 import { DataController } from "./api/DataController";
 import { type AppDataConfig, dataConfigSchema } from "./data-schema";
+import { constructEntity, constructRelation } from "./schema/constructor";
+import type { Entity, EntityManager } from "data/entities";
+import { EntityIndex } from "data/fields";
+import * as DataPermissions from "data/permissions";
 
-export class AppData extends Module<typeof dataConfigSchema> {
+export class AppData extends Module<AppDataConfig> {
    override async build() {
       const {
          entities: _entities = {},

@@ -40,6 +40,9 @@ export class AppConfigUpdatedEvent extends AppEvent<{
 }> {
    static override slug = "app-config-updated";
 }
+/**
+ * @type {Event<{ app: App }>}
+ */
 export class AppBuiltEvent extends AppEvent {
    static override slug = "app-built";
 }
@@ -71,6 +74,9 @@ export type AppOptions = {
    };
 };
 export type CreateAppConfig = {
+   /**
+    * bla
+    */
    connection?: Connection | { url: string };
    initialConfig?: InitialModuleConfigs;
    options?: AppOptions;

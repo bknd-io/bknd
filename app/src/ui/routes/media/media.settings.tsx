@@ -1,5 +1,5 @@
 import { IconBrandAws, IconBrandCloudflare, IconCloud, IconServer } from "@tabler/icons-react";
-import { isDebug } from "core";
+import { isDebug } from "core/env";
 import { autoFormatString } from "core/utils";
 import { twMerge } from "tailwind-merge";
 import { useBknd } from "ui/client/BkndProvider";

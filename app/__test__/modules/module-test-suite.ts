@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 
 import { Hono } from "hono";
-import { Guard } from "../../src/auth";
-import { DebugLogger } from "../../src/core";
-import { EventManager } from "../../src/core/events";
-import { Default, stripMark } from "../../src/core/utils";
-import { EntityManager } from "../../src/data";
-import { Module, type ModuleBuildContext } from "../../src/modules/Module";
+import { Guard } from "auth/authorize/Guard";
+import { DebugLogger } from "core/utils/DebugLogger";
+import { EventManager } from "core/events";
+import { EntityManager } from "data/entities/EntityManager";
+import { Module, type ModuleBuildContext } from "modules/Module";
 import { getDummyConnection } from "../helper";
 import { ModuleHelper } from "modules/ModuleHelper";
 
@@ -45,7 +44,8 @@ export function moduleTestSuite(module: { new (): Module }) {
       it("uses the default config", async () => {
          const m = new module();
          await m.setContext(ctx).build();
-         expect(stripMark(m.toJSON())).toEqual(Default(m.getSchema(), {}));
+         expect(m.toJSON()).toEqual(m.getSchema().template({}, { withOptional: true }));
+         //expect(stripMark(m.toJSON())).toEqual(Default(m.getSchema(), {}));
       });
    });
 }

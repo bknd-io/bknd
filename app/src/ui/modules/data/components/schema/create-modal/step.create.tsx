@@ -1,7 +1,6 @@
 import { useDisclosure } from "@mantine/hooks";
 import {
    IconAlignJustified,
-   IconAugmentedReality,
    IconBox,
    IconCirclesRelation,
    IconInfoCircle,
@@ -15,7 +14,7 @@ import { IconButton, type IconType } from "ui/components/buttons/IconButton";
 import { JsonViewer } from "ui/components/code/JsonViewer";
 import { ModalBody, ModalFooter } from "ui/components/modal/Modal2";
 import { useStepContext } from "ui/components/steps/Steps";
-import type { TCreateModalSchema } from "ui/modules/data/components/schema/create-modal/CreateModal";
+import type { TCreateModalSchema } from "ui/modules/data/components/schema/create-modal/schema";
 
 type ActionItem = SummaryItemProps & {
    run: () => Promise<boolean>;
@@ -35,9 +34,9 @@ export function StepCreate() {
             action: "add",
             Icon: IconBox,
             type: "Entity",
-            name: entity.name,
+            name: entity.name!,
             json: entity,
-            run: async () => await $data.actions.entity.add(entity.name, entity),
+            run: async () => await $data.actions.entity.add(entity.name!, entity),
          })),
       );
    }

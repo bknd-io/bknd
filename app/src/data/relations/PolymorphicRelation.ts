@@ -1,4 +1,3 @@
-import type { Static } from "core/utils";
 import type { ExpressionBuilder } from "kysely";
 import type { Entity, EntityManager } from "../entities";
 import { NumberField, TextField } from "../fields";
@@ -6,24 +5,16 @@ import type { RepoQuery } from "../server/query";
 import { EntityRelation, type KyselyJsonFrom, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { type RelationType, RelationTypes } from "./relation-types";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
-export type PolymorphicRelationConfig = Static<typeof PolymorphicRelation.schema>;
+export type PolymorphicRelationConfig = s.Static<typeof PolymorphicRelation.schema>;
 
 // @todo: what about cascades?
 export class PolymorphicRelation extends EntityRelation<typeof PolymorphicRelation.schema> {
-   static override schema = Type.Composite(
-      [
-         EntityRelation.schema,
-         Type.Object({
-            targetCardinality: Type.Optional(Type.Number()),
-         }),
-      ],
-      {
-         additionalProperties: false,
-      },
-   );
+   static override schema = s.strictObject({
+      targetCardinality: s.number().optional(),
+      ...EntityRelation.schema.properties,
+   });
 
    constructor(source: Entity, target: Entity, config: Partial<PolymorphicRelationConfig> = {}) {
       const mappedBy = config.mappedBy || target.name;

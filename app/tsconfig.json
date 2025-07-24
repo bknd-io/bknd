@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "types": ["bun-types"],
     "composite": false,
     "incremental": true,
     "module": "ESNext",
@@ -32,6 +31,7 @@
     "paths": {
       "*": ["./src/*"],
       "bknd": ["./src/index.ts"],
+      "bknd/utils": ["./src/core/utils/index.ts"],
       "bknd/core": ["./src/core/index.ts"],
       "bknd/adapter": ["./src/adapter/index.ts"],
       "bknd/client": ["./src/ui/client/index.ts"],

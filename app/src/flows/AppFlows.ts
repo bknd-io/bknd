@@ -1,15 +1,15 @@
-import { type Static, transformObject } from "core/utils";
 import { Flow, HttpTrigger } from "flows";
 import { Hono } from "hono";
 import { Module } from "modules/Module";
 import { TASKS, flowsConfigSchema } from "./flows-schema";
+import { type s, transformObject } from "bknd/utils";
 
-export type AppFlowsSchema = Static<typeof flowsConfigSchema>;
+export type AppFlowsSchema = s.Static<typeof flowsConfigSchema>;
 export type TAppFlowSchema = AppFlowsSchema["flows"][number];
 export type TAppFlowTriggerSchema = TAppFlowSchema["trigger"];
 export type { TAppFlowTaskSchema } from "./flows-schema";
 
-export class AppFlows extends Module<typeof flowsConfigSchema> {
+export class AppFlows extends Module<AppFlowsSchema> {
    private flows: Record<string, Flow> = {};
 
    getSchema() {
@@ -80,6 +80,8 @@ export class AppFlows extends Module<typeof flowsConfigSchema> {
       this.setBuilt();
    }
 
+   // @todo: fix this
+   // @ts-expect-error
    override toJSON() {
       return {
          ...this.config,

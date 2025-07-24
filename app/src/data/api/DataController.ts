@@ -1,17 +1,12 @@
-import {
-   DataPermissions,
-   type EntityData,
-   type EntityManager,
-   type RepoQuery,
-   repoQuery,
-} from "data";
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec } from "core/object/schema";
+import { jsc, s, describeRoute, schemaToSpec, omitKeys } from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
-import { omitKeys } from "core/utils";
+import type { EntityManager, EntityData } from "data/entities";
+import * as DataPermissions from "data/permissions";
+import { repoQuery, type RepoQuery } from "data/server/query";
 
 export class DataController extends Controller {
    constructor(
@@ -73,10 +68,12 @@ export class DataController extends Controller {
          }),
          jsc(
             "query",
-            s.partialObject({
-               force: s.boolean(),
-               drop: s.boolean(),
-            }),
+            s
+               .object({
+                  force: s.boolean(),
+                  drop: s.boolean(),
+               })
+               .partial(),
          ),
          async (c) => {
             const { force, drop } = c.req.valid("query");
@@ -204,7 +201,7 @@ export class DataController extends Controller {
 
       const entitiesEnum = this.getEntitiesEnum(this.em);
       // @todo: make dynamic based on entity
-      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as any });
+      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as number | string });
 
       /**
        * Function endpoints
@@ -257,12 +254,14 @@ export class DataController extends Controller {
        * Read endpoints
        */
       // read many
-      const saveRepoQuery = s.partialObject({
-         ...omitKeys(repoQuery.properties, ["with"]),
-         sort: s.string({ default: "id" }),
-         select: s.array(s.string()),
-         join: s.array(s.string()),
-      });
+      const saveRepoQuery = s
+         .object({
+            ...omitKeys(repoQuery.properties, ["with"]),
+            sort: s.string({ default: "id" }),
+            select: s.array(s.string()),
+            join: s.array(s.string()),
+         })
+         .partial();
       const saveRepoQueryParams = (pick: string[] = Object.keys(repoQuery.properties)) => [
          ...(schemaToSpec(saveRepoQuery, "query").parameters?.filter(
             // @ts-ignore
@@ -355,10 +354,12 @@ export class DataController extends Controller {
       );
 
       // func query
-      const fnQuery = s.partialObject({
-         ...saveRepoQuery.properties,
-         with: s.object({}),
-      });
+      const fnQuery = s
+         .object({
+            ...saveRepoQuery.properties,
+            with: s.object({}),
+         })
+         .partial();
       hono.post(
          "/:entity/query",
          describeRoute({
@@ -381,7 +382,7 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const options = (await c.req.json()) as RepoQuery;
+            const options = c.req.valid("json") as RepoQuery;
             const result = await this.em.repository(entity).findMany(options);
 
             return c.json(result, { status: result.data ? 200 : 404 });
@@ -391,7 +392,7 @@ export class DataController extends Controller {
       /**
        * Mutation endpoints
        */
-      // insert one
+      // insert one or many
       hono.post(
          "/:entity",
          describeRoute({

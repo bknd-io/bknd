@@ -1,6 +1,5 @@
 import { Task } from "../Task";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 export class RenderTask<Output extends Record<string, any>> extends Task<
    typeof RenderTask.schema,
@@ -8,8 +7,8 @@ export class RenderTask<Output extends Record<string, any>> extends Task<
 > {
    type = "render";
 
-   static override schema = Type.Object({
-      render: Type.String(),
+   static override schema = s.strictObject({
+      render: s.string(),
    });
 
    async execute() {

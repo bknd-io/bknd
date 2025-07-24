@@ -1,27 +1,21 @@
 import { type Schema as JsonSchema, Validator } from "@cfworker/json-schema";
-import { Default, FromSchema, objectToJsLiteral, type Static } from "core/utils";
-import type { EntityManager } from "data";
+import { objectToJsLiteral } from "core/utils";
+import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
-export const jsonSchemaFieldConfigSchema = Type.Composite(
-   [
-      Type.Object({
-         schema: Type.Object({}, { default: {} }),
-         ui_schema: Type.Optional(Type.Object({})),
-         default_from_schema: Type.Optional(Type.Boolean()),
-      }),
-      baseFieldConfigSchema,
-   ],
-   {
-      additionalProperties: false,
-   },
-);
+export const jsonSchemaFieldConfigSchema = s
+   .strictObject({
+      schema: s.any({ type: "object" }),
+      ui_schema: s.any({ type: "object" }),
+      default_from_schema: s.boolean(),
+      ...baseFieldConfigSchema.properties,
+   })
+   .partial();
 
-export type JsonSchemaFieldConfig = Static<typeof jsonSchemaFieldConfigSchema>;
+export type JsonSchemaFieldConfig = s.Static<typeof jsonSchemaFieldConfigSchema>;
 
 export class JsonSchemaField<
    Required extends true | false = false,
@@ -32,7 +26,7 @@ export class JsonSchemaField<
 
    constructor(name: string, config: Partial<JsonSchemaFieldConfig>) {
       super(name, config);
-      this.validator = new Validator(this.getJsonSchema());
+      this.validator = new Validator({ ...this.getJsonSchema() });
    }
 
    protected getSchema() {
@@ -84,7 +78,7 @@ export class JsonSchemaField<
       if (val === null) {
          if (this.config.default_from_schema) {
             try {
-               return Default(FromSchema(this.getJsonSchema()), {});
+               return s.fromSchema(this.getJsonSchema()).template();
             } catch (e) {
                return null;
             }
@@ -116,7 +110,7 @@ export class JsonSchemaField<
    override toJsonSchema() {
       const schema = this.getJsonSchema() ?? { type: "object" };
       return this.toSchemaWrapIfRequired(
-         FromSchema({
+         s.fromSchema({
             default: this.getDefault(),
             ...schema,
          }),

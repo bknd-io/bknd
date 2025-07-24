@@ -1,19 +1,17 @@
-import type { Static } from "core/utils";
 import { Field, baseFieldConfigSchema } from "data/fields";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
-export const mediaFieldConfigSchema = Type.Composite([
-   Type.Object({
-      entity: Type.String(), // @todo: is this really required?
-      min_items: Type.Optional(Type.Number()),
-      max_items: Type.Optional(Type.Number()),
-      mime_types: Type.Optional(Type.Array(Type.String())),
-   }),
-   baseFieldConfigSchema,
-]);
+export const mediaFieldConfigSchema = s
+   .strictObject({
+      entity: s.string(), // @todo: is this really required?
+      min_items: s.number(),
+      max_items: s.number(),
+      mime_types: s.array(s.string()),
+      ...baseFieldConfigSchema.properties,
+   })
+   .partial();
 
-export type MediaFieldConfig = Static<typeof mediaFieldConfigSchema>;
+export type MediaFieldConfig = s.Static<typeof mediaFieldConfigSchema>;
 
 export type MediaItem = {
    id: number;

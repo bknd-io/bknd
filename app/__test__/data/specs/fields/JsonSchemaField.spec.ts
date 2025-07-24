@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { JsonSchemaField } from "../../../../src/data";
+import { JsonSchemaField } from "data/fields";
 import { fieldTestSuite } from "data/fields/field-test-suite";
 
 describe("[data] JsonSchemaField", async () => {

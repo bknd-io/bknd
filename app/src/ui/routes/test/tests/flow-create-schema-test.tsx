@@ -1,9 +1,9 @@
-import { parse } from "core/utils";
 import { AppFlows } from "flows/AppFlows";
 import { useState } from "react";
 import { JsonViewer } from "../../../components/code/JsonViewer";
 import { JsonSchemaForm } from "../../../components/form/json-schema";
 import { Scrollable } from "../../../layouts/AppShell/AppShell";
+import { parse } from "bknd/utils";
 
 export default function FlowCreateSchemaTest() {
    //const schema = flowsConfigSchema;

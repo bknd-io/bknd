@@ -1,13 +1,9 @@
-import { TypeRegistry } from "@sinclair/typebox";
 import { type Node, type NodeProps, Position } from "@xyflow/react";
-import { registerCustomTypeboxKinds } from "core/utils";
 import type { TAppFlowTaskSchema } from "flows/AppFlows";
 import { useFlowCanvas, useFlowSelector } from "../../../hooks/use-flow";
 import { Handle } from "../Handle";
 import { FetchTaskForm } from "./FetchTaskNode";
 import { RenderNode } from "./RenderNode";
-
-registerCustomTypeboxKinds(TypeRegistry);
 
 const TaskComponents = {
    fetch: FetchTaskForm,

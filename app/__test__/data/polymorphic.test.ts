@@ -1,6 +1,8 @@
 import { afterAll, expect as bunExpect, describe, test } from "bun:test";
-import { stripMark } from "../../src/core/utils";
-import { Entity, EntityManager, PolymorphicRelation, TextField } from "../../src/data";
+import { stripMark } from "core/utils/schema";
+import { Entity, EntityManager } from "data/entities";
+import { TextField } from "data/fields";
+import { PolymorphicRelation } from "data/relations";
 import { getDummyConnection } from "./helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

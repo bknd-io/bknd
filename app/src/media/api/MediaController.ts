@@ -1,12 +1,13 @@
-import { isDebug, tbValidator as tb } from "core";
-import { HttpStatus, getFileFromContext } from "core/utils";
-import type { StorageAdapter } from "media";
-import { StorageEvents, getRandomizedFilename, MediaPermissions } from "media";
-import { DataPermissions } from "data";
+import { isDebug } from "core/env";
+import type { StorageAdapter } from "media/storage/StorageAdapter";
+import * as DataPermissions from "data/permissions";
 import { Controller } from "modules/Controller";
 import type { AppMedia } from "../AppMedia";
 import { MediaField } from "../MediaField";
-import { jsc, s, describeRoute } from "core/object/schema";
+import * as MediaPermissions from "media/media-permissions";
+import * as StorageEvents from "media/storage/events";
+import { jsc, s, describeRoute, HttpStatus, getFileFromContext } from "bknd/utils";
+import { getRandomizedFilename } from "media/utils";
 
 export class MediaController extends Controller {
    constructor(private readonly media: AppMedia) {

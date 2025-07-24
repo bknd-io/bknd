@@ -1,14 +1,18 @@
-import type { Static } from "core/utils";
-import type { EntityManager } from "data";
+import { omitKeys } from "core/utils";
+import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
-export const jsonFieldConfigSchema = Type.Composite([baseFieldConfigSchema, Type.Object({})]);
+export const jsonFieldConfigSchema = s
+   .strictObject({
+      default_value: s.any(),
+      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+   })
+   .partial();
 
-export type JsonFieldConfig = Static<typeof jsonFieldConfigSchema>;
+export type JsonFieldConfig = s.Static<typeof jsonFieldConfigSchema>;
 
 export class JsonField<Required extends true | false = false, TypeOverride = object> extends Field<
    JsonFieldConfig,

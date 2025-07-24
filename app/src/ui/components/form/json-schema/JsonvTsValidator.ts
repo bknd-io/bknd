@@ -1,5 +1,4 @@
-import { Check, Errors } from "core/utils";
-import { FromSchema } from "./from-schema";
+import * as s from "jsonv-ts";
 
 import type {
    CustomValidator,
@@ -15,7 +14,7 @@ import { toErrorSchema } from "@rjsf/utils";
 
 const validate = true;
 
-export class RJSFTypeboxValidator<T = any, S extends StrictRJSFSchema = RJSFSchema>
+export class JsonvTsValidator<T = any, S extends StrictRJSFSchema = RJSFSchema>
    implements ValidatorType
 {
    // @ts-ignore
@@ -23,16 +22,16 @@ export class RJSFTypeboxValidator<T = any, S extends StrictRJSFSchema = RJSFSche
       if (!validate) {
          return { errors: [], validationError: null as any };
       }
-      const tbSchema = FromSchema(schema as unknown);
 
-      //console.log("--validation", tbSchema, formData);
+      const jsSchema = s.fromSchema(JSON.parse(JSON.stringify(schema)) as any);
+      const result = jsSchema.validate(formData);
 
-      if (Check(tbSchema, formData)) {
+      if (result.valid) {
          return { errors: [], validationError: null as any };
       }
 
       return {
-         errors: [...Errors(tbSchema, formData)],
+         errors: result.errors,
          validationError: null as any,
       };
    }
@@ -47,14 +46,12 @@ export class RJSFTypeboxValidator<T = any, S extends StrictRJSFSchema = RJSFSche
       const { errors } = this.rawValidation(schema, formData);
 
       const transformedErrors = errors.map((error) => {
-         const schemaLocation = error.path.substring(1).split("/").join(".");
-
          return {
             name: "any",
-            message: error.message,
-            property: "." + schemaLocation,
-            schemaPath: error.path,
-            stack: error.message,
+            message: error.error,
+            property: "." + error.instanceLocation.substring(1).split("/").join("."),
+            schemaPath: error.instanceLocation,
+            stack: error.error,
          };
       });
 

@@ -1,6 +1,5 @@
-import type { PrimaryFieldType } from "core";
-import { snakeToPascalWithSpaces } from "core/utils";
-import type { Static } from "core/utils";
+import type { PrimaryFieldType } from "bknd";
+import { snakeToPascalWithSpaces, s } from "bknd/utils";
 import type { ExpressionBuilder } from "kysely";
 import type { Entity, EntityManager } from "../entities";
 import type { RepoQuery } from "../server/query";
@@ -9,8 +8,6 @@ import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField, type RelationFieldBaseConfig } from "./RelationField";
 import type { MutationInstructionResponse } from "./RelationMutator";
 import { type RelationType, RelationTypes } from "./relation-types";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
 
 /**
  * Source entity receives the mapping field
@@ -20,7 +17,7 @@ const { Type } = tbbox;
  *    posts gets a users_id field
  */
 
-export type ManyToOneRelationConfig = Static<typeof ManyToOneRelation.schema>;
+export type ManyToOneRelationConfig = s.Static<typeof ManyToOneRelation.schema>;
 
 export class ManyToOneRelation extends EntityRelation<typeof ManyToOneRelation.schema> {
    private fieldConfig?: RelationFieldBaseConfig;
@@ -28,30 +25,21 @@ export class ManyToOneRelation extends EntityRelation<typeof ManyToOneRelation.s
       with_limit: 5,
    };
 
-   static override schema = Type.Composite(
-      [
-         EntityRelation.schema,
-         Type.Object({
-            sourceCardinality: Type.Optional(Type.Number()),
-            with_limit: Type.Optional(
-               Type.Number({ default: ManyToOneRelation.DEFAULTS.with_limit }),
-            ),
-            fieldConfig: Type.Optional(
-               Type.Object({
-                  label: Type.String(),
-               }),
-            ),
-         }),
-      ],
-      {
-         additionalProperties: false,
-      },
-   );
+   static override schema = s.strictObject({
+      sourceCardinality: s.number().optional(),
+      with_limit: s.number({ default: ManyToOneRelation.DEFAULTS.with_limit }).optional(),
+      fieldConfig: s
+         .object({
+            label: s.string(),
+         })
+         .optional(),
+      ...EntityRelation.schema.properties,
+   });
 
    constructor(
       source: Entity,
       target: Entity,
-      config: Partial<Static<typeof ManyToOneRelation.schema>> = {},
+      config: Partial<s.Static<typeof ManyToOneRelation.schema>> = {},
    ) {
       const mappedBy = config.mappedBy || target.name;
       const inversedBy = config.inversedBy || source.name;

@@ -1,50 +1,33 @@
-import { Const, type Static, StringEnum } from "core/utils";
-import type { EntityManager } from "data";
+import { omitKeys } from "core/utils";
+import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { baseFieldConfigSchema, Field, type TActionContext, type TRenderContext } from "./Field";
-import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
-export const enumFieldConfigSchema = Type.Composite(
-   [
-      Type.Object({
-         default_value: Type.Optional(Type.String()),
-         options: Type.Optional(
-            Type.Union([
-               Type.Object(
-                  {
-                     type: Const("strings"),
-                     values: Type.Array(Type.String()),
-                  },
-                  { title: "Strings" },
-               ),
-               Type.Object(
-                  {
-                     type: Const("objects"),
-                     values: Type.Array(
-                        Type.Object({
-                           label: Type.String(),
-                           value: Type.String(),
-                        }),
-                     ),
-                  },
-                  {
-                     title: "Objects",
-                     additionalProperties: false,
-                  },
-               ),
-            ]),
-         ),
-      }),
-      baseFieldConfigSchema,
-   ],
-   {
-      additionalProperties: false,
-   },
-);
+export const enumFieldConfigSchema = s
+   .strictObject({
+      default_value: s.string(),
+      options: s.anyOf([
+         s.object({
+            type: s.literal("strings"),
+            values: s.array(s.string()),
+         }),
+         s.object({
+            type: s.literal("objects"),
+            values: s.array(
+               s.object({
+                  label: s.string(),
+                  value: s.string(),
+               }),
+            ),
+         }),
+      ]),
+      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+   })
+   .partial();
 
-export type EnumFieldConfig = Static<typeof enumFieldConfigSchema>;
+export type EnumFieldConfig = s.Static<typeof enumFieldConfigSchema>;
 
 export class EnumField<Required extends true | false = false, TypeOverride = string> extends Field<
    EnumFieldConfig,
@@ -136,7 +119,8 @@ export class EnumField<Required extends true | false = false, TypeOverride = str
          options.values?.map((option) => (typeof option === "string" ? option : option.value)) ??
          [];
       return this.toSchemaWrapIfRequired(
-         StringEnum(values, {
+         s.string({
+            enum: values,
             default: this.getDefault(),
          }),
       );

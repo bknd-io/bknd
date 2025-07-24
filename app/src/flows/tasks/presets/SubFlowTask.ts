@@ -1,7 +1,6 @@
 import { Flow } from "../../flows/Flow";
 import { Task, dynamic } from "../Task";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 export class SubFlowTask<Output extends Record<string, any>> extends Task<
    typeof SubFlowTask.schema,
@@ -9,10 +8,10 @@ export class SubFlowTask<Output extends Record<string, any>> extends Task<
 > {
    type = "subflow";
 
-   static override schema = Type.Object({
-      flow: Type.Any(),
-      input: Type.Optional(dynamic(Type.Any(), JSON.parse)),
-      loop: Type.Optional(Type.Boolean()),
+   static override schema = s.strictObject({
+      flow: s.any(),
+      input: dynamic(s.any(), JSON.parse).optional(),
+      loop: s.boolean().optional(),
    });
 
    async execute() {

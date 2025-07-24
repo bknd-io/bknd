@@ -46,7 +46,6 @@ afterAll(enableConsoleLog);
 describe("MediaController", () => {
    test("accepts direct", async () => {
       const app = await makeApp();
-      console.log("app", app);
 
       const file = Bun.file(path);
       const name = makeName("png");
@@ -55,7 +54,6 @@ describe("MediaController", () => {
          body: file,
       });
       const result = (await res.json()) as any;
-      console.log(result);
       expect(result.name).toBe(name);
 
       const destFile = Bun.file(assetsTmpPath + "/" + name);

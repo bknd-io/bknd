@@ -12,7 +12,10 @@ export function getBindings<T extends GetBindingType>(env: any, type: T): Bindin
    const bindings: BindingMap<T>[] = [];
    for (const key in env) {
       try {
-         if (env[key] && (env[key] as any).constructor.name === type) {
+         if (
+            env[key] &&
+            ((env[key] as any).constructor.name === type || String(env[key]) === `[object ${type}]`)
+         ) {
             bindings.push({
                key,
                value: env[key] as BindingTypeMap[T],
