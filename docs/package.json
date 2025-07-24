@@ -8,7 +8,11 @@
     "build": "bun generate:openapi && next build",
     "start": "next start",
     "generate:openapi": "bun scripts/generate-openapi.mjs",
-    "postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx",
+    "preview": "npm run build && wrangler dev",
+    "cf:preview": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "cf:deploy": "wrangler deploy"
   },
   "dependencies": {
     "@iconify/react": "^6.0.0",
@@ -41,7 +45,8 @@
     "postcss": "^8.5.6",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4.1.11",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.25.1"
   },
   "trustedDependencies": [
     "@parcel/watcher",
