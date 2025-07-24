@@ -1,0 +1,243 @@
+---
+title: "SDK (TypeScript)"
+description: "Use the bknd SDK in TypeScript"
+tags: ["documentation"]
+---
+
+To start using the bknd API, start by creating a new API instance:
+
+```ts
+import { Api } from "bknd/client";
+
+const api = new Api();
+
+// always make sure to verify auth
+await api.verifyAuth();
+```
+
+The `Api` class is the main entry point for interacting with the bknd API. It provides methods
+for all available modules described below.
+
+## Setup
+
+You can initialize an API instance by providing the `Request` object, or manually specifying the details such as `host` and `token`.
+
+### Using the `Request` object
+
+The recommended way to create an API instance is by passing the current `Request` object. This will automatically point the API to your current instance and extract the token from the headers (either from cookies or `Authorization` header):
+
+```ts
+import { Api } from "bknd/client";
+
+// replace this with the actual request
+let request: Request;
+
+const api = new Api({ request });
+```
+
+If the authentication details are contained in the current request, but you're hosting your bknd instance somewhere else, you can specify a `host` option:
+
+```ts
+import { Api } from "bknd/client";
+
+// replace this with the actual request
+let request: Request;
+
+const api = new Api({
+  host: "https://<your-endpoint>",
+  request,
+});
+```
+
+### Using the `token` option
+
+If you want to have an API instance that is using a different token, e.g. an admin token, you can create it by specifying the `host` and `token` option:
+
+```ts
+import { Api } from "bknd/client";
+const api = new Api({
+  host: "https://<your-endpoint>",
+  token: "<your-token>",
+});
+```
+
+### Using a local API
+
+In case the place where you're using the API is the same as your bknd instance (e.g. when using it embedded in a React framework), you can specify a `fetcher` option to point to your bknd app. This way, requests won't travel over the network and instead processed locally:
+
+```ts
+import type { App } from "bknd";
+import { Api } from "bknd/client";
+
+// replace this with your actual `App` instance
+let app: App;
+
+const api = new Api({
+  fetcher: app.server.request as typeof fetch,
+  // specify `host` and `token` or `request`
+});
+```
+
+## Data (`api.data`)
+
+Access the `Data` specific API methods at `api.data`.
+
+### `data.readMany([entity], [query])`
+
+To retrieve a list of records from an entity, use the `readMany` method:
+
+```ts
+const { data } = await api.data.readMany("posts");
+```
+
+You can also add additional query instructions:
+
+```ts
+const { data } = await api.data.readMany("posts", {
+  limit: 10,
+  offset: 0,
+  select: ["id", "title", "views"],
+  with: {
+    // join last 2 comments
+    comments: {
+      with: {
+        // along with the comments' user
+        users: {},
+      },
+      limit: 2,
+      sort: "-id",
+    },
+    // also get the first 2 images, but only the path
+    images: {
+      select: ["path"],
+      limit: 2,
+    },
+  },
+  where: {
+    // same as '{ title: { $eg: "Hello, World!" } }'
+    title: "Hello, World!",
+    // only with views greater than 100
+    views: {
+      $gt: 100,
+    },
+  },
+  // sort by views descending (without "-" would be ascending)
+  sort: "-views",
+});
+```
+
+The `with` property automatically adds the related entries to the response.
+
+### `data.readOne([entity], [id])`
+
+To retrieve a single record from an entity, use the `readOne` method:
+
+```ts
+const { data } = await api.data.readOne("posts", 1);
+```
+
+### `data.createOne([entity], [data])`
+
+To create a single record of an entity, use the `createOne` method:
+
+```ts
+const { data } = await api.data.createOne("posts", {
+  title: "Hello, World!",
+  content: "This is a test post.",
+  views: 0,
+});
+```
+
+### `data.createMany([entity], [data])`
+
+To create many records of an entity, use the `createMany` method:
+
+```ts
+const { data } = await api.data.createMany("posts", [
+  { title: "Hello, World!" },
+  { title: "Again, Hello." },
+]);
+```
+
+### `data.updateOne([entity], [id], [data])`
+
+To update a single record of an entity, use the `updateOne` method:
+
+```ts
+const { data } = await api.data.updateOne("posts", 1, {
+  views: 1,
+});
+```
+
+### `data.updateMany([entity], [where], [update])`
+
+To update many records of an entity, use the `updateMany` method:
+
+```ts
+const { data } = await api.data.updateMany(
+  "posts",
+  { views: { $gt: 1 } },
+  {
+    title: "viewed more than once",
+  },
+);
+```
+
+### `data.deleteOne([entity], [id])`
+
+To delete a single record of an entity, use the `deleteOne` method:
+
+```ts
+const { data } = await api.data.deleteOne("posts", 1);
+```
+
+### `data.deleteMany([entity], [where])`
+
+To delete many records of an entity, use the `deleteMany` method:
+
+```ts
+const { data } = await api.data.deleteMany("posts", { views: { $lte: 1 } });
+```
+
+## Auth (`api.auth`)
+
+Access the `Auth` specific API methods at `api.auth`. If there is successful authentication, the
+API will automatically save the token and use it for subsequent requests.
+
+### `auth.strategies()`
+
+To retrieve the available authentication strategies, use the `strategies` method:
+
+```ts
+const { data } = await api.auth.strategies();
+```
+
+### `auth.login([strategy], [input])`
+
+To log in with a password, use the `login` method:
+
+```ts
+const { data } = await api.auth.login("password", {
+  email: "...",
+  password: "...",
+});
+```
+
+### `auth.register([strategy], [input])`
+
+To register with a password, use the `register` method:
+
+```ts
+const { data } = await api.auth.register("password", {
+  email: "...",
+  password: "...",
+});
+```
+
+### `auth.me()`
+
+To retrieve the current user, use the `me` method:
+
+```ts
+const { data } = await api.auth.me();
+```

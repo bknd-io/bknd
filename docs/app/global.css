@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "fumadocs-openapi/css/preset.css";
+@import "fumadocs-twoslash/twoslash.css";
+
+:root {
+  --color-fd-primary: #008001;
+  --color-fd-primary-foreground: #000000;
+  --tw-prose-links: #008001;
+  --tw-prose-code: #008001;
+}
+
+.dark {
+  --color-fd-primary: #4ec9b0;
+  --color-fd-primary-foreground: #000000;
+  --tw-prose-links: #4ec9b0;
+  --tw-prose-code: #4ec9b0;
+}

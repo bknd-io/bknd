@@ -1,0 +1,116 @@
+---
+title: "Introduction"
+description: "Integrate bknd into your runtime/framework of choice"
+tags: ["documentation"]
+---
+
+import { Icon } from "@iconify/react";
+
+## Start with a Framework
+
+bknd seamlessly integrates with popular frameworks, allowing you to use what you're already familar with. The following guides will help you get started with your framework of choice.
+
+<Cards>
+  <Card icon={<Icon icon="tabler:brand-nextjs" className="text-fd-primary !size-6" />} title="NextJS" href="/integration/nextjs" />
+
+<Card
+  icon={
+    <Icon icon="simple-icons:reactrouter" className="text-fd-primary !size-6" />
+  }
+  title="React Router"
+  href="/integration/react-router"
+/>
+
+<Card
+  icon={<Icon icon="simple-icons:astro" className="text-fd-primary !size-6" />}
+  title="Astro"
+  href="/integration/astro"
+/>
+
+  <Card title="Yours missing?" href="https://github.com/bknd-io/bknd/issues/new">
+     Create a new issue to request a guide for your framework.
+  </Card>
+</Cards>
+
+## Start with a Runtime
+
+If you prefer to use a runtime instead of a framework, you can choose from the following options. These runtimes allow you to serve the API and UI in the runtime's native server and serve the UI assets statically from `node_modules`.
+
+<Cards>
+
+<Card
+  icon={<Icon icon="tabler:brand-nodejs" className="text-fd-primary !size-6" />}
+  title="NodeJS"
+  href="/integration/node"
+/>
+
+<Card
+  icon={<Icon icon="simple-icons:bun" className="text-fd-primary !size-6" />}
+  title="Bun"
+  href="/integration/bun"
+/>
+
+<Card
+  icon={
+    <Icon
+      icon="devicon-plain:cloudflareworkers"
+      className="text-fd-primary !size-6"
+    />
+  }
+  title="Cloudflare"
+  href="/integration/cloudflare"
+/>
+
+<Card
+  icon={<Icon icon="tabler:lambda" className="text-fd-primary !size-6" />}
+  title="AWS Lambda"
+  href="/integration/aws"
+/>
+
+<Card
+  icon={<Icon icon="simple-icons:vitest" className="text-fd-primary !size-6" />}
+  title="Vite"
+  href="/integration/vite"
+/>
+
+<Card
+  icon={
+    <Icon
+      icon="streamline-logos:docker-logo-solid"
+      className="text-fd-primary !size-6"
+    />
+  }
+  title="Docker"
+  href="/integration/docker"
+/>
+
+  <Card title="Yours missing?" href="https://github.com/bknd-io/bknd/issues/new">
+     Create a new issue to request a guide for your runtime.
+  </Card>
+</Cards>
+
+## Overview
+
+### Serving the backend (API)
+
+Serve the backend as an API for any JS runtime or framework. The latter is especially handy, as it allows you to deploy your frontend and backend bundled together. Furthermore it allows adding additional logic in a way you're already familar with. Just add another route and you're good to go.
+
+Here is an example of serving the API using node:
+
+```js title="index.js"
+import { serve } from "bknd/adapter/node";
+serve();
+```
+
+### Serving the Admin UI
+
+The admin UI allows to manage your data including full configuration of your backend using a graphical user interface. Using `vite`, your admin route looks like this:
+
+```tsx title="admin.tsx"
+import { Admin } from "bknd/ui";
+import "bknd/dist/styles.css";
+
+export default function AdminPage() {
+  return <Admin withProvider />;
+}
+```

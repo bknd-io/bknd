@@ -1,0 +1,158 @@
+---
+title: Introduction
+icon: Album
+tags: ["documentation"]
+---
+
+import { Icon } from "@iconify/react";
+import { examples } from "@/app/_components/StackBlitz";
+
+Glad you're here! **bknd** is a lightweight, infrastructure agnostic and feature-rich backend that runs in any JavaScript environment.
+
+- Instant backend with full REST API
+- Built on Web Standards for maximum compatibility
+- Multiple run modes (standalone, runtime, framework)
+- Official API and React SDK with type-safety
+- React elements for auto-configured authentication and media components
+
+## Preview
+
+Here is a preview of **bknd** in StackBlitz:
+
+<StackBlitz {...examples.adminRich} />
+
+<Accordions>
+  <Accordion title="What's going on?">
+    The example shown is starting a [node server](/integration/node) using an [in-memory database](/usage/database#sqlite-in-memory). To ensure there are a few entities defined, it is using an [initial structure](/usage/database#initial-structure) using the prototype methods. Furthermore it uses the [seed option](/usage/database#seeding-the-database) to seed some data in the structure created.
+
+    To ensure there are users defined on first boot, it hooks into the `App.Events.AppFirstBoot` event to create them (documentation pending).
+
+  </Accordion>
+</Accordions>
+
+## Quickstart
+
+Enter the following command to spin up an instance:
+
+<Tabs groupId='package-manager' persist items={[ 'npm','bun' ]}>
+
+```bash tab="npm"
+npx bknd run
+```
+
+```bash tab="bun"
+bunx bknd run
+```
+
+</Tabs>
+
+To learn more about the CLI, check out the [Using the CLI](/usage/cli) guide.
+
+## Start with a Framework/Runtime
+
+Start by using the integration guide for these popular frameworks/runtimes. There will be more in the future, so stay tuned!
+
+<Cards>
+  <Card icon={<Icon icon="tabler:brand-nextjs" className="text-fd-primary !size-6" />} title="NextJS" href="/integration/nextjs" />
+
+<Card
+  icon={
+    <Icon icon="simple-icons:reactrouter" className="text-fd-primary !size-6" />
+  }
+  title="React Router"
+  href="/integration/react-router"
+/>
+
+<Card
+  icon={<Icon icon="simple-icons:astro" className="text-fd-primary !size-6" />}
+  title="Astro"
+  href="/integration/astro"
+/>
+
+<Card
+  icon={<Icon icon="tabler:brand-nodejs" className="text-fd-primary !size-6" />}
+  title="NodeJS"
+  href="/integration/node"
+/>
+
+<Card
+  icon={
+    <Icon
+      icon="devicon-plain:cloudflareworkers"
+      className="text-fd-primary !size-6"
+    />
+  }
+  title="Cloudflare"
+  href="/integration/cloudflare"
+/>
+
+<Card
+  icon={<Icon icon="simple-icons:bun" className="text-fd-primary !size-6" />}
+  title="Bun"
+  href="/integration/bun"
+/>
+
+<Card
+  icon={<Icon icon="tabler:lambda" className="text-fd-primary !size-6" />}
+  title="AWS Lambda"
+  href="/integration/aws"
+/>
+
+<Card
+  icon={<Icon icon="simple-icons:vitest" className="text-fd-primary !size-6" />}
+  title="Vite"
+  href="/integration/vite"
+/>
+
+<Card
+  icon={
+    <Icon
+      icon="streamline-logos:docker-logo-solid"
+      className="text-fd-primary !size-6"
+    />
+  }
+  title="Docker"
+  href="/integration/docker"
+/>
+
+  <Card title="Yours missing?" href="https://github.com/bknd-io/bknd/issues/new">
+     Create a new issue to request a guide for your runtime or framework.
+  </Card>
+</Cards>
+
+## Use your favorite SQL Database
+
+The following databases are currently supported. Request a new integration if your favorite is missing.
+
+<Cards>
+  <Card icon={<Icon icon="simple-icons:sqlite" className="text-fd-primary !size-6" />} title="SQLite" href="/usage/database#database" />
+
+<Card
+  icon={<Icon icon="simple-icons:turso" className="text-fd-primary !size-6" />}
+  title="Turso/LibSQL"
+  href="/usage/database#sqlite-using-libsql-on-turso"
+/>
+
+<Card
+  icon={
+    <Icon icon="lineicons:postgresql" className="text-fd-primary !size-6" />
+  }
+  title="PostgreSQL"
+  href="/usage/database#postgresql"
+/>
+
+<Card
+  icon={
+    <Icon
+      icon="streamline-plump:database"
+      className="text-fd-primary !size-6"
+    />
+  }
+  title="Cloudflare D1"
+  href="/usage/database#cloudflare-d1"
+/>
+
+  <Card title="Yours missing?" href="https://github.com/bknd-io/bknd/issues/new">
+    Create a new issue to request a new database integration.
+  </Card>
+</Cards>

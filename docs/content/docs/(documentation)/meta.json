@@ -1,0 +1,33 @@
+{
+  "title": "Documentation",
+  "root": true,
+  "description": "Technical reference and integration",
+  "icon": "Book",
+  "slug": "",
+  "pages": [
+    "---Getting Started---",
+    "start",
+    "motivation",
+    "---Usage---",
+    "./usage/introduction",
+    "./usage/database",
+    "./usage/cli",
+    "./usage/sdk",
+    "./usage/react",
+    "./usage/elements",
+    "---Extending---",
+    "./extending/config",
+    "./extending/events",
+    "---Integration---",
+    "./integration/introduction",
+    "./integration/(frameworks)/",
+    "./integration/(runtimes)/",
+    "---Modules---",
+    "./modules/overview",
+    "./modules/server",
+    "./modules/data",
+    "./modules/auth",
+    "./modules/media",
+    "./modules/flows"
+  ]
+}

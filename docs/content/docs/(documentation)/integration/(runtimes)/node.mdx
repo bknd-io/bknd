@@ -1,0 +1,68 @@
+---
+title: "Node"
+description: "Run bknd inside Node"
+tags: ["documentation"]
+---
+
+## Installation
+
+To get started with Node and bknd you can either install the package manually, and follow the descriptions below, or use the CLI starter:
+
+### CLI Starter
+
+Create a new Node CLI starter project by running the following command:
+
+```sh
+npx bknd create -i node
+```
+
+### Manual
+
+Create a new Node project and then install bknd as a dependency:
+
+<Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
+
+```bash tab="npm"
+npm install bknd
+```
+
+```bash tab="pnpm"
+pnpm install bknd
+```
+
+```bash tab="yarn"
+yarn add bknd
+```
+
+```bash tab="bun"
+bun add bknd
+```
+
+</Tabs>
+
+## Serve the API & static files
+
+The `serve` function of the Node adapter makes sure to also serve the static files required for
+the admin panel.
+
+```tsx title="server.ts"
+import { serve } from "bknd/adapter/node";
+
+// if the configuration is omitted, it uses an in-memory database
+/** @type {import("bknd/adapter/node").NodeAdapterOptions} */
+const config = {
+  connection: {
+    url: "file:data.db",
+  },
+};
+
+serve(config);
+```
+
+For more information about the connection object, refer to the [Database](/usage/database) guide.
+
+Run the application using node by executing:
+
+```bash
+node server.js
+```

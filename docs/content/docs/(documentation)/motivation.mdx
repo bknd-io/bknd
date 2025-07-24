@@ -1,0 +1,75 @@
+---
+title: "Motivation"
+description: "Why another backend system?"
+icon: Rocket
+tags: ["documentation"]
+---
+
+Creating digital products always requires developing both the backend (the logic) and the frontend (the appearance). Building a backend from scratch demands deep knowledge in areas such as authentication and database management. Using a backend framework can speed up initial development, but it still requires ongoing effort to work within its constraints (e.g., _"how to do X with Y?"_), which can quickly slow you down. Choosing a backend system is a tough decision, as you might not be aware of its limitations until you encounter them.
+
+<CalloutPositive title="The solution">
+  A backend system that only assumes and implements primitive details,
+  integrates into multiple environments, and adheres to industry standards.
+</CalloutPositive>
+
+For the sake of brevity, let's assume you are looking for a "backend system" rather than dealing with custom implementations yourself. Let's identify the most common challenges:
+
+1. Database lock-in
+2. Environment and framework lock-in
+3. Deviation from standards (such as `X-Auth` headers for authentication)
+4. _Wrong-for-your-use-case_ implementations
+5. Complex self-hosting
+
+## Database lock-in
+
+As the developer of a backend system, you must make tough decisions, one of which is choosing which database(s) to support. To simplify development, many systems lock you into a single database, leveraging its advanced features.
+
+But isn't the database known to be the hardest part to scale? Isn't more logic moving to the application layer? Haven't NoSQL databases proven this? If you're like me, you may have dipped your toes into the NoSQL world only to quickly return to SQL. SQL is known, predictable, and safe. But what if we could have both? NoSQL offers flexibility and scalability, yet querying it is tedious due to vendor-specific implementations.
+
+To get the best of both worlds, bknd focuses on the weakest SQL database (SQLite), treating it as a data store and query interface. Schema details and enforcement are moved to the application layer, making it easy to adjust a default value or property length. The added benefit is that any SQL database could theoretically work the same way, and since it's all TypeScript, the same validation logic can be used on both the client and server sides–you can validate your data before it even reaches your server. It even works without database-enforced referential integrity, as the integrity checks occur on the application layer. This opens the door to NewSQL systems like PlanetScale.
+
+## Environment and framework lock-in
+
+There are backend systems that embed themselves into a specific React framework. This works well until you realize it doesn't support your preferred framework or the new hyped one you're considering switching to. Just like database choices, decisions must be made. The easiest path is to select a single option and let people live with it.
+
+Alternatively, you could develop for the weakest environment (workerd) by strictly using Web APIs, avoiding shortcuts, and implementing certain logic manually because the go-to package is using Node APIs. This isn't always fun, but it's essential. The benefit? It works anywhere JavaScript does.
+
+bknd is the only backend system that not only works with any JavaScript framework but also integrates directly into it. It runs within the framework, enabling a single deployment for your entire app.
+
+_"But isn't it ironic that it forces a JavaScript environment?"_ you might ask. And you're right, but it also allows running standalone via CLI or Docker.
+
+## Deviation from standards
+
+One of the biggest frustrations I've encountered is when software vendors choose custom headers for authentication or implement query parameters in a format they find more suitable—such as unencoded JSON for simplicity. When you are in full control, it's tempting to use a more suitable format, or just use an auth-ish name for the header property–after all, it's just a header, right?
+
+The issue is that users may rely on HTTP clients that offer built-in authentication methods, which won't include your custom solution. Custom `SearchParams` implementations might be convenient, but translating them across different environments and languages can be challenging without trial and error.
+
+bknd strives to adhere to web standards as much as possible while offering handy alternatives. Here's an example of the `select` search parameter for retrieving a list of entities:
+
+```bash
+/api/data/todos?select=id&select=name # web standard
+/api/data/todos?select=id,name # handy alternative
+```
+
+If you ever find an instance where bknd isn't adhering to standards or could be improved, please feel free to [file an issue](https://github.com/bknd-io/bknd/issues/new). Your feedback is greatly appreciated!
+
+## Wrong-for-your-use-case implementations
+
+If you've ever developed a social chat application, you likely discovered the extensive feature depth required—features we often take for granted. Things like socket connections for single and group chats, partial loading, asset attachments, and emoji reactions. Even more frustrating, these features make the app being considered incomplete until delivered.
+
+The same applies to backend systems. Features such as email sending, password resets, and image transformations are expected. Worse still, you'll receive feedback requesting different email verification methods—PIN codes instead of links, 4-digit codes versus 6-digit ones, or UUIDs like Axiom uses.
+
+Since it's impossible to satisfy all requirements, why implement them at all? _"Because people expect it."_ That's fair. But technically, email verification is not a core backend feature—it's business logic. Setting it up involves:
+
+1. Adding a `code` and `verified` field to the users' entity and generating a random code on creation.
+2. Creating an endpoint to accept the code, retrieve the authenticated user, check the code, clear it, and mark the user as verified.
+
+Additional security measures, such as short-lived tokens, can be added, but the concept remains simple.
+
+Instead of hardcoding such features, bknd offers a powerful event system that supports asynchronous (like webhooks) and synchronous execution, blocking further actions if needed. With integrated workflows (UI coming soon), you can listen to and react to system events, and even map them to endpoints. Since workflows, like everything else in bknd, are JSON-serializable, they're easy to export and import.
+
+## Complex self-hosting
+
+Finally, hosting. It's a business advantage if your system is highly sought after but difficult to self-host, forcing users to opt for your cloud service. The truth is, if it's hard for users, it's also hard for the vendor, which drives up costs.
+
+If you know how to deploy your Next.js, Remix, or Astro application, you can deploy bknd. It's straightforward to deploy using Cloudflare Workers/Pages or with just 28 lines of a Dockerfile. No PhD required.

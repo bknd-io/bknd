@@ -1,0 +1,53 @@
+---
+title: "Overview"
+description: "General overview of the system"
+tags: ["documentation"]
+---
+
+import { Icon } from "@iconify/react";
+
+This backend system focuses on 4 essential building blocks which can be tightly connected:
+Data, Auth, Media and Flows.
+The main idea is to supply all baseline functionality required in order to accomplish complex
+logic and behaviors – instead of hard coding it into the system code. This way, almost any part
+of the application is customizable and additionally won't limit you to what it can do.
+
+<Cards>
+  <Card icon={<Icon icon="majesticons:data-line" className="text-fd-primary !size-6" />} title="Data" href="/modules/data">
+      Define, query, and control your data with ease.
+  </Card>
+
+<Card
+  icon={
+    <Icon icon="meteor-icons:fingerprint" className="text-fd-primary !size-6" />
+  }
+  title="Auth"
+  href="/modules/auth"
+>
+  Easily implement reliable authentication strategies.
+</Card>
+
+<Card
+  icon={
+    <Icon icon="flowbite:image-outline" className="text-fd-primary !size-6" />
+  }
+  title="Media"
+  href="/modules/media"
+>
+  Effortlessly manage and serve all your media files.
+</Card>
+
+<Card
+  icon={
+    <Icon
+      icon="hugeicons:workflow-square-03"
+      className="text-fd-primary !size-6"
+    />
+  }
+  title="Flows"
+  href="/modules/flows"
+>
+  Design and run workflows with seamless automation.
+</Card>
+
+</Cards>
