@@ -11,12 +11,14 @@ import {
    type EntityFieldsFormRef,
 } from "ui/routes/data/forms/entity.fields.form";
 import { ModalBody, ModalFooter, type TCreateModalSchema, useStepContext } from "./CreateModal";
+import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 
 const schema = entitiesSchema;
 type Schema = Static<typeof schema>;
 
 export function StepEntityFields() {
    const { nextStep, stepBack, state, setState } = useStepContext<TCreateModalSchema>();
+   const { config } = useBkndData();
    const entity = state.entities?.create?.[0]!;
    const defaultFields = { id: { type: "primary", name: "id" } } as const;
    const ref = useRef<EntityFieldsFormRef>(null);
@@ -82,6 +84,8 @@ export function StepEntityFields() {
                         ref={ref}
                         fields={initial.fields as any}
                         onChange={updateListener}
+                        defaultPrimaryFormat={config?.default_primary_format}
+                        isNew={true}
                      />
                   </div>
                </div>

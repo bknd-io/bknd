@@ -148,7 +148,7 @@ export function DataSchemaEntity({ params }) {
 const Fields = ({ entity }: { entity: Entity }) => {
    const [submitting, setSubmitting] = useState(false);
    const [updates, setUpdates] = useState(0);
-   const { actions, $data } = useBkndData();
+   const { actions, $data, config } = useBkndData();
    const [res, setRes] = useState<any>();
    const ref = useRef<EntityFieldsFormRef>(null);
    async function handleUpdate() {
@@ -201,6 +201,8 @@ const Fields = ({ entity }: { entity: Entity }) => {
                         }
                      },
                   }))}
+               defaultPrimaryFormat={config?.default_primary_format}
+               isNew={false}
             />
 
             {isDebug() && (

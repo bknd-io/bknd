@@ -5,7 +5,7 @@ import { BkndProvider, type BkndAdminOptions } from "ui/client/bknd";
 import { useTheme } from "ui/client/use-theme";
 import { Logo } from "ui/components/display/Logo";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
-import { ClientProvider, type ClientProviderProps } from "./client";
+import { ClientProvider, useBkndWindowContext, type ClientProviderProps } from "./client";
 import { createMantineTheme } from "./lib/mantine/theme";
 import { Routes } from "./routes";
 
@@ -18,7 +18,7 @@ export type BkndAdminProps = {
 export default function Admin({
    baseUrl: baseUrlOverride,
    withProvider = false,
-   config,
+   config: _config = {},
 }: BkndAdminProps) {
    const { theme } = useTheme();
    const Provider = ({ children }: any) =>
@@ -32,6 +32,10 @@ export default function Admin({
       ) : (
          children
       );
+   const config = {
+      ..._config,
+      ...useBkndWindowContext(),
+   };
 
    const BkndWrapper = ({ children }: { children: ReactNode }) => (
       <BkndProvider options={config} fallback={<Skeleton theme={config?.theme} />}>
@@ -51,7 +55,7 @@ export default function Admin({
 
 const Skeleton = ({ theme }: { theme?: any }) => {
    const t = useTheme();
-   const actualTheme = theme ?? t.theme;
+   const actualTheme = theme && ["dark", "light"].includes(theme) ? theme : t.theme;
 
    return (
       <div id="bknd-admin" className={actualTheme + " antialiased"}>

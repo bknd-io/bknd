@@ -4,6 +4,7 @@ import { type TSchema, Type } from "@sinclair/typebox";
 import { EntityManager, em, entity, index, text } from "../../src/data";
 import { DummyConnection } from "../../src/data/connection/DummyConnection";
 import { Module } from "../../src/modules/Module";
+import { ModuleHelper } from "modules/ModuleHelper";
 
 function createModule<Schema extends TSchema>(schema: Schema) {
    class TestModule extends Module<typeof schema> {
@@ -46,9 +47,9 @@ describe("Module", async () => {
          }
 
          prt = {
-            ensureEntity: this.ensureEntity.bind(this),
-            ensureIndex: this.ensureIndex.bind(this),
-            ensureSchema: this.ensureSchema.bind(this),
+            ensureEntity: this.ctx.helper.ensureEntity.bind(this.ctx.helper),
+            ensureIndex: this.ctx.helper.ensureIndex.bind(this.ctx.helper),
+            ensureSchema: this.ctx.helper.ensureSchema.bind(this.ctx.helper),
          };
 
          get em() {
@@ -63,7 +64,11 @@ describe("Module", async () => {
             _em.relations,
             _em.indices,
          );
-         return new M({} as any, { em, flags: Module.ctx_flags } as any);
+         const ctx = {
+            em,
+            flags: Module.ctx_flags,
+         };
+         return new M({} as any, { ...ctx, helper: new ModuleHelper(ctx as any) } as any);
       }
       function flat(_em: EntityManager) {
          return {
@@ -143,14 +148,9 @@ describe("Module", async () => {
 
          // this should only add the field "important"
          m.prt.ensureEntity(
-            entity(
-               "u",
-               {
-                  important: text(),
-               },
-               undefined,
-               "system",
-            ),
+            entity("u", {
+               important: text(),
+            }),
          );
 
          expect(m.ctx.flags.sync_required).toBe(true);
@@ -159,8 +159,7 @@ describe("Module", async () => {
                {
                   name: "u",
                   fields: ["id", "name", "important"],
-                  // ensured type must be present
-                  type: "system",
+                  type: "regular",
                },
                {
                   name: "p",

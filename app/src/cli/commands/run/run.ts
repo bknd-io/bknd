@@ -1,9 +1,9 @@
 import type { Config } from "@libsql/client/node";
-import { App, type CreateAppConfig } from "App";
-import { StorageLocalAdapter } from "adapter/node";
+import type { App, CreateAppConfig } from "App";
+import { StorageLocalAdapter } from "adapter/node/storage";
 import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
-import { colorizeConsole, config } from "core";
+import { config } from "core";
 import dotenv from "dotenv";
 import { registries } from "modules/registries";
 import c from "picocolors";
@@ -11,19 +11,19 @@ import path from "node:path";
 import {
    PLATFORMS,
    type Platform,
-   attachServeStatic,
    getConfigPath,
    getConnectionCredentialsFromEnv,
+   serveStatic,
    startServer,
 } from "./platform";
-import { makeConfig } from "adapter";
-import { isBun as $isBun } from "cli/utils/sys";
+import { createRuntimeApp, makeConfig } from "adapter";
+import { colorizeConsole, isBun } from "core/utils";
 
 const env_files = [".env", ".dev.vars"];
 dotenv.config({
    path: env_files.map((file) => path.resolve(process.cwd(), file)),
 });
-const isBun = $isBun();
+const is_bun = isBun();
 
 export const run: CliCommand = (program) => {
    program
@@ -44,15 +44,14 @@ export const run: CliCommand = (program) => {
       )
       .addOption(new Option("-c, --config <config>", "config file"))
       .addOption(
-         new Option("--db-url <db>", "database url, can be any valid libsql url").conflicts(
+         new Option("--db-url <db>", "database url, can be any valid sqlite url").conflicts(
             "config",
          ),
       )
-      .addOption(new Option("--db-token <db>", "database token").conflicts("config"))
       .addOption(
          new Option("--server <server>", "server type")
             .choices(PLATFORMS)
-            .default(isBun ? "bun" : "node"),
+            .default(is_bun ? "bun" : "node"),
       )
       .addOption(new Option("--no-open", "don't open browser window on start"))
       .action(action);
@@ -72,23 +71,10 @@ type MakeAppConfig = {
 };
 
 async function makeApp(config: MakeAppConfig) {
-   const app = App.create({ connection: config.connection });
-
-   app.emgr.onEvent(
-      App.Events.AppBuiltEvent,
-      async () => {
-         if (config.onBuilt) {
-            await config.onBuilt(app);
-         }
-
-         await attachServeStatic(app, config.server?.platform ?? "node");
-         app.registerAdminController();
-      },
-      "sync",
-   );
-
-   await app.build();
-   return app;
+   return await createRuntimeApp({
+      serveStatic: await serveStatic(config.server?.platform ?? "node"),
+      ...config,
+   });
 }
 
 export async function makeConfigApp(_config: CliBkndConfig, platform?: Platform) {
@@ -104,7 +90,6 @@ type RunOptions = {
    memory?: boolean;
    config?: string;
    dbUrl?: string;
-   dbToken?: string;
    server: Platform;
    open?: boolean;
 };
@@ -115,10 +100,8 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
    let app: App | undefined = undefined;
    // first start from arguments if given
    if (options.dbUrl) {
-      console.info("Using connection from", c.cyan("--db-url"));
-      const connection = options.dbUrl
-         ? { url: options.dbUrl, authToken: options.dbToken }
-         : undefined;
+      console.info("Using connection from", c.cyan("--db-url"), c.cyan(options.dbUrl));
+      const connection = options.dbUrl ? { url: options.dbUrl } : undefined;
       app = await makeApp({ connection, server: { platform: options.server } });
 
       // check configuration file to be present

@@ -1,6 +1,7 @@
-import { $console, type DB, Exception } from "core";
+import { type DB, Exception } from "core";
 import { addFlashMessage } from "core/server/flash";
 import {
+   $console,
    type Static,
    StringEnum,
    type TObject,
@@ -224,7 +225,7 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
 
       await addFlashMessage(c, String(error), "error");
 
-      const referer = this.getSafeUrl(c, opts?.redirect ?? c.req.header("Referer") ?? "/");
+      const referer = this.getSafeUrl(c, c.req.header("Referer") ?? "/");
       return c.redirect(referer);
    }
 
@@ -341,19 +342,24 @@ export class Authenticator<Strategies extends Record<string, Strategy> = Record<
       await setSignedCookie(c, "auth", token, secret, this.cookieOptions);
    }
 
-   private async deleteAuthCookie(c: Context) {
+   private deleteAuthCookie(c: Context) {
       $console.debug("deleting auth cookie");
-      await deleteCookie(c, "auth", this.cookieOptions);
+      deleteCookie(c, "auth", this.cookieOptions);
    }
 
    async logout(c: Context<ServerEnv>) {
+      $console.info("Logging out");
       c.set("auth", undefined);
 
       const cookie = await this.getAuthCookie(c);
       if (cookie) {
-         await this.deleteAuthCookie(c);
-         await addFlashMessage(c, "Signed out", "info");
+         addFlashMessage(c, "Signed out", "info");
       }
+
+      // on waku, only one cookie setting is performed
+      // therefore adding deleting cookie at the end
+      // as the flash isn't that important
+      this.deleteAuthCookie(c);
    }
 
    // @todo: move this to a server helper

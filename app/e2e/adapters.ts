@@ -142,6 +142,7 @@ const adapters = {
    },
    nextjs: {
       dir: path.join(basePath, "examples/nextjs"),
+      env: "TEST_TIMEOUT=20000",
       clean: async function () {
          const cwd = path.relative(process.cwd(), this.dir);
          await $`cd ${cwd} && rm -rf .nextjs data.db`;
@@ -195,7 +196,8 @@ async function testAdapter(name: keyof typeof adapters) {
    console.log("proc:", proc.pid, "data:", c.cyan(data));
    //proc.kill();process.exit(0);
 
-   await $`TEST_URL=${data} TEST_ADAPTER=${name} bun run test:e2e`;
+   const add_env = "env" in config && config.env ? config.env : "";
+   await $`TEST_URL=${data} TEST_ADAPTER=${name} ${add_env} bun run test:e2e`;
    console.log("DONE!");
 
    while (!proc.killed) {
@@ -205,6 +207,8 @@ async function testAdapter(name: keyof typeof adapters) {
    }
 }
 
+// run with: TEST_ADAPTER=astro bun run e2e/adapters.ts
+// (modify `test:e2e` to `test:e2e:ui` to see the UI)
 if (process.env.TEST_ADAPTER) {
    await testAdapter(process.env.TEST_ADAPTER as any);
 } else {

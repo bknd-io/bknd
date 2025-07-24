@@ -9,8 +9,8 @@ import { Message } from "ui/components/display/Message";
 import { useNavigate } from "ui/lib/routes";
 
 export type BkndAdminOptions = {
-   logo_return_path?: string;
    basepath?: string;
+   logo_return_path?: string;
    theme?: AppTheme;
 };
 type BkndContext = {

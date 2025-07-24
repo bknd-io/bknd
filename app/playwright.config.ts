@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 const baseUrl = process.env.TEST_URL || "http://localhost:28623";
 const startCommand = process.env.TEST_START_COMMAND || "bun run dev";
 const autoStart = ["1", "true", undefined].includes(process.env.TEST_AUTO_START);
+const timeout = process.env.TEST_TIMEOUT ? Number.parseInt(process.env.TEST_TIMEOUT) : 5000;
 
 export default defineConfig({
    testMatch: "**/*.e2e-spec.ts",
@@ -12,7 +13,7 @@ export default defineConfig({
    retries: process.env.CI ? 2 : 0,
    workers: process.env.CI ? 1 : undefined,
    reporter: "html",
-   timeout: 20000,
+   timeout,
    use: {
       baseURL: baseUrl,
       trace: "on-first-retry",

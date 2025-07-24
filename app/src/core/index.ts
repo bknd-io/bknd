@@ -26,9 +26,18 @@ export {
 } from "./object/query/query";
 export { Registry, type Constructor } from "./registry/Registry";
 export { getFlashMessage } from "./server/flash";
-export { s, jsc, describeRoute } from "./object/schema";
+export {
+   s,
+   parse,
+   jsc,
+   describeRoute,
+   schemaToSpec,
+   openAPISpecs,
+   type ParseOptions,
+   InvalidSchemaError,
+} from "./object/schema";
 
-export * from "./console";
+export * from "./drivers";
 export * from "./events";
 
 // compatibility

@@ -9,9 +9,9 @@ import type { PasswordStrategy } from "auth/authenticate/strategies";
 import { makeAppFromEnv } from "cli/commands/run";
 import type { CliCommand } from "cli/types";
 import { Argument } from "commander";
-import { $console } from "core";
+import { $console } from "core/utils";
 import c from "picocolors";
-import { isBun } from "cli/utils/sys";
+import { isBun } from "core/utils";
 
 export const user: CliCommand = (program) => {
    program

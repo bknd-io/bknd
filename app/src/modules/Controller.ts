@@ -51,6 +51,7 @@ export class Controller {
 
    protected getEntitiesEnum(em: EntityManager<any>) {
       const entities = em.entities.map((e) => e.name);
-      return entities.length > 0 ? s.string({ enum: entities }) : s.string();
+      // @todo: current workaround to allow strings (sometimes building is not fast enough to get the entities)
+      return entities.length > 0 ? s.anyOf([s.string({ enum: entities }), s.string()]) : s.string();
    }
 }

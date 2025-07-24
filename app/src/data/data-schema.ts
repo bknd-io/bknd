@@ -1,13 +1,10 @@
-import { type Static, StringRecord, objectTransform } from "core/utils";
+import { type Static, StringEnum, StringRecord, objectTransform } from "core/utils";
 import * as tb from "@sinclair/typebox";
-import {
-   FieldClassMap,
-   RelationClassMap,
-   RelationFieldClassMap,
-   entityConfigSchema,
-   entityTypes,
-} from "data";
 import { MediaField, mediaFieldConfigSchema } from "../media/MediaField";
+import { FieldClassMap } from "data/fields";
+import { RelationClassMap, RelationFieldClassMap } from "data/relations";
+import { entityConfigSchema, entityTypes } from "data/entities";
+import { primaryFieldTypes } from "./fields";
 
 export const FIELDS = {
    ...FieldClassMap,
@@ -72,6 +69,9 @@ export const indicesSchema = tb.Type.Object(
 export const dataConfigSchema = tb.Type.Object(
    {
       basepath: tb.Type.Optional(tb.Type.String({ default: "/api/data" })),
+      default_primary_format: tb.Type.Optional(
+         StringEnum(primaryFieldTypes, { default: "integer" }),
+      ),
       entities: tb.Type.Optional(StringRecord(entitiesSchema, { default: {} })),
       relations: tb.Type.Optional(StringRecord(tb.Type.Union(relationsSchema), { default: {} })),
       indices: tb.Type.Optional(StringRecord(indicesSchema, { default: {} })),

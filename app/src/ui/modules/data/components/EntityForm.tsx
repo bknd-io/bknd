@@ -22,6 +22,7 @@ import { EntityRelationalFormField } from "./fields/EntityRelationalFormField";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
 import { Alert } from "ui/components/display/Alert";
 import { bkndModals } from "ui/modals";
+import type { PrimaryFieldType } from "core";
 
 // simplify react form types 🤦
 export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any>;
@@ -30,7 +31,7 @@ export type TFieldApi = FieldApi<any, any, any, any, any, any, any, any, any, an
 
 type EntityFormProps = {
    entity: Entity;
-   entityId?: number;
+   entityId?: PrimaryFieldType;
    data?: EntityData;
    handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
    fieldsDisabled: boolean;
@@ -225,7 +226,7 @@ function EntityMediaFormField({
    formApi: FormApi;
    field: MediaField;
    entity: Entity;
-   entityId?: number;
+   entityId?: PrimaryFieldType;
    disabled?: boolean;
 }) {
    if (!entityId) return;

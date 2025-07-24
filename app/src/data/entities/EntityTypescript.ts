@@ -1,6 +1,7 @@
 import type { Entity, EntityManager, EntityRelation, TEntityType } from "data";
 import { autoFormatString } from "core/utils";
-import { AppAuth, AppMedia } from "modules";
+import { usersFields } from "auth/auth-entities";
+import { mediaFields } from "media/media-entities";
 
 export type TEntityTSType = {
    name: string;
@@ -32,8 +33,8 @@ export type EntityTypescriptOptions = {
 
 // keep a local copy here until properties have a type
 const systemEntities = {
-   users: AppAuth.usersFields,
-   media: AppMedia.mediaFields,
+   users: usersFields,
+   media: mediaFields,
 };
 
 export class EntityTypescript {
@@ -56,7 +57,7 @@ export class EntityTypescript {
       return this.em.entities.map((e) => e.toTypes());
    }
 
-   protected getTab(count = 1) {
+   getTab(count = 1) {
       return this.options.indentChar.repeat(this.options.indentWidth).repeat(count);
    }
 

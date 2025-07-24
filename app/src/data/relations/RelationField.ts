@@ -1,6 +1,6 @@
 import { type Static, StringEnum } from "core/utils";
 import type { EntityManager } from "../entities";
-import { Field, baseFieldConfigSchema } from "../fields";
+import { Field, baseFieldConfigSchema, primaryFieldTypes } from "../fields";
 import type { EntityRelation } from "./EntityRelation";
 import type { EntityRelationAnchor } from "./EntityRelationAnchor";
 import * as tbbox from "@sinclair/typebox";
@@ -15,6 +15,7 @@ export const relationFieldConfigSchema = Type.Composite([
       reference: Type.String(),
       target: Type.String(), // @todo: potentially has to be an instance!
       target_field: Type.Optional(Type.String({ default: "id" })),
+      target_field_type: Type.Optional(StringEnum(["integer", "text"], { default: "integer" })),
       on_delete: Type.Optional(StringEnum(CASCADES, { default: "set null" })),
    }),
 ]);
@@ -45,6 +46,7 @@ export class RelationField extends Field<RelationFieldConfig> {
          reference: target.reference,
          target: target.entity.name,
          target_field: target.entity.getPrimaryField().name,
+         target_field_type: target.entity.getPrimaryField().fieldType,
       });
    }
 
@@ -63,7 +65,7 @@ export class RelationField extends Field<RelationFieldConfig> {
    override schema() {
       return Object.freeze({
          ...super.schema()!,
-         type: "integer",
+         type: this.config.target_field_type ?? "integer",
          references: `${this.config.target}.${this.config.target_field}`,
          onDelete: this.config.on_delete ?? "set null",
       });

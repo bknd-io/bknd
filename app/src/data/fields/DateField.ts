@@ -1,7 +1,6 @@
-import { type Static, StringEnum, dayjs } from "core/utils";
+import { $console, type Static, StringEnum, dayjs } from "core/utils";
 import type { EntityManager } from "../entities";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
-import { $console } from "core";
 import * as tbbox from "@sinclair/typebox";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
 const { Type } = tbbox;

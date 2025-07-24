@@ -1,11 +1,8 @@
-import { $console, isDebug } from "core";
 import {
    DataPermissions,
    type EntityData,
    type EntityManager,
-   type MutatorResponse,
    type RepoQuery,
-   type RepositoryResponse,
    repoQuery,
 } from "data";
 import type { Handler } from "hono/types";
@@ -30,33 +27,6 @@ export class DataController extends Controller {
 
    get guard() {
       return this.ctx.guard;
-   }
-
-   repoResult<T extends RepositoryResponse<any> = RepositoryResponse>(
-      res: T,
-   ): Pick<T, "meta" | "data"> {
-      let meta: Partial<RepositoryResponse["meta"]> = {};
-
-      if ("meta" in res) {
-         const { query, ...rest } = res.meta;
-         meta = rest;
-         if (isDebug()) meta.query = query;
-      }
-
-      const template = { data: res.data, meta };
-
-      // @todo: this works but it breaks in FE (need to improve DataTable)
-      // filter empty
-      return Object.fromEntries(
-         Object.entries(template).filter(([_, v]) => typeof v !== "undefined" && v !== null),
-      ) as any;
-   }
-
-   mutatorResult(res: MutatorResponse | MutatorResponse<EntityData>) {
-      const template = { data: res.data };
-
-      // filter empty
-      return Object.fromEntries(Object.entries(template).filter(([_, v]) => v !== undefined));
    }
 
    entityExists(entity: string) {
@@ -225,7 +195,7 @@ export class DataController extends Controller {
          },
       );
 
-      return hono.all("*", (c) => c.notFound());
+      return hono;
    }
 
    private getEntityRoutes() {
@@ -233,6 +203,8 @@ export class DataController extends Controller {
       const hono = this.create();
 
       const entitiesEnum = this.getEntitiesEnum(this.em);
+      // @todo: make dynamic based on entity
+      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as any });
 
       /**
        * Function endpoints
@@ -255,7 +227,7 @@ export class DataController extends Controller {
 
             const where = c.req.valid("json") as any;
             const result = await this.em.repository(entity).count(where);
-            return c.json({ entity, count: result.count });
+            return c.json({ entity, ...result.data });
          },
       );
 
@@ -277,7 +249,7 @@ export class DataController extends Controller {
 
             const where = c.req.valid("json") as any;
             const result = await this.em.repository(entity).exists(where);
-            return c.json({ entity, exists: result.exists });
+            return c.json({ entity, ...result.data });
          },
       );
 
@@ -316,7 +288,7 @@ export class DataController extends Controller {
             const options = c.req.valid("query") as RepoQuery;
             const result = await this.em.repository(entity).findMany(options);
 
-            return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
+            return c.json(result, { status: result.data ? 200 : 404 });
          },
       );
 
@@ -333,7 +305,7 @@ export class DataController extends Controller {
             "param",
             s.object({
                entity: entitiesEnum,
-               id: s.string(),
+               id: idType,
             }),
          ),
          jsc("query", repoQuery, { skipOpenAPI: true }),
@@ -343,9 +315,9 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const options = c.req.valid("query") as RepoQuery;
-            const result = await this.em.repository(entity).findId(Number(id), options);
+            const result = await this.em.repository(entity).findId(id, options);
 
-            return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
+            return c.json(result, { status: result.data ? 200 : 404 });
          },
       );
 
@@ -362,7 +334,7 @@ export class DataController extends Controller {
             "param",
             s.object({
                entity: entitiesEnum,
-               id: s.string(),
+               id: idType,
                reference: s.string(),
             }),
          ),
@@ -376,9 +348,9 @@ export class DataController extends Controller {
             const options = c.req.valid("query") as RepoQuery;
             const result = await this.em
                .repository(entity)
-               .findManyByReference(Number(id), reference, options);
+               .findManyByReference(id, reference, options);
 
-            return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
+            return c.json(result, { status: result.data ? 200 : 404 });
          },
       );
 
@@ -412,7 +384,7 @@ export class DataController extends Controller {
             const options = (await c.req.json()) as RepoQuery;
             const result = await this.em.repository(entity).findMany(options);
 
-            return c.json(this.repoResult(result), { status: result.data ? 200 : 404 });
+            return c.json(result, { status: result.data ? 200 : 404 });
          },
       );
 
@@ -438,11 +410,11 @@ export class DataController extends Controller {
 
             if (Array.isArray(body)) {
                const result = await this.em.mutator(entity).insertMany(body);
-               return c.json(this.mutatorResult(result), 201);
+               return c.json(result, 201);
             }
 
             const result = await this.em.mutator(entity).insertOne(body);
-            return c.json(this.mutatorResult(result), 201);
+            return c.json(result, 201);
          },
       );
 
@@ -473,7 +445,7 @@ export class DataController extends Controller {
             };
             const result = await this.em.mutator(entity).updateWhere(update, where);
 
-            return c.json(this.mutatorResult(result));
+            return c.json(result);
          },
       );
 
@@ -485,7 +457,7 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityUpdate),
-         jsc("param", s.object({ entity: entitiesEnum, id: s.number() })),
+         jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          jsc("json", s.object({})),
          async (c) => {
             const { entity, id } = c.req.valid("param");
@@ -493,9 +465,9 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const body = (await c.req.json()) as EntityData;
-            const result = await this.em.mutator(entity).updateOne(Number(id), body);
+            const result = await this.em.mutator(entity).updateOne(id, body);
 
-            return c.json(this.mutatorResult(result));
+            return c.json(result);
          },
       );
 
@@ -507,15 +479,15 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityDelete),
-         jsc("param", s.object({ entity: entitiesEnum, id: s.number() })),
+         jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const result = await this.em.mutator(entity).deleteOne(Number(id));
+            const result = await this.em.mutator(entity).deleteOne(id);
 
-            return c.json(this.mutatorResult(result));
+            return c.json(result);
          },
       );
 
@@ -537,7 +509,7 @@ export class DataController extends Controller {
             const where = (await c.req.json()) as RepoQuery["where"];
             const result = await this.em.mutator(entity).deleteWhere(where);
 
-            return c.json(this.mutatorResult(result));
+            return c.json(result);
          },
       );
 

@@ -1,9 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { App } from "App";
-import { $console, tbValidator as tb } from "core";
 import {
-   StringEnum,
+   $console,
    TypeInvalidError,
    datetimeStringLocal,
    datetimeStringUTC,
@@ -311,12 +310,18 @@ export class SystemController extends Controller {
             c.json({
                version: c.get("app")?.version(),
                runtime: getRuntimeKey(),
+               connection: {
+                  name: this.app.em.connection.name,
+                  // @ts-expect-error
+                  supports: this.app.em.connection.supported,
+               },
                timezone: {
                   name: getTimezone(),
                   offset: getTimezoneOffset(),
                   local: datetimeStringLocal(),
                   utc: datetimeStringUTC(),
                },
+               plugins: Array.from(this.app.plugins.keys()),
             }),
       );
 
@@ -331,6 +336,6 @@ export class SystemController extends Controller {
       );
       hono.get("/swagger", swaggerUI({ url: "/api/system/openapi.json" }));
 
-      return hono.all("*", (c) => c.notFound());
+      return hono;
    }
 }

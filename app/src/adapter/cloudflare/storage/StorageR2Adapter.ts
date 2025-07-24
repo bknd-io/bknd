@@ -1,5 +1,6 @@
 import { registries } from "bknd";
 import { isDebug } from "bknd/core";
+// @ts-ignore
 import { StringEnum } from "bknd/utils";
 import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
 import { getBindings } from "../bindings";
@@ -63,46 +64,49 @@ export class StorageR2Adapter extends StorageAdapter {
 
    async putObject(key: string, body: FileBody) {
       try {
-         const res = await this.bucket.put(key, body);
+         const res = await this.bucket.put(this.getKey(key), body);
          return res?.etag;
       } catch (e) {
          return undefined;
       }
    }
-   async listObjects(
-      prefix?: string,
-   ): Promise<{ key: string; last_modified: Date; size: number }[]> {
-      const list = await this.bucket.list({ limit: 50 });
+   async listObjects(prefix = ""): Promise<{ key: string; last_modified: Date; size: number }[]> {
+      const list = await this.bucket.list({ limit: 50, prefix: this.getKey(prefix) });
       return list.objects.map((item) => ({
-         key: item.key,
+         key: item.key.replace(this.getKey(""), ""),
          size: item.size,
          last_modified: item.uploaded,
       }));
    }
 
    private async headObject(key: string): Promise<R2Object | null> {
-      return await this.bucket.head(key);
+      return await this.bucket.head(this.getKey(key));
    }
 
    async objectExists(key: string): Promise<boolean> {
       return (await this.headObject(key)) !== null;
    }
 
-   async getObject(key: string, headers: Headers): Promise<Response> {
+   async getObject(_key: string, headers: Headers): Promise<Response> {
       let object: R2ObjectBody | null;
+      const key = this.getKey(_key);
+
       const responseHeaders = new Headers({
          "Accept-Ranges": "bytes",
          "Content-Type": guess(key),
       });
 
+      const range = headers.has("range");
+
       //console.log("getObject:headers", headersToObject(headers));
-      if (headers.has("range")) {
+      if (range) {
          const options = isDebug()
             ? {} // miniflare doesn't support range requests
             : {
                  range: headers,
                  onlyIf: headers,
               };
+
          object = (await this.bucket.get(key, options)) as R2ObjectBody;
 
          if (!object) {
@@ -130,13 +134,14 @@ export class StorageR2Adapter extends StorageAdapter {
       responseHeaders.set("Last-Modified", object.uploaded.toUTCString());
 
       return new Response(object.body, {
-         status: object.range ? 206 : 200,
+         status: range ? 206 : 200,
          headers: responseHeaders,
       });
    }
 
    private writeHttpMetadata(headers: Headers, object: R2Object | R2ObjectBody): void {
       let metadata = object.httpMetadata;
+
       if (!metadata || Object.keys(metadata).length === 0) {
          // guessing is especially required for dev environment (miniflare)
          metadata = {
@@ -163,11 +168,15 @@ export class StorageR2Adapter extends StorageAdapter {
    }
 
    async deleteObject(key: string): Promise<void> {
-      await this.bucket.delete(key);
+      await this.bucket.delete(this.getKey(key));
    }
 
    getObjectUrl(key: string): string {
       throw new Error("Method getObjectUrl not implemented.");
+   }
+
+   protected getKey(key: string) {
+      return key;
    }
 
    toJSON(secrets?: boolean) {

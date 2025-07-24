@@ -104,15 +104,17 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
                                     <button
                                        type="button"
                                        className={twMerge(
-                                          "link hover:bg-primary/5 py-1.5 rounded-md inline-flex flex-row justify-start items-center gap-1",
-                                          onClickSort ? "pl-2.5 pr-1" : "px-2.5",
+                                          "py-1.5 rounded-md inline-flex flex-row justify-start items-center gap-1",
+                                          onClickSort
+                                             ? "link hover:bg-primary/5 pl-2.5 pr-1"
+                                             : "px-2.5",
                                        )}
                                        onClick={() => onClickSort?.(property)}
                                     >
                                        <span className="text-left text-nowrap whitespace-nowrap">
                                           {label}
                                        </span>
-                                       {onClickSort && (
+                                       {(onClickSort || (sort && sort.by === property)) && (
                                           <SortIndicator sort={sort} field={property} />
                                        )}
                                     </button>

@@ -1,4 +1,5 @@
-import { $console, type PrimaryFieldType } from "core";
+import type { PrimaryFieldType } from "core";
+import { $console } from "core/utils";
 import { isDebug } from "core/env";
 import { encodeSearch } from "core/utils/reqres";
 import type { ApiFetcher } from "Api";

@@ -23,9 +23,13 @@ const searchSchema = s.partialObject({
    perPage: s.number({ default: 10 }).optional(),
 });
 
-const PER_PAGE_OPTIONS = [5, 10, 25];
+const PER_PAGE_OPTIONS = [5, 10, 25, 50, 100];
 
 export function DataEntityList({ params }) {
+   return <DataEntityListImpl params={params} key={params.entity} />;
+}
+
+function DataEntityListImpl({ params }) {
    const { $data } = useBkndData();
    const entity = $data.entity(params.entity as string);
    if (!entity) {
@@ -35,8 +39,19 @@ export function DataEntityList({ params }) {
    useBrowserTitle(["Data", entity?.label ?? params.entity]);
    const [navigate] = useNavigate();
    const search = useSearch(searchSchema, {
-      select: entity.getSelect(undefined, "table"),
-      sort: entity.getDefaultSort(),
+      defaultValue: {
+         select: entity.getSelect(undefined, "table"),
+         sort: entity.getDefaultSort(),
+      },
+      beforeEncode: (v) => {
+         if ("sort" in v && v.sort) {
+            return {
+               ...v,
+               sort: `${v.sort.dir === "asc" ? "" : "-"}${v.sort.by}`,
+            };
+         }
+         return v;
+      },
    });
 
    const $q = useApiQuery(
@@ -61,19 +76,18 @@ export function DataEntityList({ params }) {
    }
 
    function handleClickPage(page: number) {
-      search.set("page", page);
+      search.set({ page });
    }
 
    function handleSortClick(name: string) {
       const sort = search.value.sort!;
       const newSort = { by: name, dir: sort.by === name && sort.dir === "asc" ? "desc" : "asc" };
 
-      search.set("sort", newSort as any);
+      search.set({ sort: newSort as any });
    }
 
    function handleClickPerPage(perPage: number) {
-      // @todo: also reset page to 1
-      search.set("perPage", perPage);
+      search.set({ perPage, page: 1 });
    }
 
    const isUpdating = $q.isLoading || $q.isValidating;

@@ -8,12 +8,10 @@
     "typegen": "wrangler types"
   },
   "dependencies": {
-    "bknd": "file:../../app",
-    "kysely-d1": "^0.3.0"
+    "bknd": "file:../../app"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240620.0",
-    "typescript": "^5.5.3",
-    "wrangler": "^4.4.0"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.19.1"
   }
 }

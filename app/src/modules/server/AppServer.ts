@@ -1,5 +1,5 @@
-import { Exception, isDebug, $console } from "core";
-import { type Static, StringEnum } from "core/utils";
+import { Exception, isDebug } from "core";
+import { type Static, StringEnum, $console } from "core/utils";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
 import * as tbbox from "@sinclair/typebox";

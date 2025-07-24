@@ -2,7 +2,7 @@ import { Event, EventManager, type ListenerHandler } from "core/events";
 import type { EmitsEvents } from "core/events";
 import type { Task, TaskResult } from "../tasks/Task";
 import type { Flow } from "./Flow";
-import { $console } from "core";
+import { $console } from "core/utils";
 
 export type TaskLog = TaskResult & {
    task: Task;

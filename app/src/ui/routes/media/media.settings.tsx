@@ -124,7 +124,8 @@ const Icons = {
 };
 
 const AdapterIcon = ({ type }: { type: string }) => {
-   const Icon = Icons[type];
+   // find icon whose name starts with type
+   const Icon = Object.entries(Icons).find(([key]) => type.startsWith(key))?.[1];
    if (!Icon) return null;
    return <Icon />;
 };

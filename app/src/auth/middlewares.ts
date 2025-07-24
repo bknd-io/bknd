@@ -1,5 +1,5 @@
-import { $console, type Permission } from "core";
-import { patternMatch } from "core/utils";
+import type { Permission } from "core";
+import { $console, patternMatch } from "core/utils";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { ServerEnv } from "modules/Controller";
@@ -60,11 +60,7 @@ export const auth = (options?: {
       }
 
       await next();
-
-      if (!skipped) {
-         // renew cookie if applicable
-         authenticator?.requestCookieRefresh(c);
-      }
+      // @todo: potentially add cookie refresh if content-type html and about to expire
 
       // release
       authCtx.skip = false;

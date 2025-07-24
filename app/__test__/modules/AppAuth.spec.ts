@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import { createApp } from "../../src";
+import { createApp } from "core/test/utils";
 import { AuthController } from "../../src/auth/api/AuthController";
 import { em, entity, make, text } from "../../src/data";
 import { AppAuth, type ModuleBuildContext } from "../../src/modules";
@@ -153,6 +153,7 @@ describe("AppAuth", () => {
       });
 
       await app.build();
+      app.registerAdminController();
       const spy = spyOn(app.module.auth.authenticator, "requestCookieRefresh");
 
       // register custom route
@@ -162,6 +163,10 @@ describe("AppAuth", () => {
       await app.server.request("/api/system/ping");
       await app.server.request("/test");
 
+      expect(spy.mock.calls.length).toBe(0);
+
+      // admin route
+      await app.server.request("/");
       expect(spy.mock.calls.length).toBe(1);
    });
 

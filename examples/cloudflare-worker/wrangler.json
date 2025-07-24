@@ -15,8 +15,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "bknd-cf-example",
-      "database_id": "7ad67953-2bbf-47fc-8696-f4517dbfe674"
+      "database_name": "bknd-dev-weur",
+      "database_id": "81d8dfcc-4eaf-4453-8f0f-8f6d463fb867"
     }
   ],
   "r2_buckets": [

@@ -1,6 +1,7 @@
 import { Guard } from "auth";
-import { $console, BkndError, DebugLogger, env } from "core";
-import { EventManager } from "core/events";
+import { BkndError, DebugLogger, env } from "core";
+import { $console } from "core/utils";
+import { EventManager, Event } from "core/events";
 import * as $diff from "core/object/diff";
 import {
    Default,
@@ -11,16 +12,9 @@ import {
    stripMark,
    transformObject,
 } from "core/utils";
-import {
-   type Connection,
-   EntityManager,
-   type Schema,
-   datetime,
-   entity,
-   enumm,
-   jsonSchema,
-   number,
-} from "data";
+import type { Connection, Schema } from "data";
+import { EntityManager } from "data/entities/EntityManager";
+import * as proto from "data/prototype";
 import { TransformPersistFailedException } from "data/errors";
 import { Hono } from "hono";
 import type { Kysely } from "kysely";
@@ -34,6 +28,7 @@ import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
 import * as tbbox from "@sinclair/typebox";
+import { ModuleHelper } from "./ModuleHelper";
 const { Type } = tbbox;
 
 export type { ModuleBuildContext };
@@ -92,6 +87,8 @@ export type ModuleManagerOptions = {
    trustFetched?: boolean;
    // runs when initial config provided on a fresh database
    seed?: (ctx: ModuleBuildContext) => Promise<void>;
+   // called right after modules are built, before finish
+   onModulesBuilt?: (ctx: ModuleBuildContext) => Promise<void>;
    /** @deprecated */
    verbosity?: Verbosity;
 };
@@ -116,12 +113,12 @@ const configJsonSchema = Type.Union([
       }),
    ),
 ]);
-export const __bknd = entity(TABLE_NAME, {
-   version: number().required(),
-   type: enumm({ enum: ["config", "diff", "backup"] }).required(),
-   json: jsonSchema({ schema: configJsonSchema }).required(),
-   created_at: datetime(),
-   updated_at: datetime(),
+export const __bknd = proto.entity(TABLE_NAME, {
+   version: proto.number().required(),
+   type: proto.enumm({ enum: ["config", "diff", "backup"] }).required(),
+   json: proto.jsonSchema({ schema: configJsonSchema }).required(),
+   created_at: proto.datetime(),
+   updated_at: proto.datetime(),
 });
 type ConfigTable2 = Schema<typeof __bknd>;
 interface T_INTERNAL_EM {
@@ -130,9 +127,24 @@ interface T_INTERNAL_EM {
 
 const debug_modules = env("modules_debug");
 
+abstract class ModuleManagerEvent<A = {}> extends Event<{ ctx: ModuleBuildContext } & A> {}
+export class ModuleManagerConfigUpdateEvent<
+   Module extends keyof ModuleConfigs,
+> extends ModuleManagerEvent<{
+   module: Module;
+   config: ModuleConfigs[Module];
+}> {
+   static override slug = "mm-config-update";
+}
+export const ModuleManagerEvents = {
+   ModuleManagerConfigUpdateEvent,
+};
+
 // @todo: cleanup old diffs on upgrade
 // @todo: cleanup multiple backups on upgrade
 export class ModuleManager {
+   static Events = ModuleManagerEvents;
+
    protected modules: Modules;
    // internal em for __bknd config table
    __em!: EntityManager<T_INTERNAL_EM>;
@@ -155,7 +167,7 @@ export class ModuleManager {
    ) {
       this.__em = new EntityManager([__bknd], this.connection);
       this.modules = {} as Modules;
-      this.emgr = new EventManager();
+      this.emgr = new EventManager({ ...ModuleManagerEvents });
       this.logger = new DebugLogger(debug_modules);
       let initial = {} as Partial<ModuleConfigs>;
 
@@ -183,7 +195,7 @@ export class ModuleManager {
          const context = this.ctx(true);
 
          for (const key in MODULES) {
-            const moduleConfig = key in initial ? initial[key] : {};
+            const moduleConfig = initial && key in initial ? initial[key] : {};
             const module = new MODULES[key](moduleConfig, context) as Module;
             module.setListener(async (c) => {
                await this.onModuleConfigUpdated(key, c);
@@ -234,7 +246,8 @@ export class ModuleManager {
    }
 
    private get db() {
-      return this.connection.kysely as Kysely<{ table: ConfigTable }>;
+      // @todo: check why this is neccessary
+      return this.connection.kysely as unknown as Kysely<{ table: ConfigTable }>;
    }
 
    // @todo: add indices for: version, type
@@ -267,7 +280,7 @@ export class ModuleManager {
          this.guard = new Guard();
       }
 
-      return {
+      const ctx = {
          connection: this.connection,
          server: this.server,
          em: this.em,
@@ -275,6 +288,11 @@ export class ModuleManager {
          guard: this.guard,
          flags: Module.ctx_flags,
          logger: this.logger,
+      };
+
+      return {
+         ...ctx,
+         helper: new ModuleHelper(ctx),
       };
    }
 
@@ -549,6 +567,10 @@ export class ModuleManager {
       this._built = state.built = true;
       this.logger.log("modules built", ctx.flags);
 
+      if (this.options?.onModulesBuilt) {
+         await this.options.onModulesBuilt(ctx);
+      }
+
       if (options?.ignoreFlags !== true) {
          if (ctx.flags.sync_required) {
             ctx.flags.sync_required = false;
@@ -622,6 +644,13 @@ export class ModuleManager {
                try {
                   // overwrite listener to run build inside this try/catch
                   module.setListener(async () => {
+                     await this.emgr.emit(
+                        new ModuleManagerConfigUpdateEvent({
+                           ctx: this.ctx(),
+                           module: name,
+                           config: module.config as any,
+                        }),
+                     );
                      await this.buildModules();
                   });
 
@@ -640,7 +669,7 @@ export class ModuleManager {
 
                   return result;
                } catch (e) {
-                  $console.error(`[Safe Mutate] failed "${name}":`, String(e));
+                  $console.error(`[Safe Mutate] failed "${name}":`, e);
 
                   // revert to previous config & rebuild using original listener
                   this.revertModules();

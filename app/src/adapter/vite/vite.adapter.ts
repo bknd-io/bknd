@@ -1,24 +1,17 @@
 import { serveStatic } from "@hono/node-server/serve-static";
-import {
-   type DevServerOptions,
-   default as honoViteDevServer,
-} from "@hono/vite-dev-server";
+import { type DevServerOptions, default as honoViteDevServer } from "@hono/vite-dev-server";
 import type { App } from "bknd";
-import {
-   type RuntimeBkndConfig,
-   createRuntimeApp,
-   type FrameworkOptions,
-} from "bknd/adapter";
+import { type RuntimeBkndConfig, createRuntimeApp, type FrameworkOptions } from "bknd/adapter";
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
 import { devServerConfig } from "./dev-server-config";
+import type { MiddlewareHandler } from "hono";
 
 export type ViteEnv = NodeJS.ProcessEnv;
-export type ViteBkndConfig<Env = ViteEnv> = RuntimeBkndConfig<Env> & {};
+export type ViteBkndConfig<Env = ViteEnv> = RuntimeBkndConfig<Env> & {
+   serveStatic?: false | MiddlewareHandler;
+};
 
-export function addViteScript(
-   html: string,
-   addBkndContext: boolean = true,
-) {
+export function addViteScript(html: string, addBkndContext: boolean = true) {
    return html.replace(
       "</head>",
       `<script type="module">
@@ -48,7 +41,10 @@ async function createApp<ViteEnv>(
                mainPath: "/src/main.tsx",
             },
          },
-         serveStatic: ["/assets/*", serveStatic({ root: config.distPath ?? "./" })],
+         serveStatic: config.serveStatic || [
+            "/assets/*",
+            serveStatic({ root: config.distPath ?? "./" }),
+         ],
       },
       env,
       opts,

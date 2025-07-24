@@ -1,5 +1,5 @@
 import nodeAssert from "node:assert/strict";
-import { test } from "node:test";
+import { test, describe, beforeEach, afterEach } from "node:test";
 import type { Matcher, Test, TestFn, TestRunner } from "core/test";
 
 // Track mock function calls
@@ -85,6 +85,7 @@ nodeTest.skipIf = (condition: boolean): Test => {
 };
 
 export const nodeTestRunner: TestRunner = {
+   describe,
    test: nodeTest,
    mock: createMockFunction,
    expect: <T = unknown>(actual?: T, failMsg?: string) => ({
@@ -96,4 +97,7 @@ export const nodeTestRunner: TestRunner = {
          reject: (r) => nodeTestMatcher(r, failMsg),
       }),
    }),
+   beforeEach: beforeEach,
+   afterEach: afterEach,
+   afterAll: () => {},
 };

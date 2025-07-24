@@ -5,8 +5,9 @@ import { makeConfig, registerAsyncsExecutionContext, constants } from "../config
 
 export async function getCached<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
-   { env, ctx, ...args }: Context<Env>,
+   args: Context<Env>,
 ) {
+   const { env, ctx } = args;
    const { kv } = config.bindings?.(env)!;
    if (!kv) throw new Error("kv namespace is not defined in cloudflare.bindings");
    const key = config.key ?? "app";
@@ -20,7 +21,7 @@ export async function getCached<Env extends CloudflareEnv = CloudflareEnv>(
 
    const app = await createRuntimeApp(
       {
-         ...makeConfig(config, env),
+         ...makeConfig(config, args),
          initialConfig,
          onBuilt: async (app) => {
             registerAsyncsExecutionContext(app, ctx);
@@ -41,7 +42,7 @@ export async function getCached<Env extends CloudflareEnv = CloudflareEnv>(
             await config.beforeBuild?.(app);
          },
       },
-      { env, ctx, ...args },
+      args,
    );
 
    if (!cachedConfig) {

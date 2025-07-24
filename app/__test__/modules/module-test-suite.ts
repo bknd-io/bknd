@@ -8,10 +8,11 @@ import { Default, stripMark } from "../../src/core/utils";
 import { EntityManager } from "../../src/data";
 import { Module, type ModuleBuildContext } from "../../src/modules/Module";
 import { getDummyConnection } from "../helper";
+import { ModuleHelper } from "modules/ModuleHelper";
 
 export function makeCtx(overrides?: Partial<ModuleBuildContext>): ModuleBuildContext {
    const { dummyConnection } = getDummyConnection();
-   return {
+   const ctx = {
       connection: dummyConnection,
       server: new Hono(),
       em: new EntityManager([], dummyConnection),
@@ -21,6 +22,10 @@ export function makeCtx(overrides?: Partial<ModuleBuildContext>): ModuleBuildCon
       logger: new DebugLogger(false),
       ...overrides,
    };
+   return {
+      ...ctx,
+      helper: new ModuleHelper(ctx as any),
+   } as any;
 }
 
 export function moduleTestSuite(module: { new (): Module }) {

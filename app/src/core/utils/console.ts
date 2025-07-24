@@ -23,6 +23,12 @@ function hasColors() {
 }
 
 const __consoles = {
+   critical: {
+      prefix: "CRT",
+      color: colors.red,
+      args_color: colors.red,
+      original: console.error,
+   },
    error: {
       prefix: "ERR",
       color: colors.red,

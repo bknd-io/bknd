@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { makeApp } from "./modes/fresh";
-import { makeConfig } from "./config";
+import { makeConfig, type CfMakeConfigArgs } from "./config";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
@@ -13,36 +13,38 @@ describe("cf adapter", () => {
    const DB_URL = ":memory:";
    const $ctx = (env?: any, request?: Request, ctx?: ExecutionContext) => ({
       request: request ?? (null as any),
-      env: env ?? { DB_URL },
+      env: env ?? { url: DB_URL },
       ctx: ctx ?? (null as any),
    });
 
    it("makes config", async () => {
-      expect(
-         makeConfig(
-            {
-               connection: { url: DB_URL },
-            },
-            {},
-         ),
-      ).toEqual({ connection: { url: DB_URL } });
+      const staticConfig = makeConfig(
+         {
+            connection: { url: DB_URL },
+            initialConfig: { data: { basepath: DB_URL } },
+         },
+         $ctx({ DB_URL }),
+      );
+      expect(staticConfig.initialConfig).toEqual({ data: { basepath: DB_URL } });
+      expect(staticConfig.connection).toBeDefined();
 
-      expect(
-         makeConfig(
-            {
-               app: (env) => ({
-                  connection: { url: env.DB_URL },
-               }),
-            },
-            {
-               DB_URL,
-            },
-         ),
-      ).toEqual({ connection: { url: DB_URL } });
+      const dynamicConfig = makeConfig(
+         {
+            app: (env) => ({
+               initialConfig: { data: { basepath: env.DB_URL } },
+               connection: { url: env.DB_URL },
+            }),
+         },
+         $ctx({ DB_URL }),
+      );
+      expect(dynamicConfig.initialConfig).toEqual({ data: { basepath: DB_URL } });
+      expect(dynamicConfig.connection).toBeDefined();
    });
 
-   adapterTestSuite<CloudflareBkndConfig, object>(bunTestRunner, {
-      makeApp,
+   adapterTestSuite<CloudflareBkndConfig, CfMakeConfigArgs<any>>(bunTestRunner, {
+      makeApp: async (c, a, o) => {
+         return await makeApp(c, { env: a } as any, o);
+      },
       makeHandler: (c, a, o) => {
          return async (request: any) => {
             const app = await makeApp(
@@ -50,7 +52,7 @@ describe("cf adapter", () => {
                c ?? {
                   connection: { url: DB_URL },
                },
-               a,
+               a!,
                o,
             );
             return app.fetch(request);

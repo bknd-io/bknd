@@ -3,9 +3,9 @@
  */
 import type { Generated } from "kysely";
 
-export type PrimaryFieldType<IdType extends number = number> = IdType | Generated<IdType>;
+export type PrimaryFieldType<IdType = number | string> = IdType | Generated<IdType>;
 
-export interface AppEntity<IdType extends number = number> {
+export interface AppEntity<IdType = number | string> {
    id: PrimaryFieldType<IdType>;
 }
 

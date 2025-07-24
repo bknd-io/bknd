@@ -216,7 +216,9 @@ export class MediaController extends Controller {
             const paths_to_delete: string[] = [];
             if (max_items) {
                const { overwrite } = c.req.valid("query");
-               const { count } = await this.media.em.repository(media_entity).count(mediaRef);
+               const {
+                  data: { count },
+               } = await this.media.em.repository(media_entity).count(mediaRef);
 
                // if there are more than or equal to max items
                if (count >= max_items) {
@@ -255,7 +257,9 @@ export class MediaController extends Controller {
             }
 
             // check if entity exists in database
-            const { exists } = await this.media.em.repository(entity).exists({ id: entity_id });
+            const {
+               data: { exists },
+            } = await this.media.em.repository(entity).exists({ id: entity_id });
             if (!exists) {
                return c.json(
                   { error: `Entity "${entity_name}" with ID "${entity_id}" doesn't exist found` },
@@ -297,6 +301,6 @@ export class MediaController extends Controller {
          },
       );
 
-      return hono.all("*", (c) => c.notFound());
+      return hono;
    }
 }

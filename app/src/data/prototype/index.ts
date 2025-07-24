@@ -3,16 +3,13 @@ import { EntityManager } from "data/entities/EntityManager";
 import type { Generated } from "kysely";
 import { MediaField, type MediaFieldConfig, type MediaItem } from "media/MediaField";
 import type { ModuleConfigs } from "modules";
+
 import {
    BooleanField,
    type BooleanFieldConfig,
-   type Connection,
    DateField,
    type DateFieldConfig,
-   Entity,
-   type EntityConfig,
    EntityIndex,
-   type EntityRelation,
    EnumField,
    type EnumFieldConfig,
    type Field,
@@ -20,20 +17,27 @@ import {
    type JsonFieldConfig,
    JsonSchemaField,
    type JsonSchemaFieldConfig,
+   NumberField,
+   type NumberFieldConfig,
+   TextField,
+   type TextFieldConfig,
+} from "data/fields";
+
+import { Entity, type EntityConfig, type TEntityType } from "data/entities";
+
+import type { Connection } from "data/connection";
+
+import {
+   type EntityRelation,
    ManyToManyRelation,
    type ManyToManyRelationConfig,
    ManyToOneRelation,
    type ManyToOneRelationConfig,
-   NumberField,
-   type NumberFieldConfig,
    OneToOneRelation,
    type OneToOneRelationConfig,
    PolymorphicRelation,
    type PolymorphicRelationConfig,
-   type TEntityType,
-   TextField,
-   type TextFieldConfig,
-} from "../index";
+} from "data/relations";
 
 type Options<Config = any> = {
    entity: { name: string; fields: Record<string, Field<any, any, any>> };
@@ -60,6 +64,46 @@ const FieldMap = {
       new MediaField(o.field_name, { ...o.config, entity: o.entity.name, required: o.is_required }),
 } as const;
 type TFieldType = keyof typeof FieldMap;
+
+export class FieldPrototype {
+   constructor(
+      public type: TFieldType,
+      public config: any,
+      public is_required: boolean,
+   ) {}
+
+   required() {
+      this.is_required = true;
+      return this;
+   }
+
+   getField(o: Options): Field {
+      if (!FieldMap[this.type]) {
+         throw new Error(`Unknown field type: ${this.type}`);
+      }
+      try {
+         return FieldMap[this.type](o) as unknown as Field;
+      } catch (e) {
+         throw new Error(`Faild to construct field "${this.type}": ${e}`);
+      }
+   }
+
+   make(field_name: string): Field {
+      if (!FieldMap[this.type]) {
+         throw new Error(`Unknown field type: ${this.type}`);
+      }
+      try {
+         return FieldMap[this.type]({
+            entity: { name: "unknown", fields: {} },
+            field_name,
+            config: this.config,
+            is_required: this.is_required,
+         }) as unknown as Field;
+      } catch (e) {
+         throw new Error(`Faild to construct field "${this.type}": ${e}`);
+      }
+   }
+}
 
 export function text(
    config?: Omit<TextFieldConfig, "required">,
@@ -130,46 +174,6 @@ export function make<Actual extends Field<any, any>>(name: string, field: Actual
       return field.make(name) as Actual;
    }
    throw new Error("Invalid field");
-}
-
-export class FieldPrototype {
-   constructor(
-      public type: TFieldType,
-      public config: any,
-      public is_required: boolean,
-   ) {}
-
-   required() {
-      this.is_required = true;
-      return this;
-   }
-
-   getField(o: Options): Field {
-      if (!FieldMap[this.type]) {
-         throw new Error(`Unknown field type: ${this.type}`);
-      }
-      try {
-         return FieldMap[this.type](o) as unknown as Field;
-      } catch (e) {
-         throw new Error(`Faild to construct field "${this.type}": ${e}`);
-      }
-   }
-
-   make(field_name: string): Field {
-      if (!FieldMap[this.type]) {
-         throw new Error(`Unknown field type: ${this.type}`);
-      }
-      try {
-         return FieldMap[this.type]({
-            entity: { name: "unknown", fields: {} },
-            field_name,
-            config: this.config,
-            is_required: this.is_required,
-         }) as unknown as Field;
-      } catch (e) {
-         throw new Error(`Faild to construct field "${this.type}": ${e}`);
-      }
-   }
 }
 
 export function entity<

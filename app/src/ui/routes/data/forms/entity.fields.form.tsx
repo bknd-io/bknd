@@ -28,6 +28,8 @@ import { type TFieldSpec, fieldSpecs } from "ui/modules/data/components/fields-s
 import { dataFieldsUiSchema } from "../../settings/routes/data.settings";
 import * as tbbox from "@sinclair/typebox";
 import { useRoutePathState } from "ui/hooks/use-route-path-state";
+import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
+import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
 const { Type } = tbbox;
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
@@ -65,6 +67,8 @@ export type EntityFieldsFormProps = {
    sortable?: boolean;
    additionalFieldTypes?: (TFieldSpec & { onClick: () => void })[];
    routePattern?: string;
+   defaultPrimaryFormat?: TPrimaryFieldFormat;
+   isNew?: boolean;
 };
 
 export type EntityFieldsFormRef = {
@@ -77,7 +81,7 @@ export type EntityFieldsFormRef = {
 
 export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsFormProps>(
    function EntityFieldsForm(
-      { fields: _fields, sortable, additionalFieldTypes, routePattern, ...props },
+      { fields: _fields, sortable, additionalFieldTypes, routePattern, isNew, ...props },
       ref,
    ) {
       const entityFields = Object.entries(_fields).map(([name, field]) => ({
@@ -172,6 +176,10 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
                                  remove={remove}
                                  dnd={dnd}
                                  routePattern={routePattern}
+                                 primary={{
+                                    defaultFormat: props.defaultPrimaryFormat,
+                                    editable: isNew,
+                                 }}
                               />
                            )}
                         />
@@ -186,6 +194,10 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
                                  errors={errors}
                                  remove={remove}
                                  routePattern={routePattern}
+                                 primary={{
+                                    defaultFormat: props.defaultPrimaryFormat,
+                                    editable: isNew,
+                                 }}
                               />
                            ))}
                         </div>
@@ -281,6 +293,7 @@ function EntityField({
    errors,
    dnd,
    routePattern,
+   primary,
 }: {
    field: FieldArrayWithId<TFieldsFormSchema, "fields", "id">;
    index: number;
@@ -292,6 +305,10 @@ function EntityField({
    errors: any;
    dnd?: SortableItemProps;
    routePattern?: string;
+   primary?: {
+      defaultFormat?: TPrimaryFieldFormat;
+      editable?: boolean;
+   };
 }) {
    const prefix = `fields.${index}.field` as const;
    const type = field.field.type;
@@ -363,15 +380,29 @@ function EntityField({
                   </div>
                )}
                <div className="flex-col gap-1 hidden md:flex">
-                  <span className="text-xs text-primary/50 leading-none">Required</span>
                   {is_primary ? (
-                     <Switch size="sm" defaultChecked disabled />
+                     <>
+                        <MantineSelect
+                           data={["integer", "uuid"]}
+                           defaultValue={primary?.defaultFormat}
+                           disabled={!primary?.editable}
+                           placeholder="Select format"
+                           name={`${prefix}.config.format`}
+                           allowDeselect={false}
+                           control={control}
+                           size="xs"
+                           className="w-22"
+                        />
+                     </>
                   ) : (
-                     <MantineSwitch
-                        size="sm"
-                        name={`${prefix}.config.required`}
-                        control={control}
-                     />
+                     <>
+                        <span className="text-xs text-primary/50 leading-none">Required</span>
+                        <MantineSwitch
+                           size="sm"
+                           name={`${prefix}.config.required`}
+                           control={control}
+                        />
+                     </>
                   )}
                </div>
             </div>

@@ -48,6 +48,14 @@ export function isNode() {
    }
 }
 
+export function isBun() {
+   try {
+      return typeof Bun !== "undefined";
+   } catch (e) {
+      return false;
+   }
+}
+
 export function invariant(condition: boolean | any, message: string) {
    if (!condition) {
       throw new Error(message);

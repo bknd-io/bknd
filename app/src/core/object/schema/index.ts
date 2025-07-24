@@ -27,7 +27,7 @@ export type ParseOptions = {
    clone?: boolean;
 };
 
-const cloneSchema = <S extends s.TSchema>(schema: S): S => {
+export const cloneSchema = <S extends s.TSchema>(schema: S): S => {
    const json = schema.toJSON();
    return s.fromSchema(json) as S;
 };

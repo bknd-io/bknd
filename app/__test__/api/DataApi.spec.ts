@@ -153,7 +153,7 @@ describe("DataApi", () => {
       const oneBy = api.readOneBy("posts", { where: { title: "baz" }, select: ["title"] });
       const oneByRes = await oneBy;
       expect(oneByRes.data).toEqual({ title: "baz" } as any);
-      expect(oneByRes.body.meta.count).toEqual(1);
+      expect(oneByRes.body.meta.items).toEqual(1);
    });
 
    it("exists/count", async () => {

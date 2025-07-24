@@ -7,9 +7,15 @@ import { getFresh } from "./modes/fresh";
 import { getCached } from "./modes/cached";
 import { getDurable } from "./modes/durable";
 import type { App } from "bknd";
-import { $console } from "core";
+import { $console } from "core/utils";
 
-export type CloudflareEnv = object;
+declare global {
+   namespace Cloudflare {
+      interface Env {}
+   }
+}
+
+export type CloudflareEnv = Cloudflare.Env;
 export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> & {
    mode?: "warm" | "fresh" | "cache" | "durable";
    bindings?: (args: Env) => {
@@ -17,11 +23,17 @@ export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> &
       dobj?: DurableObjectNamespace;
       db?: D1Database;
    };
+   d1?: {
+      session?: boolean;
+      transport?: "header" | "cookie";
+      first?: D1SessionConstraint;
+   };
    static?: "kv" | "assets";
    key?: string;
    keepAliveSeconds?: number;
    forceHttps?: boolean;
    manifest?: string;
+   registerMedia?: boolean | ((env: Env) => void);
 };
 
 export type Context<Env = CloudflareEnv> = {

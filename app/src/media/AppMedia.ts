@@ -1,19 +1,12 @@
-import { $console, type AppEntity } from "core";
+import type { AppEntity } from "core";
+import { $console } from "core/utils";
 import type { Entity, EntityManager } from "data";
 import { type FileUploadedEventData, Storage, type StorageAdapter, MediaPermissions } from "media";
 import { Module } from "modules/Module";
-import {
-   type FieldSchema,
-   boolean,
-   datetime,
-   em,
-   entity,
-   json,
-   number,
-   text,
-} from "../data/prototype";
+import { type FieldSchema, em, entity } from "../data/prototype";
 import { MediaController } from "./api/MediaController";
 import { buildMediaSchema, type mediaConfigSchema, registry } from "./media-schema";
+import { mediaFields } from "./media-entities";
 
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
 declare module "core" {
@@ -51,7 +44,7 @@ export class AppMedia extends Module<typeof mediaConfigSchema> {
          this.ctx.server.route(this.basepath, new MediaController(this).getController());
 
          const media = this.getMediaEntity(true);
-         this.ensureSchema(
+         this.ctx.helper.ensureSchema(
             em({ [media.name as "media"]: media }, ({ index }, { media }) => {
                index(media).on(["path"], true).on(["reference"]).on(["entity_id"]);
             }),
@@ -94,18 +87,7 @@ export class AppMedia extends Module<typeof mediaConfigSchema> {
       };
    }
 
-   static mediaFields = {
-      path: text().required(),
-      folder: boolean({ default_value: false, hidden: true, fillable: ["create"] }),
-      mime_type: text(),
-      size: number(),
-      scope: text({ hidden: true, fillable: ["create"] }),
-      etag: text(),
-      modified_at: datetime(),
-      reference: text(),
-      entity_id: number(),
-      metadata: json(),
-   };
+   static mediaFields = mediaFields;
 
    getMediaEntity(forceCreate?: boolean): Entity<"media", typeof AppMedia.mediaFields> {
       const entity_name = this.config.entity_name;

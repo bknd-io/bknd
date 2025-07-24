@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { createApp, registries } from "../../src";
+import { registries } from "../../src";
+import { createApp } from "core/test/utils";
 import * as proto from "../../src/data/prototype";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 

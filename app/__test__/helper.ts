@@ -38,14 +38,15 @@ export function getLocalLibsqlConnection() {
    return { url: "http://127.0.0.1:8080" };
 }
 
-type ConsoleSeverity = "log" | "warn" | "error";
+type ConsoleSeverity = "debug" | "log" | "warn" | "error";
 const _oldConsoles = {
+   debug: console.debug,
    log: console.log,
    warn: console.warn,
    error: console.error,
 };
 
-export function disableConsoleLog(severities: ConsoleSeverity[] = ["log", "warn"]) {
+export function disableConsoleLog(severities: ConsoleSeverity[] = ["debug", "log", "warn"]) {
    severities.forEach((severity) => {
       console[severity] = () => null;
    });

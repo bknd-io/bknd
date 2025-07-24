@@ -1,37 +1,43 @@
-import { decodeSearch, encodeSearch, parseDecode } from "core/utils";
+import { decodeSearch, encodeSearch, mergeObject } from "core/utils";
 import { isEqual, transform } from "lodash-es";
 import { useLocation, useSearch as useWouterSearch } from "wouter";
 import { type s, parse } from "core/object/schema";
+import { useEffect, useMemo, useState } from "react";
 
-// @todo: migrate to Typebox
+export type UseSearchOptions<Schema extends s.TAnySchema = s.TAnySchema> = {
+   defaultValue?: Partial<s.StaticCoerced<Schema>>;
+   beforeEncode?: (search: Partial<s.StaticCoerced<Schema>>) => object;
+};
+
 export function useSearch<Schema extends s.TAnySchema = s.TAnySchema>(
    schema: Schema,
-   defaultValue?: Partial<s.StaticCoerced<Schema>>,
+   options?: UseSearchOptions<Schema>,
 ) {
    const searchString = useWouterSearch();
    const [location, navigate] = useLocation();
-   const initial = searchString.length > 0 ? decodeSearch(searchString) : (defaultValue ?? {});
-   const value = parse(schema, initial, {
-      withDefaults: true,
-      clone: true,
-   }) as s.StaticCoerced<Schema>;
+   const [value, setValue] = useState<s.StaticCoerced<Schema>>(
+      options?.defaultValue ?? ({} as any),
+   );
 
-   // @todo: add option to set multiple keys at once
-   function set<Key extends keyof s.StaticCoerced<Schema>>(
-      key: Key,
-      value: s.StaticCoerced<Schema>[Key],
-   ): void {
-      //console.log("set", key, value);
-      const update = parse(schema, { ...decodeSearch(searchString), [key]: value });
-      const search = transform(
-         update as any,
-         (result, value, key) => {
-            if (defaultValue && isEqual(value, defaultValue[key])) return;
-            result[key] = value;
-         },
-         {} as s.StaticCoerced<Schema>,
+   const defaults = useMemo(() => {
+      return mergeObject(
+         // @ts-ignore
+         schema.template({ withOptional: true }),
+         options?.defaultValue ?? {},
       );
-      const encoded = encodeSearch(search, { encode: false });
+   }, [JSON.stringify({ schema, dflt: options?.defaultValue })]);
+
+   useEffect(() => {
+      const initial =
+         searchString.length > 0 ? decodeSearch(searchString) : (options?.defaultValue ?? {});
+      const v = parse(schema, Object.assign({}, defaults, initial)) as any;
+      setValue(v);
+   }, [searchString, JSON.stringify(options?.defaultValue), location]);
+
+   function set<Update extends Partial<s.StaticCoerced<Schema>>>(update: Update): void {
+      const search = getWithoutDefaults(Object.assign({}, value, update), defaults);
+      const prepared = options?.beforeEncode?.(search) ?? search;
+      const encoded = encodeSearch(prepared, { encode: false });
       navigate(location + (encoded.length > 0 ? "?" + encoded : ""));
    }
 
@@ -39,4 +45,15 @@ export function useSearch<Schema extends s.TAnySchema = s.TAnySchema>(
       value: value as Required<s.StaticCoerced<Schema>>,
       set,
    };
+}
+
+function getWithoutDefaults(value: object, defaultValue: object) {
+   return transform(
+      value as any,
+      (result, value, key) => {
+         if (defaultValue && isEqual(value, defaultValue[key])) return;
+         result[key] = value;
+      },
+      {} as object,
+   );
 }

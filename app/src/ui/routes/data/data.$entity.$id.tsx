@@ -1,3 +1,4 @@
+import type { PrimaryFieldType } from "core";
 import { ucFirst } from "core/utils";
 import type { Entity, EntityData, EntityRelation } from "data";
 import { Fragment, useState } from "react";
@@ -18,15 +19,19 @@ import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
 
 export function DataEntityUpdate({ params }) {
+   return <DataEntityUpdateImpl params={params} key={params.entity} />;
+}
+
+function DataEntityUpdateImpl({ params }) {
    const { $data, relations } = useBkndData();
    const entity = $data.entity(params.entity as string);
    if (!entity) {
       return <Message.NotFound description={`Entity "${params.entity}" doesn't exist.`} />;
    }
 
-   const entityId = Number.parseInt(params.id as string);
+   const entityId = params.id as PrimaryFieldType;
    const [error, setError] = useState<string | null>(null);
-   const [navigate] = useNavigate();
+   const [navigate, _, _goBack] = useNavigate();
    useBrowserTitle(["Data", entity.label, `#${entityId}`]);
    const targetRelations = relations.listableRelationsOf(entity);
 
@@ -47,9 +52,8 @@ export function DataEntityUpdate({ params }) {
       },
    );
 
-   function goBack() {
-      window.history.go(-1);
-   }
+   const backHref = routes.data.entity.list(entity.name);
+   const goBack = () => _goBack({ fallback: backHref });
 
    async function onSubmitted(changeSet?: EntityData) {
       //return;
@@ -157,10 +161,8 @@ export function DataEntityUpdate({ params }) {
             className="pl-3"
          >
             <Breadcrumbs2
-               path={[
-                  { label: entity.label, href: routes.data.entity.list(entity.name) },
-                  { label: `Edit #${entityId}` },
-               ]}
+               backTo={backHref}
+               path={[{ label: entity.label, href: backHref }, { label: `Edit #${entityId}` }]}
             />
          </AppShell.SectionHeader>
          {$q.isLoading ? (
@@ -202,7 +204,7 @@ function EntityDetailRelations({
    entity,
    relations,
 }: {
-   id: number;
+   id: PrimaryFieldType;
    entity: Entity;
    relations: EntityRelation[];
 }) {
@@ -239,7 +241,12 @@ function EntityDetailRelations({
             })}
          />
          <div className="flex flex-grow flex-col gap-3 p-3">
-            <EntityDetailInner id={id} entity={entity} relation={selected} />
+            <EntityDetailInner
+               id={id}
+               entity={entity}
+               relation={selected}
+               key={JSON.stringify(selected?.toJSON())}
+            />
          </div>
       </div>
    );
@@ -250,21 +257,27 @@ function EntityDetailInner({
    entity,
    relation,
 }: {
-   id: number;
+   id: PrimaryFieldType;
    entity: Entity;
    relation: EntityRelation;
 }) {
    const other = relation.other(entity);
    const [navigate] = useNavigate();
 
-   const search = {
+   const [search, setSearch] = useState({
       select: other.entity.getSelect(undefined, "table"),
+      sort: other.entity.getDefaultSort(),
       limit: 10,
       offset: 0,
-   };
+   });
+
    // @todo: add custom key for invalidation
-   const $q = useApiQuery((api) =>
-      api.data.readManyByReference(entity.name, id, other.reference, search),
+   const $q = useApiQuery(
+      (api) => api.data.readManyByReference(entity.name, id, other.reference, search),
+      {
+         keepPreviousData: true,
+         revalidateOnFocus: true,
+      },
    );
 
    function handleClickRow(row: Record<string, any>) {
@@ -299,11 +312,17 @@ function EntityDetailInner({
             select={search.select}
             data={$q.data ?? null}
             entity={other.entity}
+            sort={search.sort}
             onClickRow={handleClickRow}
             onClickNew={handleClickNew}
-            page={1}
+            page={Math.floor(search.offset / search.limit) + 1}
             total={$q.data?.body?.meta?.count ?? 1}
-            /*onClickPage={handleClickPage}*/
+            onClickPage={(page) => {
+               setSearch((s) => ({
+                  ...s,
+                  offset: (page - 1) * s.limit,
+               }));
+            }}
          />
       </div>
    );

@@ -9,6 +9,7 @@ import {
 import type { RepoQuery } from "../server/query";
 import type { RelationType } from "./relation-types";
 import * as tbbox from "@sinclair/typebox";
+import type { PrimaryFieldType } from "core";
 const { Type } = tbbox;
 
 const directions = ["source", "target"] as const;
@@ -72,7 +73,7 @@ export abstract class EntityRelation<
       reference: string,
    ): KyselyQueryBuilder;
 
-   getReferenceQuery(entity: Entity, id: number, reference: string): Partial<RepoQuery> {
+   getReferenceQuery(entity: Entity, id: PrimaryFieldType, reference: string): Partial<RepoQuery> {
       return {};
    }
 

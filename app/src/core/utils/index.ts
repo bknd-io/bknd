@@ -1,3 +1,4 @@
+export * from "./console";
 export * from "./browser";
 export * from "./objects";
 export * from "./strings";

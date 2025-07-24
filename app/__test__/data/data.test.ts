@@ -34,19 +34,12 @@ describe("some tests", async () => {
 
    test("findId", async () => {
       const query = await em.repository(users).findId(1);
-      /*const { result, total, count, time } = query;
-      console.log("query", query.result, {
-         result,
-         total,
-         count,
-         time,
-      });*/
 
       expect(query.sql).toBe(
          'select "users"."id" as "id", "users"."username" as "username", "users"."email" as "email" from "users" where "id" = ? limit ?',
       );
       expect(query.parameters).toEqual([1, 1]);
-      expect(query.result).toEqual([]);
+      expect(query.data).toBeUndefined();
    });
 
    test("findMany", async () => {
@@ -56,7 +49,7 @@ describe("some tests", async () => {
          'select "users"."id" as "id", "users"."username" as "username", "users"."email" as "email" from "users" order by "users"."id" asc limit ? offset ?',
       );
       expect(query.parameters).toEqual([10, 0]);
-      expect(query.result).toEqual([]);
+      expect(query.data).toEqual([]);
    });
 
    test("findMany with number", async () => {
@@ -66,7 +59,7 @@ describe("some tests", async () => {
          'select "posts"."id" as "id", "posts"."title" as "title", "posts"."content" as "content", "posts"."created_at" as "created_at", "posts"."likes" as "likes" from "posts" order by "posts"."id" asc limit ? offset ?',
       );
       expect(query.parameters).toEqual([10, 0]);
-      expect(query.result).toEqual([]);
+      expect(query.data).toEqual([]);
    });
 
    test("try adding an existing field name", async () => {
@@ -109,5 +102,19 @@ describe("some tests", async () => {
          // the config differs, so it throws
          new EntityManager([entity, entity2], connection);
       }).toThrow();
+   });
+
+   test("primary uuid", async () => {
+      const entity = new Entity("users", [
+         new PrimaryField("id", { format: "uuid" }),
+         new TextField("username"),
+      ]);
+      const em = new EntityManager([entity], getDummyConnection().dummyConnection);
+      await em.schema().sync({ force: true });
+
+      const mutator = em.mutator(entity);
+      const data = await mutator.insertOne({ username: "test" });
+      expect(data.data.id).toBeDefined();
+      expect(data.data.id).toBeString();
    });
 });

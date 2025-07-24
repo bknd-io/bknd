@@ -1,6 +1,5 @@
 import path from "node:path";
-import type { Config } from "@libsql/client/node";
-import { $console, config } from "core";
+import { $console } from "core/utils";
 import type { MiddlewareHandler } from "hono";
 import open from "open";
 import { fileExists, getRelativeDistPath } from "../../utils/sys";
@@ -25,10 +24,6 @@ export async function serveStatic(server: Platform): Promise<MiddlewareHandler> 
          });
       }
    }
-}
-
-export async function attachServeStatic(app: any, platform: Platform) {
-   app.module.server.client.get(config.server.assets_path + "*", await serveStatic(platform));
 }
 
 export async function startServer(

@@ -1,5 +1,5 @@
-import { describe } from "node:test";
-import { nodeTestRunner } from "adapter/node/test";
+import { describe } from "vitest";
+import { viTestRunner } from "adapter/node/vitest";
 import { StorageLocalAdapter } from "adapter/node";
 import { adapterTestSuite } from "media/storage/adapters/adapter-test-suite";
 import { readFileSync } from "node:fs";
@@ -14,5 +14,5 @@ describe("StorageLocalAdapter (node)", async () => {
       path: path.join(basePath, "tmp"),
    });
 
-   await adapterTestSuite(nodeTestRunner, adapter, file);
+   await adapterTestSuite(viTestRunner, adapter, file);
 });

@@ -1,6 +1,6 @@
 import { type Event, type EventClass, InvalidEventReturn } from "./Event";
 import { EventListener, type ListenerHandler, type ListenerMode } from "./EventListener";
-import { $console } from "core";
+import { $console } from "core/utils";
 
 export type RegisterListenerConfig =
    | ListenerMode

@@ -1,5 +1,5 @@
 import { SegmentedControl, Tooltip } from "@mantine/core";
-import { IconApi, IconKeyOff, IconSettings, IconUser } from "@tabler/icons-react";
+import { IconApi, IconBook, IconKeyOff, IconSettings, IconUser } from "@tabler/icons-react";
 import {
    TbDatabase,
    TbFingerprint,
@@ -24,6 +24,7 @@ import { useLocation } from "wouter";
 import { NavLink } from "./AppShell";
 import { autoFormatString } from "core/utils";
 import { appShellStore } from "ui/store";
+import { getVersion } from "core/env";
 
 export function HeaderNavigation() {
    const [location, navigate] = useLocation();
@@ -164,6 +165,11 @@ function UserMenu() {
          onClick: () => window.open("/api/system/swagger", "_blank"),
          icon: IconApi,
       },
+      {
+         label: "Docs",
+         onClick: () => window.open("https://docs.bknd.io", "_blank"),
+         icon: IconBook,
+      },
    ];
 
    if (config.auth.enabled) {
@@ -179,9 +185,12 @@ function UserMenu() {
       }
    }
 
-   if (!options.theme) {
-      items.push(() => <UserMenuThemeToggler />);
-   }
+   items.push(() => <UserMenuThemeToggler />);
+   items.push(() => (
+      <div className="font-mono leading-none text-xs text-primary/50 text-center pb-1 pt-2 mt-1 border-t border-primary/5">
+         {getVersion()}
+      </div>
+   ));
 
    return (
       <>

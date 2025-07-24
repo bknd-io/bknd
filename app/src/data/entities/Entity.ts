@@ -1,12 +1,19 @@
-import { $console, config } from "core";
+import { config } from "core";
 import {
+   $console,
    type Static,
    StringEnum,
    parse,
    snakeToPascalWithSpaces,
    transformObject,
 } from "core/utils";
-import { type Field, PrimaryField, type TActionContext, type TRenderContext } from "../fields";
+import {
+   type Field,
+   PrimaryField,
+   primaryFieldTypes,
+   type TActionContext,
+   type TRenderContext,
+} from "../fields";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;
 
@@ -18,6 +25,7 @@ export const entityConfigSchema = Type.Object(
       description: Type.Optional(Type.String()),
       sort_field: Type.Optional(Type.String({ default: config.data.default_primary_field })),
       sort_dir: Type.Optional(StringEnum(["asc", "desc"], { default: "asc" })),
+      primary_format: Type.Optional(StringEnum(primaryFieldTypes)),
    },
    {
       additionalProperties: false,
@@ -36,6 +44,8 @@ export type EntityJSON = ReturnType<Entity["toJSON"]>;
  */
 export const entityTypes = ["regular", "system", "generated"] as const;
 export type TEntityType = (typeof entityTypes)[number];
+
+const ENTITY_SYMBOL = Symbol.for("bknd:entity");
 
 /**
  * @todo: add check for adding fields (primary and relation not allowed)
@@ -68,13 +78,28 @@ export class Entity<
       if (primary_count > 1) {
          throw new Error(`Entity "${name}" has more than one primary field`);
       }
-      this.fields = primary_count === 1 ? [] : [new PrimaryField()];
+      this.fields =
+         primary_count === 1
+            ? []
+            : [
+                 new PrimaryField(undefined, {
+                    format: this.config.primary_format,
+                 }),
+              ];
 
       if (fields) {
          fields.forEach((field) => this.addField(field));
       }
 
       if (type) this.type = type;
+      this[ENTITY_SYMBOL] = true;
+   }
+
+   // this is currently required as there could be multiple variants
+   // we need to migrate to a mono repo
+   static isEntity(e: unknown): e is Entity {
+      if (!e) return false;
+      return e[ENTITY_SYMBOL] === true;
    }
 
    static create(args: {

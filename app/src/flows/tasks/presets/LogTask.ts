@@ -1,5 +1,5 @@
 import { Task } from "../Task";
-import { $console } from "core";
+import { $console } from "core/utils";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;
 

@@ -1,3 +1,5 @@
+import type { MaybePromise } from "core/types";
+
 export type Matcher<T = unknown> = {
    toEqual: (expected: T, failMsg?: string) => void;
    toBe: (expected: T, failMsg?: string) => void;
@@ -16,6 +18,7 @@ export interface Test {
    skipIf: (condition: boolean) => (label: string, fn: TestFn) => void;
 }
 export type TestRunner = {
+   describe: (label: string, asyncFn: () => MaybePromise<void>) => void;
    test: Test;
    mock: <T extends (...args: any[]) => any>(fn: T) => T | any;
    expect: <T = unknown>(
@@ -25,6 +28,9 @@ export type TestRunner = {
       resolves: Matcher<Awaited<T>>;
       rejects: Matcher<Awaited<T>>;
    };
+   beforeEach: (fn: () => MaybePromise<void>) => void;
+   afterEach: (fn: () => MaybePromise<void>) => void;
+   afterAll: (fn: () => MaybePromise<void>) => void;
 };
 
 export async function retry<T>(

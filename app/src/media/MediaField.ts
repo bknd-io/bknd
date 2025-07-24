@@ -1,5 +1,5 @@
 import type { Static } from "core/utils";
-import { Field, baseFieldConfigSchema } from "data";
+import { Field, baseFieldConfigSchema } from "data/fields";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;
 

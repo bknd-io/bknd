@@ -3,7 +3,7 @@ import type { App, CreateAppConfig } from "bknd";
 import { createRuntimeApp, makeConfig } from "bknd/adapter";
 import type { CloudflareBkndConfig, Context, CloudflareEnv } from "../index";
 import { constants, registerAsyncsExecutionContext } from "../config";
-import { $console } from "core";
+import { $console } from "core/utils";
 
 export async function getDurable<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
@@ -64,7 +64,7 @@ export class DurableBkndApp extends DurableObject {
             "type" in config.connection &&
             config.connection.type === "libsql"
          ) {
-            config.connection.config.protocol = "wss";
+            //config.connection.config.protocol = "wss";
          }
 
          this.app = await createRuntimeApp({

@@ -3,20 +3,35 @@ import * as adapter from "adapter";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
+import { omitKeys } from "core/utils";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
 describe("adapter", () => {
    it("makes config", () => {
-      expect(adapter.makeConfig({})).toEqual({});
-      expect(adapter.makeConfig({}, { env: { TEST: "test" } })).toEqual({});
+      expect(omitKeys(adapter.makeConfig({}), ["connection"])).toEqual({});
+      expect(omitKeys(adapter.makeConfig({}, { env: { TEST: "test" } }), ["connection"])).toEqual(
+         {},
+      );
 
       // merges everything returned from `app` with the config
-      expect(adapter.makeConfig({ app: (a) => a as any }, { env: { TEST: "test" } })).toEqual({
-         env: { TEST: "test" },
-      } as any);
+      expect(
+         omitKeys(
+            adapter.makeConfig(
+               { app: (a) => ({ initialConfig: { server: { cors: { origin: a.env.TEST } } } }) },
+               { env: { TEST: "test" } },
+            ),
+            ["connection"],
+         ),
+      ).toEqual({
+         initialConfig: { server: { cors: { origin: "test" } } },
+      });
    });
+
+   /* it.only("...", async () => {
+      const app = await adapter.createAdapterApp();
+   }); */
 
    it("reuses apps correctly", async () => {
       const id = crypto.randomUUID();

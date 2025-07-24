@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { IconButton } from "../../components/buttons/IconButton";
 import { Dropdown } from "../../components/overlay/Dropdown";
 import { useEvent } from "../../hooks/use-event";
+import { useNavigate } from "ui/lib/routes";
 
 type Breadcrumb = {
    label: string | Element;
@@ -17,26 +18,11 @@ export type Breadcrumbs2Props = {
 };
 
 export const Breadcrumbs2 = ({ path: _path, backTo, onBack }: Breadcrumbs2Props) => {
-   const [_, navigate] = useLocation();
-   const location = window.location.pathname;
+   const [, , _goBack] = useNavigate();
    const path = Array.isArray(_path) ? _path : [_path];
-   const loc = location.split("/").filter((v) => v !== "");
    const hasBack = path.length > 1;
 
-   const goBack = onBack
-      ? onBack
-      : useEvent(() => {
-           if (backTo) {
-              navigate(backTo, { replace: true });
-              return;
-           } else if (_path.length > 0 && _path[0]?.href) {
-              navigate(_path[0].href, { replace: true });
-              return;
-           }
-
-           const href = loc.slice(0, path.length + 1).join("/");
-           navigate(`~/${href}`, { replace: true });
-        });
+   const goBack = onBack ? onBack : () => _goBack({ fallback: backTo });
 
    const crumbs = useMemo(
       () =>

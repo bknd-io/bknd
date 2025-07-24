@@ -208,7 +208,7 @@ export class ManyToOneRelation extends EntityRelation<typeof ManyToOneRelation.s
          [field.targetField()]: primaryReference as any,
       });
 
-      if (!query.exists) {
+      if (!query.data.exists) {
          const idProp = field.targetField();
          throw new Error(
             `Cannot connect "${entity.name}.${key}" to ` +

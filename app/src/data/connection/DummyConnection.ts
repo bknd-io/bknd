@@ -1,6 +1,8 @@
 import { Connection, type FieldSpec, type SchemaResponse } from "./Connection";
 
 export class DummyConnection extends Connection {
+   override name: string = "dummy";
+
    protected override readonly supported = {
       batching: true,
    };

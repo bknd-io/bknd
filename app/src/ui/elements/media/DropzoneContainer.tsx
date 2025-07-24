@@ -1,9 +1,10 @@
 import type { Api } from "bknd/client";
+import type { PrimaryFieldType } from "core";
 import type { RepoQueryIn } from "data";
 import type { MediaFieldSchema } from "media/AppMedia";
 import type { TAppMediaConfig } from "media/media-schema";
 import { useId, useEffect, useRef, useState } from "react";
-import { useApi, useApiInfiniteQuery, useApiQuery, useInvalidate } from "ui/client";
+import { useApi, useApiInfiniteQuery, useApiQuery, useInvalidate } from "bknd/client";
 import { useEvent } from "ui/hooks/use-event";
 import { Dropzone, type DropzoneProps } from "./Dropzone";
 import { mediaItemsToFileStates } from "./helper";
@@ -14,7 +15,7 @@ export type DropzoneContainerProps = {
    infinite?: boolean;
    entity?: {
       name: string;
-      id: number;
+      id: PrimaryFieldType;
       field: string;
    };
    media?: Pick<TAppMediaConfig, "entity_name" | "storage">;

@@ -1,7 +1,7 @@
 import type { EventManager } from "core/events";
 import type { Flow } from "../Flow";
 import { Trigger } from "./Trigger";
-import { $console } from "core";
+import { $console } from "core/utils";
 import * as tbbox from "@sinclair/typebox";
 const { Type } = tbbox;
 

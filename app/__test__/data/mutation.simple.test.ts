@@ -45,7 +45,7 @@ describe("Mutator simple", async () => {
          },
       });
 
-      expect(query.result).toEqual([{ id: 1, label: "test", count: 1 }]);
+      expect(query.data).toEqual([{ id: 1, label: "test", count: 1 }]);
    });
 
    test("update inserted row", async () => {
@@ -87,7 +87,7 @@ describe("Mutator simple", async () => {
       expect(mutation.data).toEqual({ id, label: "new label", count: 100 });
 
       const query2 = await em.repository(items).findId(id);
-      expect(query2.result.length).toBe(0);
+      expect(query2.data).toBeUndefined();
    });
 
    test("validation: insert incomplete row", async () => {
@@ -177,13 +177,13 @@ describe("Mutator simple", async () => {
    });
 
    test("insertMany", async () => {
-      const oldCount = (await em.repo(items).count()).count;
+      const oldCount = (await em.repo(items).count()).data.count;
       const inserts = [{ label: "insert 1" }, { label: "insert 2" }];
       const { data } = await em.mutator(items).insertMany(inserts);
 
       expect(data.length).toBe(2);
       expect(data.map((d) => ({ label: d.label }))).toEqual(inserts);
-      const newCount = (await em.repo(items).count()).count;
+      const newCount = (await em.repo(items).count()).data.count;
       expect(newCount).toBe(oldCount + inserts.length);
 
       const { data: data2 } = await em.repo(items).findMany({ offset: oldCount });

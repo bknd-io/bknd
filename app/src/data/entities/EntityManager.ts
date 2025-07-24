@@ -1,4 +1,5 @@
-import { $console, type DB as DefaultDB } from "core";
+import type { DB as DefaultDB } from "core";
+import { $console } from "core/utils";
 import { EventManager } from "core/events";
 import { sql } from "kysely";
 import { Connection } from "../connection/Connection";
@@ -118,12 +119,12 @@ export class EntityManager<TBD extends object = DefaultDB> {
    ): Silent extends true ? Entity | undefined : Entity {
       // make sure to always retrieve by name
       const entity = this.entities.find((entity) =>
-         e instanceof Entity ? entity.name === e.name : entity.name === e,
+         Entity.isEntity(e) ? entity.name === e.name : entity.name === e,
       );
 
       if (!entity) {
          if (silent === true) return undefined as any;
-         throw new EntityNotDefinedException(e instanceof Entity ? e.name : (e as string));
+         throw new EntityNotDefinedException(Entity.isEntity(e) ? e.name : (e as string));
       }
 
       return entity;
@@ -207,8 +208,9 @@ export class EntityManager<TBD extends object = DefaultDB> {
 
    repository<E extends Entity | keyof TBD | string>(
       entity: E,
+      opts: Omit<RepositoryOptions, "emgr"> = {},
    ): Repository<TBD, EntitySchema<TBD, E>> {
-      return this.repo(entity);
+      return this.repo(entity, opts);
    }
 
    repo<E extends Entity | keyof TBD | string>(
@@ -235,7 +237,7 @@ export class EntityManager<TBD extends object = DefaultDB> {
    }
 
    getIndicesOf(_entity: Entity | string): EntityIndex[] {
-      const entity = _entity instanceof Entity ? _entity : this.entity(_entity);
+      const entity = Entity.isEntity(_entity) ? _entity : this.entity(_entity);
       return this.indices.filter((index) => index.entity.name === entity.name);
    }
 
@@ -277,6 +279,10 @@ export class EntityManager<TBD extends object = DefaultDB> {
                   row[key] = field.getDefault();
                }
 
+               // transform from driver
+               value = this.connection.fromDriver(value, field);
+
+               // transform from field
                row[key] = field.transformRetrieve(value as any);
             } catch (e: any) {
                throw new TransformRetrieveFailedException(

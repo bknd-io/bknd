@@ -1,5 +1,5 @@
 import type { DB as DefaultDB, PrimaryFieldType } from "core";
-import { $console } from "core";
+import { $console } from "core/utils";
 import { type EmitsEvents, EventManager } from "core/events";
 import { type SelectQueryBuilder, sql } from "kysely";
 import { InvalidSearchParamsException } from "../../errors";
@@ -13,36 +13,10 @@ import {
    WithBuilder,
 } from "../index";
 import { JoinBuilder } from "./JoinBuilder";
-import { ensureInt } from "core/utils";
+import { RepositoryResult, type RepositoryResultOptions } from "./RepositoryResult";
+import type { ResultOptions } from "../Result";
 
 export type RepositoryQB = SelectQueryBuilder<any, any, any>;
-
-export type RepositoryRawResponse = {
-   sql: string;
-   parameters: any[];
-   result: EntityData[];
-};
-export type RepositoryResponse<T = EntityData[]> = RepositoryRawResponse & {
-   entity: Entity;
-   data: T;
-   meta: {
-      items: number;
-      total?: number;
-      count?: number;
-      time?: number;
-      query?: {
-         sql: string;
-         parameters: readonly any[];
-      };
-   };
-};
-
-export type RepositoryCountResponse = RepositoryRawResponse & {
-   count: number;
-};
-export type RepositoryExistsResponse = RepositoryRawResponse & {
-   exists: boolean;
-};
 
 export type RepositoryOptions = {
    silent?: boolean;
@@ -83,7 +57,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       }
    }
 
-   getValidOptions(options?: RepoQuery): RepoQuery {
+   getValidOptions(options?: Partial<RepoQuery>): RepoQuery {
       const entity = this.entity;
       // @todo: if not cloned deep, it will keep references and error if multiple requests come in
       const validated = {
@@ -182,126 +156,18 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       return validated;
    }
 
-   protected async executeQb(qb: RepositoryQB) {
-      const compiled = qb.compile();
-      if (this.options?.silent !== true) {
-         $console.debug(`Repository: query\n${compiled.sql}\n`, compiled.parameters);
-      }
-
-      let result: any;
-      try {
-         result = await qb.execute();
-      } catch (e) {
-         if (this.options?.silent !== true) {
-            if (e instanceof Error) {
-               $console.error("[ERROR] Repository.executeQb", e.message);
-            }
-
-            throw e;
-         }
-      }
-
-      return {
-         result,
-         sql: compiled.sql,
-         parameters: [...compiled.parameters],
-      };
-   }
-
-   protected async performQuery(qb: RepositoryQB): Promise<RepositoryResponse> {
-      const entity = this.entity;
-      const compiled = qb.compile();
-
-      const payload = {
-         entity,
-         sql: compiled.sql,
-         parameters: [...compiled.parameters],
-         result: [],
-         data: [],
-         meta: {
-            total: 0,
-            count: 0,
-            items: 0,
-            time: 0,
-            query: { sql: compiled.sql, parameters: compiled.parameters },
-         },
-      };
-
-      // don't batch (add counts) if `includeCounts` is set to false
-      // or when explicitly set to true and batching is not supported
-      if (
-         this.options?.includeCounts === false ||
-         (this.options?.includeCounts === true && !this.em.connection.supports("batching"))
-      ) {
-         const start = performance.now();
-         const res = await this.executeQb(qb);
-         const time = Number.parseFloat((performance.now() - start).toFixed(2));
-         const result = res.result ?? [];
-         const data = this.em.hydrate(entity.name, result);
-
-         return {
-            ...payload,
-            result,
-            data,
-            meta: {
-               ...payload.meta,
-               total: undefined,
-               count: undefined,
-               items: data.length,
-               time,
-            },
-         };
-      }
-
-      if (this.options?.silent !== true) {
-         $console.debug(`Repository: query\n${compiled.sql}\n`, compiled.parameters);
-      }
-
-      const selector = (as = "count") => this.conn.fn.countAll<number>().as(as);
-      const countQuery = qb
-         .clearSelect()
-         .select(selector())
-         .clearLimit()
-         .clearOffset()
-         .clearGroupBy()
-         .clearOrderBy();
-      const totalQuery = this.conn.selectFrom(entity.name).select(selector());
-
-      try {
-         const start = performance.now();
-         const [_count, _total, result] = await this.em.connection.batchQuery([
-            countQuery,
-            totalQuery,
-            qb,
-         ]);
-
-         const time = Number.parseFloat((performance.now() - start).toFixed(2));
-         const data = this.em.hydrate(entity.name, result);
-
-         return {
-            ...payload,
-            result,
-            data,
-            meta: {
-               ...payload.meta,
-               // parsing is important since pg returns string
-               total: ensureInt(_total[0]?.count),
-               count: ensureInt(_count[0]?.count),
-               items: result.length,
-               time,
-            },
-         };
-      } catch (e) {
-         if (this.options?.silent !== true) {
-            if (e instanceof Error) {
-               $console.error("[ERROR] Repository.performQuery", e.message);
-            }
-
-            throw e;
-         } else {
-            return payload;
-         }
-      }
+   protected async performQuery<T = EntityData[]>(
+      qb: RepositoryQB,
+      opts?: RepositoryResultOptions,
+      execOpts?: { includeCounts?: boolean },
+   ): Promise<RepositoryResult<T>> {
+      const result = new RepositoryResult(this.em, this.entity, {
+         silent: this.options.silent,
+         ...opts,
+      });
+      return (await result.execute(qb, {
+         includeCounts: execOpts?.includeCounts ?? this.options.includeCounts,
+      })) as any;
    }
 
    private async triggerFindBefore(entity: Entity, options: RepoQuery): Promise<void> {
@@ -319,7 +185,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
    ): Promise<void> {
       if (options.limit === 1) {
          await this.emgr.emit(
-            new Repository.Events.RepositoryFindOneAfter({ entity, options, data: data[0]! }),
+            new Repository.Events.RepositoryFindOneAfter({ entity, options, data }),
          );
       } else {
          await this.emgr.emit(
@@ -331,12 +197,11 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
    protected async single(
       qb: RepositoryQB,
       options: RepoQuery,
-   ): Promise<RepositoryResponse<EntityData>> {
+   ): Promise<RepositoryResult<TBD[TB] | undefined>> {
       await this.triggerFindBefore(this.entity, options);
-      const { data, ...response } = await this.performQuery(qb);
-
-      await this.triggerFindAfter(this.entity, options, data);
-      return { ...response, data: data[0]! };
+      const result = await this.performQuery(qb, { single: true });
+      await this.triggerFindAfter(this.entity, options, result.data);
+      return result as any;
    }
 
    addOptionsToQueryBuilder(
@@ -381,8 +246,10 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          qb = WhereBuilder.addClause(qb, options.where);
       }
 
-      if (!ignore.includes("limit")) qb = qb.limit(options.limit ?? defaults.limit);
-      if (!ignore.includes("offset")) qb = qb.offset(options.offset ?? defaults.offset);
+      if (!ignore.includes("limit")) {
+         qb = qb.limit(options.limit ?? defaults.limit);
+         if (!ignore.includes("offset")) qb = qb.offset(options.offset ?? defaults.offset);
+      }
 
       // sorting
       if (!ignore.includes("sort")) {
@@ -413,7 +280,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
    async findId(
       id: PrimaryFieldType,
       _options?: Partial<Omit<RepoQuery, "where" | "limit" | "offset">>,
-   ): Promise<RepositoryResponse<TBD[TB] | undefined>> {
+   ): Promise<RepositoryResult<TBD[TB] | undefined>> {
       const { qb, options } = this.buildQuery(
          {
             ..._options,
@@ -429,7 +296,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
    async findOne(
       where: RepoQuery["where"],
       _options?: Partial<Omit<RepoQuery, "where" | "limit" | "offset">>,
-   ): Promise<RepositoryResponse<TBD[TB] | undefined>> {
+   ): Promise<RepositoryResult<TBD[TB] | undefined>> {
       const { qb, options } = this.buildQuery({
          ..._options,
          where,
@@ -439,7 +306,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       return (await this.single(qb, options)) as any;
    }
 
-   async findMany(_options?: Partial<RepoQuery>): Promise<RepositoryResponse<TBD[TB][]>> {
+   async findMany(_options?: Partial<RepoQuery>): Promise<RepositoryResult<TBD[TB][]>> {
       const { qb, options } = this.buildQuery(_options);
       await this.triggerFindBefore(this.entity, options);
 
@@ -454,7 +321,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       id: PrimaryFieldType,
       reference: string,
       _options?: Partial<Omit<RepoQuery, "limit" | "offset">>,
-   ): Promise<RepositoryResponse<EntityData>> {
+   ): Promise<RepositoryResult<EntityData>> {
       const entity = this.entity;
       const listable_relations = this.em.relations.listableRelationsOf(entity);
       const relation = listable_relations.find((r) => r.ref(reference).reference === reference);
@@ -482,10 +349,10 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          },
       };
 
-      return this.cloneFor(newEntity).findMany(findManyOptions);
+      return this.cloneFor(newEntity).findMany(findManyOptions) as any;
    }
 
-   async count(where?: RepoQuery["where"]): Promise<RepositoryCountResponse> {
+   async count(where?: RepoQuery["where"]): Promise<RepositoryResult<{ count: number }>> {
       const entity = this.entity;
       const options = this.getValidOptions({ where });
 
@@ -497,17 +364,18 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          qb = WhereBuilder.addClause(qb, options.where);
       }
 
-      const { result, ...compiled } = await this.executeQb(qb);
-
-      return {
-         sql: compiled.sql,
-         parameters: [...compiled.parameters],
-         result,
-         count: result[0]?.count ?? 0,
-      };
+      return await this.performQuery(
+         qb,
+         {
+            hydrator: (rows) => ({ count: rows[0]?.count ?? 0 }),
+         },
+         { includeCounts: false },
+      );
    }
 
-   async exists(where: Required<RepoQuery>["where"]): Promise<RepositoryExistsResponse> {
+   async exists(
+      where: Required<RepoQuery>["where"],
+   ): Promise<RepositoryResult<{ exists: boolean }>> {
       const entity = this.entity;
       const options = this.getValidOptions({ where });
 
@@ -517,13 +385,8 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       // add mandatory where
       qb = WhereBuilder.addClause(qb, options.where!).limit(1);
 
-      const { result, ...compiled } = await this.executeQb(qb);
-
-      return {
-         sql: compiled.sql,
-         parameters: [...compiled.parameters],
-         result,
-         exists: result[0]!.count > 0,
-      };
+      return await this.performQuery(qb, {
+         hydrator: (rows) => ({ exists: rows[0]?.count > 0 }),
+      });
    }
 }

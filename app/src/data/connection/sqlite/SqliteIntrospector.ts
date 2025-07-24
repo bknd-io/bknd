@@ -68,32 +68,34 @@ export class SqliteIntrospector extends BaseIntrospector {
       return tables.map((table) => ({
          name: table.name,
          isView: table.type === "view",
-         columns: table.columns.map((col) => {
-            const autoIncrementCol = table.sql
-               ?.split(/[\(\),]/)
-               ?.find((it) => it.toLowerCase().includes("autoincrement"))
-               ?.trimStart()
-               ?.split(/\s+/)?.[0]
-               ?.replace(/["`]/g, "");
+         columns:
+            table.columns?.map((col) => {
+               const autoIncrementCol = table.sql
+                  ?.split(/[\(\),]/)
+                  ?.find((it) => it.toLowerCase().includes("autoincrement"))
+                  ?.trimStart()
+                  ?.split(/\s+/)?.[0]
+                  ?.replace(/["`]/g, "");
 
-            return {
-               name: col.name,
-               dataType: col.type,
-               isNullable: !col.notnull,
-               isAutoIncrementing: col.name === autoIncrementCol,
-               hasDefaultValue: col.dflt_value != null,
-               comment: undefined,
-            };
-         }),
-         indices: table.indices.map((index) => ({
-            name: index.name,
-            table: table.name,
-            isUnique: index.sql?.match(/unique/i) != null,
-            columns: index.columns.map((col) => ({
-               name: col.name,
-               order: col.seqno,
-            })),
-         })),
+               return {
+                  name: col.name,
+                  dataType: col.type,
+                  isNullable: !col.notnull,
+                  isAutoIncrementing: col.name === autoIncrementCol,
+                  hasDefaultValue: col.dflt_value != null,
+                  comment: undefined,
+               };
+            }) ?? [],
+         indices:
+            table.indices?.map((index) => ({
+               name: index.name,
+               table: table.name,
+               isUnique: index.sql?.match(/unique/i) != null,
+               columns: index.columns.map((col) => ({
+                  name: col.name,
+                  order: col.seqno,
+               })),
+            })) ?? [],
       }));
    }
 }

@@ -12,6 +12,15 @@ export class RelationAccessor {
       return this._relations;
    }
 
+   exists(relation: EntityRelation): boolean {
+      return this._relations.some(
+         (r) =>
+            r.source.entity.name === relation.source.entity.name &&
+            r.target.entity.name === relation.target.entity.name &&
+            r.type === relation.type,
+      );
+   }
+
    /**
     * Searches for the relations of [entity_name]
     */
