@@ -5,7 +5,7 @@ import { Storage } from "media/storage/Storage";
 import { Module } from "modules/Module";
 import { type FieldSchema, em, entity } from "../data/prototype";
 import { MediaController } from "./api/MediaController";
-import { buildMediaSchema, registry, type TAppMediaConfig } from "./media-schema";
+import { buildMediaSchema, MediaAdapterRegistry, type TAppMediaConfig } from "./media-schema";
 import { mediaFields } from "./media-entities";
 import * as MediaPermissions from "media/media-permissions";
 
@@ -36,7 +36,7 @@ export class AppMedia extends Module<Required<TAppMediaConfig>> {
       let adapter: StorageAdapter;
       try {
          const { type, config } = this.config.adapter;
-         const cls = registry.get(type as any).cls;
+         const cls = MediaAdapterRegistry.get(type as any).cls;
          adapter = new cls(config as any);
 
          this._storage = new Storage(adapter, this.config.storage, this.ctx.emgr);

@@ -696,13 +696,13 @@ export class ModuleManager {
       return transformObject(this.modules, (module) => module.toJSON(true)) as any;
    }
 
-   getSchema() {
+   getSchema(): { version: number } & ModuleSchemas {
       const schemas = transformObject(this.modules, (module) => module.getSchema());
 
       return {
          version: this.version(),
          ...schemas,
-      };
+      } as any;
    }
 
    toJSON(secrets?: boolean): { version: number } & ModuleConfigs {

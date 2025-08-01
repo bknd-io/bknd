@@ -26,7 +26,7 @@ const schemaProvided = s.object(
    },
    { title: "OAuth" },
 );
-type ProvidedOAuthConfig = s.Static<typeof schemaProvided>;
+export type ProvidedOAuthConfig = s.Static<typeof schemaProvided>;
 
 export type CustomOAuthConfig = {
    type: SupportedTypes;

@@ -30,7 +30,7 @@ const oauthSchemaCustom = s.strictObject(
    { title: "Custom OAuth" },
 );
 
-type OAuthConfigCustom = s.Static<typeof oauthSchemaCustom>;
+export type OAuthConfigCustom = s.Static<typeof oauthSchemaCustom>;
 
 export type UserProfile = {
    sub: string;
