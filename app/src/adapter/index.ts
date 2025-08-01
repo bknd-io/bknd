@@ -168,7 +168,7 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
       const path = c.req.path.substring(1);
       if (files.includes(path)) {
          try {
-            const content = await import(`bknd/static/${path}?raw`, {
+            const content = await import(/* @vite-ignore */ `bknd/static/${path}?raw`, {
                assert: { type: "text" },
             }).then((m) => m.default);
 

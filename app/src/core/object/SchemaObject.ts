@@ -29,7 +29,7 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
       this._value = deepFreeze(
          parse(_schema, structuredClone(initial ?? {}), {
             withDefaults: true,
-            withExtendedDefaults: true,
+            //withExtendedDefaults: true,
             forceParse: this.isForceParse(),
             skipMark: this.isForceParse(),
          }),
