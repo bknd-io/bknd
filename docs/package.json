@@ -13,6 +13,7 @@
     "deploy": "npm run build && wrangler deploy",
     "cf:deploy": "wrangler deploy"
   },
+  "packageManager": "npm@11.3.0",
   "dependencies": {
     "@iconify/react": "^6.0.0",
     "@orama/orama": "^3.1.10",
