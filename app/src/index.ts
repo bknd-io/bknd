@@ -90,6 +90,8 @@ export {
    type FileUploadPayload,
 } from "media/storage/Storage";
 export { StorageAdapter } from "media/storage/StorageAdapter";
+export { StorageS3Adapter } from "media/storage/adapters/s3/StorageS3Adapter";
+export { StorageCloudinaryAdapter } from "media/storage/adapters/cloudinary/StorageCloudinaryAdapter";
 
 /**
  * Data
