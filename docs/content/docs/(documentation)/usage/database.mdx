@@ -111,8 +111,7 @@ export default {
 Turso offers a SQLite-fork called LibSQL that runs a server around your SQLite database. The edge-version of the adapter is included in the bundle (remote only):
 
 ```typescript title="bknd.config.ts"
-import type { BkndConfig } from "bknd";
-import { libsql } from "bknd/data";
+import { libsql, type BkndConfig } from "bknd";
 
 export default {
   connection: libsql({
@@ -125,8 +124,7 @@ export default {
 If you wish to use LibSQL as file, in-memory or make use of [Embedded Replicas](https://docs.turso.tech/features/embedded-replicas/introduction), you have to pass in the `Client` from `@libsql/client`:
 
 ```typescript title="bknd.config.ts"
-import type { BkndConfig } from "bknd";
-import { libsql } from "bknd/data";
+import { libsql, type BkndConfig } from "bknd";
 import { createClient } from "@libsql/client";
 
 const client = createClient({
@@ -265,8 +263,7 @@ serve({
 Creating a custom connection is as easy as extending the `Connection` class and passing constructing a Kysely instance.
 
 ```ts
-import { createApp } from "bknd";
-import { Connection } from "bknd/data";
+import { createApp, Connection } from "bknd";
 import { Kysely } from "kysely";
 
 class CustomConnection extends Connection {
@@ -293,8 +290,7 @@ To provide an initial database structure, you can pass `initialConfig` to the cr
 </Callout>
 
 ```typescript
-import { createApp } from "bknd";
-import { em, entity, text, number } from "bknd/data";
+import { createApp, em, entity, text, number } from "bknd";
 
 const schema = em(
   {
@@ -360,10 +356,10 @@ To get type completion, there are two options:
 1. Use the CLI to [generate the types](/usage/cli#generating-types-types)
 2. If you have an initial structure created with the prototype functions, you can extend the `DB` interface with your own schema.
 
-All entity related functions use the types defined in `DB` from `bknd/core`. To get type completion, you can extend that interface with your own schema:
+All entity related functions use the types defined in `DB` from `bknd`. To get type completion, you can extend that interface with your own schema:
 
 ```typescript
-import { em } from "bknd/data";
+import { em } from "bknd";
 import { Api } from "bknd/client";
 
 const schema = em({
@@ -371,7 +367,7 @@ const schema = em({
 });
 
 type Database = (typeof schema)["DB"];
-declare module "bknd/core" {
+declare module "bknd" {
   interface DB extends Database {}
 }
 

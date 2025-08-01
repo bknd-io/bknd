@@ -46,7 +46,7 @@ To serve the API, you can use the `serveLambda` function of the AWS Lambda adapt
 
 ```tsx title="index.mjs"
 import { serveLambda } from "bknd/adapter/aws";
-import { libsql } from "bknd/data";
+import { libsql } from "bknd";
 
 export const handler = serveLambda({
   connection: libsql({

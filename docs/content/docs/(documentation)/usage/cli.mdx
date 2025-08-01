@@ -162,7 +162,7 @@ npx bknd types
 This will generate types for your database schema in `bknd-types.d.ts`. The generated file could look like this:
 
 ```typescript bknd-types.d.ts
-import type { DB } from "bknd/core";
+import type { DB } from "bknd";
 import type { Insertable, Selectable, Updateable, Generated } from "kysely";
 
 declare global {
@@ -181,7 +181,7 @@ interface Database {
   todos: Todos;
 }
 
-declare module "bknd/core" {
+declare module "bknd" {
   interface DB extends Database {}
 }
 ```
@@ -194,10 +194,10 @@ Make sure to add the generated file in your `tsconfig.json` file:
 }
 ```
 
-You can then use the types by importing them from `bknd/core`:
+You can then use the types by importing them from `bknd`:
 
 ```typescript
-import type { DB } from "bknd/core";
+import type { DB } from "bknd";
 
 type Todo = DB["todos"];
 ```

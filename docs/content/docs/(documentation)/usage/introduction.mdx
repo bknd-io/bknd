@@ -46,8 +46,7 @@ The `CreateAppConfig` type is the main configuration object for the `createApp` 
 the following properties:
 
 ```typescript
-import type { App, InitialModuleConfigs, ModuleBuildContext } from "bknd";
-import type { Connection } from "bknd/data";
+import type { App, InitialModuleConfigs, ModuleBuildContext, Connection } from "bknd";
 import type { Config } from "@libsql/client";
 
 type AppPlugin = (app: App) => Promise<void> | void;

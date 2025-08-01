@@ -77,7 +77,10 @@ export * as AuthPermissions from "auth/auth-permissions";
  * Media
  */
 export { getExtensionFromName, getRandomizedFilename } from "media/utils";
-export * as StorageEvents from "media/storage/events";
+import * as StorageEvents from "media/storage/events";
+export const MediaEvents = {
+   ...StorageEvents,
+};
 export * as MediaPermissions from "media/media-permissions";
 export type { FileUploadedEventData } from "media/storage/events";
 export { guess as guessMimeType } from "media/storage/mime-types-tiny";
@@ -97,7 +100,7 @@ export { StorageCloudinaryAdapter } from "media/storage/adapters/cloudinary/Stor
  * Data
  */
 import { MutatorEvents, RepositoryEvents } from "data/events";
-export const DataEvents = { ...MutatorEvents, ...RepositoryEvents };
+export const DatabaseEvents = { ...MutatorEvents, ...RepositoryEvents };
 export type {
    RepoQuery,
    RepoQueryIn,
