@@ -1,0 +1,47 @@
+---
+title: "Data"
+description: "Define, query, and control your data with ease."
+tags: ["documentation"]
+---
+
+Data is the lifeblood of any application, and **bknd** provides the tools to handle it effortlessly. From defining entities to executing complex queries, bknd offers a developer-friendly, intuitive, and powerful data management experience.
+
+### **Define Your Data**
+
+Model entities with **fields** and **relationships**, automatically synced to your database.
+
+- Supported field types: `primary`, `text`, `number`, `date`, `boolean`, `enum`, `json`, and `jsonschema`.
+- Relationship types: `many-to-one`, `one-to-one`, `many-to-many`, and `polymorphic`.
+- Add **indices** to enhance database performance: single, compound, and unique indices.
+
+### **Entity Management**
+
+Use the **EntityManager** to simplify handling your entities. Access data efficiently with the **Repository**:
+
+- Select specific properties to return.
+- Define sort directions, limits, and offsets.
+- Include or join relational data seamlessly within a single query using `with` and joins.
+- Apply robust filtering with an extensive `where` object: `$eq`, `$ne`, `$isnull`, `$notnull`, `$in`, `$notin`, `$gt`, `$gte`, `$lt`, `$lte`, `$between`.
+
+### **Seamless Data Manipulation with Mutators**
+
+Create, update, and delete entity data with confidence.
+
+- Validates data against the entity schema.
+- (coming soon) Supports relational data with flexible syntax: `$create`, `$set`, `$attach`,
+  `$detach`.
+
+### **Powerful Event System**
+
+Hook into critical lifecycle events for fine-grained control:
+
+- Repository events: `find-one-before`, `find-one-after`, `find-many-before`, `find-many-after`.
+- Mutator events: `insert-before`, `insert-after`, `update-before`, `update-after`, `delete-before`, `delete-after`.
+
+### **Enhanced Database Communication**
+
+The **Connection** class communicates with the database. It's based on kysely, so that it
+generally supports multiple database dialects (but currently only SQLite/LibSQL is supported).
+
+Whether you're modeling simple data structures or managing complex relationships, bknd's data tools empower you to build applications with confidence and scalability.
+

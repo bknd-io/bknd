@@ -1,0 +1,174 @@
+---
+title: "Next.js"
+description: "Run bknd inside Next.js"
+tags: ["documentation"]
+---
+
+## Installation
+
+To get started with Next.js and bknd you can either install the package manually, and follow the descriptions below, or use the CLI starter.
+
+### CLI Starter
+
+Create a new Next.js CLI starter project by running the following command:
+
+```sh
+  npx bknd create -i nextjs
+```
+
+### Manual
+
+Create a new Next.js project by following the [official guide](https://nextjs.org/docs/pages/api-reference/cli/create-next-app), and then install bknd as a dependency:
+
+<Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
+
+```bash tab="npm"
+npm install bknd
+```
+
+```bash tab="pnpm"
+pnpm install bknd
+```
+
+```bash tab="yarn"
+yarn add bknd
+```
+
+```bash tab="bun"
+bun add bknd
+```
+
+</Tabs>
+
+## Configuration
+
+<Callout type="warning">
+  When run with Node.js, a version of 22 (LTS) or higher is required. Please
+  verify your version by running `node -v`, and
+  [upgrade](https://nodejs.org/en/download/) if necessary.
+</Callout>
+
+Now create a `bknd.config.ts` file in the root of your project. If you created the project using the CLI starter, this file is already created for you.
+
+```typescript title="bknd.config.ts"
+import type { NextjsBkndConfig } from "bknd/adapter/nextjs";
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+} satisfies NextjsBkndConfig;
+```
+
+See [bknd.config.ts](/extending/config) for more information on how to configure bknd. The `NextjsBkndConfig` type extends the `BkndConfig` type with the following additional properties:
+
+```typescript
+type NextjsEnv = NextApiRequest["env"];
+export type NextjsBkndConfig<Env = NextjsEnv> = FrameworkBkndConfig<Env> & {
+  cleanRequest?: { searchParams?: string[] };
+};
+```
+
+## Serve the API
+
+Create a helper file to instantiate the bknd instance and retrieve the API, importing the configurationfrom the `bknd.config.ts` file:
+
+```ts title="src/bknd.ts"
+import {
+  type NextjsBkndConfig,
+  getApp as getBkndApp,
+} from "bknd/adapter/nextjs";
+import { headers } from "next/headers";
+import config from "../bknd.config";
+
+export { config };
+
+export async function getApp() {
+  return await getBkndApp(config, process.env);
+}
+
+export async function getApi(opts?: { verify?: boolean }) {
+  const app = await getApp();
+  if (opts?.verify) {
+    const api = app.getApi({ headers: await headers() });
+    await api.verifyAuth();
+    return api;
+  }
+
+  return app.getApi();
+}
+```
+
+For more information about the connection object, refer to the [Database](/usage/database) guide.
+
+Now to expose the API, create a catch-all route file at `src/api/[[...bknd]]/route.ts`:
+
+```ts title="src/api/[[...bknd]]/route.ts"
+import { config } from "@/bknd";
+import { serve } from "bknd/adapter/nextjs";
+
+// optionally, you can set the runtime to edge for better performance
+export const runtime = "edge";
+
+const handler = serve({
+  ...config,
+  cleanRequest: {
+    // depending on what name you used for the catch-all route,
+    // you need to change this to clean it from the request.
+    searchParams: ["bknd"],
+  },
+});
+
+export const GET = handler;
+export const POST = handler;
+export const PUT = handler;
+export const PATCH = handler;
+export const DELETE = handler;
+```
+
+## Enabling the Admin UI
+
+Create a page at `admin/[[...admin]]/page.tsx`:
+
+```tsx title="admin/[[...admin]]/page.tsx"
+import { Admin } from "bknd/ui";
+import { getApi } from "@/bknd";
+import "bknd/dist/styles.css";
+
+export default async function AdminPage() {
+  // make sure to verify auth using headers
+  const api = await getApi({ verify: true });
+
+  return (
+    <Admin
+      withProvider={{ user: api.getUser() }}
+      config={{
+        basepath: "/admin",
+        logo_return_path: "/../",
+        color_scheme: "system",
+      }}
+    />
+  );
+}
+```
+
+## Example usage of the API
+
+You can use the `getApi` helper function we've already set up to fetch and mutate in static pages and server components:
+
+```tsx title="app/page.tsx"
+import { getApi } from "@/bknd";
+
+export default async function Home() {
+  const api = await getApi();
+  const { data: todos } = await api.data.readMany("todos", { limit: 5 });
+
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <li key={String(todo.id)}>{todo.title}</li>
+      ))}
+    </ul>
+  );
+}
+```

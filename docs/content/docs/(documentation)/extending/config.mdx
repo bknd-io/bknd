@@ -1,0 +1,159 @@
+---
+title: bknd.config.ts
+tags: ["documentation"]
+---
+
+The central configuration file to extend bknd should be placed in the root of your project, so that the [CLI](/usage/cli#using-configuration-file-bknd-config) can automatically pick it up. It allows to:
+
+- define your database connection centrally
+- pass in [initial configuration](/usage/database#initial-structure) or [data seeds](/usage/database#seeding-the-database) when booting the first time
+- add plugins to the app
+- hook into system events
+- define custom routes and endpoints
+
+A simple example of a `bknd.config.ts` file:
+
+```typescript title="bknd.config.ts"
+import type { BkndConfig } from "bknd/adapter";
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+} satisfies BkndConfig;
+```
+
+## Overview
+
+The `BkndConfig` extends the [`CreateAppConfig`](/usage/introduction#configuration-createappconfig) type with the following properties:
+
+{/* <AutoTypeTable path="../app/src/adapter/index.ts" name="BkndConfig" /> */}
+
+
+```typescript
+export type BkndConfig = CreateAppConfig & {
+  // return the app configuration as object or from a function
+  app?: CreateAppConfig | ((args: Args) => CreateAppConfig);
+  // called before the app is built
+  beforeBuild?: (app: App) => Promise<void>;
+  // called after the app has been built
+  onBuilt?: (app: App) => Promise<void>;
+  // passed as the first argument to the `App.build` method
+  buildConfig?: Parameters<App["build"]>[0];
+  // force the app to be recreated
+  force?: boolean;
+  // the id of the app, defaults to `app`
+  id?: string;
+};
+```
+
+The supported configuration file extensions are `js`, `ts`, `mjs`, `cjs` and `json`. Throughout the documentation, we'll use `ts` for the file extension.
+
+### `app` (CreateAppConfig)
+
+The `app` property is a function that returns a `CreateAppConfig` object. It allows to pass in the environment variables to the configuration object.
+
+```typescript
+import type { BkndConfig } from "bknd/adapter";
+
+export default {
+  app: ({ env }) => ({
+    connection: {
+      url: env.DB_URL,
+    },
+  }),
+} satisfies BkndConfig;
+```
+
+See [Database](/usage/database) for more information on how to configure the database connection.
+
+### `beforeBuild`
+
+The `beforeBuild` property is an async function that is called before the app is built. It allows to modify the app instance that may influence the build process.
+
+```typescript
+import type { BkndConfig } from "bknd/adapter";
+
+export default {
+  beforeBuild: async (app: App) => {
+    // do something that has to happen before the app is built
+  },
+};
+```
+
+### `onBuilt`
+
+The `onBuilt` property is an async function that is called after the app has been built. It allows to hook into the app after it has been built. This is useful for defining event listeners or register custom routes, as both the event manager and the server are recreated during the build process.
+
+```typescript
+import { type App, AppEvents } from "bknd";
+import type { BkndConfig } from "bknd/adapter";
+
+export default {
+  onBuilt: async (app: App) => {
+    console.log("App built", app.version());
+
+    // registering an event listener
+    app.emgr.onEvent(AppEvents.AppRequest, (event) => {
+      console.log("Request received", event.request.url);
+    });
+
+    // registering a custom route
+    app.server.get("/hello", (c) => c.text("Hello World"));
+  },
+};
+```
+
+### `force` & `id`
+
+The `force` property is a boolean that forces the app to be recreated. This is mainly useful for serverless environments where the execution environment is re-used, and you may or may not want to recreate the app on every request.
+
+The `id` property is the reference in a cache map. You may create multiple instances of apps in the same process by using different ids (e.g. multi tenant applications).
+
+## Framework & Runtime configuration
+
+Depending on which framework or runtime you're using to run bknd, the configuration object will extend the `BkndConfig` type with additional properties.
+
+### `RuntimeBkndConfig`
+
+[Runtime adapters](/integration/runtime) need additional configuration to serve static assets for the admin UI.
+
+```typescript
+export type RuntimeBkndConfig<Args = any> = BkndConfig<Args> & {
+  // the path to the dist folder to serve static assets for the admin UI
+  distPath?: string;
+  // custom middleware to serve static assets for the admin UI
+  serveStatic?: MiddlewareHandler | [string, MiddlewareHandler];
+  // options for the admin UI
+  adminOptions?: AdminControllerOptions | false;
+};
+```
+
+### `FrameworkBkndConfig`
+
+[Framework adapters](/integration/framework) may need additional configuration based on the framework's requirements. For example, the `NextjsBkndConfig` type extends the `BkndConfig` type with the following additional properties:
+
+```typescript
+type NextjsEnv = NextApiRequest["env"];
+export type NextjsBkndConfig<Env = NextjsEnv> = FrameworkBkndConfig<Env> & {
+  cleanRequest?: { searchParams?: string[] };
+};
+```
+
+Next.js adds the mounted path to the request object, so that the `cleanRequest` property can be used to remove the mounted path from the request URL. See other frameworks for more information on how to configure them.
+
+## Using the configuration file
+
+The configuration file is automatically picked up if you're using the [CLI](/usage/cli). This allows interacting with your application using the `bknd` command. For example, you can run the following command in the root of your project to start an instance:
+
+```bash
+npx bknd run
+```
+
+When serving your application, you need to make sure to import the contents of your configuration file. If you're using Next.js for example, it's recommended to follow these steps:
+
+1. create a `bknd.config.ts` file in the root of your project which defines the connection to the database, adds event listeners and custom routes.
+2. create a `bknd.ts` file inside your app folder which exports helper functions to instantiate the bknd instance and retrieve the API.
+3. create a catch-all route file at `src/api/[[...bknd]]/route.ts` which serves the bknd API.
+
+This way, your application and the CLI are using the same configuration.

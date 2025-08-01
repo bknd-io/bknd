@@ -1,0 +1,151 @@
+---
+title: "React Elements"
+description: "Speed up your frontend development"
+tags: ["documentation"]
+---
+
+Not only creating and maintaing a backend is time-consuming, but also integrating it into your frontend can be a hassle. With `bknd/elements`, you can easily add media uploads and authentication forms to your app without having to figure out API details.
+
+<Callout type="info">
+  In order to use these exported elements, make sure to wrap your app inside
+  `ClientProvider`. See the [React Setup](/usage/react#setup) for more
+  information.
+</Callout>
+
+## Media
+
+### Media.Dropzone
+
+The `Media.Dropzone` element allows retrieving from and uploading media items to your bknd instance. Without any properties specified, it will behave similar to your media library inside the bknd Admin UI. Here is how to get the last 10 items:
+
+```tsx
+import { Media } from "bknd/elements";
+
+export default function MediaGallery() {
+  return <Media.Dropzone query={{ limit: 10, sort: "-id" }} />;
+}
+```
+
+Since you can also upload media to a specific entity, you can also point that `Dropzone` to it. Here is an example of a single user avatar that gets overwritten on re-upload:
+
+```tsx
+import { Media } from "bknd/elements";
+
+export default function UserAvatar() {
+  return (
+    <Media.Dropzone
+      entity={{ name: "users", id: 1, field: "avatar" }}
+      maxItems={1}
+      overwrite
+    />
+  );
+}
+```
+
+#### Props
+
+- `initialItems?: xMediaFieldSchema[]`: Initial items to display, must be an array of media objects.
+- `entity?: { name: string; id: number; field: string }`: If given, the initial media items fetched will be from this entity.
+- `query?: RepoQueryIn`: Query to filter the media items.
+- `overwrite?: boolean`: If true, the media item will be overwritten on entity media uploads if limit was reached.
+- `maxItems?: number`: Maximum number of media items that can be uploaded.
+- `autoUpload?: boolean`: If true, the media items will be uploaded automatically.
+- `onRejected?: (files: FileWithPath[]) => void`: Callback when a file is rejected.
+- `onDeleted?: (file: FileState) => void`: Callback when a file is deleted.
+- `onUploaded?: (file: FileState) => void`: Callback when a file is uploaded.
+- `placeholder?: { show?: boolean; text?: string }`: Placeholder text to show when no media items are present.
+
+#### Customize Rendering
+
+You can also customize the rendering of the media items and its uploading by passing a react element as a child. Here is an example of a custom `Media.Dropzone` that renders an user avatar (styled using tailwind):
+
+```tsx
+import { Media, useMediaDropzone, useMediaDropzoneState } from "bknd/elements";
+
+export default function CustomUserAvatar() {
+  return (
+    <Media.Dropzone
+      entity={{ name: "users", id: 1, field: "avatar" }}
+      maxItems={1}
+      overwrite
+    >
+      <CustomUserAvatar />
+    </Media.Dropzone>
+  );
+}
+
+function CustomUserAvatar() {
+  const {
+    wrapperRef,
+    inputProps,
+    showPlaceholder,
+    actions: { openFileInput },
+  } = useMediaDropzone();
+  const {
+    files: [file],
+    isOver,
+    isOverAccepted,
+  } = useMediaDropzoneState();
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="size-32 rounded-full border border-gray-200 flex justify-center items-center leading-none overflow-hidden"
+    >
+      <div className="hidden">
+        <input {...inputProps} />
+      </div>
+      {showPlaceholder && (
+        <>{isOver && isOverAccepted ? "let it drop" : "drop here"}</>
+      )}
+      {file && (
+        <Media.Preview
+          file={file}
+          className="object-cover w-full h-full"
+          onClick={openFileInput}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+## Auth
+
+Adding authentication to your app with bknd is as easy as adding a `<form method="POST" />` with an action pointing to the action (`login` or `register`) to the strategy you want to use, e.g. for the password strategy, use `/api/auth/password/login`. But to make it even easier, you can use the `Auth.*` elements.
+
+### `Auth.Screen`
+
+The `Auth.Screen` element is a wrapper around the `Auth.Form` element that provides a full page screen. The current layout is admittedly very basic, but there will be more customization options in the future.
+
+```tsx
+import { Auth } from "bknd/elements";
+
+export default function LoginScreen() {
+  return <Auth.Screen action="login" />;
+}
+```
+
+#### Props
+
+Note that this component doesn't require any strategy-specific information, as it gathers it itself.
+
+- `action: "login" | "register"`: The action to perform.
+- `method?: "POST" | "GET"`: The method to use for the form.
+
+### `Auth.Form`
+
+If you only wish to render the form itself without the screen, you can use the `Auth.Form` element. Unlike the `Auth.Screen`, this element requires the `strategy` prop to be set to the strategy you want to use. You can either specify it manually, use use the exported hook `useAuthStrategies()` for fetch them from your bknd instance.
+
+```tsx
+import { Auth, useAuthStrategies } from "bknd/elements";
+
+export default function LoginForm() {
+  const { strategies, basepath, loading } = useAuthStrategies();
+  if (loading) return null;
+
+  return (
+    <Auth.Form action="login" strategies={strategies} basepath={basepath} />
+  );
+}
+```
