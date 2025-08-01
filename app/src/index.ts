@@ -51,6 +51,7 @@ export type {
    ListenerHandler,
 } from "core/events/EventListener";
 export { EventManager, type EmitsEvents, type EventClass } from "core/events/EventManager";
+export type * from "core/types";
 
 /**
  * Auth

@@ -1,7 +1,7 @@
 /**
  * These are package global defaults.
  */
-import type { Generated } from "kysely";
+import type { Generated } from "./types";
 
 export type PrimaryFieldType<IdType = number | string> = IdType | Generated<IdType>;
 

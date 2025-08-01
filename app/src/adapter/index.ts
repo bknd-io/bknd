@@ -68,7 +68,7 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
          } else {
             const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
             const conf = appConfig.connection ?? { url: ":memory:" };
-            connection = sqlite(conf);
+            connection = sqlite(conf) as unknown as Connection;
             $console.info(`Using ${connection!.name} connection`, conf.url);
          }
          appConfig.connection = connection;
@@ -168,7 +168,7 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
       const path = c.req.path.substring(1);
       if (files.includes(path)) {
          try {
-            const content = await import(`bknd/static/${path}?raw`, {
+            const content = await import(/* @vite-ignore */ `bknd/static/${path}?raw`, {
                assert: { type: "text" },
             }).then((m) => m.default);
 
