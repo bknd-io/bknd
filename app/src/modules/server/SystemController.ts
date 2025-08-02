@@ -13,10 +13,10 @@ import {
    s,
    describeRoute,
    InvalidSchemaError,
+   openAPISpecs,
 } from "bknd/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
-import { openAPISpecs } from "jsonv-ts/hono";
 import { swaggerUI } from "@hono/swagger-ui";
 import {
    MODULE_NAMES,

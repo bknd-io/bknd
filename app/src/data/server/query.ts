@@ -1,7 +1,5 @@
-import { s } from "bknd/utils";
+import { s, isObject, $console } from "bknd/utils";
 import { WhereBuilder, type WhereQuery } from "data/entities/query/WhereBuilder";
-import { isObject, $console } from "core/utils";
-import type { anyOf, CoercionOptions, Schema } from "jsonv-ts";
 
 // -------
 // helpers
@@ -97,9 +95,9 @@ export type RepoWithSchema = Record<
    }
 >;
 
-const withSchema = <Type = unknown>(self: Schema): Schema<{}, Type, Type> =>
+const withSchema = <Type = unknown>(self: s.Schema): s.Schema<{}, Type, Type> =>
    s.anyOf([stringIdentifier, s.array(stringIdentifier), self], {
-      coerce: function (this: typeof anyOf, _value: unknown, opts: CoercionOptions = {}) {
+      coerce: function (this: typeof s.anyOf, _value: unknown, opts: s.CoercionOptions = {}) {
          let value: any = _value;
 
          if (typeof value === "string") {

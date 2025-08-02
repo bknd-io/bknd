@@ -1,4 +1,4 @@
-import { mark, stripMark, $console, s, objectEach, transformObject } from "bknd/utils";
+import { mark, stripMark, $console, s, objectEach, transformObject, McpServer } from "bknd/utils";
 import { Guard } from "auth/authorize/Guard";
 import { env } from "core/env";
 import { BkndError } from "core/errors";
@@ -144,6 +144,7 @@ export class ModuleManager {
    server!: Hono<ServerEnv>;
    emgr!: EventManager;
    guard!: Guard;
+   mcp!: ModuleBuildContext["mcp"];
 
    private _version: number = 0;
    private _built = false;
@@ -271,6 +272,9 @@ export class ModuleManager {
             ? this.em.clear()
             : new EntityManager([], this.connection, [], [], this.emgr);
          this.guard = new Guard();
+         this.mcp = new McpServer(undefined as any, {
+            ctx: () => this.ctx(),
+         });
       }
 
       const ctx = {
@@ -281,6 +285,7 @@ export class ModuleManager {
          guard: this.guard,
          flags: Module.ctx_flags,
          logger: this.logger,
+         mcp: this.mcp,
       };
 
       return {
@@ -702,7 +707,7 @@ export class ModuleManager {
       return {
          version: this.version(),
          ...schemas,
-      };
+      } as { version: number } & ModuleSchemas;
    }
 
    toJSON(secrets?: boolean): { version: number } & ModuleConfigs {

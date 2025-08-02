@@ -9,6 +9,7 @@ import type { ServerEnv } from "modules/Controller";
 import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
 import { s, parse, secret, runtimeSupports, truncate, $console } from "bknd/utils";
+import { $object } from "modules/mcp";
 import type { AuthStrategy } from "./strategies/Strategy";
 
 type Input = any; // workaround
@@ -41,39 +42,38 @@ export interface UserPool {
 }
 
 const defaultCookieExpires = 60 * 60 * 24 * 7; // 1 week in seconds
-export const cookieConfig = s
-   .object({
-      path: s.string({ default: "/" }),
-      sameSite: s.string({ enum: ["strict", "lax", "none"], default: "lax" }),
-      secure: s.boolean({ default: true }),
-      httpOnly: s.boolean({ default: true }),
-      expires: s.number({ default: defaultCookieExpires }), // seconds
-      partitioned: s.boolean({ default: false }),
-      renew: s.boolean({ default: true }),
-      pathSuccess: s.string({ default: "/" }),
-      pathLoggedOut: s.string({ default: "/" }),
-   })
+export const cookieConfig = $object("config_auth_cookie", {
+   path: s.string({ default: "/" }),
+   sameSite: s.string({ enum: ["strict", "lax", "none"], default: "lax" }),
+   secure: s.boolean({ default: true }),
+   httpOnly: s.boolean({ default: true }),
+   expires: s.number({ default: defaultCookieExpires }), // seconds
+   partitioned: s.boolean({ default: false }),
+   renew: s.boolean({ default: true }),
+   pathSuccess: s.string({ default: "/" }),
+   pathLoggedOut: s.string({ default: "/" }),
+})
    .partial()
    .strict();
 
 // @todo: maybe add a config to not allow cookie/api tokens to be used interchangably?
 // see auth.integration test for further details
 
-export const jwtConfig = s
-   .object(
-      {
-         // @todo: autogenerate a secret if not present. But it must be persisted from AppAuth
-         secret: secret({ default: "" }),
-         alg: s.string({ enum: ["HS256", "HS384", "HS512"], default: "HS256" }).optional(),
-         expires: s.number().optional(), // seconds
-         issuer: s.string().optional(),
-         fields: s.array(s.string(), { default: ["id", "email", "role"] }),
-      },
-      {
-         default: {},
-      },
-   )
-   .strict();
+export const jwtConfig = $object(
+   "config_auth_jwt",
+   {
+      // @todo: autogenerate a secret if not present. But it must be persisted from AppAuth
+      secret: secret({ default: "" }),
+      alg: s.string({ enum: ["HS256", "HS384", "HS512"], default: "HS256" }).optional(),
+      expires: s.number().optional(), // seconds
+      issuer: s.string().optional(),
+      fields: s.array(s.string(), { default: ["id", "email", "role"] }),
+   },
+   {
+      default: {},
+   },
+).strict();
+
 export const authenticatorConfig = s.object({
    jwt: jwtConfig,
    cookie: cookieConfig,

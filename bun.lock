@@ -15,7 +15,7 @@
     },
     "app": {
       "name": "bknd",
-      "version": "0.16.0-rc.0",
+      "version": "0.16.0",
       "bin": "./dist/cli/index.js",
       "dependencies": {
         "@cfworker/json-schema": "^4.1.1",
@@ -71,7 +71,7 @@
         "dotenv": "^16.4.7",
         "jotai": "^2.12.2",
         "jsdom": "^26.0.0",
-        "jsonv-ts": "^0.3.2",
+        "jsonv-ts": "^0.5.1",
         "kysely-d1": "^0.3.0",
         "kysely-generic-sqlite": "^1.2.1",
         "libsql-stateless-easy": "^1.8.0",
@@ -2511,7 +2511,7 @@
 
     "jsonpointer": ["jsonpointer@5.0.1", "", {}, "sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ=="],
 
-    "jsonv-ts": ["jsonv-ts@0.3.2", "", { "optionalDependencies": { "hono": "*" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-wGKLo0naUzgOCa2BgtlKZlF47po7hPjGXqDZK2lOoJ/4sE1lb4fMvf0YJrRghqfwg9QNtWz01xALr+F0QECYag=="],
+    "jsonv-ts": ["jsonv-ts@0.5.1", "", { "optionalDependencies": { "hono": "*" }, "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-9PoYn7rfk67q5aeDQLPcGUHJ1YWS/f4BPPsWY0HOna6hVKDbgRP+kem9lSvmf8IfQCpq363xVmR/g49MEMGOdQ=="],
 
     "jsonwebtoken": ["jsonwebtoken@9.0.2", "", { "dependencies": { "jws": "^3.2.2", "lodash.includes": "^4.3.0", "lodash.isboolean": "^3.0.3", "lodash.isinteger": "^4.0.4", "lodash.isnumber": "^3.0.3", "lodash.isplainobject": "^4.0.6", "lodash.isstring": "^4.0.1", "lodash.once": "^4.0.0", "ms": "^2.1.1", "semver": "^7.5.4" } }, "sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ=="],
 

@@ -516,4 +516,35 @@ export class DataController extends Controller {
 
       return hono;
    }
+
+   override registerMcp() {
+      this.ctx.mcp
+         .resource(
+            "data_entities",
+            "bknd://data/entities",
+            (c) => c.json(c.context.ctx().em.toJSON().entities),
+            {
+               title: "Entities",
+               description: "Retrieve all entities",
+            },
+         )
+         .resource(
+            "data_relations",
+            "bknd://data/relations",
+            (c) => c.json(c.context.ctx().em.toJSON().relations),
+            {
+               title: "Relations",
+               description: "Retrieve all relations",
+            },
+         )
+         .resource(
+            "data_indices",
+            "bknd://data/indices",
+            (c) => c.json(c.context.ctx().em.toJSON().indices),
+            {
+               title: "Indices",
+               description: "Retrieve all indices",
+            },
+         );
+   }
 }

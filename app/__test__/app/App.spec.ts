@@ -20,6 +20,7 @@ describe("App", () => {
                   "guard",
                   "flags",
                   "logger",
+                  "mcp",
                   "helper",
                ]);
             },

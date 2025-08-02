@@ -2,6 +2,14 @@ import * as s from "jsonv-ts";
 
 export { validator as jsc, type Options } from "jsonv-ts/hono";
 export { describeRoute, schemaToSpec, openAPISpecs } from "jsonv-ts/hono";
+export {
+   mcp,
+   McpServer,
+   Resource,
+   Tool,
+   type ToolAnnotation,
+   type ToolHandlerCtx,
+} from "jsonv-ts/mcp";
 
 export { secret, SecretSchema } from "./secret";
 

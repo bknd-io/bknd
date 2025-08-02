@@ -1,25 +1,32 @@
 import { Exception } from "core/errors";
 import { isDebug } from "core/env";
 import { $console, s } from "bknd/utils";
+import { $object } from "modules/mcp";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
 import { AuthException } from "auth/errors";
 
 const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"] as const;
 
-export const serverConfigSchema = s.strictObject({
-   cors: s.strictObject({
-      origin: s.string({ default: "*" }),
-      allow_methods: s.array(s.string({ enum: serverMethods }), {
-         default: serverMethods,
-         uniqueItems: true,
+export const serverConfigSchema = $object(
+   "config_server",
+   {
+      cors: s.strictObject({
+         origin: s.string({ default: "*" }),
+         allow_methods: s.array(s.string({ enum: serverMethods }), {
+            default: serverMethods,
+            uniqueItems: true,
+         }),
+         allow_headers: s.array(s.string(), {
+            default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
+         }),
+         allow_credentials: s.boolean({ default: true }),
       }),
-      allow_headers: s.array(s.string(), {
-         default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
-      }),
-      allow_credentials: s.boolean({ default: true }),
-   }),
-});
+   },
+   {
+      description: "Server configuration",
+   },
+);
 
 export type AppServerConfig = s.Static<typeof serverConfigSchema>;
 

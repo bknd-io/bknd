@@ -7,6 +7,7 @@ import type { ModuleHelper } from "./ModuleHelper";
 import { SchemaObject } from "core/object/SchemaObject";
 import type { DebugLogger } from "core/utils/DebugLogger";
 import type { Guard } from "auth/authorize/Guard";
+import type { McpServer } from "bknd/utils";
 
 type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 
@@ -19,6 +20,7 @@ export type ModuleBuildContext = {
    logger: DebugLogger;
    flags: (typeof Module)["ctx_flags"];
    helper: ModuleHelper;
+   mcp: McpServer<{ ctx: () => ModuleBuildContext }>;
 };
 
 export abstract class Module<Schema extends object = object> {

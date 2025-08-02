@@ -8,6 +8,7 @@ import { EntityManager } from "data/entities/EntityManager";
 import { Module, type ModuleBuildContext } from "modules/Module";
 import { getDummyConnection } from "../helper";
 import { ModuleHelper } from "modules/ModuleHelper";
+import { McpServer } from "bknd/utils";
 
 export function makeCtx(overrides?: Partial<ModuleBuildContext>): ModuleBuildContext {
    const { dummyConnection } = getDummyConnection();
@@ -19,6 +20,7 @@ export function makeCtx(overrides?: Partial<ModuleBuildContext>): ModuleBuildCon
       guard: new Guard(),
       flags: Module.ctx_flags,
       logger: new DebugLogger(false),
+      mcp: new McpServer(),
       ...overrides,
    };
    return {

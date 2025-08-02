@@ -68,4 +68,6 @@ export class Controller {
       // @todo: current workaround to allow strings (sometimes building is not fast enough to get the entities)
       return entities.length > 0 ? s.anyOf([s.string({ enum: entities }), s.string()]) : s.string();
    }
+
+   registerMcp(): void {}
 }

@@ -100,7 +100,7 @@
     "dotenv": "^16.4.7",
     "jotai": "^2.12.2",
     "jsdom": "^26.0.0",
-    "jsonv-ts": "^0.3.2",
+    "jsonv-ts": "^0.5.1",
     "kysely-d1": "^0.3.0",
     "kysely-generic-sqlite": "^1.2.1",
     "libsql-stateless-easy": "^1.8.0",
