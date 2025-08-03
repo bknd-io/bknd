@@ -1,5 +1,5 @@
 import type { NextjsBkndConfig } from "bknd/adapter/nextjs";
-import { boolean, em, entity, text } from "bknd/data";
+import { boolean, em, entity, text } from "bknd";
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
 import { secureRandomString } from "bknd/utils";
 
@@ -22,7 +22,7 @@ const schema = em({
 
 // register your schema to get automatic type completion
 type Database = (typeof schema)["DB"];
-declare module "bknd/core" {
+declare module "bknd" {
    interface DB extends Database {}
 }
 

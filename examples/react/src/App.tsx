@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { App } from "bknd";
 import { checksum } from "bknd/utils";
-import { boolean, em, entity, text } from "bknd/data";
+import { App, boolean, em, entity, text } from "bknd";
 import { SQLocalConnection } from "@bknd/sqlocal";
 import { Route, Router, Switch } from "wouter";
 import IndexPage from "~/routes/_index";
@@ -68,7 +67,7 @@ const schema = em({
 
 // register your schema to get automatic type completion
 type Database = (typeof schema)["DB"];
-declare module "bknd/core" {
+declare module "bknd" {
    interface DB extends Database {}
 }
 
