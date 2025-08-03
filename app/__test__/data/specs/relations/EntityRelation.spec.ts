@@ -1,11 +1,11 @@
 import { describe, expect, it, test } from "bun:test";
-import { Entity, type EntityManager } from "../../../../src/data";
+import { Entity, type EntityManager } from "data/entities";
 import {
    type BaseRelationConfig,
    EntityRelation,
    EntityRelationAnchor,
    RelationTypes,
-} from "../../../../src/data/relations";
+} from "data/relations";
 
 class TestEntityRelation extends EntityRelation {
    constructor(config?: BaseRelationConfig) {
@@ -24,11 +24,11 @@ class TestEntityRelation extends EntityRelation {
       return this;
    }
 
-   buildWith(a: any, b: any, c: any): any {
+   buildWith(): any {
       return;
    }
 
-   buildJoin(a: any, b: any): any {
+   buildJoin(): any {
       return;
    }
 }

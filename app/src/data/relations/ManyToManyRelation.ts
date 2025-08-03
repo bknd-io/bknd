@@ -1,4 +1,3 @@
-import type { Static } from "core/utils";
 import type { ExpressionBuilder } from "kysely";
 import { Entity, type EntityManager } from "../entities";
 import { type Field, PrimaryField } from "../fields";
@@ -7,10 +6,9 @@ import { EntityRelation, type KyselyQueryBuilder } from "./EntityRelation";
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { RelationField } from "./RelationField";
 import { type RelationType, RelationTypes } from "./relation-types";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
-export type ManyToManyRelationConfig = Static<typeof ManyToManyRelation.schema>;
+export type ManyToManyRelationConfig = s.Static<typeof ManyToManyRelation.schema>;
 
 export class ManyToManyRelation extends EntityRelation<typeof ManyToManyRelation.schema> {
    connectionEntity: Entity;
@@ -18,18 +16,11 @@ export class ManyToManyRelation extends EntityRelation<typeof ManyToManyRelation
    connectionTableMappedName: string;
    private em?: EntityManager<any>;
 
-   static override schema = Type.Composite(
-      [
-         EntityRelation.schema,
-         Type.Object({
-            connectionTable: Type.Optional(Type.String()),
-            connectionTableMappedName: Type.Optional(Type.String()),
-         }),
-      ],
-      {
-         additionalProperties: false,
-      },
-   );
+   static override schema = s.strictObject({
+      connectionTable: s.string().optional(),
+      connectionTableMappedName: s.string().optional(),
+      ...EntityRelation.schema.properties,
+   });
 
    constructor(
       source: Entity,

@@ -1,19 +1,16 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
-import { Guard } from "../../src/auth";
-import { parse } from "../../src/core/utils";
-import {
-   Entity,
-   type EntityData,
-   EntityManager,
-   ManyToOneRelation,
-   TextField,
-} from "../../src/data";
+import { Guard } from "../../src/auth/authorize/Guard";
+import { parse } from "core/utils/schema";
+
 import { DataController } from "../../src/data/api/DataController";
 import { dataConfigSchema } from "../../src/data/data-schema";
 import { disableConsoleLog, enableConsoleLog, getDummyConnection } from "../helper";
 import type { RepositoryResultJSON } from "data/entities/query/RepositoryResult";
 import type { MutatorResultJSON } from "data/entities/mutation/MutatorResult";
+import { Entity, EntityManager, type EntityData } from "data/entities";
+import { TextField } from "data/fields";
+import { ManyToOneRelation } from "data/relations";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
 beforeAll(() => disableConsoleLog(["log", "warn"]));

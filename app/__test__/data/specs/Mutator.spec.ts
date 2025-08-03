@@ -1,18 +1,16 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import type { EventManager } from "../../../src/core/events";
+import { Entity, EntityManager } from "data/entities";
 import {
-   Entity,
-   EntityManager,
    ManyToOneRelation,
-   MutatorEvents,
-   NumberField,
    OneToOneRelation,
-   type RelationField,
+   RelationField,
    RelationMutator,
-   TextField,
-} from "../../../src/data";
-import * as proto from "../../../src/data/prototype";
+} from "data/relations";
+import { NumberField, TextField } from "data/fields";
+import * as proto from "data/prototype";
 import { getDummyConnection, disableConsoleLog, enableConsoleLog } from "../../helper";
+import { MutatorEvents } from "data/events";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
 afterAll(afterAllCleanup);

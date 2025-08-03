@@ -4,10 +4,13 @@ import type { JSONSchema } from "json-schema-to-ts";
 import type { JSONSchemaType } from "json-schema-to-ts/lib/types/definitions/jsonSchema";
 
 export { isEqual, getPath } from "core/utils/objects";
-//export { isEqual } from "lodash-es";
+
+export function isNotDefined(value: any) {
+   return value === null || value === undefined || value === "";
+}
 
 export function coerce(value: any, schema: JsonSchema, opts?: { required?: boolean }) {
-   if (!value && typeof opts?.required === "boolean" && !opts.required) {
+   if (isNotDefined(value) && typeof opts?.required === "boolean" && !opts.required) {
       return undefined;
    }
 

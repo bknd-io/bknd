@@ -1,13 +1,12 @@
 import { Task } from "../Task";
 import { $console } from "core/utils";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 export class LogTask extends Task<typeof LogTask.schema> {
    type = "log";
 
-   static override schema = Type.Object({
-      delay: Type.Number({ default: 10 }),
+   static override schema = s.strictObject({
+      delay: s.number({ default: 10 }),
    });
 
    async execute() {

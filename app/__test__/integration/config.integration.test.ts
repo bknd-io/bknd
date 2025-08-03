@@ -13,9 +13,8 @@ describe("integration config", () => {
 
       // create entity
       await api.system.addConfig("data", "entities.posts", {
-         name: "posts",
          config: { sort_field: "id", sort_dir: "asc" },
-         fields: { id: { type: "primary", name: "id" }, asdf: { type: "text" } },
+         fields: { id: { type: "primary" }, asdf: { type: "text" } },
          type: "regular",
       });
 

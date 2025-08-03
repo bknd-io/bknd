@@ -1,37 +1,29 @@
-import { Exception, isDebug } from "core";
-import { type Static, StringEnum, $console } from "core/utils";
+import { Exception } from "core/errors";
+import { isDebug } from "core/env";
+import { $console, s } from "bknd/utils";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
-import * as tbbox from "@sinclair/typebox";
 import { AuthException } from "auth/errors";
-const { Type } = tbbox;
 
-const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"];
+const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"] as const;
 
-export const serverConfigSchema = Type.Object(
-   {
-      cors: Type.Object(
-         {
-            origin: Type.String({ default: "*" }),
-            allow_methods: Type.Array(StringEnum(serverMethods), {
-               default: serverMethods,
-               uniqueItems: true,
-            }),
-            allow_headers: Type.Array(Type.String(), {
-               default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
-            }),
-         },
-         { default: {}, additionalProperties: false },
-      ),
-   },
-   {
-      additionalProperties: false,
-   },
-);
+export const serverConfigSchema = s.strictObject({
+   cors: s.strictObject({
+      origin: s.string({ default: "*" }),
+      allow_methods: s.array(s.string({ enum: serverMethods }), {
+         default: serverMethods,
+         uniqueItems: true,
+      }),
+      allow_headers: s.array(s.string(), {
+         default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
+      }),
+      allow_credentials: s.boolean({ default: true }),
+   }),
+});
 
-export type AppServerConfig = Static<typeof serverConfigSchema>;
+export type AppServerConfig = s.Static<typeof serverConfigSchema>;
 
-export class AppServer extends Module<typeof serverConfigSchema> {
+export class AppServer extends Module<AppServerConfig> {
    override getRestrictedPaths() {
       return [];
    }
@@ -45,12 +37,14 @@ export class AppServer extends Module<typeof serverConfigSchema> {
    }
 
    override async build() {
+      const origin = this.config.cors.origin ?? "";
       this.client.use(
          "*",
          cors({
-            origin: this.config.cors.origin,
+            origin: origin.includes(",") ? origin.split(",").map((o) => o.trim()) : origin,
             allowMethods: this.config.cors.allow_methods,
             allowHeaders: this.config.cors.allow_headers,
+            credentials: this.config.cors.allow_credentials,
          }),
       );
 

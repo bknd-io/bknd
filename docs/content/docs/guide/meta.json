@@ -1,0 +1,27 @@
+{
+  "title": "User Guide",
+  "root": true,
+  "description": "Instructions for building with bknd",
+  "icon": "Bolt",
+  "pages": [
+    "---User Guide---",
+    "./(setup)/introduction",
+    "./(setup)/setup",
+    "./(setup)/admin-ui",
+    "---Data---",
+    "./data/entities",
+    "./data/fields",
+    "./data/relations",
+    "./data/indices",
+    "---Auth---",
+    "./auth/users",
+    "./auth/roles",
+    "./auth/permissions",
+    "---Flows---",
+    "./flows/introduction",
+    "---Media---",
+    "./media/introduction",
+    "./media/overview",
+    "./media/transformations"
+  ]
+}

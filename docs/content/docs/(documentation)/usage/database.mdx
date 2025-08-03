@@ -1,0 +1,412 @@
+---
+title: "Database"
+description: "Choosing the right database configuration"
+tags: ["documentation"]
+---
+
+In order to use **bknd**, you need to prepare access information to your database and potentially install additional dependencies. Connections to the database are managed using Kysely. Therefore, all [its dialects](https://kysely.dev/docs/dialects) are theoretically supported.
+
+Currently supported and tested databases are:
+
+- SQLite (embedded): Node.js SQLite, Bun SQLite, LibSQL, SQLocal
+- SQLite (remote): Turso, Cloudflare D1
+- Postgres: Vanilla Postgres, Supabase, Neon, Xata
+
+By default, bknd will try to use a SQLite database in-memory. Depending on your runtime, a different SQLite implementation will be used.
+
+## Defining the connection
+
+There are mainly 3 ways to define the connection to your database, when
+
+1. creating an app using `App.create()` or `createApp()`
+2. creating an app using a [Framework or Runtime adapter](/integration/introduction)
+3. starting a quick instance using the [CLI](/usage/cli#using-configuration-file-bknd-config)
+
+When creating an app using `App.create()` or `createApp()`, you can pass a connection object in the configuration object.
+
+```typescript title="app.ts"
+import { createApp } from "bknd";
+import { sqlite } from "bknd/adapter/sqlite";
+
+// a connection is required when creating an app like this
+const app = createApp({
+  connection: sqlite({ url: ":memory:" }),
+});
+```
+
+When using an adapter, or using the CLI, bknd will automatically try to use a SQLite implementation depending on the runtime:
+
+```javascript title="app.js"
+import { serve } from "bknd/adapter/node";
+
+serve({
+  // connection is optional, but recommended
+  connection: { url: "file:data.db" },
+});
+```
+
+You can also pass a connection instance to the `connection` property to explictly use a specific connection.
+
+```javascript title="app.js"
+import { serve } from "bknd/adapter/node";
+import { sqlite } from "bknd/adapter/sqlite";
+
+serve({
+  connection: sqlite({ url: "file:data.db" }),
+});
+```
+
+If you're using [`bknd.config.*`](/extending/config), you can specify the connection on the exported object.
+
+```typescript title="bknd.config.ts"
+import type { BkndConfig } from "bknd";
+
+export default {
+  connection: { url: "file:data.db" },
+} as const satisfies BkndConfig;
+```
+
+Throughout the documentation, it is assumed you use `bknd.config.ts` to define your connection.
+
+## SQLite
+
+### Using config object
+
+<Callout type="warn">
+  When run with Node.js, a version of 22 (LTS) or higher is required. Please
+  verify your version by running `node -v`, and
+  [upgrade](https://nodejs.org/en/download/) if necessary.
+</Callout>
+
+The `sqlite` adapter is automatically resolved based on the runtime.
+
+| Runtime                        | Adapter       | In-Memory | File | Remote |
+| ------------------------------ | ------------- | --------- | ---- | ------ |
+| Node.js                        | `node:sqlite` | ✅        | ✅   | ❌     |
+| Bun                            | `bun:sqlite`  | ✅        | ✅   | ❌     |
+| Cloudflare Worker/Browser/Edge | `libsql`      | 🟠        | 🟠   | ✅     |
+
+The bundled version of the `libsql` connection only works with remote databases. However, you can pass in a `Client` from `@libsql/client`, see [LibSQL](#libsql) for more details.
+
+```typescript title="bknd.config.ts"
+import type { BkndConfig } from "bknd";
+
+// no connection is required, bknd will use a SQLite database in-memory
+// this does not work on edge environments!
+export default {} as const satisfies BkndConfig;
+
+// or explicitly in-memory
+export default {
+  connection: { url: ":memory:" },
+} as const satisfies BkndConfig;
+
+// or explicitly as a file
+export default {
+  connection: { url: "file:<path/to/your/database.db>" },
+} as const satisfies BkndConfig;
+```
+
+### LibSQL
+
+Turso offers a SQLite-fork called LibSQL that runs a server around your SQLite database. The edge-version of the adapter is included in the bundle (remote only):
+
+```typescript title="bknd.config.ts"
+import { libsql, type BkndConfig } from "bknd";
+
+export default {
+  connection: libsql({
+    url: "libsql://<database>.turso.io",
+    authToken: "<auth-token>",
+  }),
+} as const satisfies BkndConfig;
+```
+
+If you wish to use LibSQL as file, in-memory or make use of [Embedded Replicas](https://docs.turso.tech/features/embedded-replicas/introduction), you have to pass in the `Client` from `@libsql/client`:
+
+```typescript title="bknd.config.ts"
+import { libsql, type BkndConfig } from "bknd";
+import { createClient } from "@libsql/client";
+
+const client = createClient({
+  url: "libsql://<database>.turso.io",
+  authToken: "<auth-token>",
+});
+
+export default {
+  connection: libsql(client),
+} as const satisfies BkndConfig;
+```
+
+### Cloudflare D1
+
+Using the [Cloudflare Adapter](/integration/cloudflare), you can choose to use a D1 database binding. To do so, you only need to add a D1 database to your `wrangler.toml` and it'll pick up automatically.
+
+To manually specify which D1 database to take, you can specify it explicitly:
+
+```ts
+import { serve, d1 } from "bknd/adapter/cloudflare";
+
+export default serve<Env>({
+  app: ({ env }) => d1({ binding: env.D1_BINDING }),
+});
+```
+
+### SQLocal
+
+To use bknd with `sqlocal` for a offline expierence, you need to install the `@bknd/sqlocal` package. You can do so by running the following command:
+
+```bash
+npm install @bknd/sqlocal
+```
+
+This package uses `sqlocal` under the hood. Consult the [sqlocal documentation](https://sqlocal.dallashoffman.com/guide/setup) for connection options:
+
+```js
+import { createApp } from "bknd";
+import { SQLocalConnection } from "@bknd/sqlocal";
+
+const app = createApp({
+  connection: new SQLocalConnection({
+    databasePath: ":localStorage:",
+    verbose: true,
+  }),
+});
+```
+
+## PostgreSQL
+
+To use bknd with Postgres, you need to install the `@bknd/postgres` package. You can do so by running the following command:
+
+```bash
+npm install @bknd/postgres
+```
+
+You can connect to your Postgres database using `pg` or `postgres` dialects. Additionally, you may also define your custom connection.
+
+### Using `pg`
+
+To establish a connection to your database, you can use any connection options available on the [`pg`](https://node-postgres.com/apis/client) package.
+
+```js
+import { serve } from "bknd/adapter/node";
+import { pg } from "@bknd/postgres";
+
+/** @type {import("bknd/adapter/node").NodeBkndConfig} */
+const config = {
+  connection: pg({
+    connectionString: "postgresql://user:password@localhost:5432/database",
+  }),
+};
+
+serve(config);
+```
+
+### Using `postgres`
+
+To establish a connection to your database, you can use any connection options available on the [`postgres`](https://github.com/porsager/postgres) package.
+
+```js
+import { serve } from "bknd/adapter/node";
+import { postgresJs } from "@bknd/postgres";
+
+serve({
+  connection: postgresJs("postgresql://user:password@localhost:5432/database"),
+});
+```
+
+### Using custom connection
+
+Several Postgres hosting providers offer their own clients to connect to their database, e.g. suitable for serverless environments.
+
+Example using `@neondatabase/serverless`:
+
+```js
+import { createCustomPostgresConnection } from "@bknd/postgres";
+import { NeonDialect } from "kysely-neon";
+
+const neon = createCustomPostgresConnection(NeonDialect);
+
+serve({
+  connection: neon({
+    connectionString: process.env.NEON,
+  }),
+});
+```
+
+Example using `@xata.io/client`:
+
+```js
+import { createCustomPostgresConnection } from "@bknd/postgres";
+import { XataDialect } from "@xata.io/kysely";
+import { buildClient } from "@xata.io/client";
+
+const client = buildClient();
+const xata = new client({
+  databaseURL: process.env.XATA_URL,
+  apiKey: process.env.XATA_API_KEY,
+  branch: process.env.XATA_BRANCH,
+});
+
+const xataConnection = createCustomPostgresConnection(XataDialect, {
+  supports: {
+    batching: false,
+  },
+});
+
+serve({
+  connection: xataConnection({ xata }),
+});
+```
+
+## Custom Connection
+
+Creating a custom connection is as easy as extending the `Connection` class and passing constructing a Kysely instance.
+
+```ts
+import { createApp, Connection } from "bknd";
+import { Kysely } from "kysely";
+
+class CustomConnection extends Connection {
+  constructor() {
+    const kysely = new Kysely(/* ... */);
+    super(kysely);
+  }
+}
+
+const connection = new CustomConnection();
+
+// e.g. and then, create an instance
+const app = createApp({ connection });
+```
+
+## Initial Structure
+
+To provide an initial database structure, you can pass `initialConfig` to the creation of an app. This will only be used if there isn't an existing configuration found in the database given. Here is a quick example:
+
+<Callout type="info">
+  The initial structure is only respected if the database is empty! If you made
+  updates, ensure to delete the database first, or perform updates through the
+  Admin UI.
+</Callout>
+
+```typescript
+import { createApp, em, entity, text, number } from "bknd";
+
+const schema = em(
+  {
+    posts: entity("posts", {
+      // "id" is automatically added
+      title: text().required(),
+      slug: text().required(),
+      content: text(),
+      views: number(),
+    }),
+    comments: entity("comments", {
+      content: text(),
+    }),
+
+    // relations and indices are defined separately.
+    // the first argument are the helper functions, the second the entities.
+  },
+  ({ relation, index }, { posts, comments }) => {
+    relation(comments).manyToOne(posts);
+    // relation as well as index can be chained!
+    index(posts).on(["title"]).on(["slug"], true);
+  },
+);
+
+// to get a type from your schema, use:
+type Database = (typeof schema)["DB"];
+// type Database = {
+//    posts: {
+//       id: number;
+//       title: string;
+//       content: string;
+//       views: number;
+//    },
+//    comments: {
+//       id: number;
+//       content: string;
+//    }
+// }
+
+// pass the schema to the app
+const app = createApp({
+  connection: {
+    /* ... */
+  },
+  initialConfig: {
+    data: schema.toJSON(),
+  },
+});
+```
+
+Note that we didn't add relational fields directly to the entity, but instead defined them afterwards. That is because the relations are managed outside the entity scope to have an unified expierence for all kinds of relations (e.g. many-to-many).
+
+<Callout type="info">
+  Defined relations are currently not part of the produced types for the
+  structure. We're working on that, but in the meantime, you can define them
+  manually.
+</Callout>
+
+### Type completion
+
+To get type completion, there are two options:
+
+1. Use the CLI to [generate the types](/usage/cli#generating-types-types)
+2. If you have an initial structure created with the prototype functions, you can extend the `DB` interface with your own schema.
+
+All entity related functions use the types defined in `DB` from `bknd`. To get type completion, you can extend that interface with your own schema:
+
+```typescript
+import { em } from "bknd";
+import { Api } from "bknd/client";
+
+const schema = em({
+  /* ... */
+});
+
+type Database = (typeof schema)["DB"];
+declare module "bknd" {
+  interface DB extends Database {}
+}
+
+const api = new Api({
+  /* ... */
+});
+const { data: posts } = await api.data.readMany("posts", {});
+// `posts` is now typed as Database["posts"]
+```
+
+The type completion is available for the API as well as all provided [React hooks](/usage/react).
+
+### Seeding the database
+
+To seed your database with initial data, you can pass a `seed` function to the configuration. It
+provides the `ModuleBuildContext` as the first argument.
+
+<Callout type="info">
+  Note that the seed function will only be executed on app's first boot. If a
+  configuration already exists in the database, it will not be executed.
+</Callout>
+
+```typescript
+import { createApp, type ModuleBuildContext } from "bknd";
+
+const app = createApp({
+  connection: {
+    /* ... */
+  },
+  initialConfig: {
+    /* ... */
+  },
+  options: {
+    seed: async (ctx: ModuleBuildContext) => {
+      await ctx.em.mutator("posts").insertMany([
+        { title: "First post", slug: "first-post", content: "..." },
+        { title: "Second post", slug: "second-post" },
+      ]);
+    },
+  },
+});
+```

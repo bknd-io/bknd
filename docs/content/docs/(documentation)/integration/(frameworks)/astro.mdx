@@ -1,0 +1,229 @@
+---
+title: "Astro"
+description: "Run bknd inside Astro"
+tags: ["documentation"]
+---
+
+## Installation
+
+To get started with Astro and bknd you can either install the package manually, and follow the descriptions below, or use the CLI starter:
+
+### CLI Starter
+
+Create a new Astro CLI starter project by running the following command:
+
+```sh
+  npx bknd create -i astro
+```
+
+### Manual
+
+Create a new Astro project by following the [official guide](https://docs.astro.build/en/install-and-setup/), and then install bknd as a dependency:
+
+<Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
+
+```bash tab="npm"
+npm install bknd
+```
+
+```bash tab="pnpm"
+pnpm install bknd
+```
+
+```bash tab="yarn"
+yarn add bknd
+```
+
+```bash tab="bun"
+bun add bknd
+```
+
+</Tabs>
+
+<Callout type="info">
+  The guide below assumes you're using Astro v4. We've experienced issues with
+  Astro DB using v5, see [this
+  issue](https://github.com/withastro/astro/issues/12474).
+</Callout>
+
+For the Astro integration to work, you also need to [add the react integration](https://docs.astro.build/en/guides/integrations-guide/react/):
+
+```bash
+npx astro add react
+```
+
+You also need to make sure to set the output to `server` in your Astro config:
+
+```js {6}
+// astro.config.mjs
+import { defineConfig } from "astro/config";
+import react from "@astrojs/react";
+
+export default defineConfig({
+  output: "server", // [!code highlight]
+  integrations: [react()],
+});
+```
+
+<Callout type="info">
+  If you don't want to use React with Astro, there is also an option to serve
+  the bknd Admin UI statically using Astro's middleware. In case you're
+  interested in this, feel free to reach out in
+  [Discord](https://discord.gg/952SFk8Tb8) or open an [issue on
+  GitHub](https://github.com/bknd-io/bknd/issues/new).
+</Callout>
+
+## Configuration
+
+<Callout type="warning">
+  When run with Node.js, a version of 22 (LTS) or higher is required. Please
+  verify your version by running `node -v`, and
+  [upgrade](https://nodejs.org/en/download/) if necessary.
+</Callout>
+
+Now create a `bknd.config.ts` file in the root of your project. If you created the project using the CLI starter, this file is already created for you.
+
+```typescript title="bknd.config.ts"
+import type { AstroBkndConfig } from "bknd/adapter/astro";
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+} satisfies AstroBkndConfig;
+```
+
+See [bknd.config.ts](/extending/config) for more information on how to configure bknd. The `AstroBkndConfig` type extends the `BkndConfig` type with the following additional properties:
+
+```typescript
+type AstroEnv = NodeJS.ProcessEnv;
+export type AstroBkndConfig<Env = AstroEnv> = FrameworkBkndConfig<Env>;
+```
+
+## Serve the API
+
+Create a helper file to instantiate the bknd instance and retrieve the API, importing the configurationfrom the `bknd.config.ts` file:
+
+```ts title="src/bknd.ts"
+import type { AstroGlobal } from "astro";
+import { getApp as getBkndApp } from "bknd/adapter/astro";
+import config from "../bknd.config";
+
+export { config };
+
+export async function getApp() {
+  return await getBkndApp(config);
+}
+
+export async function getApi(
+  astro: AstroGlobal,
+  opts?: { mode: "static" } | { mode?: "dynamic"; verify?: boolean },
+) {
+  const app = await getApp();
+  if (opts?.mode !== "static" && opts?.verify) {
+    const api = app.getApi({ headers: astro.request.headers });
+    await api.verifyAuth();
+    return api;
+  }
+
+  return app.getApi();
+}
+```
+
+Create a new catch-all route at `src/pages/api/[...api].ts`.
+
+```ts title="src/pages/api/[...api].ts"
+import { serve } from "bknd/adapter/astro";
+
+export const prerender = false;
+
+export const ALL = serve({
+  connection: {
+    // location of your local Astro DB
+    // make sure to use a remote URL in production
+    url: "file:.astro/content.db",
+  },
+});
+```
+
+For more information about the connection object, refer to the [Database](/usage/database) guide. In the
+special case of astro, you may also use your Astro DB credentials since it's also using LibSQL
+under the hood. Refer to the [Astro DB documentation](https://docs.astro.build/en/guides/astro-db/) for more information.
+
+## Enabling the Admin UI
+
+Create a new catch-all route at `src/pages/admin/[...admin].astro`:
+
+```jsx title="src/pages/admin/[...admin].astro"
+---
+import { Admin } from "bknd/ui";
+import "bknd/dist/styles.css";
+
+import { getApi } from "bknd/adapter/astro";
+
+const api = await getApi(Astro, { mode: "dynamic" });
+const user = api.getUser();
+
+export const prerender = false;
+---
+
+<html>
+   <body>
+      <Admin
+         withProvider={{ user }}
+         config={{
+            basepath: "/admin",
+            color_scheme: "dark",
+            logo_return_path: "/../"
+         }}
+         client:only
+      />
+   </body>
+</html>
+```
+
+## Example usage of the API
+
+You use the API in both static and SSR pages. Just note that on static pages, authentication
+might not work as expected, because Cookies are not available in the static context.
+
+Here is an example of using the API in static context:
+
+```jsx
+---
+import { getApi } from "bknd/adapter/astro";
+const api = await getApi(Astro);
+const { data } = await api.data.readMany("todos");
+---
+
+<ul>
+   {data.map((todo) => (
+      <li>{todo.title}</li>
+   ))}
+</ul>
+```
+
+On SSR pages, you can also access the authenticated user:
+
+```jsx
+---
+import { getApi } from "bknd/adapter/astro";
+const api = await getApi(Astro, { mode: "dynamic" });
+const user = api.getUser();
+const { data } = await api.data.readMany("todos");
+
+export const prerender = false;
+---
+
+{user
+   ? <p>Logged in as <b>{user.email}</b>.</p>
+   : <p>Not authenticated.</p>}
+<ul>
+   {data.map((todo) => (
+      <li>{todo.title}</li>
+   ))}
+</ul>
+```
+
+Check the [astro repository example](https://github.com/bknd-io/bknd/tree/main/examples/astro)
+for more implementation details or a [fully working example using Astro DB](https://github.com/dswbx/bknd-astro-example).

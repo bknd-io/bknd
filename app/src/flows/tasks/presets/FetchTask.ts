@@ -1,7 +1,5 @@
-import { StringEnum } from "core/utils";
 import { Task, dynamic } from "../Task";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s } from "bknd/utils";
 
 const FetchMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
@@ -11,24 +9,22 @@ export class FetchTask<Output extends Record<string, any>> extends Task<
 > {
    type = "fetch";
 
-   static override schema = Type.Object({
-      url: Type.String({
+   static override schema = s.strictObject({
+      url: s.string({
          pattern: "^(http|https)://",
       }),
-      method: Type.Optional(dynamic(StringEnum(FetchMethods, { default: "GET" }))),
-      headers: Type.Optional(
-         dynamic(
-            Type.Array(
-               Type.Object({
-                  key: Type.String(),
-                  value: Type.String(),
-               }),
-            ),
-            JSON.parse,
+      method: dynamic(s.string({ enum: FetchMethods, default: "GET" })).optional(),
+      headers: dynamic(
+         s.array(
+            s.strictObject({
+               key: s.string(),
+               value: s.string(),
+            }),
          ),
-      ),
-      body: Type.Optional(dynamic(Type.String())),
-      normal: Type.Optional(dynamic(Type.Number(), Number.parseInt)),
+         JSON.parse,
+      ).optional(),
+      body: dynamic(s.string()).optional(),
+      normal: dynamic(s.number(), Number.parseInt).optional(),
    });
 
    protected getBody(): string | undefined {

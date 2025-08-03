@@ -1,33 +1,30 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
-
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { TextInput, Textarea } from "@mantine/core";
 import { useFocusTrap } from "@mantine/hooks";
 import { useForm } from "react-hook-form";
-import {
-   ModalBody,
-   ModalFooter,
-   type TCreateModalSchema,
-   entitySchema,
-   useStepContext,
-} from "./CreateModal";
-import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
+import { ModalBody, ModalFooter, useStepContext } from "./CreateModal";
+import { entitySchema, type TCreateModalSchema } from "./schema";
+import { s } from "bknd/utils";
+import { cloneSchema } from "core/utils/schema";
+
+const schema = s.object({
+   name: entitySchema.properties.name,
+   config: entitySchema.properties.config.partial().optional(),
+});
+type Schema = s.Static<typeof schema>;
 
 export function StepEntity() {
    const focusTrapRef = useFocusTrap();
 
    const { nextStep, stepBack, state, setState } = useStepContext<TCreateModalSchema>();
    const { register, handleSubmit, formState, watch, control } = useForm({
-      mode: "onTouched",
-      resolver: typeboxResolver(entitySchema),
-      defaultValues: state.entities?.create?.[0] ?? {},
+      mode: "onChange",
+      resolver: standardSchemaResolver(cloneSchema(schema)),
+      defaultValues: (state.entities?.create?.[0] ?? {}) as Schema,
    });
-   /*const data = watch();
-   console.log("state", { isValid });
-   console.log("schema", JSON.stringify(entitySchema));
-   console.log("data", JSON.stringify(data));*/
 
    function onSubmit(data: any) {
-      console.log(data);
+      console.log("onSubmit", data);
       setState((prev) => {
          const prevEntity = prev.entities?.create?.[0];
          if (prevEntity && prevEntity.name !== data.name) {
@@ -47,6 +44,7 @@ export function StepEntity() {
       <>
          <form onSubmit={handleSubmit(onSubmit)} ref={focusTrapRef}>
             <ModalBody>
+               <input type="hidden" {...register("type")} defaultValue="regular" />
                <TextInput
                   data-autofocus
                   required

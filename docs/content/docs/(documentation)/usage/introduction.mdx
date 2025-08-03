@@ -1,0 +1,228 @@
+---
+title: "Introduction"
+description: "Setting up bknd"
+tags: ["documentation"]
+---
+
+There are several methods to get **bknd** up and running. You can choose between these options:
+
+1. [Run it using the CLI](/usage/cli): That's the easiest and fastest way to get started.
+2. Use a runtime like [Node](/integration/node), [Bun](/integration/bun) or
+   [Cloudflare](/integration/cloudflare) (workerd). This will run the API and UI in the runtime's
+   native server and serves the UI assets statically from `node_modules`.
+3. Run it inside your React framework of choice like [Next.js](/integration/nextjs),
+   [Astro](/integration/astro) or [Remix](/integration/remix).
+
+There is also a fourth option, which is running it inside a
+[Docker container](/integration/docker). This is essentially a wrapper around the CLI.
+
+## Basic setup
+
+Regardless of the method you choose, at the end all adapters come down to the actual
+instantiation of the `App`, which in raw looks like this:
+
+```typescript
+import { createApp, type CreateAppConfig } from "bknd";
+
+// create the app
+const config = {
+  /* ... */
+} satisfies CreateAppConfig;
+const app = createApp(config);
+
+// build the app
+await app.build();
+
+// export for Web API compliant envs
+export default app;
+```
+
+In Web API compliant environments, all you have to do is to default exporting the app, as it
+implements the `Fetch` API.
+
+## Configuration (`CreateAppConfig`)
+
+The `CreateAppConfig` type is the main configuration object for the `createApp` function. It has
+the following properties:
+
+```typescript
+import type { App, InitialModuleConfigs, ModuleBuildContext, Connection } from "bknd";
+import type { Config } from "@libsql/client";
+
+type AppPlugin = (app: App) => Promise<void> | void;
+type ManagerOptions = {
+  basePath?: string;
+  trustFetched?: boolean;
+  onFirstBoot?: () => Promise<void>;
+  seed?: (ctx: ModuleBuildContext) => Promise<void>;
+};
+
+type CreateAppConfig = {
+  connection?: Connection | Config;
+  initialConfig?: InitialModuleConfigs;
+  options?: {
+    plugins?: AppPlugin[];
+    manager?: ManagerOptions;
+  };
+};
+```
+
+### `connection`
+
+The `connection` property is the main connection object to the database. It can be either an object with libsql config or the actual `Connection` class.
+
+```ts
+const connection = {
+  url: "<url>",
+  authToken: "<token>",
+};
+```
+
+Alternatively, you can pass an instance of a `Connection` class directly,
+see [Custom Connection](/usage/database#custom-connection) as a reference.
+
+If the connection object is omitted, the app will try to use an in-memory database.
+
+### `initialConfig`
+
+As [initial configuration](/usage/database#initial-structure), you can either pass a partial configuration object or a complete one
+with a version number. The version number is used to automatically migrate the configuration up
+to the latest version upon boot. The default configuration looks like this:
+
+```json
+{
+  "server": {
+    "admin": {
+      "basepath": "",
+      "color_scheme": "light",
+      "logo_return_path": "/"
+    },
+    "cors": {
+      "origin": "*",
+      "allow_methods": ["GET", "POST", "PATCH", "PUT", "DELETE"],
+      "allow_headers": [
+        "Content-Type",
+        "Content-Length",
+        "Authorization",
+        "Accept"
+      ]
+    }
+  },
+  "data": {
+    "basepath": "/api/data",
+    "entities": {},
+    "relations": {},
+    "indices": {}
+  },
+  "auth": {
+    "enabled": false,
+    "basepath": "/api/auth",
+    "entity_name": "users",
+    "allow_register": true,
+    "jwt": {
+      "secret": "",
+      "alg": "HS256",
+      "fields": ["id", "email", "role"]
+    },
+    "cookie": {
+      "path": "/",
+      "sameSite": "lax",
+      "secure": true,
+      "httpOnly": true,
+      "expires": 604800,
+      "renew": true,
+      "pathSuccess": "/",
+      "pathLoggedOut": "/"
+    },
+    "strategies": {
+      "password": {
+        "type": "password",
+        "config": {
+          "hashing": "sha256"
+        }
+      }
+    },
+    "roles": {}
+  },
+  "media": {
+    "enabled": false,
+    "basepath": "/api/media",
+    "entity_name": "media",
+    "storage": {}
+  },
+  "flows": {
+    "basepath": "/api/flows",
+    "flows": {}
+  }
+}
+```
+
+You can use the CLI to get the default configuration:
+
+```sh
+npx bknd config --pretty
+```
+
+To validate your configuration against a JSON schema, you can also dump the schema using the CLI:
+
+```sh
+npx bknd schema
+```
+
+To create an initial data structure, you can use helpers [described here](/usage/database#initial-structure).
+
+### `options.plugins`
+
+The `plugins` property is an array of functions that are called after the app has been built,
+but before its event is emitted. This is useful for adding custom routes or other functionality.
+A simple plugin that adds a custom route looks like this:
+
+```ts
+import type { AppPlugin } from "bknd";
+
+export const myPlugin: AppPlugin = (app) => {
+  app.server.get("/hello", (c) => c.json({ hello: "world" }));
+};
+```
+
+Since each plugin has full access to the `app` instance, it can add routes, modify the database
+structure, add custom middlewares, respond to or add events, etc. Plugins are very powerful, so
+make sure to only run trusted ones.
+
+### `options.seed`
+
+The `seed` property is a function that is called when the app is booted for the first time. It is used to seed the database with initial data. The function is passed a `ModuleBuildContext` object:
+
+```ts
+type ModuleBuildContext = {
+  connection: Connection;
+  server: Hono;
+  em: EntityManager;
+  emgr: EventManager;
+  guard: Guard;
+};
+
+const seed = async (ctx: ModuleBuildContext) => {
+  // seed the database
+  await ctx.em.mutator("todos").insertMany([
+    { title: "Learn bknd", done: true },
+    { title: "Build something cool", done: false },
+  ]);
+};
+```
+
+### `options.manager`
+
+This object is passed to the `ModuleManager` which is responsible for:
+
+- validating and maintaining configuration of all modules
+- building all modules (data, auth, media, flows)
+- maintaining the `ModuleBuildContext` used by the modules
+
+The `options.manager` object has the following properties:
+
+- `basePath` (`string`): The base path for the Hono instance. This is used to prefix all routes.
+- `trustFetched` (`boolean`): If set to `true`, the app will not perform any validity checks for
+  the given or fetched configuration.
+- `onFirstBoot` (`() => Promise<void>`): A function that is called when the app is booted for
+  the first time.

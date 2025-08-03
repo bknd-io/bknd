@@ -1,8 +1,5 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { TextInput } from "@mantine/core";
 import { useFocusTrap } from "@mantine/hooks";
-import { TypeRegistry } from "@sinclair/typebox";
-import { type Static, StringEnum, StringIdentifier, registerCustomTypeboxKinds } from "core/utils";
 import { TRIGGERS } from "flows/flows-schema";
 import { forwardRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,18 +13,16 @@ import {
    ModalTitle,
 } from "../../../components/modal/Modal2";
 import { Step, Steps, useStepContext } from "../../../components/steps/Steps";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
-
-registerCustomTypeboxKinds(TypeRegistry);
+import { s, stringIdentifier } from "bknd/utils";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
 export type TCreateFlowModalSchema = any;
 const triggerNames = Object.keys(TRIGGERS) as unknown as (keyof typeof TRIGGERS)[];
 
-const schema = Type.Object({
-   name: StringIdentifier,
-   trigger: StringEnum(triggerNames),
-   mode: StringEnum(["async", "sync"]),
+const schema = s.strictObject({
+   name: stringIdentifier,
+   trigger: s.string({ enum: triggerNames }),
+   mode: s.string({ enum: ["async", "sync"] }),
 });
 
 export const FlowCreateModal = forwardRef<Modal2Ref>(function FlowCreateModal(props, ref) {
@@ -61,16 +56,16 @@ export function StepCreate() {
       register,
       formState: { isValid, errors },
    } = useForm({
-      resolver: typeboxResolver(schema),
+      resolver: standardSchemaResolver(schema),
       defaultValues: {
          name: "",
          trigger: "manual",
          mode: "async",
-      } as Static<typeof schema>,
+      } as s.Static<typeof schema>,
       mode: "onSubmit",
    });
 
-   async function onSubmit(data: Static<typeof schema>) {
+   async function onSubmit(data: s.Static<typeof schema>) {
       console.log(data, isValid);
       actions.flow.create(data.name, {
          trigger: {

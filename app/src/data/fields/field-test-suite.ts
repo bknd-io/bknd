@@ -1,4 +1,4 @@
-import type { BaseFieldConfig, Field, TActionContext } from "data";
+import type { BaseFieldConfig, Field, TActionContext } from "data/fields";
 import type { ColumnDataType } from "kysely";
 import { omit } from "lodash-es";
 import type { TestRunner } from "core/test";
@@ -50,7 +50,7 @@ export function fieldTestSuite(
       expect(noConfigField.hasDefault()).toBe(false);
       expect(noConfigField.getDefault()).toBeUndefined();
       expect(dflt.hasDefault()).toBe(true);
-      expect(dflt.getDefault()).toBe(config.defaultValue);
+      expect(dflt.getDefault()).toEqual(config.defaultValue);
    });
 
    test("isFillable", async () => {
@@ -98,9 +98,7 @@ export function fieldTestSuite(
    test("toJSON", async () => {
       const _config = {
          ..._requiredConfig,
-         fillable: true,
          required: false,
-         hidden: false,
       };
 
       function fieldJson(field: Field) {
@@ -118,7 +116,10 @@ export function fieldTestSuite(
 
       expect(fieldJson(fillable)).toEqual({
          type: noConfigField.type,
-         config: _config,
+         config: {
+            ..._config,
+            fillable: true,
+         },
       });
 
       expect(fieldJson(required)).toEqual({

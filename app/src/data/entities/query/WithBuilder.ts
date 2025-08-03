@@ -1,7 +1,9 @@
 import { isObject } from "core/utils";
-import type { KyselyJsonFrom, RepoQuery } from "data";
+
+import type { KyselyJsonFrom } from "data/relations/EntityRelation";
+import type { RepoQuery } from "data/server/query";
 import { InvalidSearchParamsException } from "data/errors";
-import type { Entity, EntityManager, RepositoryQB } from "../../entities";
+import type { Entity, EntityManager, RepositoryQB } from "data/entities";
 
 export class WithBuilder {
    static addClause(

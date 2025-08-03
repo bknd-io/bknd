@@ -1,5 +1,6 @@
+import { bunTestRunner } from "adapter/bun/test";
 import { describe, expect, test } from "bun:test";
-import { EnumField } from "../../../../src/data";
+import { EnumField } from "data/fields";
 import { fieldTestSuite, transformPersist } from "data/fields/field-test-suite";
 
 function options(strings: string[]) {
@@ -8,7 +9,7 @@ function options(strings: string[]) {
 
 describe("[data] EnumField", async () => {
    fieldTestSuite(
-      { expect, test },
+      bunTestRunner,
       // @ts-ignore
       EnumField,
       { defaultValue: "a", schemaType: "text" },

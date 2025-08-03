@@ -5,31 +5,31 @@ import type {
    StrategyActions,
 } from "../Authenticator";
 import type { Hono } from "hono";
-import type { Static, TSchema } from "@sinclair/typebox";
-import { parse, type TObject } from "core/utils";
+import { type s, parse } from "bknd/utils";
 
 export type StrategyMode = "form" | "external";
 
-export abstract class Strategy<Schema extends TSchema = TSchema> {
+export abstract class AuthStrategy<Schema extends s.Schema = s.Schema> {
    protected actions: StrategyActions = {};
 
    constructor(
-      protected config: Static<Schema>,
+      protected config: s.Static<Schema>,
       public type: string,
       public name: string,
       public mode: StrategyMode,
    ) {
       // don't worry about typing, it'll throw if invalid
-      this.config = parse(this.getSchema(), (config ?? {}) as any) as Static<Schema>;
+      this.config = parse(this.getSchema(), (config ?? {}) as any) as s.Static<Schema>;
    }
 
-   protected registerAction<S extends TObject = TObject>(
+   protected registerAction<S extends s.ObjectSchema = s.ObjectSchema>(
       name: StrategyActionName,
       schema: S,
       preprocess: StrategyAction<S>["preprocess"],
    ): void {
       this.actions[name] = {
          schema,
+         // @ts-expect-error - @todo: fix this
          preprocess,
       } as const;
    }
@@ -50,7 +50,7 @@ export abstract class Strategy<Schema extends TSchema = TSchema> {
       return this.name;
    }
 
-   toJSON(secrets?: boolean): { type: string; config: Static<Schema> | {} | undefined } {
+   toJSON(secrets?: boolean): { type: string; config: s.Static<Schema> | {} | undefined } {
       return {
          type: this.getType(),
          config: secrets ? this.config : undefined,

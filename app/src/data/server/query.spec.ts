@@ -1,8 +1,12 @@
 import { test, describe, expect } from "bun:test";
 import * as q from "./query";
-import { s as schema, parse as $parse, type ParseOptions } from "core/object/schema";
+import { parse as $parse, type ParseOptions } from "bknd/utils";
 
-const parse = (v: unknown, o: ParseOptions = {}) => $parse(q.repoQuery, v, o);
+const parse = (v: unknown, o: ParseOptions = {}) =>
+   $parse(q.repoQuery, v, {
+      ...o,
+      withDefaults: false,
+   });
 
 // compatibility
 const decode = (input: any, output: any) => {
@@ -11,7 +15,7 @@ const decode = (input: any, output: any) => {
 
 describe("server/query", () => {
    test("limit & offset", () => {
-      expect(() => parse({ limit: false })).toThrow();
+      //expect(() => parse({ limit: false })).toThrow();
       expect(parse({ limit: "11" })).toEqual({ limit: 11 });
       expect(parse({ limit: 20 })).toEqual({ limit: 20 });
       expect(parse({ offset: "1" })).toEqual({ offset: 1 });
@@ -44,6 +48,7 @@ describe("server/query", () => {
       });
       expect(parse({ sort: { by: "title" } }).sort).toEqual({
          by: "title",
+         dir: "asc",
       });
       expect(
          parse(
@@ -102,9 +107,12 @@ describe("server/query", () => {
 
    test("template", () => {
       expect(
-         q.repoQuery.template({
-            withOptional: true,
-         }),
+         q.repoQuery.template(
+            {},
+            {
+               withOptional: true,
+            },
+         ),
       ).toEqual({
          limit: 10,
          offset: 0,

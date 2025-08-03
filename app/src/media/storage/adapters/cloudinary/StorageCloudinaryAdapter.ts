@@ -1,21 +1,19 @@
 import { hash, pickHeaders } from "core/utils";
-import { type Static, parse } from "core/utils";
 import type { FileBody, FileListObject, FileMeta } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
-import * as tbbox from "@sinclair/typebox";
-const { Type } = tbbox;
+import { s, parse } from "bknd/utils";
 
-export const cloudinaryAdapterConfig = Type.Object(
+export const cloudinaryAdapterConfig = s.object(
    {
-      cloud_name: Type.String(),
-      api_key: Type.String(),
-      api_secret: Type.String(),
-      upload_preset: Type.Optional(Type.String()),
+      cloud_name: s.string(),
+      api_key: s.string(),
+      api_secret: s.string(),
+      upload_preset: s.string().optional(),
    },
    { title: "Cloudinary", description: "Cloudinary media storage" },
 );
 
-export type CloudinaryConfig = Static<typeof cloudinaryAdapterConfig>;
+export type CloudinaryConfig = s.Static<typeof cloudinaryAdapterConfig>;
 
 type CloudinaryObject = {
    asset_id: string;

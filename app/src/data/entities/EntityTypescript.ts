@@ -1,4 +1,5 @@
-import type { Entity, EntityManager, EntityRelation, TEntityType } from "data";
+import type { Entity, EntityManager, TEntityType } from "data/entities";
+import type { EntityRelation } from "data/relations";
 import { autoFormatString } from "core/utils";
 import { usersFields } from "auth/auth-entities";
 import { mediaFields } from "media/media-entities";
@@ -169,7 +170,7 @@ export class EntityTypescript {
       const strings: string[] = [];
       const tables: Record<string, string> = {};
       const imports: Record<string, string[]> = {
-         "bknd/core": ["DB"],
+         bknd: ["DB"],
          kysely: ["Insertable", "Selectable", "Updateable", "Generated"],
       };
 
@@ -206,7 +207,7 @@ export class EntityTypescript {
       strings.push(tables_string);
 
       // merge
-      let merge = `declare module "bknd/core" {\n`;
+      let merge = `declare module "bknd" {\n`;
       for (const systemEntity of system_entities) {
          const system_fields = Object.keys(systemEntities[systemEntity.name]);
          const additional_fields = systemEntity.fields

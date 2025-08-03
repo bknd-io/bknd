@@ -1,62 +1,61 @@
 import { get, has, omit, set } from "lodash-es";
-import {
-   Default,
-   type Static,
-   type TObject,
-   getFullPathKeys,
-   mergeObjectWith,
-   parse,
-   stripMark,
-} from "../utils";
+import { type s, parse, stripMark, getFullPathKeys, mergeObjectWith, deepFreeze } from "bknd/utils";
 
-export type SchemaObjectOptions<Schema extends TObject> = {
-   onUpdate?: (config: Static<Schema>) => void | Promise<void>;
+export type SchemaObjectOptions<Schema extends s.Schema> = {
+   onUpdate?: (config: s.Static<Schema>) => void | Promise<void>;
    onBeforeUpdate?: (
-      from: Static<Schema>,
-      to: Static<Schema>,
-   ) => Static<Schema> | Promise<Static<Schema>>;
+      from: s.Static<Schema>,
+      to: s.Static<Schema>,
+   ) => s.Static<Schema> | Promise<s.Static<Schema>>;
    restrictPaths?: string[];
    overwritePaths?: (RegExp | string)[];
    forceParse?: boolean;
 };
 
-export class SchemaObject<Schema extends TObject> {
-   private readonly _default: Partial<Static<Schema>>;
-   private _value: Static<Schema>;
-   private _config: Static<Schema>;
+type TSchema = s.ObjectSchema<any>;
+
+export class SchemaObject<Schema extends TSchema = TSchema> {
+   private readonly _default: Partial<s.Static<Schema>>;
+   private _value: s.Static<Schema>;
+   private _config: s.Static<Schema>;
    private _restriction_bypass: boolean = false;
 
    constructor(
       private _schema: Schema,
-      initial?: Partial<Static<Schema>>,
+      initial?: Partial<s.Static<Schema>>,
       private options?: SchemaObjectOptions<Schema>,
    ) {
-      this._default = Default(_schema, {} as any) as any;
-      this._value = initial
-         ? parse(_schema, structuredClone(initial as any), {
-              forceParse: this.isForceParse(),
-              skipMark: this.isForceParse(),
-           })
-         : this._default;
-      this._config = Object.freeze(this._value);
+      this._default = deepFreeze(_schema.template({}, { withOptional: true }) as any);
+      this._value = deepFreeze(
+         parse(_schema, structuredClone(initial ?? {}), {
+            withDefaults: true,
+            //withExtendedDefaults: true,
+            forceParse: this.isForceParse(),
+            skipMark: this.isForceParse(),
+         }),
+      );
+      this._config = deepFreeze(this._value);
    }
 
    protected isForceParse(): boolean {
       return this.options?.forceParse ?? true;
    }
 
-   default(): Static<Schema> {
+   default() {
       return this._default;
    }
 
-   private async onBeforeUpdate(from: Static<Schema>, to: Static<Schema>): Promise<Static<Schema>> {
+   private async onBeforeUpdate(
+      from: s.Static<Schema>,
+      to: s.Static<Schema>,
+   ): Promise<s.Static<Schema>> {
       if (this.options?.onBeforeUpdate) {
          return this.options.onBeforeUpdate(from, to);
       }
       return to;
    }
 
-   get(options?: { stripMark?: boolean }): Static<Schema> {
+   get(options?: { stripMark?: boolean }): s.Static<Schema> {
       if (options?.stripMark) {
          return stripMark(this._config);
       }
@@ -68,8 +67,9 @@ export class SchemaObject<Schema extends TObject> {
       return structuredClone(this._config);
    }
 
-   async set(config: Static<Schema>, noEmit?: boolean): Promise<Static<Schema>> {
+   async set(config: s.Static<Schema>, noEmit?: boolean): Promise<s.Static<Schema>> {
       const valid = parse(this._schema, structuredClone(config) as any, {
+         coerce: false,
          forceParse: true,
          skipMark: this.isForceParse(),
       });
@@ -77,8 +77,8 @@ export class SchemaObject<Schema extends TObject> {
       // regardless of "noEmit" – this should always be triggered
       const updatedConfig = await this.onBeforeUpdate(this._config, valid);
 
-      this._value = updatedConfig;
-      this._config = Object.freeze(updatedConfig);
+      this._value = deepFreeze(updatedConfig);
+      this._config = deepFreeze(updatedConfig);
 
       if (noEmit !== true) {
          await this.options?.onUpdate?.(this._config);
@@ -118,9 +118,9 @@ export class SchemaObject<Schema extends TObject> {
       return;
    }
 
-   async patch(path: string, value: any): Promise<[Partial<Static<Schema>>, Static<Schema>]> {
+   async patch(path: string, value: any): Promise<[Partial<s.Static<Schema>>, s.Static<Schema>]> {
       const current = this.clone();
-      const partial = path.length > 0 ? (set({}, path, value) as Partial<Static<Schema>>) : value;
+      const partial = path.length > 0 ? (set({}, path, value) as Partial<s.Static<Schema>>) : value;
 
       this.throwIfRestricted(partial);
 
@@ -168,9 +168,12 @@ export class SchemaObject<Schema extends TObject> {
       return [partial, newConfig];
    }
 
-   async overwrite(path: string, value: any): Promise<[Partial<Static<Schema>>, Static<Schema>]> {
+   async overwrite(
+      path: string,
+      value: any,
+   ): Promise<[Partial<s.Static<Schema>>, s.Static<Schema>]> {
       const current = this.clone();
-      const partial = path.length > 0 ? (set({}, path, value) as Partial<Static<Schema>>) : value;
+      const partial = path.length > 0 ? (set({}, path, value) as Partial<s.Static<Schema>>) : value;
 
       this.throwIfRestricted(partial);
 
@@ -194,7 +197,7 @@ export class SchemaObject<Schema extends TObject> {
       return has(this._config, path);
    }
 
-   async remove(path: string): Promise<[Partial<Static<Schema>>, Static<Schema>]> {
+   async remove(path: string): Promise<[Partial<s.Static<Schema>>, s.Static<Schema>]> {
       this.throwIfRestricted(path);
 
       if (!this.has(path)) {
@@ -202,9 +205,9 @@ export class SchemaObject<Schema extends TObject> {
       }
 
       const current = this.clone();
-      const removed = get(current, path) as Partial<Static<Schema>>;
+      const removed = get(current, path) as Partial<s.Static<Schema>>;
       const config = omit(current, path);
-      const newConfig = await this.set(config);
+      const newConfig = await this.set(config as any);
       return [removed, newConfig];
    }
 }

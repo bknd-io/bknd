@@ -1,13 +1,10 @@
 // eslint-disable-next-line import/no-unresolved
 import { afterAll, describe, expect, test } from "bun:test";
-import {
-   Entity,
-   EntityManager,
-   ManyToOneRelation,
-   NumberField,
-   SchemaManager,
-   TextField,
-} from "../../src/data";
+import { Entity } from "data/entities";
+import { EntityManager } from "data/entities/EntityManager";
+import { ManyToOneRelation } from "data/relations";
+import { NumberField, TextField } from "data/fields";
+import { SchemaManager } from "data/schema/SchemaManager";
 import { getDummyConnection } from "./helper";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();

@@ -1,0 +1,7 @@
+{
+  "name": "bknd-deno-example",
+  "private": true,
+  "dependencies": {
+    "bknd": "file:../../app"
+  }
+}

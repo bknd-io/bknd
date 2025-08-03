@@ -1,5 +1,5 @@
 import type { AuthState } from "Api";
-import type { AuthResponse } from "auth";
+import type { AuthResponse } from "bknd";
 import { useApi, useInvalidate } from "ui/client";
 import { useClientContext } from "ui/client/ClientProvider";
 

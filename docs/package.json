@@ -2,9 +2,57 @@
   "name": "bknd-docs",
   "private": true,
   "scripts": {
-    "dev": "mintlify dev"
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbo",
+    "build": "bun generate:openapi && next build",
+    "start": "next start",
+    "generate:openapi": "bun scripts/generate-openapi.mjs",
+    "postinstall": "fumadocs-mdx",
+    "preview": "npm run build && wrangler dev",
+    "cf:preview": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "cf:deploy": "wrangler deploy"
+  },
+  "packageManager": "npm@10.9.2",
+  "dependencies": {
+    "@iconify/react": "^6.0.0",
+    "@orama/orama": "^3.1.10",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "fumadocs-core": "^15.6.1",
+    "fumadocs-mdx": "^11.6.10",
+    "fumadocs-openapi": "^9.0.18",
+    "fumadocs-twoslash": "^3.1.4",
+    "fumadocs-typescript": "^4.0.6",
+    "fumadocs-ui": "^15.6.1",
+    "lucide-react": "^0.525.0",
+    "motion": "^12.23.6",
+    "next": "15.3.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-merge": "^3.3.1",
+    "twoslash": "^0.3.2"
   },
   "devDependencies": {
-    "mintlify": "4.0.510"
-  }
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "24.0.10",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^8",
+    "eslint-config-next": "15.3.5",
+    "fumadocs-docgen": "^2.1.0",
+    "postcss": "^8.5.6",
+    "rimraf": "^6.0.1",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.25.1"
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@tailwindcss/oxide",
+    "esbuild",
+    "sharp",
+    "unrs-resolver"
+  ]
 }

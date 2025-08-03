@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { stripMark } from "../../src/core/utils";
-import { type TSchema, Type } from "@sinclair/typebox";
-import { EntityManager, em, entity, index, text } from "../../src/data";
+import { s, stripMark } from "core/utils/schema";
+import { em, entity, index, text } from "data/prototype";
+import { EntityManager } from "data/entities/EntityManager";
 import { DummyConnection } from "../../src/data/connection/DummyConnection";
 import { Module } from "../../src/modules/Module";
 import { ModuleHelper } from "modules/ModuleHelper";
 
-function createModule<Schema extends TSchema>(schema: Schema) {
-   class TestModule extends Module<typeof schema> {
+function createModule<Schema extends s.Schema>(schema: Schema) {
+   return class TestModule extends Module<Schema> {
       getSchema() {
          return schema;
       }
@@ -17,9 +17,7 @@ function createModule<Schema extends TSchema>(schema: Schema) {
       override useForceParse() {
          return true;
       }
-   }
-
-   return TestModule;
+   };
 }
 
 describe("Module", async () => {
@@ -27,7 +25,7 @@ describe("Module", async () => {
       test("listener", async () => {
          let result: any;
 
-         const module = createModule(Type.Object({ a: Type.String() }));
+         const module = createModule(s.object({ a: s.string() }));
          const m = new module({ a: "test" });
 
          await m.schema().set({ a: "test2" });
@@ -43,7 +41,7 @@ describe("Module", async () => {
    describe("db schema", () => {
       class M extends Module {
          override getSchema() {
-            return Type.Object({});
+            return s.object({});
          }
 
          prt = {

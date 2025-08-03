@@ -1,0 +1,141 @@
+---
+title: Events & Hooks
+tags: ["documentation"]
+---
+
+bknd comes with a powerful built-in event system that allows you to hook into the app lifecycle and extend its functionality. You can hook into these events in two ways:
+
+- `async`: Your listener is not blocking the main execution flow. E.g. on Cloudflare Workers, by default, the `ExecutionContext`'s `waitUntil` method is used so that the listeners runs after the response is sent.
+- `sync`: Your listener is blocking the main execution flow. This allows to abort the request in your custom conditions. Some events also allow to return a modified event payload.
+
+<Callout type="info">
+  Don't mistake `async` with JavaScript's `async` keyword. The `async` keyword
+  is used to indicate that the listener is not blocking the main execution flow.
+</Callout>
+
+## Overview
+
+### Listening to events
+
+You can listen to events by using the `EventManager` exposed at `app.emgr`. To register a listener, you can use either of these methods:
+
+- `onEvent`: Register a listener for a specific event with a typed event.
+- `on`: Register a listener for an event by its slug.
+- `onAny`: Register a listener for all events.
+
+```typescript
+import { createApp, AppEvents } from "bknd";
+const app = createApp();
+
+app.emgr.onEvent(AppEvents.AppRequest, async (event) => {
+  //                                         ^? AppRequest
+  console.log("Request received", event.request.url);
+});
+
+app.emgr.on("app-request", async (event) => {
+  console.log("Request received", event.request.url);
+});
+
+app.emgr.onAny(async (event) => {
+  console.log("Event received", event.slug);
+});
+```
+
+You may want to register your listeners inside [`bknd.config.ts`](/extending/config) to make sure they are registered before the app is built:
+
+```typescript title="bknd.config.ts"
+import { AppEvents } from "bknd";
+
+export default {
+  onBuilt: (app) => {
+    app.emgr.onEvent(AppEvents.AppRequest, async (event) => {
+      console.log("Request received", event.request.url);
+    });
+  },
+};
+```
+
+### Setting a mode
+
+By default, listeners are registered as `async` listeners, meaning that the listener is not blocking the main execution flow. You can change this by passing the mode as the third argument:
+
+```typescript
+app.emgr.onEvent(
+  AppEvents.AppRequest,
+  async (event) => {
+    console.log("Request received", event.request.url);
+  },
+  { mode: "sync" },
+);
+```
+
+This works for all three methods.
+
+## App Events
+
+These events are emitted by the `App` class and are available on the `AppEvents` object.
+
+```typescript
+import { AppEvents } from "bknd";
+```
+
+Available events:
+
+{/* <AutoTypeTable path="../app/src/App.ts" name="AppEvents" />  */}
+| Event | Params | Description |
+|:------|:--------|:------------|
+| `AppConfigUpdatedEvent` | `{ app: App }` | Emitted when the app configuration is updated |
+| `AppBuiltEvent` | `{ app: App }` | Emitted when the app is built |
+| `AppFirstBoot` | `{ app: App }` | Emitted when the app is first booted |
+| `AppRequest` | `{ app: App, request: Request }` | Emitted when a request is received |
+| `AppBeforeResponse` | `{ app: App, request: Request, response: Response }` | Emitted before a response is sent |
+
+## Database Events
+
+These events are emitted by the `Database` class and are available on the `DatabaseEvents` object. These are divided by events triggered by the `Mutator` and `Repository` classes.
+
+```typescript
+import { DatabaseEvents } from "bknd";
+```
+
+### Mutator Events
+
+These events are emitted during database mutations (insert, update, delete operations).
+
+| Event                 | Params                                                                                  | Description                                                 |
+| :-------------------- | :-------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
+| `MutatorInsertBefore` | `{ entity: Entity, data: EntityData }`                                                  | Emitted before inserting a new record. Can modify the data. |
+| `MutatorInsertAfter`  | `{ entity: Entity, data: EntityData, changed: EntityData }`                             | Emitted after inserting a new record.                       |
+| `MutatorUpdateBefore` | `{ entity: Entity, entityId: PrimaryFieldType, data: EntityData }`                      | Emitted before updating a record. Can modify the data.      |
+| `MutatorUpdateAfter`  | `{ entity: Entity, entityId: PrimaryFieldType, data: EntityData, changed: EntityData }` | Emitted after updating a record.                            |
+| `MutatorDeleteBefore` | `{ entity: Entity, entityId: PrimaryFieldType }`                                        | Emitted before deleting a record.                           |
+| `MutatorDeleteAfter`  | `{ entity: Entity, entityId: PrimaryFieldType, data: EntityData }`                      | Emitted after deleting a record.                            |
+
+### Repository Events
+
+These events are emitted during database queries (find operations).
+
+| Event                      | Params                                                     | Description                              |
+| :------------------------- | :--------------------------------------------------------- | :--------------------------------------- |
+| `RepositoryFindOneBefore`  | `{ entity: Entity, options: RepoQuery }`                   | Emitted before finding a single record.  |
+| `RepositoryFindOneAfter`   | `{ entity: Entity, options: RepoQuery, data: EntityData }` | Emitted after finding a single record.   |
+| `RepositoryFindManyBefore` | `{ entity: Entity, options: RepoQuery }`                   | Emitted before finding multiple records. |
+| `RepositoryFindManyAfter`  | `{ entity: Entity, options: RepoQuery, data: EntityData }` | Emitted after finding multiple records.  |
+
+## Media Events
+
+These events are emitted by the `Storage` class and are available on the `MediaEvents` object.
+
+```typescript
+import { MediaEvents } from "bknd";
+```
+
+| Event               | Params                                   | Description                                                              |
+| :------------------ | :--------------------------------------- | :----------------------------------------------------------------------- |
+| `FileUploadedEvent` | `{ file: FileBody } & FileUploadPayload` | Emitted when a file is successfully uploaded. Can modify the event data. |
+| `FileDeletedEvent`  | `{ name: string }`                       | Emitted when a file is deleted.                                          |
+| `FileAccessEvent`   | `{ name: string }`                       | Emitted when a file is accessed.                                         |
+
+## Auth Events
+
+Coming soon.

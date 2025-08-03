@@ -1,16 +1,12 @@
-import { registries } from "bknd";
-import { isDebug } from "bknd/core";
-// @ts-ignore
-import { StringEnum } from "bknd/utils";
-import { guessMimeType as guess, StorageAdapter, type FileBody } from "bknd/media";
+import { registries, isDebug, guessMimeType } from "bknd";
 import { getBindings } from "../bindings";
-import * as tb from "@sinclair/typebox";
-const { Type } = tb;
+import { s } from "bknd/utils";
+import { StorageAdapter, type FileBody } from "bknd";
 
 export function makeSchema(bindings: string[] = []) {
-   return Type.Object(
+   return s.object(
       {
-         binding: bindings.length > 0 ? StringEnum(bindings) : Type.Optional(Type.String()),
+         binding: bindings.length > 0 ? s.string({ enum: bindings }) : s.string().optional(),
       },
       { title: "R2", description: "Cloudflare R2 storage" },
    );
@@ -93,7 +89,7 @@ export class StorageR2Adapter extends StorageAdapter {
 
       const responseHeaders = new Headers({
          "Accept-Ranges": "bytes",
-         "Content-Type": guess(key),
+         "Content-Type": guessMimeType(key),
       });
 
       const range = headers.has("range");
@@ -145,7 +141,7 @@ export class StorageR2Adapter extends StorageAdapter {
       if (!metadata || Object.keys(metadata).length === 0) {
          // guessing is especially required for dev environment (miniflare)
          metadata = {
-            contentType: guess(object.key),
+            contentType: guessMimeType(object.key),
          };
       }
 
@@ -162,7 +158,7 @@ export class StorageR2Adapter extends StorageAdapter {
       }
 
       return {
-         type: String(head.httpMetadata?.contentType ?? guess(key)),
+         type: String(head.httpMetadata?.contentType ?? guessMimeType(key)),
          size: head.size,
       };
    }

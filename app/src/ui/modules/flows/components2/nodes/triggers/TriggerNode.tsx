@@ -1,7 +1,6 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import { TextInput } from "@mantine/core";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Const, type Static, registerCustomTypeboxKinds, transformObject } from "core/utils";
+import { transformObject } from "core/utils";
 import { TriggerMap } from "flows";
 import type { TAppFlowTriggerSchema } from "flows/AppFlows";
 import { useForm } from "react-hook-form";
@@ -11,22 +10,19 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import { useFlowCanvas, useFlowSelector } from "../../../hooks/use-flow";
 import { BaseNode } from "../BaseNode";
 import { Handle } from "../Handle";
-import * as tb from "@sinclair/typebox";
-const { Type, TypeRegistry } = tb;
+import { s } from "bknd/utils";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 
-// @todo: check if this could become an issue
-registerCustomTypeboxKinds(TypeRegistry);
-
-const schema = Type.Object({
-   trigger: Type.Union(
+const schema = s.object({
+   trigger: s.anyOf(
       Object.values(
          transformObject(TriggerMap, (trigger, name) =>
-            Type.Object(
+            s.strictObject(
                {
-                  type: Const(name),
+                  type: s.literal(name),
                   config: trigger.cls.schema,
                },
-               { title: String(name), additionalProperties: false },
+               { title: String(name) },
             ),
          ),
       ),
@@ -50,13 +46,13 @@ export const TriggerNode = (props: NodeProps<Node<TAppFlowTriggerSchema & { labe
       watch,
       control,
    } = useForm({
-      resolver: typeboxResolver(schema),
-      defaultValues: { trigger: state } as Static<typeof schema>,
+      resolver: standardSchemaResolver(schema),
+      defaultValues: { trigger: state } as s.Static<typeof schema>,
       mode: "onChange",
    });
    const data = watch("trigger");
 
-   async function onSubmit(data: Static<typeof schema>) {
+   async function onSubmit(data: s.Static<typeof schema>) {
       console.log("submit", data.trigger);
       // @ts-ignore
       await actions.trigger.update(data.trigger);

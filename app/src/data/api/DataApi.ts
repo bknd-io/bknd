@@ -1,8 +1,9 @@
-import type { DB } from "core";
-import type { EntityData, RepoQueryIn, RepositoryResultJSON } from "data";
+import type { DB, EntityData, RepoQueryIn } from "bknd";
+
 import type { Insertable, Selectable, Updateable } from "kysely";
 import { type BaseModuleApiOptions, ModuleApi, type PrimaryFieldType } from "modules";
 import type { FetchPromise, ResponseObject } from "modules/ModuleApi";
+import type { RepositoryResultJSON } from "data/entities/query/RepositoryResult";
 
 export type DataApiOptions = BaseModuleApiOptions & {
    queryLengthLimit: number;

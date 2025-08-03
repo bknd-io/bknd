@@ -32,3 +32,5 @@ packages/media/.env
 docker/tmp
 .debug
 .history
+.aider*
+.vercel

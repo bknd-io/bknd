@@ -1,6 +1,7 @@
 import { $ } from "bun";
 import * as tsup from "tsup";
 import pkg from "./package.json" with { type: "json" };
+import c from "picocolors";
 
 const args = process.argv.slice(2);
 const watch = args.includes("--watch");
@@ -8,6 +9,14 @@ const minify = args.includes("--minify");
 const types = args.includes("--types");
 const sourcemap = args.includes("--sourcemap");
 const clean = args.includes("--clean");
+
+// silence tsup
+const oldConsole = {
+   log: console.log,
+   warn: console.warn,
+};
+console.log = () => {};
+console.warn = () => {};
 
 const define = {
    __isDev: "0",
@@ -27,16 +36,20 @@ function buildTypes() {
    Bun.spawn(["bun", "build:types"], {
       stdout: "inherit",
       onExit: () => {
-         console.info("Types built");
+         oldConsole.log(c.cyan("[Types]"), c.green("built"));
          Bun.spawn(["bun", "tsc-alias"], {
             stdout: "inherit",
             onExit: () => {
-               console.info("Types aliased");
+               oldConsole.log(c.cyan("[Types]"), c.green("aliased"));
                types_running = false;
             },
          });
       },
    });
+}
+
+if (types && !watch) {
+   buildTypes();
 }
 
 let watcher_timeout: any;
@@ -46,17 +59,6 @@ function delayTypes() {
       clearTimeout(watcher_timeout);
    }
    watcher_timeout = setTimeout(buildTypes, 1000);
-}
-
-if (types && !watch) {
-   buildTypes();
-}
-
-function banner(title: string) {
-   console.info("");
-   console.info("=".repeat(40));
-   console.info(title.toUpperCase());
-   console.info("-".repeat(40));
 }
 
 // collection of always-external packages
@@ -73,20 +75,12 @@ const external = [
  * Building backend and general API
  */
 async function buildApi() {
-   banner("Building API");
    await tsup.build({
       minify,
       sourcemap,
       watch,
       define,
-      entry: [
-         "src/index.ts",
-         "src/core/index.ts",
-         "src/core/utils/index.ts",
-         "src/data/index.ts",
-         "src/media/index.ts",
-         "src/plugins/index.ts",
-      ],
+      entry: ["src/index.ts", "src/core/utils/index.ts", "src/plugins/index.ts"],
       outDir: "dist",
       external: [...external],
       metafile: true,
@@ -99,6 +93,7 @@ async function buildApi() {
       },
       onSuccess: async () => {
          delayTypes();
+         oldConsole.log(c.cyan("[API]"), c.green("built"));
       },
    });
 }
@@ -142,7 +137,6 @@ async function buildUi() {
       },
    } satisfies tsup.Options;
 
-   banner("Building UI");
    await tsup.build({
       ...base,
       entry: ["src/ui/index.ts", "src/ui/main.css", "src/ui/styles.css"],
@@ -150,10 +144,10 @@ async function buildUi() {
       onSuccess: async () => {
          await rewriteClient("./dist/ui/index.js");
          delayTypes();
+         oldConsole.log(c.cyan("[UI]"), c.green("built"));
       },
    });
 
-   banner("Building Client");
    await tsup.build({
       ...base,
       entry: ["src/ui/client/index.ts"],
@@ -161,6 +155,7 @@ async function buildUi() {
       onSuccess: async () => {
          await rewriteClient("./dist/ui/client/index.js");
          delayTypes();
+         oldConsole.log(c.cyan("[UI]"), "Client", c.green("built"));
       },
    });
 }
@@ -171,7 +166,6 @@ async function buildUi() {
  * - ui/client is external, and after built replaced with "bknd/client"
  */
 async function buildUiElements() {
-   banner("Building UI Elements");
    await tsup.build({
       minify,
       sourcemap,
@@ -205,6 +199,7 @@ async function buildUiElements() {
       onSuccess: async () => {
          await rewriteClient("./dist/ui/elements/index.js");
          delayTypes();
+         oldConsole.log(c.cyan("[UI]"), "Elements", c.green("built"));
       },
    });
 }
@@ -225,6 +220,7 @@ function baseConfig(adapter: string, overrides: Partial<tsup.Options> = {}): tsu
       splitting: false,
       onSuccess: async () => {
          delayTypes();
+         oldConsole.log(c.cyan("[Adapter]"), adapter || "base", c.green("built"));
       },
       ...overrides,
       define: {
@@ -233,7 +229,7 @@ function baseConfig(adapter: string, overrides: Partial<tsup.Options> = {}): tsu
       },
       external: [
          /^cloudflare*/,
-         /^@?(hono).*?/,
+         /^@?hono.*?/,
          /^(bknd|react|next|node).*?/,
          /.*\.(html)$/,
          ...external,
@@ -243,65 +239,63 @@ function baseConfig(adapter: string, overrides: Partial<tsup.Options> = {}): tsu
 }
 
 async function buildAdapters() {
-   banner("Building Adapters");
-   // base adapter handles
-   await tsup.build({
-      ...baseConfig(""),
-      entry: ["src/adapter/index.ts"],
-      outDir: "dist/adapter",
-   });
+   await Promise.all([
+      // base adapter handles
+      tsup.build({
+         ...baseConfig(""),
+         entry: ["src/adapter/index.ts"],
+         outDir: "dist/adapter",
+      }),
 
-   // specific adatpers
-   await tsup.build(baseConfig("react-router"));
-   await tsup.build(
-      baseConfig("bun", {
+      // specific adatpers
+      tsup.build(baseConfig("react-router")),
+      tsup.build(
+         baseConfig("bun", {
+            external: [/^bun\:.*/],
+         }),
+      ),
+      tsup.build(baseConfig("astro")),
+      tsup.build(baseConfig("aws")),
+      tsup.build(baseConfig("cloudflare")),
+
+      tsup.build({
+         ...baseConfig("vite"),
+         platform: "node",
+      }),
+
+      tsup.build({
+         ...baseConfig("nextjs"),
+         platform: "node",
+      }),
+
+      tsup.build({
+         ...baseConfig("node"),
+         platform: "node",
+      }),
+
+      tsup.build({
+         ...baseConfig("sqlite/edge"),
+         entry: ["src/adapter/sqlite/edge.ts"],
+         outDir: "dist/adapter/sqlite",
+         metafile: false,
+      }),
+
+      tsup.build({
+         ...baseConfig("sqlite/node"),
+         entry: ["src/adapter/sqlite/node.ts"],
+         outDir: "dist/adapter/sqlite",
+         platform: "node",
+         metafile: false,
+      }),
+
+      tsup.build({
+         ...baseConfig("sqlite/bun"),
+         entry: ["src/adapter/sqlite/bun.ts"],
+         outDir: "dist/adapter/sqlite",
+         metafile: false,
          external: [/^bun\:.*/],
       }),
-   );
-   await tsup.build(baseConfig("astro"));
-   await tsup.build(baseConfig("aws"));
-   await tsup.build(baseConfig("cloudflare"));
-
-   await tsup.build({
-      ...baseConfig("vite"),
-      platform: "node",
-   });
-
-   await tsup.build({
-      ...baseConfig("nextjs"),
-      platform: "node",
-   });
-
-   await tsup.build({
-      ...baseConfig("node"),
-      platform: "node",
-   });
-
-   await tsup.build({
-      ...baseConfig("sqlite/edge"),
-      entry: ["src/adapter/sqlite/edge.ts"],
-      outDir: "dist/adapter/sqlite",
-      metafile: false,
-   });
-
-   await tsup.build({
-      ...baseConfig("sqlite/node"),
-      entry: ["src/adapter/sqlite/node.ts"],
-      outDir: "dist/adapter/sqlite",
-      platform: "node",
-      metafile: false,
-   });
-
-   await tsup.build({
-      ...baseConfig("sqlite/bun"),
-      entry: ["src/adapter/sqlite/bun.ts"],
-      outDir: "dist/adapter/sqlite",
-      metafile: false,
-      external: [/^bun\:.*/],
-   });
+   ]);
 }
 
-await buildApi();
-await buildUi();
-await buildUiElements();
-await buildAdapters();
+await Promise.all([buildApi(), buildUi(), buildUiElements(), buildAdapters()]);

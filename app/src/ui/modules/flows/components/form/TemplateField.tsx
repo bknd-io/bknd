@@ -1,6 +1,6 @@
 import type { FieldProps, FormContextType, RJSFSchema, StrictRJSFSchema } from "@rjsf/utils";
-import { SimpleRenderer } from "core";
-import { ucFirst, ucFirstAll } from "core/utils";
+import { SimpleRenderer } from "core/template/SimpleRenderer";
+import { ucFirst, ucFirstAll } from "bknd/utils";
 import { useState } from "react";
 
 const modes = ["field", "code"] as const;

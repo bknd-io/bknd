@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Guard } from "../../src/auth";
-import { parse } from "../../src/core/utils";
+import { Guard } from "../../src/auth/authorize/Guard";
 import { DataApi } from "../../src/data/api/DataApi";
 import { DataController } from "../../src/data/api/DataController";
 import { dataConfigSchema } from "../../src/data/data-schema";
 import * as proto from "../../src/data/prototype";
 import { schemaToEm } from "../helper";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+import { parse } from "core/utils/schema";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
@@ -202,7 +202,7 @@ describe("DataApi", () => {
       {
          // create many
          const res = await api.createMany("posts", payload);
-         expect(res.data.length).toEqual(4);
+         expect(res.data?.length).toEqual(4);
          expect(res.ok).toBeTrue();
       }
 

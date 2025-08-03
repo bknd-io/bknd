@@ -1,18 +1,11 @@
-import { Guard } from "auth";
-import { BkndError, DebugLogger, env } from "core";
-import { $console } from "core/utils";
+import { mark, stripMark, $console, s, objectEach, transformObject } from "bknd/utils";
+import { Guard } from "auth/authorize/Guard";
+import { env } from "core/env";
+import { BkndError } from "core/errors";
+import { DebugLogger } from "core/utils/DebugLogger";
 import { EventManager, Event } from "core/events";
 import * as $diff from "core/object/diff";
-import {
-   Default,
-   type Static,
-   StringEnum,
-   mark,
-   objectEach,
-   stripMark,
-   transformObject,
-} from "core/utils";
-import type { Connection, Schema } from "data";
+import type { Connection } from "data/connection";
 import { EntityManager } from "data/entities/EntityManager";
 import * as proto from "data/prototype";
 import { TransformPersistFailedException } from "data/errors";
@@ -27,9 +20,7 @@ import { AppFlows } from "../flows/AppFlows";
 import { AppMedia } from "../media/AppMedia";
 import type { ServerEnv } from "./Controller";
 import { Module, type ModuleBuildContext } from "./Module";
-import * as tbbox from "@sinclair/typebox";
 import { ModuleHelper } from "./ModuleHelper";
-const { Type } = tbbox;
 
 export type { ModuleBuildContext };
 
@@ -54,7 +45,7 @@ export type ModuleSchemas = {
 };
 
 export type ModuleConfigs = {
-   [K in keyof ModuleSchemas]: Static<ModuleSchemas[K]>;
+   [K in keyof ModuleSchemas]: s.Static<ModuleSchemas[K]>;
 };
 type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 
@@ -102,25 +93,25 @@ export type ConfigTable<Json = ModuleConfigs> = {
    updated_at?: Date;
 };
 
-const configJsonSchema = Type.Union([
+const configJsonSchema = s.anyOf([
    getDefaultSchema(),
-   Type.Array(
-      Type.Object({
-         t: StringEnum(["a", "r", "e"]),
-         p: Type.Array(Type.Union([Type.String(), Type.Number()])),
-         o: Type.Optional(Type.Any()),
-         n: Type.Optional(Type.Any()),
+   s.array(
+      s.strictObject({
+         t: s.string({ enum: ["a", "r", "e"] }),
+         p: s.array(s.anyOf([s.string(), s.number()])),
+         o: s.any().optional(),
+         n: s.any().optional(),
       }),
    ),
 ]);
 export const __bknd = proto.entity(TABLE_NAME, {
    version: proto.number().required(),
    type: proto.enumm({ enum: ["config", "diff", "backup"] }).required(),
-   json: proto.jsonSchema({ schema: configJsonSchema }).required(),
+   json: proto.jsonSchema({ schema: configJsonSchema.toJSON() }).required(),
    created_at: proto.datetime(),
    updated_at: proto.datetime(),
 });
-type ConfigTable2 = Schema<typeof __bknd>;
+type ConfigTable2 = proto.Schema<typeof __bknd>;
 interface T_INTERNAL_EM {
    __bknd: ConfigTable2;
 }
@@ -276,7 +267,9 @@ export class ModuleManager {
    ctx(rebuild?: boolean): ModuleBuildContext {
       if (rebuild) {
          this.rebuildServer();
-         this.em = new EntityManager([], this.connection, [], [], this.emgr);
+         this.em = this.em
+            ? this.em.clear()
+            : new EntityManager([], this.connection, [], [], this.emgr);
          this.guard = new Guard();
       }
 
@@ -669,7 +662,7 @@ export class ModuleManager {
 
                   return result;
                } catch (e) {
-                  $console.error(`[Safe Mutate] failed "${name}":`, String(e));
+                  $console.error(`[Safe Mutate] failed "${name}":`, e);
 
                   // revert to previous config & rebuild using original listener
                   this.revertModules();
@@ -740,8 +733,14 @@ export function getDefaultSchema() {
 
 export function getDefaultConfig(): ModuleConfigs {
    const config = transformObject(MODULES, (module) => {
-      return Default(module.prototype.getSchema(), {});
+      return module.prototype.getSchema().template(
+         {},
+         {
+            withOptional: true,
+            withExtendedOptional: true,
+         },
+      );
    });
 
-   return config as any;
+   return structuredClone(config) as any;
 }

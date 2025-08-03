@@ -1,4 +1,4 @@
-import type { DB } from "core";
+import type { DB } from "bknd";
 import {
    type ComponentPropsWithRef,
    createContext,
@@ -37,6 +37,7 @@ export type DropzoneRenderProps = {
       uploadFile: (file: { path: string }) => Promise<void>;
       deleteFile: (file: { path: string }) => Promise<void>;
       openFileInput: () => void;
+      addFiles: (files: (File | FileWithPath)[]) => void;
    };
    showPlaceholder: boolean;
    onClick?: (file: { path: string }) => void;
@@ -55,7 +56,8 @@ export type DropzoneProps = {
    autoUpload?: boolean;
    onRejected?: (files: FileWithPath[]) => void;
    onDeleted?: (file: { path: string }) => void;
-   onUploaded?: (files: FileStateWithData[]) => void;
+   onUploadedAll?: (files: FileStateWithData[]) => void;
+   onUploaded?: (file: FileStateWithData) => void;
    onClick?: (file: FileState) => void;
    placeholder?: {
       show?: boolean;
@@ -86,6 +88,7 @@ export function Dropzone({
    placeholder,
    onRejected,
    onDeleted,
+   onUploadedAll,
    onUploaded,
    children,
    onClick,
@@ -123,8 +126,8 @@ export function Dropzone({
       });
    }
 
-   const { handleFileInputChange, ref } = useDropzone({
-      onDropped: (newFiles: FileWithPath[]) => {
+   const addFiles = useCallback(
+      (newFiles: (File | FileWithPath)[]) => {
          console.log("onDropped", newFiles);
          if (!isAllowed(newFiles)) return;
 
@@ -162,10 +165,10 @@ export function Dropzone({
             // prep new files
             const currentPaths = _prev.map((f) => f.path);
             const filteredFiles: FileState[] = newFiles
-               .filter((f) => f.path && !currentPaths.includes(f.path))
+               .filter((f) => !("path" in f) || (f.path && !currentPaths.includes(f.path)))
                .map((f) => ({
                   body: f,
-                  path: f.path!,
+                  path: "path" in f ? f.path! : f.name,
                   name: f.name,
                   size: f.size,
                   type: f.type,
@@ -183,6 +186,14 @@ export function Dropzone({
 
             return updatedFiles;
          });
+      },
+      [autoUpload, flow, maxItems, overwrite],
+   );
+
+   const { handleFileInputChange, ref } = useDropzone({
+      onDropped: (newFiles: FileWithPath[]) => {
+         console.log("onDropped", newFiles);
+         addFiles(newFiles);
       },
       onOver: (items) => {
          if (!isAllowed(items)) {
@@ -220,13 +231,15 @@ export function Dropzone({
                const uploaded: FileStateWithData[] = [];
                for (const file of pendingFiles) {
                   try {
-                     uploaded.push(await uploadFileProgress(file));
+                     const progress = await uploadFileProgress(file);
+                     uploaded.push(progress);
+                     onUploaded?.(progress);
                   } catch (e) {
                      handleUploadError(e);
                   }
                }
                setUploading(false);
-               onUploaded?.(uploaded);
+               onUploadedAll?.(uploaded);
             }
          })();
       }
@@ -342,7 +355,8 @@ export function Dropzone({
 
    const uploadFile = useCallback(async (file: FileState) => {
       const result = await uploadFileProgress(file);
-      onUploaded?.([result]);
+      onUploadedAll?.([result]);
+      onUploaded?.(result);
    }, []);
 
    const openFileInput = useCallback(() => inputRef.current?.click(), [inputRef]);
@@ -367,6 +381,7 @@ export function Dropzone({
             uploadFile,
             deleteFile,
             openFileInput,
+            addFiles,
          },
          dropzoneProps: {
             maxItems,
@@ -406,11 +421,13 @@ export const useDropzoneState = () => {
    const files = useStore(store, (state) => state.files);
    const isOver = useStore(store, (state) => state.isOver);
    const isOverAccepted = useStore(store, (state) => state.isOverAccepted);
+   const uploading = useStore(store, (state) => state.uploading);
 
    return {
       files,
       isOver,
       isOverAccepted,
+      uploading,
    };
 };
 

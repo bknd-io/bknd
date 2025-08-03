@@ -1,18 +1,18 @@
-import type { Static } from "core/utils";
-import type { EntityManager } from "data";
+import { omitKeys } from "core/utils";
+import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
-import * as tb from "@sinclair/typebox";
-const { Type } = tb;
+import { s } from "bknd/utils";
 
-export const booleanFieldConfigSchema = Type.Composite([
-   Type.Object({
-      default_value: Type.Optional(Type.Boolean({ default: false })),
-   }),
-   baseFieldConfigSchema,
-]);
+export const booleanFieldConfigSchema = s
+   .strictObject({
+      //default_value: s.boolean({ default: false }),
+      default_value: s.boolean(),
+      ...omitKeys(baseFieldConfigSchema.properties, ["default_value"]),
+   })
+   .partial();
 
-export type BooleanFieldConfig = Static<typeof booleanFieldConfigSchema>;
+export type BooleanFieldConfig = s.Static<typeof booleanFieldConfigSchema>;
 
 export class BooleanField<Required extends true | false = false> extends Field<
    BooleanFieldConfig,
@@ -86,7 +86,7 @@ export class BooleanField<Required extends true | false = false> extends Field<
    }
 
    override toJsonSchema() {
-      return this.toSchemaWrapIfRequired(Type.Boolean({ default: this.getDefault() }));
+      return this.toSchemaWrapIfRequired(s.boolean({ default: this.getDefault() }));
    }
 
    override toType() {
