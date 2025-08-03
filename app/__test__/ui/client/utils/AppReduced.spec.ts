@@ -133,6 +133,7 @@ describe("AppReduced", () => {
          const options = appReduced.options;
 
          expect(options).toEqual({
+            basepath: "/",
             logo_return_path: "/custom-home",
             admin_basepath: "/custom-admin",
          });
@@ -187,7 +188,7 @@ describe("AppReduced", () => {
          appReduced = new AppReduced(mockAppJson, options);
          const result = appReduced.getAbsolutePath("entity/");
 
-         expect(result).toBe("~/admin/entity/");
+         expect(result).toBe("~/admin/entity");
       });
 
       it("should remove trailing slashes from non-entity paths", () => {

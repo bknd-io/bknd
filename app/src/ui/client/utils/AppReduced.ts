@@ -86,7 +86,8 @@ export class AppReduced {
       return [absolute ? "~" : null, this.options.basepath, this.options.admin_basepath, ...paths]
          .filter(Boolean)
          .join("/")
-         .replace(/\/+/g, "/");
+         .replace(/\/+/g, "/")
+         .replace(/\/$/, "");
    }
 
    getSettingsPath(path: string[] = []): string {
