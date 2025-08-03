@@ -1,6 +1,6 @@
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
 import type { ReactRouterBkndConfig } from "bknd/adapter/react-router";
-import { boolean, em, entity, text } from "bknd/data";
+import { boolean, em, entity, text } from "bknd";
 import { secureRandomString } from "bknd/utils";
 
 // since we're running in node, we can register the local media adapter
@@ -15,7 +15,7 @@ const schema = em({
 
 // register your schema to get automatic type completion
 type Database = (typeof schema)["DB"];
-declare module "bknd/core" {
+declare module "bknd" {
    interface DB extends Database {}
 }
 
