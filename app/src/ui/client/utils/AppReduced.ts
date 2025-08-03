@@ -9,23 +9,6 @@ import type { BkndAdminOptions } from "ui/client/BkndProvider";
 export type AppType = ReturnType<App["toJSON"]>;
 
 /**
- * Normalize admin path by removing duplicate slashes and ensuring proper format
- * @param path - The path to normalize
- * @returns Normalized path
- * @private
- */
-function normalizeAdminPath(path: string): string {
-   // Remove duplicate slashes
-   const normalized = path.replace(/\/+/g, "/");
-   // Don't remove trailing slash if it's the only character or if path ends with entity/
-   if (normalized === "/" || normalized.endsWith("/entity/")) {
-      return normalized;
-   }
-   // Remove trailing slash for other paths
-   return normalized.replace(/\/$/, "") || "/";
-}
-
-/**
  * Reduced version of the App class for frontend use
  * @todo: remove this class
  */
@@ -37,12 +20,13 @@ export class AppReduced {
 
    constructor(
       protected appJson: AppType,
-      protected _options: BkndAdminOptions = {
+      protected _options: BkndAdminOptions & { basepath?: string } = {
+         basepath: "/",
          admin_basepath: "",
          logo_return_path: "/",
       },
    ) {
-      //console.log("received appjson", appJson);
+      //console.log("received appjson", _options);
 
       this._entities = Object.entries(this.appJson.data.entities ?? {}).map(([name, entity]) => {
          return constructEntity(name, entity);
@@ -90,21 +74,27 @@ export class AppReduced {
 
    get options() {
       return {
+         basepath: "/",
          admin_basepath: "",
          logo_return_path: "/",
          ...this._options,
       };
    }
 
+   withBasePath(path: string | string[], absolute = false): string {
+      const paths = Array.isArray(path) ? path : [path];
+      return [absolute ? "~" : null, this.options.basepath, this.options.admin_basepath, ...paths]
+         .filter(Boolean)
+         .join("/")
+         .replace(/\/+/g, "/");
+   }
+
    getSettingsPath(path: string[] = []): string {
-      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : "~";
-      const base = `${basePath}/settings`;
-      return normalizeAdminPath([base, ...path].join("/"));
+      return this.withBasePath(["settings", ...path], true);
    }
 
    getAbsolutePath(path?: string): string {
-      const basePath = this.options.admin_basepath ? `~/${this.options.admin_basepath}` : "~";
-      return normalizeAdminPath(path ? `${basePath}/${path}` : basePath);
+      return this.withBasePath(path ?? [], true);
    }
 
    getAuthConfig() {
