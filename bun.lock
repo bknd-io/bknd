@@ -15,7 +15,7 @@
     },
     "app": {
       "name": "bknd",
-      "version": "0.16.0-rc.0",
+      "version": "0.16.1-rc.0",
       "bin": "./dist/cli/index.js",
       "dependencies": {
         "@cfworker/json-schema": "^4.1.1",
@@ -35,7 +35,8 @@
         "hono": "4.8.3",
         "json-schema-library": "10.0.0-rc7",
         "json-schema-to-ts": "^3.1.1",
-        "kysely": "^0.27.6",
+        "jsonv-ts": "0.3.2",
+        "kysely": "0.27.6",
         "lodash-es": "^4.17.21",
         "oauth4webapi": "^2.11.1",
         "object-path-immutable": "^4.1.2",
@@ -71,7 +72,6 @@
         "dotenv": "^16.4.7",
         "jotai": "^2.12.2",
         "jsdom": "^26.0.0",
-        "jsonv-ts": "^0.3.2",
         "kysely-d1": "^0.3.0",
         "kysely-generic-sqlite": "^1.2.1",
         "libsql-stateless-easy": "^1.8.0",
