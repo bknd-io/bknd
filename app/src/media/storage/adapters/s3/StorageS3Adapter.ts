@@ -183,13 +183,13 @@ export class StorageS3Adapter extends StorageAdapter {
          method: "GET",
          headers: pickHeaders2(headers, [
             "if-none-match",
-            "accept-encoding",
+            //"accept-encoding", (causes 403 on r2)
             "accept",
             "if-modified-since",
          ]),
       });
 
-      // Response has to be copied, because of middlewares that might set headers
+      // response has to be copied, because of middlewares that might set headers
       return new Response(res.body, {
          status: res.status,
          statusText: res.statusText,

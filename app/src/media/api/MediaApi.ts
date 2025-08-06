@@ -68,7 +68,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
    }
 
    protected uploadFile(
-      body: File | Blob | ReadableStream,
+      body: File | Blob | ReadableStream | Buffer<ArrayBufferLike>,
       opts?: {
          filename?: string;
          path?: TInput;
@@ -110,7 +110,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
    }
 
    async upload(
-      item: Request | Response | string | File | Blob | ReadableStream,
+      item: Request | Response | string | File | Blob | ReadableStream | Buffer<ArrayBufferLike>,
       opts: {
          filename?: string;
          _init?: Omit<RequestInit, "body">;
@@ -148,7 +148,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
       entity: string,
       id: PrimaryFieldType,
       field: string,
-      item: Request | Response | string | File | ReadableStream,
+      item: Request | Response | string | File | ReadableStream | Buffer<ArrayBufferLike>,
       opts?: {
          _init?: Omit<RequestInit, "body">;
          fetcher?: typeof fetch;
