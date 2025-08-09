@@ -18,7 +18,7 @@
    --color-success-foreground: var(--color-green-800);
    --color-info: var(--color-blue-100);
    --color-info-foreground: var(--color-blue-800);
-   
+
    --color-resize: var(--color-blue-300);
 
    @mixin light {

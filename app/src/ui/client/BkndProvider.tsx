@@ -4,14 +4,15 @@ import { createContext, startTransition, useContext, useEffect, useRef, useState
 import { useApi } from "ui/client";
 import { type TSchemaActions, getSchemaActions } from "./schema/actions";
 import { AppReduced } from "./utils/AppReduced";
-import type { AppTheme } from "ui/client/use-theme";
 import { Message } from "ui/components/display/Message";
 import { useNavigate } from "ui/lib/routes";
+import type { AdminBkndWindowContext } from "modules/server/AdminController";
 
-export type BkndAdminOptions = {
-   basepath?: string;
-   logo_return_path?: string;
-   theme?: AppTheme;
+export type BkndAdminOptions = Omit<
+   AdminBkndWindowContext,
+   "user" | "logout_route" | "admin_basepath"
+> & {
+   admin_basepath?: string;
 };
 type BkndContext = {
    version: number;
@@ -169,7 +170,7 @@ export function useBkndOptions(): BkndAdminOptions {
    const ctx = useContext(BkndContext);
    return (
       ctx.options ?? {
-         basepath: "/",
+         admin_basepath: "/",
       }
    );
 }

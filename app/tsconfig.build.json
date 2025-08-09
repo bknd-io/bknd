@@ -1,11 +1,11 @@
 {
-   "extends": "./tsconfig.json",
-   "compilerOptions": {
-      "outDir": "./dist/types",
-      "rootDir": "./src",
-      "baseUrl": ".",
-      "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo"
-   },
-   "include": ["./src/**/*.ts", "./src/**/*.tsx"],
-   "exclude": ["./node_modules", "./__test__", "./e2e"]
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/types",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo"
+  },
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
+  "exclude": ["./node_modules", "./__test__", "./e2e"]
 }
