@@ -5,6 +5,7 @@ export { makeApp, getFresh } from "./modes/fresh";
 export { getCached } from "./modes/cached";
 export { DurableBkndApp, getDurable } from "./modes/durable";
 export { d1Sqlite, type D1ConnectionConfig };
+export { doSqlite, type DoConnectionConfig } from "./connection/DoConnection";
 export {
    getBinding,
    getBindings,

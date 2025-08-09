@@ -3,16 +3,16 @@
 import { genericSqlite, type GenericSqliteConnection } from "bknd";
 import type { QueryResult } from "kysely";
 
-export type D1SqliteConnection = GenericSqliteConnection<D1Database>;
+export type DoSqliteConnection = GenericSqliteConnection<DurableObjectState["storage"]["sql"]>;
 export type DurableObjecSql = DurableObjectState["storage"]["sql"];
 
-export type D1ConnectionConfig<DB extends DurableObjecSql> =
+export type DoConnectionConfig<DB extends DurableObjecSql> =
    | DurableObjectState
    | {
         sql: DB;
      };
 
-export function doSqlite<DB extends DurableObjecSql>(config: D1ConnectionConfig<DB>) {
+export function doSqlite<DB extends DurableObjecSql>(config: DoConnectionConfig<DB>) {
    const db = "sql" in config ? config.sql : config.storage.sql;
 
    return genericSqlite(
@@ -21,7 +21,7 @@ export function doSqlite<DB extends DurableObjecSql>(config: D1ConnectionConfig<
       (utils) => {
          // must be async to work with the miniflare mock
          const getStmt = async (sql: string, parameters?: any[] | readonly any[]) =>
-            await db.exec(sql, ...(parameters || []));
+            db.exec(sql, ...(parameters || []));
 
          const mapResult = (
             cursor: SqlStorageCursor<Record<string, SqlStorageValue>>,
