@@ -24,7 +24,7 @@
     "./integration/(runtimes)/",
     "---Modules---",
     "./modules/overview",
-    "./modules/server",
+    "./modules/server/",
     "./modules/data",
     "./modules/auth",
     "./modules/media",

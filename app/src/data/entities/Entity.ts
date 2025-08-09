@@ -10,14 +10,17 @@ import {
 
 // @todo: entity must be migrated to typebox
 export const entityConfigSchema = s
-   .strictObject({
-      name: s.string(),
-      name_singular: s.string(),
-      description: s.string(),
-      sort_field: s.string({ default: config.data.default_primary_field }),
-      sort_dir: s.string({ enum: ["asc", "desc"], default: "asc" }),
-      primary_format: s.string({ enum: primaryFieldTypes }),
-   })
+   .strictObject(
+      {
+         name: s.string(),
+         name_singular: s.string(),
+         description: s.string(),
+         sort_field: s.string({ default: config.data.default_primary_field }),
+         sort_dir: s.string({ enum: ["asc", "desc"], default: "asc" }),
+         primary_format: s.string({ enum: primaryFieldTypes }),
+      },
+      { default: {} },
+   )
    .partial();
 
 export type EntityConfig = s.Static<typeof entityConfigSchema>;

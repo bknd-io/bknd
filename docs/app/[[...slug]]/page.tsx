@@ -13,10 +13,12 @@ export default async function Page(props: {
    if (!page) notFound();
 
    const MDXContent = page.data.body;
+   // in case a page exports a custom toc
+   const toc = (page.data as any).custom_toc ?? page.data.toc;
 
    return (
       <DocsPage
-         toc={page.data.toc}
+         toc={toc}
          full={page.data.full}
          tableOfContent={{
             style: "clerk",

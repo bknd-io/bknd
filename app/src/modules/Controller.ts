@@ -1,4 +1,4 @@
-import type { App, SafeUser } from "bknd";
+import type { App, Permission, SafeUser } from "bknd";
 import { type Context, type Env, Hono } from "hono";
 import * as middlewares from "modules/middlewares";
 import type { EntityManager } from "data/entities";
@@ -18,20 +18,6 @@ export interface ServerEnv extends Env {
    };
    [key: string]: any;
 }
-
-/* export type ServerEnv = Env & {
-   Variables: {
-      app: App;
-      // to prevent resolving auth multiple times
-      auth?: {
-         resolved: boolean;
-         registered: boolean;
-         skip: boolean;
-         user?: SafeUser;
-      };
-      html?: string;
-   };
-}; */
 
 export class Controller {
    protected middlewares = middlewares;
@@ -65,7 +51,8 @@ export class Controller {
 
    protected getEntitiesEnum(em: EntityManager<any>): s.StringSchema {
       const entities = em.entities.map((e) => e.name);
-      // @todo: current workaround to allow strings (sometimes building is not fast enough to get the entities)
-      return entities.length > 0 ? s.anyOf([s.string({ enum: entities }), s.string()]) : s.string();
+      return entities.length > 0 ? s.string({ enum: entities }) : s.string();
    }
+
+   registerMcp(): void {}
 }

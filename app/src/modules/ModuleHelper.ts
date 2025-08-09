@@ -3,8 +3,11 @@ import { Entity } from "data/entities";
 import type { EntityIndex, Field } from "data/fields";
 import { entityTypes } from "data/entities/Entity";
 import { isEqual } from "lodash-es";
-import type { ModuleBuildContext } from "./Module";
+import type { ModuleBuildContext, ModuleBuildContextMcpContext } from "./Module";
 import type { EntityRelation } from "data/relations";
+import type { Permission } from "core/security/Permission";
+import { Exception } from "core/errors";
+import { invariant } from "bknd/utils";
 
 export class ModuleHelper {
    constructor(protected ctx: Omit<ModuleBuildContext, "helper">) {}
@@ -109,5 +112,25 @@ export class ModuleHelper {
       this.setEntityFieldConfigs(entity.field(name)!, newField);
 
       entity.__replaceField(name, newField);
+   }
+
+   async throwUnlessGranted(
+      permission: Permission | string,
+      c: { context: ModuleBuildContextMcpContext; raw?: unknown },
+   ) {
+      invariant(c.context.app, "app is not available in mcp context");
+      invariant(c.raw instanceof Request, "request is not available in mcp context");
+
+      const auth = c.context.app.module.auth;
+      if (!auth.enabled) return;
+
+      const user = await auth.authenticator?.resolveAuthFromRequest(c.raw as Request);
+
+      if (!this.ctx.guard.granted(permission, user)) {
+         throw new Exception(
+            `Permission "${typeof permission === "string" ? permission : permission.name}" not granted`,
+            403,
+         );
+      }
    }
 }

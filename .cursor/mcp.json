@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "bknd": {
+      "url": "http://localhost:3000/mcp",
+      "headers": {
+        "API_KEY": "value"
+      }
+    }
+  }
+}

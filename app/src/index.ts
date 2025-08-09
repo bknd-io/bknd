@@ -130,6 +130,7 @@ export {
    BaseIntrospector,
    Connection,
    customIntrospector,
+   DummyConnection,
    type FieldSpec,
    type IndexSpec,
    type DbFunctions,

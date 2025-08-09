@@ -8,15 +8,16 @@ import {
    getTimezoneOffset,
    $console,
    getRuntimeKey,
-   SecretSchema,
    jsc,
    s,
    describeRoute,
    InvalidSchemaError,
+   openAPISpecs,
+   mcpTool,
+   mcp as mcpMiddleware,
 } from "bknd/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
-import { openAPISpecs } from "jsonv-ts/hono";
 import { swaggerUI } from "@hono/swagger-ui";
 import {
    MODULE_NAMES,
@@ -26,6 +27,8 @@ import {
 } from "modules/ModuleManager";
 import * as SystemPermissions from "modules/permissions";
 import { getVersion } from "core/env";
+import type { Module } from "modules/Module";
+import { getSystemMcp } from "./system-mcp";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -49,6 +52,51 @@ export class SystemController extends Controller {
 
    get ctx() {
       return this.app.modules.ctx();
+   }
+
+   register(app: App) {
+      app.server.route("/api/system", this.getController());
+
+      if (!this.app.modules.get("server").config.mcp.enabled) {
+         return;
+      }
+
+      this.registerMcp();
+
+      const mcpServer = getSystemMcp(app);
+      mcpServer.onNotification((message) => {
+         if (message.method === "notification/message") {
+            const consoleMap = {
+               emergency: "error",
+               alert: "error",
+               critical: "error",
+               error: "error",
+               warning: "warn",
+               notice: "log",
+               info: "info",
+               debug: "debug",
+            };
+
+            const level = consoleMap[message.params.level];
+            if (!level) return;
+
+            $console[level](message.params.message);
+         }
+      });
+
+      app.server.use(
+         mcpMiddleware({
+            server: mcpServer,
+            sessionsEnabled: true,
+            debug: {
+               logLevel: "debug",
+               explainEndpoint: true,
+            },
+            endpoint: {
+               path: "/mcp",
+            },
+         }),
+      );
    }
 
    private registerConfigController(client: Hono<any>): void {
@@ -77,6 +125,7 @@ export class SystemController extends Controller {
             summary: "Get the config for a module",
             tags: ["system"],
          }),
+         mcpTool("system_config"), // @todo: ":module" gets not removed
          jsc("param", s.object({ module: s.string({ enum: MODULE_NAMES }).optional() })),
          jsc("query", s.object({ secrets: s.boolean().optional() })),
          async (c) => {
@@ -283,6 +332,7 @@ export class SystemController extends Controller {
             summary: "Build the app",
             tags: ["system"],
          }),
+         mcpTool("system_build"),
          jsc("query", s.object({ sync: s.boolean().optional(), fetch: s.boolean().optional() })),
          async (c) => {
             const options = c.req.valid("query") as Record<string, boolean>;
@@ -298,6 +348,7 @@ export class SystemController extends Controller {
 
       hono.get(
          "/ping",
+         mcpTool("system_ping"),
          describeRoute({
             summary: "Ping the server",
             tags: ["system"],
@@ -307,6 +358,7 @@ export class SystemController extends Controller {
 
       hono.get(
          "/info",
+         mcpTool("system_info"),
          describeRoute({
             summary: "Get the server info",
             tags: ["system"],
@@ -328,19 +380,6 @@ export class SystemController extends Controller {
                },
                origin: new URL(c.req.raw.url).origin,
                plugins: Array.from(this.app.plugins.keys()),
-               walk: {
-                  auth: [
-                     ...c
-                        .get("app")
-                        .getSchema()
-                        .auth.walk({ data: c.get("app").toJSON(true).auth }),
-                  ]
-                     .filter((n) => n.schema instanceof SecretSchema)
-                     .map((n) => ({
-                        ...n,
-                        schema: n.schema.constructor.name,
-                     })),
-               },
             }),
       );
 
@@ -356,5 +395,55 @@ export class SystemController extends Controller {
       hono.get("/swagger", swaggerUI({ url: "/api/system/openapi.json" }));
 
       return hono;
+   }
+
+   override registerMcp() {
+      const { mcp } = this.app.modules.ctx();
+      const { version, ...appConfig } = this.app.toJSON();
+
+      mcp.resource("system_config", "bknd://system/config", async (c) => {
+         await c.context.ctx().helper.throwUnlessGranted(SystemPermissions.configRead, c);
+
+         return c.json(this.app.toJSON(), {
+            title: "System Config",
+         });
+      })
+         .resource(
+            "system_config_module",
+            "bknd://system/config/{module}",
+            async (c, { module }) => {
+               await this.ctx.helper.throwUnlessGranted(SystemPermissions.configRead, c);
+
+               const m = this.app.modules.get(module as any) as Module;
+               return c.json(m.toJSON(), {
+                  title: `Config for ${module}`,
+               });
+            },
+            {
+               list: Object.keys(appConfig),
+            },
+         )
+         .resource("system_schema", "bknd://system/schema", async (c) => {
+            await this.ctx.helper.throwUnlessGranted(SystemPermissions.schemaRead, c);
+
+            return c.json(this.app.getSchema(), {
+               title: "System Schema",
+            });
+         })
+         .resource(
+            "system_schema_module",
+            "bknd://system/schema/{module}",
+            async (c, { module }) => {
+               await this.ctx.helper.throwUnlessGranted(SystemPermissions.schemaRead, c);
+
+               const m = this.app.modules.get(module as any);
+               return c.json(m.getSchema().toJSON(), {
+                  title: `Schema for ${module}`,
+               });
+            },
+            {
+               list: Object.keys(this.app.getSchema()),
+            },
+         );
    }
 }

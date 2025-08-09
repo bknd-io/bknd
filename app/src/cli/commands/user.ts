@@ -20,11 +20,15 @@ export const user: CliCommand = (program) => {
       .addArgument(
          new Argument("<action>", "action to perform").choices(["create", "update", "token"]),
       )
+      .option("--config <config>", "config file")
+      .option("--db-url <db>", "database url, can be any valid sqlite url")
       .action(action);
 };
 
 async function action(action: "create" | "update" | "token", options: any) {
    const app = await makeAppFromEnv({
+      config: options.config,
+      dbUrl: options.dbUrl,
       server: "node",
    });
 
@@ -85,9 +89,6 @@ async function create(app: App, options: any) {
 
 async function update(app: App, options: any) {
    const config = app.module.auth.toJSON(true);
-   const strategy = app.module.auth.authenticator.strategy("password") as PasswordStrategy;
-   const users_entity = config.entity_name as "users";
-   const em = app.modules.ctx().em;
 
    const email = (await $text({
       message: "Which user? Enter email",
@@ -100,7 +101,10 @@ async function update(app: App, options: any) {
    })) as string;
    if ($isCancel(email)) process.exit(1);
 
-   const { data: user } = await em.repository(users_entity).findOne({ email });
+   const { data: user } = await app.modules
+      .ctx()
+      .em.repository(config.entity_name as "users")
+      .findOne({ email });
    if (!user) {
       $log.error("User not found");
       process.exit(1);
@@ -118,26 +122,10 @@ async function update(app: App, options: any) {
    });
    if ($isCancel(password)) process.exit(1);
 
-   try {
-      function togglePw(visible: boolean) {
-         const field = em.entity(users_entity).field("strategy_value")!;
-
-         field.config.hidden = !visible;
-         field.config.fillable = visible;
-      }
-      togglePw(true);
-      await app.modules
-         .ctx()
-         .em.mutator(users_entity)
-         .updateOne(user.id, {
-            strategy_value: await strategy.hash(password as string),
-         });
-      togglePw(false);
-
+   if (await app.module.auth.changePassword(user.id, password)) {
       $log.success(`Updated user: ${c.cyan(user.email)}`);
-   } catch (e) {
+   } else {
       $log.error("Error updating user");
-      $console.error(e);
    }
 }
 

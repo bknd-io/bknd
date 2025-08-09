@@ -26,6 +26,20 @@ export function omitKeys<T extends object, K extends keyof T>(
    return result;
 }
 
+export function pickKeys<T extends object, K extends keyof T>(
+   obj: T,
+   keys_: readonly K[],
+): Pick<T, Extract<K, keyof T>> {
+   const keys = new Set(keys_);
+   const result = {} as Pick<T, Extract<K, keyof T>>;
+   for (const [key, value] of Object.entries(obj) as [keyof T, T[keyof T]][]) {
+      if (keys.has(key as K)) {
+         (result as any)[key] = value;
+      }
+   }
+   return result;
+}
+
 export function safelyParseObjectValues<T extends { [key: string]: any }>(obj: T): T {
    return Object.entries(obj).reduce((acc, [key, value]) => {
       try {
@@ -187,6 +201,30 @@ export function objectDepth(object: object): number {
       }
    }
    return level;
+}
+
+export function limitObjectDepth<T>(obj: T, maxDepth: number): T {
+   function _limit(current: any, depth: number): any {
+      if (isPlainObject(current)) {
+         if (depth > maxDepth) {
+            return undefined;
+         }
+         const result: any = {};
+         for (const key in current) {
+            if (Object.prototype.hasOwnProperty.call(current, key)) {
+               result[key] = _limit(current[key], depth + 1);
+            }
+         }
+         return result;
+      }
+      if (Array.isArray(current)) {
+         // Arrays themselves are not limited, but their object elements are
+         return current.map((item) => _limit(item, depth));
+      }
+      // Primitives are always returned, regardless of depth
+      return current;
+   }
+   return _limit(obj, 1);
 }
 
 export function objectCleanEmpty<Obj extends { [key: string]: any }>(obj: Obj): Obj {

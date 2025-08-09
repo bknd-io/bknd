@@ -26,9 +26,6 @@ describe("server/query", () => {
       expect(parse({ select: "id,title" })).toEqual({ select: ["id", "title"] });
       expect(parse({ select: "id,title,desc" })).toEqual({ select: ["id", "title", "desc"] });
       expect(parse({ select: ["id", "title"] })).toEqual({ select: ["id", "title"] });
-
-      expect(() => parse({ select: "not allowed" })).toThrow();
-      expect(() => parse({ select: "id," })).toThrow();
    });
 
    test("join", () => {

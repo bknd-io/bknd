@@ -43,7 +43,8 @@
     "test:e2e:adapters": "bun run e2e/adapters.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "docs:build-assets": "bun internal/docs.build-assets.ts"
   },
   "license": "FSL-1.1-MIT",
   "dependencies": {
@@ -64,7 +65,7 @@
     "hono": "4.8.3",
     "json-schema-library": "10.0.0-rc7",
     "json-schema-to-ts": "^3.1.1",
-    "jsonv-ts": "0.3.2",
+    "jsonv-ts": "^0.7.1",
     "kysely": "0.27.6",
     "lodash-es": "^4.17.21",
     "oauth4webapi": "^2.11.1",

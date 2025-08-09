@@ -1,0 +1,361 @@
+---
+title: "MCP"
+description: "Built-in full featured MCP server."
+tags: ["documentation"]
+---
+import { JsonSchemaTypeTable } from '@/components/McpTool';
+
+## Tools
+
+
+### data_sync
+
+Sync database schema
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"force":{"type":"boolean","$target":"query"},"drop":{"type":"boolean","$target":"query"}}}} key={"data_sync"} />
+
+### data_entity_fn_count
+
+Count entities
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$target":"json"}}}} key={"data_entity_fn_count"} />
+
+### data_entity_fn_exists
+
+Check if entity exists
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$target":"json"}}}} key={"data_entity_fn_exists"} />
+
+### data_entity_read_one
+
+Read one
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number"},{"type":"string"}],"$target":"param"},"offset":{"type":"number","default":0,"$target":"query"},"sort":{"type":"string","default":"id","$target":"query"},"select":{"type":"array","$target":"query","items":{"type":"string"}}}}} key={"data_entity_read_one"} />
+
+### data_entity_read_many
+
+Query entities
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"limit":{"type":"number","default":10,"$target":"json"},"offset":{"type":"number","default":0,"$target":"json"},"sort":{"type":"string","default":"id","$target":"json"},"where":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$target":"json"},"select":{"type":"array","$target":"json","items":{"type":"string"}},"join":{"type":"array","$target":"json","items":{"type":"string"}},"with":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_read_many"} />
+
+### data_entity_insert
+
+Insert one or many
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"anyOf":[{"type":"object","properties":{}},{"type":"array","items":{"type":"object","properties":{}}}],"$target":"json"}}}} key={"data_entity_insert"} />
+
+### data_entity_update_many
+
+Update many
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","update"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"update":{"type":"object","$target":"json","properties":{}},"where":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$target":"json"}}}} key={"data_entity_update_many"} />
+
+### data_entity_update_one
+
+Update one
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number"},{"type":"string"}],"$target":"param"}}}} key={"data_entity_update_one"} />
+
+### data_entity_delete_one
+
+Delete one
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number"},{"type":"string"}],"$target":"param"}}}} key={"data_entity_delete_one"} />
+
+### data_entity_delete_many
+
+Delete many
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$target":"json"}}}} key={"data_entity_delete_many"} />
+
+### data_entity_info
+
+Retrieve entity info
+
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"}}}} key={"data_entity_info"} />
+
+### auth_me
+
+Get the current user
+
+<JsonSchemaTypeTable schema={{"type":"object"}} key={"auth_me"} />
+
+### auth_strategies
+
+Get the available authentication strategies
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"include_disabled":{"type":"boolean","$target":"query"}}}} key={"auth_strategies"} />
+
+### system_config
+
+Get the config for a module
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"module":{"type":"string","enum":["server","data","auth","media","flows"],"$target":"param"},"secrets":{"type":"boolean","$target":"query"}}}} key={"system_config"} />
+
+### system_build
+
+Build the app
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"sync":{"type":"boolean","$target":"query"},"fetch":{"type":"boolean","$target":"query"}}}} key={"system_build"} />
+
+### system_ping
+
+Ping the server
+
+<JsonSchemaTypeTable schema={{"type":"object"}} key={"system_ping"} />
+
+### system_info
+
+Get the server info
+
+<JsonSchemaTypeTable schema={{"type":"object"}} key={"system_info"} />
+
+### auth_user_create
+
+Create a new user
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":8},"role":{"type":"string","enum":[]}},"required":["email","password"]}} key={"auth_user_create"} />
+
+### auth_user_token
+
+Get a user token
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"id":{"anyOf":[{"type":"string"},{"type":"number"}]},"email":{"type":"string","format":"email"}}}} key={"auth_user_token"} />
+
+### auth_user_password_change
+
+Change a user's password
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"id":{"anyOf":[{"type":"string"},{"type":"number"}]},"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":8}},"required":["password"]}} key={"auth_user_password_change"} />
+
+### auth_user_password_test
+
+Test a user's password
+
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":8}},"required":["email","password"]}} key={"auth_user_password_test"} />
+
+### config_server_get
+
+Get Server configuration
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string","title":"Path","description":"Path to the property to get, e.g. `key.subkey`","pattern":"^[a-zA-Z0-9_.]{0,}$"},"depth":{"type":"number","description":"Limit the depth of the response"},"secrets":{"type":"boolean","description":"Include secrets in the response config","default":false}}}} key={"config_server_get"} />
+
+### config_server_update
+
+Update Server configuration
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"cors":{"type":"object","additionalProperties":false,"properties":{"origin":{"type":"string","default":"*"},"allow_methods":{"type":"array","default":["GET","POST","PATCH","PUT","DELETE"],"uniqueItems":true,"items":{"type":"string","enum":["GET","POST","PATCH","PUT","DELETE"]}},"allow_headers":{"type":"array","default":["Content-Type","Content-Length","Authorization","Accept"],"items":{"type":"string"}},"allow_credentials":{"type":"boolean","default":true}}},"mcp":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false}}}}}},"required":["value"]}} key={"config_server_update"} />
+
+### config_data_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string","title":"Path","description":"Path to the property to get, e.g. `key.subkey`","pattern":"^[a-zA-Z0-9_.]{0,}$"},"depth":{"type":"number","description":"Limit the depth of the response"},"secrets":{"type":"boolean","description":"Include secrets in the response config","default":false}}}} key={"config_data_get"} />
+
+### config_data_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"basepath":{"type":"string","default":"/api/data"},"default_primary_format":{"type":"string","enum":["integer","uuid"],"default":"integer"}}}},"required":["value"]}} key={"config_data_update"} />
+
+### config_data_entities_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to get"},"secrets":{"type":"boolean","description":"(optional) include secrets in the response config","default":false},"schema":{"type":"boolean","description":"(optional) include the schema in the response","default":false}}}} key={"config_data_entities_get"} />
+
+### config_data_entities_add
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to add"},"value":{"type":"object","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"type":"string","enum":["regular","system","generated"],"default":"regular"},"config":{"type":"object","default":{},"additionalProperties":false,"properties":{"name":{"type":"string"},"name_singular":{"type":"string"},"description":{"type":"string"},"sort_field":{"type":"string","default":"id"},"sort_dir":{"type":"string","enum":["asc","desc"],"default":"asc"},"primary_format":{"type":"string","enum":["integer","uuid"]}}},"fields":{"type":"object","default":{},"additionalProperties":{"anyOf":[{"type":"object","title":"primary","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"primary"},"config":{"type":"object","additionalProperties":false,"properties":{"format":{"type":"string","enum":["integer","uuid"],"default":"integer"},"required":{"type":"boolean","default":false},"label":{"type":"string"},"description":{"type":"string"},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"},"default_value":{}}}},"required":["type"]},{"type":"object","title":"text","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"text"},"config":{"type":"object","additionalProperties":false,"properties":{"default_value":{"type":"string"},"minLength":{"type":"number"},"maxLength":{"type":"number"},"pattern":{"type":"string"},"html_config":{"type":"object","properties":{"element":{"type":"string"},"props":{"type":"object","additionalProperties":{"anyOf":[{"type":"string","title":"String"},{"type":"number","title":"Number"}]}}}},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"}}}},"required":["type"]},{"type":"object","title":"number","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"number"},"config":{"type":"object","additionalProperties":false,"properties":{"default_value":{"type":"number"},"minimum":{"type":"number"},"maximum":{"type":"number"},"exclusiveMinimum":{"type":"number"},"exclusiveMaximum":{"type":"number"},"multipleOf":{"type":"number"},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"}}}},"required":["type"]},{"type":"object","title":"boolean","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"boolean"},"config":{"type":"object","additionalProperties":false,"properties":{"default_value":{"type":"boolean"},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"}}}},"required":["type"]},{"type":"object","title":"date","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"date"},"config":{"type":"object","additionalProperties":false,"properties":{"type":{"type":"string","enum":["date","datetime","week"],"default":"date"},"timezone":{"type":"string"},"min_date":{"type":"string"},"max_date":{"type":"string"},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"},"default_value":{}}}},"required":["type"]},{"type":"object","title":"enum","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"enum"},"config":{"type":"object","additionalProperties":false,"properties":{"default_value":{"type":"string"},"options":{"anyOf":[{"type":"object","properties":{"type":{"const":"strings"},"values":{"type":"array","items":{"type":"string"}}},"required":["type","values"]},{"type":"object","properties":{"type":{"const":"objects"},"values":{"type":"array","items":{"type":"object","properties":{"label":{"type":"string"},"value":{"type":"string"}},"required":["label","value"]}}},"required":["type","values"]}]},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"}}}},"required":["type"]},{"type":"object","title":"json","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"json"},"config":{"type":"object","additionalProperties":false,"properties":{"default_value":{},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"}}}},"required":["type"]},{"type":"object","title":"jsonschema","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"jsonschema"},"config":{"type":"object","additionalProperties":false,"properties":{"schema":{"type":"object"},"ui_schema":{"type":"object"},"default_from_schema":{"type":"boolean"},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"},"default_value":{}}}},"required":["type"]},{"type":"object","title":"relation","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"relation"},"config":{"type":"object","additionalProperties":false,"properties":{"reference":{"type":"string"},"target":{"type":"string"},"target_field":{"type":"string","default":"id"},"target_field_type":{"type":"string","enum":["text","integer"],"default":"integer"},"on_delete":{"type":"string","enum":["cascade","set null","set default","restrict","no action"],"default":"set null"},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"},"default_value":{}},"required":["reference","target"]}},"required":["type"]},{"type":"object","title":"media","additionalProperties":false,"properties":{"name":{"type":"string"},"type":{"const":"media"},"config":{"type":"object","additionalProperties":false,"properties":{"entity":{"type":"string"},"min_items":{"type":"number"},"max_items":{"type":"number"},"mime_types":{"type":"array","items":{"type":"string"}},"label":{"type":"string"},"description":{"type":"string"},"required":{"type":"boolean","default":false},"fillable":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete"]}}]},"hidden":{"anyOf":[{"type":"boolean","title":"Boolean"},{"type":"array","title":"Context","uniqueItems":true,"items":{"type":"string","enum":["create","read","update","delete","form","table","submit"]}}]},"virtual":{"type":"boolean"},"default_value":{}}}},"required":["type"]}]}}}}},"required":["key","value"]}} key={"config_data_entities_add"} />
+
+### config_data_entities_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to update"},"value":{"type":"object","properties":{}}},"required":["key","value"]}} key={"config_data_entities_update"} />
+
+### config_data_entities_remove
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to remove"}},"required":["key"]}} key={"config_data_entities_remove"} />
+
+### config_data_relations_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to get"},"secrets":{"type":"boolean","description":"(optional) include secrets in the response config","default":false},"schema":{"type":"boolean","description":"(optional) include the schema in the response","default":false}}}} key={"config_data_relations_get"} />
+
+### config_data_relations_add
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to add"},"value":{"anyOf":[{"type":"object","title":"1:1","additionalProperties":false,"properties":{"type":{"const":"1:1"},"source":{"type":"string"},"target":{"type":"string"},"config":{"type":"object","additionalProperties":false,"properties":{"sourceCardinality":{"type":"number"},"with_limit":{"type":"number","default":5},"fieldConfig":{"type":"object","properties":{"label":{"type":"string"}},"required":["label"]},"mappedBy":{"type":"string"},"inversedBy":{"type":"string"},"required":{"type":"boolean"}}}},"required":["type","source","target"]},{"type":"object","title":"n:1","additionalProperties":false,"properties":{"type":{"const":"n:1"},"source":{"type":"string"},"target":{"type":"string"},"config":{"type":"object","additionalProperties":false,"properties":{"sourceCardinality":{"type":"number"},"with_limit":{"type":"number","default":5},"fieldConfig":{"type":"object","properties":{"label":{"type":"string"}},"required":["label"]},"mappedBy":{"type":"string"},"inversedBy":{"type":"string"},"required":{"type":"boolean"}}}},"required":["type","source","target"]},{"type":"object","title":"m:n","additionalProperties":false,"properties":{"type":{"const":"m:n"},"source":{"type":"string"},"target":{"type":"string"},"config":{"type":"object","additionalProperties":false,"properties":{"connectionTable":{"type":"string"},"connectionTableMappedName":{"type":"string"},"mappedBy":{"type":"string"},"inversedBy":{"type":"string"},"required":{"type":"boolean"}}}},"required":["type","source","target"]},{"type":"object","title":"poly","additionalProperties":false,"properties":{"type":{"const":"poly"},"source":{"type":"string"},"target":{"type":"string"},"config":{"type":"object","additionalProperties":false,"properties":{"targetCardinality":{"type":"number"},"mappedBy":{"type":"string"},"inversedBy":{"type":"string"},"required":{"type":"boolean"}}}},"required":["type","source","target"]}]}},"required":["key","value"]}} key={"config_data_relations_add"} />
+
+### config_data_relations_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to update"},"value":{"type":"object","properties":{}}},"required":["key","value"]}} key={"config_data_relations_update"} />
+
+### config_data_relations_remove
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to remove"}},"required":["key"]}} key={"config_data_relations_remove"} />
+
+### config_data_indices_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to get"},"secrets":{"type":"boolean","description":"(optional) include secrets in the response config","default":false},"schema":{"type":"boolean","description":"(optional) include the schema in the response","default":false}}}} key={"config_data_indices_get"} />
+
+### config_data_indices_add
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to add"},"value":{"type":"object","additionalProperties":false,"properties":{"entity":{"type":"string"},"fields":{"type":"array","minItems":1,"items":{"type":"string"}},"unique":{"type":"boolean","default":false}},"required":["entity","fields"]}},"required":["key","value"]}} key={"config_data_indices_add"} />
+
+### config_data_indices_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to update"},"value":{"type":"object","properties":{}}},"required":["key","value"]}} key={"config_data_indices_update"} />
+
+### config_data_indices_remove
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to remove"}},"required":["key"]}} key={"config_data_indices_remove"} />
+
+### config_auth_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string","title":"Path","description":"Path to the property to get, e.g. `key.subkey`","pattern":"^[a-zA-Z0-9_.]{0,}$"},"depth":{"type":"number","description":"Limit the depth of the response"},"secrets":{"type":"boolean","description":"Include secrets in the response config","default":false}}}} key={"config_auth_get"} />
+
+### config_auth_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false},"basepath":{"type":"string","default":"/api/auth"},"entity_name":{"type":"string","default":"users"},"allow_register":{"type":"boolean","default":true},"jwt":{"type":"object","default":{},"additionalProperties":false,"properties":{"secret":{"type":"string","default":""},"alg":{"type":"string","enum":["HS256","HS384","HS512"],"default":"HS256"},"expires":{"type":"number"},"issuer":{"type":"string"},"fields":{"type":"array","default":["id","email","role"],"items":{"type":"string"}}}},"cookie":{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string","default":"/"},"sameSite":{"type":"string","enum":["strict","lax","none"],"default":"lax"},"secure":{"type":"boolean","default":true},"httpOnly":{"type":"boolean","default":true},"expires":{"type":"number","default":604800},"partitioned":{"type":"boolean","default":false},"renew":{"type":"boolean","default":true},"pathSuccess":{"type":"string","default":"/"},"pathLoggedOut":{"type":"string","default":"/"}}},"guard":{"type":"object","properties":{"enabled":{"type":"boolean","default":false}}}}}},"required":["value"]}} key={"config_auth_update"} />
+
+### config_auth_strategies_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to get"},"secrets":{"type":"boolean","description":"(optional) include secrets in the response config","default":false},"schema":{"type":"boolean","description":"(optional) include the schema in the response","default":false}}}} key={"config_auth_strategies_get"} />
+
+### config_auth_strategies_add
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to add"},"value":{"type":"object","additionalProperties":false,"properties":{"type":{"type":"string"},"config":{"type":"object","properties":{}}},"required":["type","config"]}},"required":["key","value"]}} key={"config_auth_strategies_add"} />
+
+### config_auth_strategies_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to update"},"value":{"type":"object","additionalProperties":false,"properties":{"type":{"type":"string"},"config":{"type":"object","properties":{}}},"required":["type","config"]}},"required":["key","value"]}} key={"config_auth_strategies_update"} />
+
+### config_auth_strategies_remove
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to remove"}},"required":["key"]}} key={"config_auth_strategies_remove"} />
+
+### config_auth_roles_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to get"},"secrets":{"type":"boolean","description":"(optional) include secrets in the response config","default":false},"schema":{"type":"boolean","description":"(optional) include the schema in the response","default":false}}}} key={"config_auth_roles_get"} />
+
+### config_auth_roles_add
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to add"},"value":{"type":"object","additionalProperties":false,"properties":{"permissions":{"type":"array","items":{"type":"string"}},"is_default":{"type":"boolean"},"implicit_allow":{"type":"boolean"}}}},"required":["key","value"]}} key={"config_auth_roles_add"} />
+
+### config_auth_roles_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to update"},"value":{"type":"object","properties":{}}},"required":["key","value"]}} key={"config_auth_roles_update"} />
+
+### config_auth_roles_remove
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to remove"}},"required":["key"]}} key={"config_auth_roles_remove"} />
+
+### config_media_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string","title":"Path","description":"Path to the property to get, e.g. `key.subkey`","pattern":"^[a-zA-Z0-9_.]{0,}$"},"depth":{"type":"number","description":"Limit the depth of the response"},"secrets":{"type":"boolean","description":"Include secrets in the response config","default":false}}}} key={"config_media_get"} />
+
+### config_media_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false},"basepath":{"type":"string","default":"/api/media"},"entity_name":{"type":"string","default":"media"},"storage":{"type":"object","default":{},"additionalProperties":false,"properties":{"body_max_size":{"type":"number","description":"Max size of the body in bytes. Leave blank for unlimited."}}}}}},"required":["value"]}} key={"config_media_update"} />
+
+### config_media_adapter_get
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"secrets":{"type":"boolean","description":"Include secrets in the response config","default":false}}}} key={"config_media_adapter_get"} />
+
+### config_media_adapter_update
+
+
+
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"value":{"anyOf":[{"type":"object","title":"AWS S3","description":"AWS S3 or compatible storage","additionalProperties":false,"properties":{"type":{"const":"s3"},"config":{"type":"object","title":"AWS S3","description":"AWS S3 or compatible storage","properties":{"access_key":{"type":"string"},"secret_access_key":{"type":"string"},"url":{"type":"string","description":"URL to S3 compatible endpoint without trailing slash","examples":["https://{account_id}.r2.cloudflarestorage.com/{bucket}","https://{bucket}.s3.{region}.amazonaws.com"],"pattern":"^https?://(?:.*)?[^/.]+$"}},"required":["access_key","secret_access_key","url"]}},"required":["type","config"]},{"type":"object","title":"Cloudinary","description":"Cloudinary media storage","additionalProperties":false,"properties":{"type":{"const":"cloudinary"},"config":{"type":"object","title":"Cloudinary","description":"Cloudinary media storage","properties":{"cloud_name":{"type":"string"},"api_key":{"type":"string"},"api_secret":{"type":"string"},"upload_preset":{"type":"string"}},"required":["cloud_name","api_key","api_secret"]}},"required":["type","config"]},{"type":"object","title":"Local","description":"Local file system storage","additionalProperties":false,"properties":{"type":{"const":"local"},"config":{"type":"object","title":"Local","description":"Local file system storage","additionalProperties":false,"properties":{"path":{"type":"string","default":"./"}},"required":["path"]}},"required":["type","config"]}]}}}} key={"config_media_adapter_update"} />
+   
+
+## Resources
+
+
+
+### data_entities
+
+Retrieve all entities
+
+
+
+### data_relations
+
+Retrieve all relations
+
+
+
+### data_indices
+
+Retrieve all indices
+
+
+
+### system_config
+
+
+
+
+
+### system_config_module
+
+
+
+
+
+### system_schema
+
+
+
+
+
+### system_schema_module
+
+
+

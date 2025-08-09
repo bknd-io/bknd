@@ -26,7 +26,7 @@ export async function getVersion(_path: string = "") {
          return JSON.parse(pkg).version ?? "preview";
       }
    } catch (e) {
-      console.error("Failed to resolve version");
+      //console.error("Failed to resolve version");
    }
 
    return "unknown";

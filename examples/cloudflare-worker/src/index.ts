@@ -1,7 +1,7 @@
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve({
-   mode: "warm",
+   mode: "fresh",
    d1: {
       session: true,
    },

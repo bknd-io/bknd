@@ -4,9 +4,10 @@
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbo",
-    "build": "bun generate:openapi && next build",
+    "build": "bun generate:openapi && bun generate:mcp && next build",
     "start": "next start",
     "generate:openapi": "bun scripts/generate-openapi.mjs",
+    "generate:mcp": "bun scripts/generate-mcp.ts",
     "postinstall": "fumadocs-mdx",
     "preview": "npm run build && wrangler dev",
     "cf:preview": "wrangler dev",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
+    "@types/bun": "^1.2.19",
     "@types/mdx": "^2.0.13",
     "@types/node": "24.0.10",
     "@types/react": "^19.1.8",
@@ -42,6 +44,7 @@
     "eslint": "^8",
     "eslint-config-next": "15.3.5",
     "fumadocs-docgen": "^2.1.0",
+    "jsonv-ts": "^0.7.0",
     "postcss": "^8.5.6",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4.1.11",

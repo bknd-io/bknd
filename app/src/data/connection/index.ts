@@ -9,6 +9,7 @@ export {
    type ConnQueryResults,
    customIntrospector,
 } from "./Connection";
+export { DummyConnection } from "./DummyConnection";
 
 // sqlite
 export { SqliteConnection } from "./sqlite/SqliteConnection";

@@ -1,7 +1,7 @@
 import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec, omitKeys } from "bknd/utils";
+import { jsc, s, describeRoute, schemaToSpec, omitKeys, pickKeys, mcpTool } from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
 import type { EntityManager, EntityData } from "data/entities";
@@ -62,6 +62,7 @@ export class DataController extends Controller {
       hono.get(
          "/sync",
          permission(DataPermissions.databaseSync),
+         mcpTool("data_sync"),
          describeRoute({
             summary: "Sync database schema",
             tags: ["data"],
@@ -77,9 +78,7 @@ export class DataController extends Controller {
          ),
          async (c) => {
             const { force, drop } = c.req.valid("query");
-            //console.log("force", force);
             const tables = await this.em.schema().introspect();
-            //console.log("tables", tables);
             const changes = await this.em.schema().sync({
                force,
                drop,
@@ -165,6 +164,7 @@ export class DataController extends Controller {
             summary: "Retrieve entity info",
             tags: ["data"],
          }),
+         mcpTool("data_entity_info"),
          jsc("param", s.object({ entity: entitiesEnum })),
          async (c) => {
             const { entity } = c.req.param();
@@ -214,6 +214,7 @@ export class DataController extends Controller {
             summary: "Count entities",
             tags: ["data"],
          }),
+         mcpTool("data_entity_fn_count"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery.properties.where),
          async (c) => {
@@ -236,6 +237,7 @@ export class DataController extends Controller {
             summary: "Check if entity exists",
             tags: ["data"],
          }),
+         mcpTool("data_entity_fn_exists"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery.properties.where),
          async (c) => {
@@ -268,6 +270,9 @@ export class DataController extends Controller {
             (p) => pick.includes(p.name),
          ) as any),
       ];
+      const saveRepoQuerySchema = (pick: string[] = Object.keys(saveRepoQuery.properties)) => {
+         return s.object(pickKeys(saveRepoQuery.properties, pick as any));
+      };
 
       hono.get(
          "/:entity",
@@ -300,6 +305,12 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityRead),
+         mcpTool("data_entity_read_one", {
+            inputSchema: {
+               param: s.object({ entity: entitiesEnum, id: idType }),
+               query: saveRepoQuerySchema(["offset", "sort", "select"]),
+            },
+         }),
          jsc(
             "param",
             s.object({
@@ -375,6 +386,12 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityRead),
+         mcpTool("data_entity_read_many", {
+            inputSchema: {
+               param: s.object({ entity: entitiesEnum }),
+               json: fnQuery,
+            },
+         }),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery, { skipOpenAPI: true }),
          async (c) => {
@@ -400,6 +417,7 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityCreate),
+         mcpTool("data_entity_insert"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", s.anyOf([s.object({}), s.array(s.object({}))])),
          async (c) => {
@@ -427,6 +445,7 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityUpdate),
+         mcpTool("data_entity_update_many"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc(
             "json",
@@ -458,6 +477,7 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityUpdate),
+         mcpTool("data_entity_update_one"),
          jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          jsc("json", s.object({})),
          async (c) => {
@@ -480,6 +500,7 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityDelete),
+         mcpTool("data_entity_delete_one"),
          jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          async (c) => {
             const { entity, id } = c.req.valid("param");
@@ -500,6 +521,7 @@ export class DataController extends Controller {
             tags: ["data"],
          }),
          permission(DataPermissions.entityDelete),
+         mcpTool("data_entity_delete_many"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery.properties.where),
          async (c) => {
@@ -515,5 +537,36 @@ export class DataController extends Controller {
       );
 
       return hono;
+   }
+
+   override registerMcp() {
+      this.ctx.mcp
+         .resource(
+            "data_entities",
+            "bknd://data/entities",
+            (c) => c.json(c.context.ctx().em.toJSON().entities),
+            {
+               title: "Entities",
+               description: "Retrieve all entities",
+            },
+         )
+         .resource(
+            "data_relations",
+            "bknd://data/relations",
+            (c) => c.json(c.context.ctx().em.toJSON().relations),
+            {
+               title: "Relations",
+               description: "Retrieve all relations",
+            },
+         )
+         .resource(
+            "data_indices",
+            "bknd://data/indices",
+            (c) => c.json(c.context.ctx().em.toJSON().indices),
+            {
+               title: "Indices",
+               description: "Retrieve all indices",
+            },
+         );
    }
 }
