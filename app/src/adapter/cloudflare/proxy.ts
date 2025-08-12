@@ -17,7 +17,7 @@ export type WithPlatformProxyOptions = {
 };
 
 export function withPlatformProxy<Env extends CloudflareEnv>(
-   config: CloudflareBkndConfig<Env>,
+   config?: CloudflareBkndConfig<Env>,
    opts?: WithPlatformProxyOptions,
 ) {
    const use_proxy =
@@ -42,25 +42,25 @@ export function withPlatformProxy<Env extends CloudflareEnv>(
          if (!use_proxy) return;
          const env = await getEnv();
          registerMedia(env, registries);
-         await config.beforeBuild?.(app, registries);
+         await config?.beforeBuild?.(app, registries);
       },
       bindings: async (env) => {
-         return (await config.bindings?.(await getEnv(env))) || {};
+         return (await config?.bindings?.(await getEnv(env))) || {};
       },
       app: async (_env) => {
          const env = await getEnv(_env);
 
-         if (config.app === undefined && use_proxy) {
+         if (config?.app === undefined && use_proxy) {
             const binding = getBinding(env, "D1Database");
             return {
                connection: d1Sqlite({
                   binding: binding.value,
                }),
             };
-         } else if (typeof config.app === "function") {
-            return config.app(env);
+         } else if (typeof config?.app === "function") {
+            return config?.app(env);
          }
-         return config.app || {};
+         return config?.app || {};
       },
    } satisfies CloudflareBkndConfig<Env>;
 }
