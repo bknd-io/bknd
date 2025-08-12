@@ -1,8 +1,4 @@
 import { serve } from "bknd/adapter/cloudflare";
+import config from "../bknd.config";
 
-export default serve({
-   mode: "warm",
-   d1: {
-      session: true,
-   },
-});
+export default serve(config);

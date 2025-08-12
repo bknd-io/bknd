@@ -77,7 +77,7 @@ async function makeApp(config: MakeAppConfig) {
 }
 
 export async function makeConfigApp(_config: CliBkndConfig, platform?: Platform) {
-   const config = makeConfig(_config, process.env);
+   const config = await makeConfig(_config, process.env);
    return makeApp({
       ...config,
       server: { platform },

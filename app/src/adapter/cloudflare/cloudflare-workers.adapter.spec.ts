@@ -18,7 +18,7 @@ describe("cf adapter", () => {
    });
 
    it("makes config", async () => {
-      const staticConfig = makeConfig(
+      const staticConfig = await makeConfig(
          {
             connection: { url: DB_URL },
             initialConfig: { data: { basepath: DB_URL } },
@@ -28,7 +28,7 @@ describe("cf adapter", () => {
       expect(staticConfig.initialConfig).toEqual({ data: { basepath: DB_URL } });
       expect(staticConfig.connection).toBeDefined();
 
-      const dynamicConfig = makeConfig(
+      const dynamicConfig = await makeConfig(
          {
             app: (env) => ({
                initialConfig: { data: { basepath: env.DB_URL } },

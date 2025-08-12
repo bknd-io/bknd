@@ -39,6 +39,7 @@ export { registries } from "modules/registries";
 /**
  * Core
  */
+export type { MaybePromise } from "core/types";
 export { Exception, BkndError } from "core/errors";
 export { isDebug, env } from "core/env";
 export { type PrimaryFieldType, config, type DB, type AppEntity } from "core/config";
