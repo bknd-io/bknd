@@ -1,13 +1,21 @@
-import { config as $config, App, type CreateAppConfig, Connection, guessMimeType } from "bknd";
+import {
+   config as $config,
+   App,
+   type CreateAppConfig,
+   Connection,
+   guessMimeType,
+   type MaybePromise,
+   registries as $registries,
+} from "bknd";
 import { $console } from "bknd/utils";
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { Manifest } from "vite";
 
 export type BkndConfig<Args = any> = CreateAppConfig & {
-   app?: CreateAppConfig | ((args: Args) => CreateAppConfig);
+   app?: CreateAppConfig | ((args: Args) => MaybePromise<CreateAppConfig>);
    onBuilt?: (app: App) => Promise<void>;
-   beforeBuild?: (app: App) => Promise<void>;
+   beforeBuild?: (app: App, registries?: typeof $registries) => Promise<void>;
    buildConfig?: Parameters<App["build"]>[0];
 };
 
@@ -30,10 +38,10 @@ export type DefaultArgs = {
    [key: string]: any;
 };
 
-export function makeConfig<Args = DefaultArgs>(
+export async function makeConfig<Args = DefaultArgs>(
    config: BkndConfig<Args>,
    args?: Args,
-): CreateAppConfig {
+): Promise<CreateAppConfig> {
    let additionalConfig: CreateAppConfig = {};
    const { app, ...rest } = config;
    if (app) {
@@ -41,7 +49,7 @@ export function makeConfig<Args = DefaultArgs>(
          if (!args) {
             throw new Error("args is required when config.app is a function");
          }
-         additionalConfig = app(args);
+         additionalConfig = await app(args);
       } else {
          additionalConfig = app;
       }
@@ -60,7 +68,7 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
    const id = opts?.id ?? "app";
    let app = apps.get(id);
    if (!app || opts?.force) {
-      const appConfig = makeConfig(config, args);
+      const appConfig = await makeConfig(config, args);
       if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
          let connection: Connection | undefined;
          if (Connection.isConnection(config.connection)) {
@@ -68,7 +76,7 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
          } else {
             const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
             const conf = appConfig.connection ?? { url: ":memory:" };
-            connection = sqlite(conf);
+            connection = sqlite(conf) as any;
             $console.info(`Using ${connection!.name} connection`, conf.url);
          }
          appConfig.connection = connection;
@@ -98,7 +106,7 @@ export async function createFrameworkApp<Args = DefaultArgs>(
          );
       }
 
-      await config.beforeBuild?.(app);
+      await config.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }
 
@@ -131,7 +139,7 @@ export async function createRuntimeApp<Args = DefaultArgs>(
          "sync",
       );
 
-      await config.beforeBuild?.(app);
+      await config.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }
 

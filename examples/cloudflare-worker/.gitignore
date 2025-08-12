@@ -170,3 +170,5 @@ dist
 
 .dev.vars
 .wrangler/
+bknd-types.d.ts
+worker-configuration.d.ts

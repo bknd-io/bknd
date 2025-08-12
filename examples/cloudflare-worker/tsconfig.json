@@ -1,11 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2021",
-    "lib": ["es2021"],
-    "jsx": "react-jsx",
-    "module": "es2022",
-    "moduleResolution": "Bundler",
-    "types": ["./worker-configuration.d.ts"],
+    "lib": ["ES2022"],
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
@@ -18,5 +16,10 @@
     "skipLibCheck": true
   },
   "exclude": ["test"],
-  "include": ["worker-configuration.d.ts", "src/**/*.ts"]
+  "include": [
+    "worker-configuration.d.ts",
+    "bknd-types.d.ts",
+    "bknd.config.ts",
+    "src/**/*.ts"
+  ]
 }

@@ -5,7 +5,6 @@ import { Hono } from "hono";
 import { serveStatic } from "hono/cloudflare-workers";
 import { getFresh } from "./modes/fresh";
 import { getCached } from "./modes/cached";
-import { getDurable } from "./modes/durable";
 import type { App } from "bknd";
 import { $console } from "core/utils";
 
@@ -17,10 +16,9 @@ declare global {
 
 export type CloudflareEnv = Cloudflare.Env;
 export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> & {
-   mode?: "warm" | "fresh" | "cache" | "durable";
+   mode?: "warm" | "fresh" | "cache";
    bindings?: (args: Env) => {
       kv?: KVNamespace;
-      dobj?: DurableObjectNamespace;
       db?: D1Database;
    };
    d1?: {
@@ -93,8 +91,6 @@ export function serve<Env extends CloudflareEnv = CloudflareEnv>(
             case "cache":
                app = await getCached(config, context);
                break;
-            case "durable":
-               return await getDurable(config, context);
             default:
                throw new Error(`Unknown mode ${mode}`);
          }

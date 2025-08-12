@@ -1,4 +1,4 @@
-import { registries, isDebug, guessMimeType } from "bknd";
+import { registries as $registries, isDebug, guessMimeType } from "bknd";
 import { getBindings } from "../bindings";
 import { s } from "bknd/utils";
 import { StorageAdapter, type FileBody } from "bknd";
@@ -12,7 +12,10 @@ export function makeSchema(bindings: string[] = []) {
    );
 }
 
-export function registerMedia(env: Record<string, any>) {
+export function registerMedia(
+   env: Record<string, any>,
+   registries: typeof $registries = $registries,
+) {
    const r2_bindings = getBindings(env, "R2Bucket");
 
    registries.media.register(

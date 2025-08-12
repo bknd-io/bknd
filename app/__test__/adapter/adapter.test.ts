@@ -9,16 +9,16 @@ beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
 describe("adapter", () => {
-   it("makes config", () => {
-      expect(omitKeys(adapter.makeConfig({}), ["connection"])).toEqual({});
-      expect(omitKeys(adapter.makeConfig({}, { env: { TEST: "test" } }), ["connection"])).toEqual(
-         {},
-      );
+   it("makes config", async () => {
+      expect(omitKeys(await adapter.makeConfig({}), ["connection"])).toEqual({});
+      expect(
+         omitKeys(await adapter.makeConfig({}, { env: { TEST: "test" } }), ["connection"]),
+      ).toEqual({});
 
       // merges everything returned from `app` with the config
       expect(
          omitKeys(
-            adapter.makeConfig(
+            await adapter.makeConfig(
                { app: (a) => ({ initialConfig: { server: { cors: { origin: a.env.TEST } } } }) },
                { env: { TEST: "test" } },
             ),
