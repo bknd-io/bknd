@@ -256,7 +256,11 @@ async function buildAdapters() {
       ),
       tsup.build(baseConfig("astro")),
       tsup.build(baseConfig("aws")),
-      tsup.build(baseConfig("cloudflare")),
+      tsup.build(
+         baseConfig("cloudflare", {
+            external: ["wrangler", "node:process"],
+         }),
+      ),
 
       tsup.build({
          ...baseConfig("vite"),

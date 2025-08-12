@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { serveStatic } from "hono/cloudflare-workers";
 import { getFresh } from "./modes/fresh";
 import { getCached } from "./modes/cached";
-import type { App } from "bknd";
+import type { App, MaybePromise } from "bknd";
 import { $console } from "core/utils";
 
 declare global {
@@ -17,10 +17,10 @@ declare global {
 export type CloudflareEnv = Cloudflare.Env;
 export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> & {
    mode?: "warm" | "fresh" | "cache";
-   bindings?: (args: Env) => {
+   bindings?: (args: Env) => MaybePromise<{
       kv?: KVNamespace;
       db?: D1Database;
-   };
+   }>;
    d1?: {
       session?: boolean;
       transport?: "header" | "cookie";

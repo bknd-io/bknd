@@ -1,3 +1,5 @@
+import { inspect } from "node:util";
+
 export type BindingTypeMap = {
    D1Database: D1Database;
    KVNamespace: KVNamespace;
@@ -13,8 +15,9 @@ export function getBindings<T extends GetBindingType>(env: any, type: T): Bindin
    for (const key in env) {
       try {
          if (
-            env[key] &&
-            ((env[key] as any).constructor.name === type || String(env[key]) === `[object ${type}]`)
+            (env[key] as any).constructor.name === type ||
+            String(env[key]) === `[object ${type}]` ||
+            inspect(env[key]).includes(type)
          ) {
             bindings.push({
                key,

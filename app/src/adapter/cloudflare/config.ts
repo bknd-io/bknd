@@ -120,7 +120,7 @@ export async function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
       // if connection is not given, but env is set
       // try to make D1 from bindings
    } else if (args?.env) {
-      const bindings = config.bindings?.(args?.env);
+      const bindings = await config.bindings?.(args?.env);
       const sessionHelper = d1SessionHelper(config);
       const sessionId = sessionHelper.get(args.request);
       let session: D1DatabaseSession | undefined;

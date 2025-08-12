@@ -8,7 +8,7 @@ export async function getCached<Env extends CloudflareEnv = CloudflareEnv>(
    args: Context<Env>,
 ) {
    const { env, ctx } = args;
-   const { kv } = config.bindings?.(env)!;
+   const { kv } = await config.bindings?.(env)!;
    if (!kv) throw new Error("kv namespace is not defined in cloudflare.bindings");
    const key = config.key ?? "app";
 
