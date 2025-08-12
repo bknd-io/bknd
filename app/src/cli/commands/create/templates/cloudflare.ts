@@ -1,7 +1,6 @@
 import * as $p from "@clack/prompts";
-import { overrideJson, overridePackageJson } from "cli/commands/create/npm";
-import { typewriter, wait } from "cli/utils/cli";
-import { uuid } from "core/utils";
+import { overrideJson } from "cli/commands/create/npm";
+import { typewriter } from "cli/utils/cli";
 import c from "picocolors";
 import type { Template, TemplateSetupCtx } from ".";
 import { exec } from "cli/utils/sys";

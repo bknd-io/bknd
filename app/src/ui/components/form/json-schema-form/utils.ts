@@ -1,9 +1,9 @@
-import { autoFormatString, omitKeys } from "core/utils";
+import { autoFormatString, omitKeys } from "bknd/utils";
 import { type Draft, Draft2019, type JsonSchema } from "json-schema-library";
 import type { JSONSchema } from "json-schema-to-ts";
 import type { JSONSchemaType } from "json-schema-to-ts/lib/types/definitions/jsonSchema";
 
-export { isEqual, getPath } from "core/utils/objects";
+export { isEqual, getPath } from "bknd/utils";
 
 export function isNotDefined(value: any) {
    return value === null || value === undefined || value === "";

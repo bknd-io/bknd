@@ -1,5 +1,5 @@
 import type { CreateUserPayload } from "auth/AppAuth";
-import { $console } from "core/utils";
+import { $console } from "bknd/utils";
 import { Event } from "core/events";
 import type { em as prototypeEm } from "data/prototype";
 import { Connection } from "data/connection/Connection";

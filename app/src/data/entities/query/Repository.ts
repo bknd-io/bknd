@@ -1,5 +1,5 @@
 import type { DB as DefaultDB, PrimaryFieldType } from "bknd";
-import { $console } from "core/utils";
+import { $console } from "bknd/utils";
 import { type EmitsEvents, EventManager } from "core/events";
 import { type SelectQueryBuilder, sql } from "kysely";
 import { InvalidSearchParamsException } from "../../errors";

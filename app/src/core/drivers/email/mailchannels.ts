@@ -1,4 +1,4 @@
-import { mergeObject, type RecursivePartial } from "core/utils";
+import { mergeObject, type RecursivePartial } from "bknd/utils";
 import type { IEmailDriver } from "./index";
 
 export type MailchannelsEmailOptions = {

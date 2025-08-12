@@ -1,7 +1,6 @@
-import { hash, pickHeaders } from "core/utils";
+import { hash, pickHeaders, s, parse } from "bknd/utils";
 import type { FileBody, FileListObject, FileMeta } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
-import { s, parse } from "bknd/utils";
 
 export const cloudinaryAdapterConfig = s.object(
    {

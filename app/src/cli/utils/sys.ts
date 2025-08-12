@@ -1,4 +1,4 @@
-import { $console } from "core/utils";
+import { $console } from "bknd/utils";
 import { execSync, exec as nodeExec } from "node:child_process";
 import { readFile, writeFile as nodeWriteFile } from "node:fs/promises";
 import path from "node:path";

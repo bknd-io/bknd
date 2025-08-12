@@ -1,5 +1,5 @@
 import { Exception } from "core/errors";
-import { $console, objectTransform } from "core/utils";
+import { $console, objectTransform } from "bknd/utils";
 import { Permission } from "core/security/Permission";
 import type { Context } from "hono";
 import type { ServerEnv } from "modules/Controller";

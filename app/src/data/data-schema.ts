@@ -1,4 +1,4 @@
-import { objectTransform } from "core/utils";
+import { objectTransform } from "bknd/utils";
 import { MediaField, mediaFieldConfigSchema } from "../media/MediaField";
 import { FieldClassMap } from "data/fields";
 import { RelationClassMap, RelationFieldClassMap } from "data/relations";

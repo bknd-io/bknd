@@ -1,6 +1,6 @@
 import type { TestRunner } from "core/test";
 import { Connection, type FieldSpec } from "./Connection";
-import { getPath } from "core/utils";
+import { getPath } from "bknd/utils";
 import * as proto from "data/prototype";
 import { createApp } from "App";
 import type { MaybePromise } from "core/types";

@@ -6,7 +6,7 @@ import { serveStatic } from "hono/cloudflare-workers";
 import { getFresh } from "./modes/fresh";
 import { getCached } from "./modes/cached";
 import type { App, MaybePromise } from "bknd";
-import { $console } from "core/utils";
+import { $console } from "bknd/utils";
 
 declare global {
    namespace Cloudflare {

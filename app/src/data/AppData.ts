@@ -1,4 +1,4 @@
-import { transformObject } from "core/utils";
+import { transformObject } from "bknd/utils";
 
 import { Module } from "modules/Module";
 import { DataController } from "./api/DataController";

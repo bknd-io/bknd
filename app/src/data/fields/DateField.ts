@@ -1,9 +1,7 @@
-import { dayjs } from "core/utils";
+import { dayjs, $console, s } from "bknd/utils";
 import type { EntityManager } from "../entities";
 import { Field, type TActionContext, type TRenderContext, baseFieldConfigSchema } from "./Field";
-import { $console } from "core/utils";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
-import { s } from "bknd/utils";
 
 export const dateFieldConfigSchema = s
    .strictObject({

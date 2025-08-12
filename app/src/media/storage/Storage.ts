@@ -1,5 +1,5 @@
 import { type EmitsEvents, EventManager } from "core/events";
-import { $console, isFile, detectImageDimensions } from "core/utils";
+import { $console, isFile, detectImageDimensions } from "bknd/utils";
 import { isMimeType } from "media/storage/mime-types-tiny";
 import * as StorageEvents from "./events";
 import type { FileUploadedEventData } from "./events";

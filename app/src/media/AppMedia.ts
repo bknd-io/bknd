@@ -1,5 +1,5 @@
 import type { AppEntity, FileUploadedEventData, StorageAdapter } from "bknd";
-import { $console } from "core/utils";
+import { $console } from "bknd/utils";
 import type { Entity, EntityManager } from "data/entities";
 import { Storage } from "media/storage/Storage";
 import { Module } from "modules/Module";

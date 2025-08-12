@@ -4,7 +4,7 @@ import { DataApi, type DataApiOptions } from "data/api/DataApi";
 import { decode } from "hono/jwt";
 import { MediaApi, type MediaApiOptions } from "media/api/MediaApi";
 import { SystemApi } from "modules/SystemApi";
-import { omitKeys } from "core/utils";
+import { omitKeys } from "bknd/utils";
 import type { BaseModuleApiOptions } from "modules";
 
 export type TApiUser = SafeUser;

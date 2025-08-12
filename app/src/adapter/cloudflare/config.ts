@@ -9,7 +9,7 @@ import { d1Sqlite } from "./connection/D1Connection";
 import type { CloudflareBkndConfig, CloudflareEnv } from ".";
 import { App } from "bknd";
 import type { Context, ExecutionContext } from "hono";
-import { $console } from "core/utils";
+import { $console } from "bknd/utils";
 import { setCookie } from "hono/cookie";
 
 export const constants = {

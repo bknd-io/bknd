@@ -1,4 +1,4 @@
-import { transformObject } from "core/utils";
+import { transformObject } from "bknd/utils";
 import type { Kysely } from "kysely";
 import { set } from "lodash-es";
 
