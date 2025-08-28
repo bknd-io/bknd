@@ -24,7 +24,6 @@ async function action({
    const app = await makeAppFromEnv({
       server: "node",
    });
-   await app.build();
 
    const et = new EntityTypescript(app.em);
 

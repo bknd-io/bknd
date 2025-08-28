@@ -1,10 +1,18 @@
 import type { Plugin } from "vite";
+import { writeFile as nodeWriteFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 /**
  * Vite plugin that provides Node.js filesystem access during development
  * by injecting a polyfill into the SSR environment
  */
-export function devFsPlugin({ verbose = false }: { verbose?: boolean } = {}): Plugin {
+export function devFsPlugin({
+   verbose = false,
+   configFile = "bknd.config.ts",
+}: {
+   verbose?: boolean;
+   configFile?: string;
+}): Plugin {
    let isDev = false;
    let projectRoot = "";
 
@@ -20,7 +28,7 @@ export function devFsPlugin({ verbose = false }: { verbose?: boolean } = {}): Pl
 
          // Intercept stdout to watch for our write requests
          const originalStdoutWrite = process.stdout.write;
-         process.stdout.write = (chunk: any, encoding?: any, callback?: any) => {
+         process.stdout.write = function (chunk: any, encoding?: any, callback?: any) {
             const output = chunk.toString();
 
             // Check if this output contains our special write request
@@ -38,15 +46,10 @@ export function devFsPlugin({ verbose = false }: { verbose?: boolean } = {}): Pl
                         // Process the write request immediately
                         (async () => {
                            try {
-                              const { writeFile } = await import("node:fs/promises");
-                              const { resolve } = await import("node:path");
                               const fullPath = resolve(projectRoot, writeRequest.filename);
+                              await nodeWriteFile(fullPath, writeRequest.data);
                               if (verbose) {
-                                 console.debug("[dev-fs-plugin] Writing file to", fullPath);
-                              }
-                              await writeFile(fullPath, writeRequest.data);
-                              if (verbose) {
-                                 console.debug("[dev-fs-plugin] File written successfully! 🎉");
+                                 console.debug("[dev-fs-plugin] File written successfully!");
                               }
                            } catch (error) {
                               console.error("[dev-fs-plugin] Error writing file:", error);
@@ -62,9 +65,8 @@ export function devFsPlugin({ verbose = false }: { verbose?: boolean } = {}): Pl
                }
             }
 
-            // Normal stdout.write
             // @ts-ignore
-            // biome-ignore lint/style/noArguments: <explanation>
+            // biome-ignore lint:
             return originalStdoutWrite.apply(process.stdout, arguments);
          };
 
@@ -79,9 +81,9 @@ export function devFsPlugin({ verbose = false }: { verbose?: boolean } = {}): Pl
          if (!isDev || !options?.ssr) return;
 
          // Check if this is the bknd config file
-         if (id.includes("bknd.config.ts")) {
+         if (id.includes(configFile)) {
             if (verbose) {
-               console.debug("[dev-fs-plugin] Transforming bknd.config.ts");
+               console.debug("[dev-fs-plugin] Transforming", configFile);
             }
 
             // Inject our filesystem polyfill at the top of the file
@@ -90,7 +92,7 @@ export function devFsPlugin({ verbose = false }: { verbose?: boolean } = {}): Pl
 if (typeof globalThis !== 'undefined') {
   globalThis.__devFsPolyfill = {
     writeFile: async (filename, data) => {
-      ${verbose ? "console.log('dev-fs polyfill: Intercepting write request for', filename);" : ""}
+      ${verbose ? "console.debug('dev-fs polyfill: Intercepting write request for', filename);" : ""}
       
       // Use console logging as a communication channel
       // The main process will watch for this specific log pattern
@@ -103,7 +105,7 @@ if (typeof globalThis !== 'undefined') {
       
       // Output as a specially formatted console message
       console.log('{{DEV_FS_WRITE_REQUEST}}', JSON.stringify(writeRequest));
-      ${verbose ? "console.log('dev-fs polyfill: Write request sent via console');" : ""}
+      ${verbose ? "console.debug('dev-fs polyfill: Write request sent via console');" : ""}
       
       return Promise.resolve();
     }

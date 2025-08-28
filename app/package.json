@@ -197,6 +197,11 @@
       "import": "./dist/adapter/cloudflare/index.js",
       "require": "./dist/adapter/cloudflare/index.js"
     },
+    "./adapter/cloudflare/proxy": {
+      "types": "./dist/types/adapter/cloudflare/proxy.d.ts",
+      "import": "./dist/adapter/cloudflare/proxy.js",
+      "require": "./dist/adapter/cloudflare/proxy.js"
+    },
     "./adapter": {
       "types": "./dist/types/adapter/index.d.ts",
       "import": "./dist/adapter/index.js"

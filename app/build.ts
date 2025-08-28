@@ -263,6 +263,14 @@ async function buildAdapters() {
             external: ["wrangler", "node:process"],
          }),
       ),
+      tsup.build(
+         baseConfig("cloudflare/proxy", {
+            entry: ["src/adapter/cloudflare/proxy.ts"],
+            outDir: "dist/adapter/cloudflare",
+            metafile: false,
+            external: [/bknd/, "wrangler", "node:process"],
+         }),
+      ),
 
       tsup.build({
          ...baseConfig("vite"),

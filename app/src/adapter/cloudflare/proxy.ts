@@ -4,7 +4,7 @@ import {
    registerMedia,
    type CloudflareBkndConfig,
    type CloudflareEnv,
-} from ".";
+} from "bknd/adapter/cloudflare";
 import type { PlatformProxy } from "wrangler";
 import process from "node:process";
 
@@ -41,12 +41,13 @@ export function withPlatformProxy<Env extends CloudflareEnv>(
       beforeBuild: async (app, registries) => {
          if (!use_proxy) return;
          const env = await getEnv();
-         registerMedia(env, registries);
+         registerMedia(env, registries as any);
          await config?.beforeBuild?.(app, registries);
       },
       bindings: async (env) => {
          return (await config?.bindings?.(await getEnv(env))) || {};
       },
+      // @ts-ignore
       app: async (_env) => {
          const env = await getEnv(_env);
 
