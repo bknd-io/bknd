@@ -20,28 +20,33 @@ type ImageOptimizationSchema = s.Static<typeof schema>;
 
 export type CloudflareImageOptimizationOptions = {
    /**
-    * The url to access the image optimization plugin, defaults to `/api/plugin/image/optimize`
+    * The url to access the image optimization plugin
+    * @default /api/plugin/image/optimize
     */
    accessUrl?: string;
    /**
-    * The path to resolve the image from, defaults to `/api/media/file`
+    * The path to resolve the image from
+    * @default /api/media/file
     */
    resolvePath?: string;
    /**
-    * Whether to explain the image optimization schema, defaults to `false`
+    * Whether to explain the image optimization schema
+    * @default false
     */
    explain?: boolean;
    /**
-    * The default options to use, defaults to `{}`
-    * @param: config
+    * The default options to use
+    * @default {}
     */
    defaultOptions?: ImageOptimizationSchema;
    /**
-    * The fixed options to use, defaults to `{}`
+    * The fixed options to use
+    * @default {}
     */
    fixedOptions?: ImageOptimizationSchema;
    /**
-    * The cache control to use, defaults to `public, max-age=31536000, immutable`
+    * The cache control to use
+    * @default public, max-age=31536000, immutable
     */
    cacheControl?: string;
 };

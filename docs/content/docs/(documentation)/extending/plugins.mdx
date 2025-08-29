@@ -194,11 +194,13 @@ Now you can add query parameters for the transformations, e.g. `?width=1000&heig
     },
     metadata: {
       description: 'The metadata to use',
-      type: '"copyright" | "keep" | "none"'
+      type: '"copyright" | "keep" | "none"',
+      default: 'copyright'
     },
     quality: {
       description: 'The quality to use',
-      type: 'number'
+      type: 'number',
+      default: 85
     },
   }}
 />
