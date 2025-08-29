@@ -44,16 +44,8 @@ export default function UserAvatar() {
 
 #### Props
 
-- `initialItems?: xMediaFieldSchema[]`: Initial items to display, must be an array of media objects.
-- `entity?: { name: string; id: number; field: string }`: If given, the initial media items fetched will be from this entity.
-- `query?: RepoQueryIn`: Query to filter the media items.
-- `overwrite?: boolean`: If true, the media item will be overwritten on entity media uploads if limit was reached.
-- `maxItems?: number`: Maximum number of media items that can be uploaded.
-- `autoUpload?: boolean`: If true, the media items will be uploaded automatically.
-- `onRejected?: (files: FileWithPath[]) => void`: Callback when a file is rejected.
-- `onDeleted?: (file: FileState) => void`: Callback when a file is deleted.
-- `onUploaded?: (file: FileState) => void`: Callback when a file is uploaded.
-- `placeholder?: { show?: boolean; text?: string }`: Placeholder text to show when no media items are present.
+<AutoTypeTable path="../app/src/ui/elements/media/DropzoneContainer.tsx" name="DropzoneContainerProps" />
+
 
 #### Customize Rendering
 

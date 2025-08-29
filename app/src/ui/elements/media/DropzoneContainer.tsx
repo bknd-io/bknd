@@ -10,15 +10,38 @@ import { mediaItemsToFileStates } from "./helper";
 import { useInViewport } from "@mantine/hooks";
 
 export type DropzoneContainerProps = {
+   /**
+    * The initial items to display
+    * @default []
+    */
    initialItems?: MediaFieldSchema[] | false;
+   /**
+    * Whether to use infinite scrolling
+    * @default false
+    */
    infinite?: boolean;
+   /**
+    * If given, the initial media items fetched will be from this entity
+    * @default undefined
+    */
    entity?: {
       name: string;
       id: PrimaryFieldType;
       field: string;
    };
+   /**
+    * The media config
+    * @default undefined
+    */
    media?: Pick<TAppMediaConfig, "entity_name" | "storage">;
+   /**
+    * Query to filter the media items
+    */
    query?: RepoQueryIn;
+   /**
+    * Whether to use a random filename
+    * @default false
+    */
    randomFilename?: boolean;
 } & Omit<Partial<DropzoneProps>, "initialItems">;
 

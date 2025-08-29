@@ -46,24 +46,73 @@ export type DropzoneRenderProps = {
 };
 
 export type DropzoneProps = {
+   /**
+    * Get the upload info for a file
+    */
    getUploadInfo: (file: { path: string }) => { url: string; headers?: Headers; method?: string };
+   /**
+    * Handle the deletion of a file
+    */
    handleDelete: (file: { path: string }) => Promise<boolean>;
+   /**
+    * The initial items to display
+    */
    initialItems?: FileState[];
-   flow?: "start" | "end";
+   /**
+    * Maximum number of media items that can be uploaded
+    */
    maxItems?: number;
+   /**
+    * The allowed mime types
+    */
    allowedMimeTypes?: string[];
+   /**
+    * If true, the media item will be overwritten on entity media uploads if limit was reached
+    */
    overwrite?: boolean;
+   /**
+    * If true, the media items will be uploaded automatically
+    */
    autoUpload?: boolean;
+   /**
+    * Whether to add new items to the start or end of the list
+    * @default "start"
+    */
+   flow?: "start" | "end";
+   /**
+    * The on rejected callback
+    */
    onRejected?: (files: FileWithPath[]) => void;
+   /**
+    * The on deleted callback
+    */
    onDeleted?: (file: { path: string }) => void;
+   /**
+    * The on uploaded all callback
+    */
    onUploadedAll?: (files: FileStateWithData[]) => void;
+   /**
+    * The on uploaded callback
+    */
    onUploaded?: (file: FileStateWithData) => void;
+   /**
+    * The on clicked callback
+    */
    onClick?: (file: FileState) => void;
+   /**
+    * The placeholder to use
+    */
    placeholder?: {
       show?: boolean;
       text?: string;
    };
+   /**
+    * The footer to render
+    */
    footer?: ReactNode;
+   /**
+    * The children to render
+    */
    children?: ReactNode | ((props: DropzoneRenderProps) => ReactNode);
 };
 
