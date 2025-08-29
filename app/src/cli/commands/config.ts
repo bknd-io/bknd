@@ -3,16 +3,14 @@ import type { CliCommand } from "../types";
 import { makeAppFromEnv } from "cli/commands/run";
 import { writeFile } from "node:fs/promises";
 import c from "picocolors";
+import { withConfigOptions } from "cli/utils/options";
 
 export const config: CliCommand = (program) => {
-   program
-      .command("config")
+   withConfigOptions(program.command("config"))
       .description("get app config")
       .option("--pretty", "pretty print")
       .option("--default", "use default config")
       .option("--secrets", "include secrets in output")
-      .option("--config <config>", "config file")
-      .option("--db-url <db>", "database url, can be any valid sqlite url")
       .option("--out <file>", "output file")
       .action(async (options) => {
          let config: any = {};

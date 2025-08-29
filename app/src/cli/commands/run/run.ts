@@ -17,6 +17,7 @@ import {
 } from "./platform";
 import { createRuntimeApp, makeConfig } from "bknd/adapter";
 import { colorizeConsole, isBun } from "bknd/utils";
+import { withConfigOptions, type WithConfigOptions } from "cli/utils/options";
 
 const env_files = [".env", ".dev.vars"];
 dotenv.config({
@@ -25,8 +26,7 @@ dotenv.config({
 const is_bun = isBun();
 
 export const run: CliCommand = (program) => {
-   program
-      .command("run")
+   withConfigOptions(program.command("run"))
       .description("run an instance")
       .addOption(
          new Option("-p, --port <port>", "port to run on")
@@ -40,12 +40,6 @@ export const run: CliCommand = (program) => {
             "db-url",
             "db-token",
          ]),
-      )
-      .addOption(new Option("-c, --config <config>", "config file"))
-      .addOption(
-         new Option("--db-url <db>", "database url, can be any valid sqlite url").conflicts(
-            "config",
-         ),
       )
       .addOption(
          new Option("--server <server>", "server type")
@@ -84,14 +78,14 @@ export async function makeConfigApp(_config: CliBkndConfig, platform?: Platform)
    });
 }
 
-type RunOptions = {
+type RunOptions = WithConfigOptions<{
    port: number;
    memory?: boolean;
    config?: string;
    dbUrl?: string;
    server: Platform;
    open?: boolean;
-};
+}>;
 
 export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
    const configFilePath = await getConfigPath(options.config);

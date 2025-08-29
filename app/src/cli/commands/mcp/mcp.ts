@@ -2,13 +2,11 @@ import type { CliCommand } from "cli/types";
 import { makeAppFromEnv } from "../run";
 import { getSystemMcp } from "modules/mcp/system-mcp";
 import { $console, stdioTransport } from "bknd/utils";
+import { withConfigOptions, type WithConfigOptions } from "cli/utils/options";
 
 export const mcp: CliCommand = (program) =>
-   program
-      .command("mcp")
+   withConfigOptions(program.command("mcp"))
       .description("mcp server stdio transport")
-      .option("--config <config>", "config file")
-      .option("--db-url <db>", "database url, can be any valid sqlite url")
       .option(
          "--token <token>",
          "token to authenticate requests, if not provided, uses BEARER_TOKEN environment variable",
@@ -18,14 +16,14 @@ export const mcp: CliCommand = (program) =>
       .option("--force", "force enable mcp")
       .action(action);
 
-async function action(options: {
-   verbose?: boolean;
-   config?: string;
-   dbUrl?: string;
-   token?: string;
-   logLevel?: string;
-   force?: boolean;
-}) {
+async function action(
+   options: WithConfigOptions<{
+      verbose?: boolean;
+      token?: string;
+      logLevel?: string;
+      force?: boolean;
+   }>,
+) {
    const verbose = !!options.verbose;
    const __oldConsole = { ...console };
 

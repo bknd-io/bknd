@@ -11,20 +11,18 @@ import type { CliCommand } from "cli/types";
 import { Argument } from "commander";
 import { $console, isBun } from "bknd/utils";
 import c from "picocolors";
+import { withConfigOptions, type WithConfigOptions } from "cli/utils/options";
 
 export const user: CliCommand = (program) => {
-   program
-      .command("user")
+   withConfigOptions(program.command("user"))
       .description("create/update users, or generate a token (auth)")
       .addArgument(
          new Argument("<action>", "action to perform").choices(["create", "update", "token"]),
       )
-      .option("--config <config>", "config file")
-      .option("--db-url <db>", "database url, can be any valid sqlite url")
       .action(action);
 };
 
-async function action(action: "create" | "update" | "token", options: any) {
+async function action(action: "create" | "update" | "token", options: WithConfigOptions) {
    const app = await makeAppFromEnv({
       config: options.config,
       dbUrl: options.dbUrl,

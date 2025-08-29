@@ -2,13 +2,11 @@ import type { CliCommand } from "../types";
 import { makeAppFromEnv } from "cli/commands/run";
 import { writeFile } from "node:fs/promises";
 import c from "picocolors";
+import { withConfigOptions } from "cli/utils/options";
 
 export const sync: CliCommand = (program) => {
-   program
-      .command("sync")
+   withConfigOptions(program.command("sync"))
       .description("sync database")
-      .option("--config <config>", "config file")
-      .option("--db-url <db>", "database url, can be any valid sqlite url")
       .option("--dump", "dump operations to console instead of executing them")
       .option("--drop", "include destructive DDL operations")
       .option("--out <file>", "output file")
