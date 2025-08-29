@@ -7,7 +7,7 @@ import c from "picocolors";
 export const config: CliCommand = (program) => {
    program
       .command("config")
-      .description("get default config")
+      .description("get app config")
       .option("--pretty", "pretty print")
       .option("--default", "use default config")
       .option("--secrets", "include secrets in output")
