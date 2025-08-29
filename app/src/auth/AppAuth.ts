@@ -14,6 +14,7 @@ import { usersFields } from "./auth-entities";
 import { Authenticator } from "./authenticate/Authenticator";
 import { Role } from "./authorize/Role";
 
+export type UsersFields = typeof AppAuth.usersFields;
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
 declare module "bknd" {
    interface Users extends AppEntity, UserFieldSchema {}

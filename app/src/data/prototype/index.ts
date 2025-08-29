@@ -39,6 +39,9 @@ import {
    type PolymorphicRelationConfig,
 } from "data/relations";
 
+import type { MediaFields } from "media/AppMedia";
+import type { UsersFields } from "auth/AppAuth";
+
 type Options<Config = any> = {
    entity: { name: string; fields: Record<string, Field<any, any, any>> };
    field_name: string;
@@ -197,6 +200,18 @@ export function entity<
       _fields.push(f.getField(o));
    }
    return new Entity(name, _fields, config, type);
+}
+
+type SystemEntities = {
+   users: UsersFields;
+   media: MediaFields;
+};
+
+export function systemEntity<
+   E extends keyof SystemEntities,
+   Fields extends Record<string, Field<any, any, any>>,
+>(name: E, fields: Fields) {
+   return entity<E, SystemEntities[E] & Fields>(name, fields as any);
 }
 
 export function relation<Local extends Entity>(local: Local) {

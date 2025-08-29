@@ -9,6 +9,7 @@ import { buildMediaSchema, registry, type TAppMediaConfig } from "./media-schema
 import { mediaFields } from "./media-entities";
 import * as MediaPermissions from "media/media-permissions";
 
+export type MediaFields = typeof AppMedia.mediaFields;
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
 declare module "bknd" {
    interface Media extends AppEntity, MediaFieldSchema {}

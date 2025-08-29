@@ -157,6 +157,7 @@ export {
    medium,
    make,
    entity,
+   systemEntity,
    relation,
    index,
    em,

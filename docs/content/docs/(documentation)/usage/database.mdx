@@ -349,6 +349,91 @@ Note that we didn't add relational fields directly to the entity, but instead de
   manually.
 </Callout>
 
+### System entities
+
+There are multiple system entities which are added depending on if the module is enabled:
+- `users`: if authentication is enabled
+- `media`: if media is enabled and an adapter is configured
+
+You can add additional fields to these entities. System-defined fields don't have to be repeated, those are automatically added to the entity, so don't worry about that. It's important though to match the system entities name, otherwise a new unrelated entity will be created.
+
+If you'd like to connect your entities to system entities, you need them in the schema to access their reference when making relations. From the example above, if you'd like to connect the `posts` entity to the `users` entity, you can do so like this:
+
+```typescript
+import { em, entity, text, number, systemEntity } from "bknd";
+
+const schema = em(
+  {
+    posts: entity("posts", {
+      title: text().required(),
+      slug: text().required(),
+      content: text(),
+      views: number(),
+      // don't add the foreign key field, it's automatically added
+    }),
+    comments: entity("comments", {
+      content: text(),
+    }),
+    // [!code highlight]
+    // add a `users` entity 
+    users: systemEntity("users", { // [!code highlight]
+      // [!code highlight]
+      // optionally add additional fields
+    }) // [!code highlight]
+  },
+  // now you have access to the system entity "users"
+  ({ relation, index }, { posts, comments, users }) => {
+    // ... other relations
+    relation(posts).manyToOne(users); // [!code highlight]
+  },
+);
+```
+
+### Add media to an entity
+
+If media is enabled, you can upload media directly or associate it with an entity. E.g. you may want to upload a cover image for a post, but also a gallery of images. Since a relation to the media entity is polymorphic, you have to:
+1. add a virtual field to your entity (single `medium` or multiple `media`)
+2. add the relation from the owning entity to the media entity
+3. specify the mapped field name by using the `mappedBy` option
+
+```typescript
+import { em, entity, text, number, systemEntity, medium, media } from "bknd";
+
+const schema = em(
+  {
+    posts: entity("posts", {
+      title: text().required(),
+      slug: text().required(),
+      content: text(),
+      views: number(),
+      // [!code highlight]
+      // `medium` represents a single media item
+      cover: medium(), // [!code highlight]
+      // [!code highlight]
+      // `media` represents a list of media items
+      gallery: media(), // [!code highlight]
+    }),
+    comments: entity("comments", {
+      content: text(),
+    }),
+    // [!code highlight]
+    // add the `media` entity 
+    media: systemEntity("media", { // [!code highlight]
+      // [!code highlight]
+      // optionally add additional fields
+    }) // [!code highlight]
+  },
+  // now you have access to the system entity "media"
+  ({ relation, index }, { posts, comments, media }) => {
+    // add the `cover` relation
+    relation(posts).polyToOne(media, { mappedBy: "cover" }); // [!code highlight]
+    // add the `gallery` relation
+    relation(posts).polyToMany(media, { mappedBy: "gallery" }); // [!code highlight]
+  },
+);
+```
+
+
 ### Type completion
 
 To get type completion, there are two options:
