@@ -123,9 +123,8 @@ import { serve } from "bknd/adapter/cloudflare";
 export default serve<Env>({
   // ...
   onBuilt: async (app) => {
-    // [!code highlight]
     app.server.get("/hello", (c) => c.json({ hello: "world" })); // [!code highlight]
-  }, // [!code highlight]
+  }, 
 });
 ```
 
@@ -141,7 +140,6 @@ With the Cloudflare Workers adapter, you're being offered to 4 modes to choose f
 | `fresh`   | On every request, the configuration gets refetched, app built and then served.             | Ideal if you don't want to deal with eviction, KV or Durable Objects.                                                                   |
 | `warm`    | It tries to keep the built app in memory for as long as possible, and rebuilds if evicted. | Better response times, should be the default choice.                                                                                    |
 | `cache`   | The configuration is fetched from KV to reduce the initial roundtrip to the database.      | Generally faster response times with irregular access patterns.                                                                         |
-| `durable` | The bknd app is ran inside a Durable Object and can be configured to stay alive.           | Slowest boot time, but fastest responses. Can be kept alive for as long as you want, giving similar response times as server instances. |
 
 ### Modes: `fresh` and `warm`
 
@@ -170,76 +168,6 @@ export default serve<Env>({
   mode: "cache",
   bindings: ({ env }) => ({ kv: env.KV }),
 });
-```
-
-### Mode: `durable` (advanced)
-
-To use the `durable` mode, you have to specify the Durable Object to extract from your
-environment, and additionally export the `DurableBkndApp` class:
-
-```ts
-import { serve, DurableBkndApp } from "bknd/adapter/cloudflare";
-
-export { DurableBkndApp };
-export default serve<Env>({
-  // ...
-  mode: "durable",
-  bindings: ({ env }) => ({ dobj: env.DOBJ }),
-  keepAliveSeconds: 60, // optional
-});
-```
-
-Next, you need to define the Durable Object in your `wrangler.toml` file (refer to the [Durable
-Objects](https://developers.cloudflare.com/durable-objects/) documentation):
-
-```toml
-[[durable_objects.bindings]]
-name = "DOBJ"
-class_name = "DurableBkndApp"
-
-[[migrations]]
-tag = "v1"
-new_classes = ["DurableBkndApp"]
-```
-
-Since the communication between the Worker and Durable Object is serialized, the `onBuilt`
-property won't work. To use it (e.g. to specify special routes), you need to extend from the
-`DurableBkndApp`:
-
-```ts
-import type { App } from "bknd";
-import { serve, DurableBkndApp } from "bknd/adapter/cloudflare";
-
-export default serve({
-  // ...
-  mode: "durable",
-  bindings: ({ env }) => ({ dobj: env.DOBJ }),
-  keepAliveSeconds: 60, // optional
-});
-
-export class CustomDurableBkndApp extends DurableBkndApp {
-  async onBuilt(app: App) {
-    app.modules.server.get("/custom/endpoint", (c) => c.text("Custom"));
-  }
-}
-```
-
-In case you've already deployed your Worker, the deploy command may complain about a new class
-being used. To fix this issue, you need to add a "rename migration":
-
-```toml
-[[durable_objects.bindings]]
-name = "DOBJ"
-class_name = "CustomDurableBkndApp"
-
-[[migrations]]
-tag = "v1"
-new_classes = ["DurableBkndApp"]
-
-[[migrations]]
-tag = "v2"
-renamed_classes = [{from = "DurableBkndApp", to = "CustomDurableBkndApp"}]
-deleted_classes = ["DurableBkndApp"]
 ```
 
 ## D1 Sessions (experimental)
@@ -271,4 +199,84 @@ If bknd is used in a stateful user context (like in a browser), it'll automatica
 
 ```bash
 curl -H "x-cf-d1-session: <bookmark>" ...
+```
+
+## Filesystem access with Vite Plugin
+The [Cloudflare Vite Plugin](https://developers.cloudflare.com/workers/vite-plugin/) allows to use Vite with Miniflare to emulate the Cloudflare Workers runtime. This is great, however, `unenv` disables any Node.js APIs that aren't supported, including the `fs` module. If you want to use plugins such as [`syncTypes`](/extending/plugins#synctypes), this will cause issues.
+
+To fix this, bknd exports a Vite plugin that provides filesystem access during development. You can use it by adding the following to your `vite.config.ts` file:
+
+```ts
+import { devFsVitePlugin } from "bknd/adapter/cloudflare/vite";
+
+export default defineConfig({
+  plugins: [devFsVitePlugin()], // [!code highlight]
+});
+```
+
+Now to use this polyfill, you can use the `devFsWrite` function to write files to the filesystem.
+
+```ts
+import { devFsWrite } from "bknd/adapter/cloudflare/vite"; // [!code highlight]
+import { syncTypes } from "bknd/plugins";
+
+export default {
+   options: {
+      plugins: [
+         syncTypes({ 
+            write: async (et) => {
+               await devFsWrite("bknd-types.d.ts", et.toString()); // [!code highlight]
+            }
+         }),
+      ]
+   },
+} satisfies BkndConfig;
+```
+
+## Cloudflare Bindings in CLI
+
+The bknd CLI does not automatically have access to the Cloudflare bindings. We need to manually proxy them to the CLI by using the `withPlatformProxy` helper function:
+
+```typescript title="bknd.config.ts"
+import { d1 } from "bknd/adapter/cloudflare";
+import { withPlatformProxy } from "bknd/adapter/cloudflare/proxy";
+
+export default withPlatformProxy({
+  app: ({ env }) => ({
+     connection: d1({ binding: env.DB }),
+  }),
+});
+```
+
+Now you can use the CLI with your Cloudflare resources. 
+
+<Callout type="warning">
+  Make sure to not import from this file in your app, as this would include `wrangler` as a dependency.
+</Callout>
+
+Instead, it's recommended to split this configuration into separate files, e.g. `bknd.config.ts` and `config.ts`:
+
+```typescript title="config.ts"
+import type { CloudflareBkndConfig } from "bknd/adapter/cloudflare";
+
+export default {
+  app: ({ env }) => ({
+     connection: d1({ binding: env.DB }),
+  }),
+} satisfies CloudflareBkndConfig;
+```
+
+`config.ts` now holds the configuration, and can safely be imported in your app. Since the CLI looks for a `bknd.config.ts` file by default, we change it to wrap the configuration from `config.ts` in the `withPlatformProxy` helper function.
+
+```typescript title="bknd.config.ts"
+import { withPlatformProxy } from "bknd/adapter/cloudflare/proxy";
+import config from "./config";
+
+export default withPlatformProxy(config);
+```
+
+As an additional safe guard, you have to set a `PROXY` environment variable to `1` to enable the proxy.
+
+```bash
+PROXY=1 npx bknd types
 ```

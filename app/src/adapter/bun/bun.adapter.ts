@@ -11,7 +11,7 @@ type BunEnv = Bun.Env;
 export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOptions, "fetch">;
 
 export async function createApp<Env = BunEnv>(
-   { distPath, ...config }: BunBkndConfig<Env> = {},
+   { distPath, serveStatic: _serveStatic, ...config }: BunBkndConfig<Env> = {},
    args: Env = {} as Env,
    opts?: RuntimeOptions,
 ) {
@@ -20,7 +20,11 @@ export async function createApp<Env = BunEnv>(
 
    return await createRuntimeApp(
       {
-         serveStatic: serveStatic({ root }),
+         serveStatic:
+            _serveStatic ??
+            serveStatic({
+               root,
+            }),
          ...config,
       },
       args ?? (process.env as Env),

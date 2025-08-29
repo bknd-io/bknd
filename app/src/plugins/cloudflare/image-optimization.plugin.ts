@@ -19,22 +19,41 @@ const schema = s.partialObject({
 type ImageOptimizationSchema = s.Static<typeof schema>;
 
 export type CloudflareImageOptimizationOptions = {
+   /**
+    * The url to access the image optimization plugin, defaults to `/api/plugin/image/optimize`
+    */
    accessUrl?: string;
+   /**
+    * The path to resolve the image from, defaults to `/api/media/file`
+    */
    resolvePath?: string;
+   /**
+    * Whether to explain the image optimization schema, defaults to `false`
+    */
    explain?: boolean;
+   /**
+    * The default options to use, defaults to `{}`
+    * @param: config
+    */
    defaultOptions?: ImageOptimizationSchema;
+   /**
+    * The fixed options to use, defaults to `{}`
+    */
    fixedOptions?: ImageOptimizationSchema;
+   /**
+    * The cache control to use, defaults to `public, max-age=31536000, immutable`
+    */
    cacheControl?: string;
 };
 
 export function cloudflareImageOptimization({
-   accessUrl = "/_plugin/image/optimize",
+   accessUrl = "/api/plugin/image/optimize",
    resolvePath = "/api/media/file",
    explain = false,
    defaultOptions = {},
    fixedOptions = {},
 }: CloudflareImageOptimizationOptions = {}): AppPlugin {
-   const disallowedAccessUrls = ["/api", "/admin", "/_optimize"];
+   const disallowedAccessUrls = ["/api", "/admin", "/api/plugin"];
    if (disallowedAccessUrls.includes(accessUrl) || accessUrl.length < 2) {
       throw new Error(`Disallowed accessUrl: ${accessUrl}`);
    }

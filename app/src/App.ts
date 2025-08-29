@@ -23,13 +23,34 @@ import type { IEmailDriver, ICacheDriver } from "core/drivers";
 import { Api, type ApiOptions } from "Api";
 
 export type AppPluginConfig = {
+   /**
+    * The name of the plugin.
+    */
    name: string;
+   /**
+    * The schema of the plugin.
+    */
    schema?: () => MaybePromise<ReturnType<typeof prototypeEm> | void>;
+   /**
+    * Called before the app is built.
+    */
    beforeBuild?: () => MaybePromise<void>;
+   /**
+    * Called after the app is built.
+    */
    onBuilt?: () => MaybePromise<void>;
+   /**
+    * Called when the server is initialized.
+    */
    onServerInit?: (server: Hono<ServerEnv>) => MaybePromise<void>;
-   onFirstBoot?: () => MaybePromise<void>;
+   /**
+    * Called when the app is booted.
+    */
    onBoot?: () => MaybePromise<void>;
+   /**
+    * Called when the app is first booted.
+    */
+   onFirstBoot?: () => MaybePromise<void>;
 };
 export type AppPlugin = (app: App) => AppPluginConfig;
 

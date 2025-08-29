@@ -18,6 +18,7 @@
     "---Extending---",
     "./extending/config",
     "./extending/events",
+    "./extending/plugins",
     "---Integration---",
     "./integration/introduction",
     "./integration/(frameworks)/",

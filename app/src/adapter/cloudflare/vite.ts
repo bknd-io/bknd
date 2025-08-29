@@ -6,7 +6,7 @@ import { resolve } from "node:path";
  * Vite plugin that provides Node.js filesystem access during development
  * by injecting a polyfill into the SSR environment
  */
-export function devFsPlugin({
+export function devFsVitePlugin({
    verbose = false,
    configFile = "bknd.config.ts",
 }: {
