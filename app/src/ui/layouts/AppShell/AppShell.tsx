@@ -218,6 +218,7 @@ const SidebarResize = ({
 
    return (
       <div
+         data-shell="sidebar-resize"
          data-active={isResizing ? 1 : undefined}
          className="w-px h-full hidden md:flex bg-muted after:transition-colors relative after:absolute after:inset-0 after:-left-px after:w-[2px] select-none data-[active]:after:bg-sky-400 data-[active]:cursor-col-resize hover:after:bg-sky-400 hover:cursor-col-resize after:z-2"
          onMouseDown={handleMouseDown}

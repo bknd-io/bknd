@@ -14,7 +14,7 @@ export const useMcpStore = create(
          content: null as ToolJson | null,
          history: [] as { type: "request" | "response"; data: any }[],
          historyLimit: 50,
-         historyVisible: true,
+         historyVisible: false,
       },
       (set) => ({
          setTools: (tools: ToolJson[]) => set({ tools }),

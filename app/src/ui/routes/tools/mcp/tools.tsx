@@ -128,83 +128,82 @@ export function Content() {
    } catch (e) {}
 
    return (
-      <div className="flex flex-grow flex-col max-w-screen">
-         <Form
-            key={content.name}
-            schema={{
-               title: "InputSchema",
-               ...content?.inputSchema,
-            }}
-            validateOn="submit"
-            initialValues={payload}
-            hiddenSubmit={false}
-            onChange={(value) => {
-               setPayload(value);
-            }}
-            onSubmit={handleSubmit}
-         >
-            <AppShell.SectionHeader
-               className="max-w-full min-w-0"
-               right={
-                  <div className="flex flex-row gap-2">
-                     <IconButton
-                        Icon={historyVisible ? TbHistory : TbHistoryOff}
-                        onClick={() => setHistoryVisible(!historyVisible)}
-                     />
-                     <Button
-                        type="submit"
-                        disabled={!content?.name || isPending}
-                        variant="primary"
-                        className="whitespace-nowrap"
-                     >
-                        Call Tool
-                     </Button>
-                  </div>
-               }
-            >
-               <AppShell.SectionHeaderTitle className="leading-tight">
-                  <span className="opacity-50">
-                     Tools <span className="opacity-70">/</span>
-                  </span>{" "}
-                  <span className="truncate">{content?.name}</span>
-               </AppShell.SectionHeaderTitle>
-            </AppShell.SectionHeader>
-            <div className="flex flex-grow flex-row w-vw">
-               <div className="flex flex-grow flex-col w-full">
-                  <AppShell.Scrollable>
-                     <div key={JSON.stringify(content)} className="flex flex-col py-4 px-5  gap-4">
-                        <p className="text-primary/80">{content?.description}</p>
-
-                        {hasInputSchema && <Field name="" />}
-                        <JsonViewerTabs
-                           ref={jsonViewerTabsRef}
-                           expand={9}
-                           showCopy
-                           showSize
-                           tabs={{
-                              Arguments: {
-                                 json: payload,
-                                 title: "Payload",
-                                 enabled: hasInputSchema,
-                              },
-                              Result: { json: readableResult, title: "Result" },
-                              Configuration: {
-                                 json: content ?? null,
-                                 title: "Configuration",
-                              },
-                           }}
-                        />
-                     </div>
-                  </AppShell.Scrollable>
+      <Form
+         className="flex flex-grow flex-col max-w-screen"
+         key={content.name}
+         schema={{
+            title: "InputSchema",
+            ...content?.inputSchema,
+         }}
+         validateOn="submit"
+         initialValues={payload}
+         hiddenSubmit={false}
+         onChange={(value) => {
+            setPayload(value);
+         }}
+         onSubmit={handleSubmit}
+      >
+         <AppShell.SectionHeader
+            className="max-w-full min-w-0"
+            right={
+               <div className="flex flex-row gap-2">
+                  <IconButton
+                     Icon={historyVisible ? TbHistory : TbHistoryOff}
+                     onClick={() => setHistoryVisible(!historyVisible)}
+                  />
+                  <Button
+                     type="submit"
+                     disabled={!content?.name || isPending}
+                     variant="primary"
+                     className="whitespace-nowrap"
+                  >
+                     Call Tool
+                  </Button>
                </div>
-               {historyVisible && (
-                  <AppShell.Sidebar name="right" handle="left" maxWidth={window.innerWidth * 0.4}>
-                     <History />
-                  </AppShell.Sidebar>
-               )}
+            }
+         >
+            <AppShell.SectionHeaderTitle className="leading-tight">
+               <span className="opacity-50">
+                  Tools <span className="opacity-70">/</span>
+               </span>{" "}
+               <span className="truncate">{content?.name}</span>
+            </AppShell.SectionHeaderTitle>
+         </AppShell.SectionHeader>
+         <div className="flex flex-grow flex-row w-vw">
+            <div className="flex flex-grow flex-col w-full">
+               <AppShell.Scrollable>
+                  <div key={JSON.stringify(content)} className="flex flex-col py-4 px-5  gap-4">
+                     <p className="text-primary/80">{content?.description}</p>
+
+                     {hasInputSchema && <Field name="" />}
+                     <JsonViewerTabs
+                        ref={jsonViewerTabsRef}
+                        expand={9}
+                        showCopy
+                        showSize
+                        tabs={{
+                           Arguments: {
+                              json: payload,
+                              title: "Payload",
+                              enabled: hasInputSchema,
+                           },
+                           Result: { json: readableResult, title: "Result" },
+                           Configuration: {
+                              json: content ?? null,
+                              title: "Configuration",
+                           },
+                        }}
+                     />
+                  </div>
+               </AppShell.Scrollable>
             </div>
-         </Form>
-      </div>
+            {historyVisible && (
+               <AppShell.Sidebar name="right" handle="left" maxWidth={window.innerWidth * 0.4}>
+                  <History />
+               </AppShell.Sidebar>
+            )}
+         </div>
+      </Form>
    );
 }
 
