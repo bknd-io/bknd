@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/bknd-io-bknd-badge.png)](https://mseep.ai/app/bknd-io-bknd)
+
 [![npm version](https://img.shields.io/npm/v/bknd.svg)](https://npmjs.org/package/bknd)
 
 ![bknd](https://raw.githubusercontent.com/bknd-io/bknd/refs/heads/main/docs/public/assets/poster.png)
