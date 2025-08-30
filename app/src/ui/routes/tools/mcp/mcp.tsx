@@ -7,8 +7,11 @@ import { useBknd } from "ui/client/bknd";
 import { Empty } from "ui/components/display/Empty";
 import { Button } from "ui/components/buttons/Button";
 import { appShellStore } from "ui/store";
+import { useBrowserTitle } from "ui/hooks/use-browser-title";
 
 export default function ToolsMcp() {
+   useBrowserTitle(["MCP UI"]);
+
    const { config, options } = useBknd();
    const feature = useMcpStore((state) => state.feature);
    const setFeature = useMcpStore((state) => state.setFeature);

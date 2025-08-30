@@ -5,11 +5,12 @@ import type { MDXComponents } from "mdx/types";
 import * as FilesComponents from "fumadocs-ui/components/files";
 import * as TabsComponents from "fumadocs-ui/components/tabs";
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { ImageZoom } from "fumadocs-ui/components/image-zoom";
 import {
-  CalloutInfo,
-  CalloutPositive,
-  CalloutCaution,
-  CalloutDanger,
+   CalloutInfo,
+   CalloutPositive,
+   CalloutCaution,
+   CalloutDanger,
 } from "./app/_components/Callout";
 import { StackBlitz } from "./app/_components/StackBlitz";
 import { Icon } from "@iconify/react";
@@ -18,29 +19,30 @@ import * as Twoslash from "fumadocs-twoslash/ui";
 
 import { createGenerator } from "fumadocs-typescript";
 import { AutoTypeTable } from "fumadocs-typescript/ui";
+import { Wrapper } from "@/components/misc/Wrapper";
 
 const generator = createGenerator({
-  tsconfigPath: "../tsconfig.json",
+   tsconfigPath: "../tsconfig.json",
 });
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
-  return {
-    ...defaultMdxComponents,
-    ...TabsComponents,
-    ...FilesComponents,
-    ...Twoslash,
-    Accordion,
-    Accordions,
-    CalloutInfo,
-    CalloutPositive,
-    CalloutCaution,
-    CalloutDanger,
-    StackBlitz,
-    Icon,
-    APIPage: (props) => <APIPage {...openapi.getAPIPageProps(props)} />,
-    AutoTypeTable: (props) => (
-      <AutoTypeTable {...props} generator={generator} />
-    ),
-    ...components,
-  };
+   return {
+      ...defaultMdxComponents,
+      ...TabsComponents,
+      ...FilesComponents,
+      ...Twoslash,
+      Accordion,
+      Accordions,
+      CalloutInfo,
+      CalloutPositive,
+      CalloutCaution,
+      CalloutDanger,
+      StackBlitz,
+      Icon,
+      Wrapper,
+      img: (props) => <ImageZoom {...(props as any)} />,
+      APIPage: (props) => <APIPage {...openapi.getAPIPageProps(props)} />,
+      AutoTypeTable: (props) => <AutoTypeTable {...props} generator={generator} />,
+      ...components,
+   };
 }

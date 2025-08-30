@@ -6,17 +6,11 @@ import { writeFile, readFile } from "node:fs/promises";
 
 const config = {
    mcpConfig: "./mcp.json",
-   outFile: "./content/docs/(documentation)/modules/server/mcp.mdx",
+   outFile: "./content/docs/(documentation)/usage/mcp/tools-resources.mdx",
 };
 
 async function generate() {
    console.info("Generating MCP documentation...");
-
-   try {
-      console.log("bun version", Bun.version);
-   } catch (e) {
-      console.log("bun failed");
-   }
 
    await cleanup();
    const mcpConfig = JSON.parse(await readFile(config.mcpConfig, "utf-8"));
@@ -34,7 +28,7 @@ async function generateDocument({
 }) {
    return `---
 title: "MCP"
-description: "Built-in full featured MCP server."
+description: "Tools & Resources of the built-in full featured MCP server."
 tags: ["documentation"]
 ---
 import { JsonSchemaTypeTable } from '@/components/McpTool';

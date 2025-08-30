@@ -21,6 +21,29 @@ export function McpTool({ tool }: { tool: ReturnType<Tool["toJSON"]> }) {
    );
 }
 
+const getType = (value: JSONSchemaDefinition) => {
+   if (value === undefined || value === null) {
+      return "any";
+   }
+
+   if (value.type) {
+      if (Array.isArray(value.type)) {
+         return value.type.join(" | ");
+      }
+      return value.type;
+   }
+
+   if ("anyOf" in value) {
+      return value.anyOf.map(getType).join(" | ");
+   }
+
+   if ("oneOf" in value) {
+      return value.oneOf.map(getType).join(" | ");
+   }
+
+   return "any";
+};
+
 export function JsonSchemaTypeTable({ schema }: { schema: JSONSchemaDefinition }) {
    const properties = schema.properties ?? {};
    const required = schema.required ?? [];
@@ -44,8 +67,8 @@ export function JsonSchemaTypeTable({ schema }: { schema: JSONSchemaDefinition }
                   typeDescription: (
                      <DynamicCodeBlock lang="json" code={indent(getTypeDescription(value), 1)} />
                   ),
-                  type: value.type,
-                  default: value.default ? JSON.stringify(value.default) : undefined,
+                  type: getType(value),
+                  default: value.default !== undefined ? JSON.stringify(value.default) : undefined,
                   required: required.includes(key),
                },
             ]),

@@ -42,7 +42,7 @@ export const JsonViewer = ({
    copyIconProps = {},
    className,
 }: JsonViewerProps) => {
-   const size = showSize ? (json === null ? 0 : JSON.stringify(json).length) : undefined;
+   const size = showSize ? (!json ? 0 : JSON.stringify(json).length) : undefined;
    const formattedSize = formatNumber.fileSize(size ?? 0);
    const showContext = size || title || showCopy;
 

@@ -1,23 +1,187 @@
 {
   "tools": [
     {
-      "name": "data_sync",
-      "description": "Sync database schema",
+      "name": "auth_me",
+      "description": "Get the current user",
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "auth_strategies",
+      "description": "Get the available authentication strategies",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "force": {
-            "type": "boolean",
-            "$target": "query"
-          },
-          "drop": {
+          "include_disabled": {
             "type": "boolean",
             "$target": "query"
           }
         }
-      },
-      "annotations": {
-        "destructiveHint": true
+      }
+    },
+    {
+      "name": "auth_user_create",
+      "description": "Create a new user",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "role": {
+            "type": "string",
+            "enum": []
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      }
+    },
+    {
+      "name": "auth_user_password_change",
+      "description": "Change a user's password",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "number",
+                "title": "Integer"
+              },
+              {
+                "type": "string",
+                "title": "UUID"
+              }
+            ]
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "password"
+        ]
+      }
+    },
+    {
+      "name": "auth_user_password_test",
+      "description": "Test a user's password",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      }
+    },
+    {
+      "name": "auth_user_token",
+      "description": "Get a user token",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "number",
+                "title": "Integer"
+              },
+              {
+                "type": "string",
+                "title": "UUID"
+              }
+            ]
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      }
+    },
+    {
+      "name": "data_entity_delete_many",
+      "description": "Delete many",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "entity",
+          "json"
+        ],
+        "properties": {
+          "entity": {
+            "type": "string",
+            "enum": [
+              "users",
+              "media"
+            ],
+            "$target": "param"
+          },
+          "json": {
+            "type": "object",
+            "$synthetic": true,
+            "$target": "json",
+            "properties": {}
+          }
+        }
+      }
+    },
+    {
+      "name": "data_entity_delete_one",
+      "description": "Delete one",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "entity",
+          "id"
+        ],
+        "properties": {
+          "entity": {
+            "type": "string",
+            "enum": [
+              "users",
+              "media"
+            ],
+            "$target": "param"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "number",
+                "title": "Integer"
+              },
+              {
+                "type": "string",
+                "title": "UUID"
+              }
+            ],
+            "$target": "param"
+          }
+        }
       }
     },
     {
@@ -103,13 +267,33 @@
       }
     },
     {
-      "name": "data_entity_read_one",
-      "description": "Read one",
+      "name": "data_entity_info",
+      "description": "Retrieve entity info",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "entity"
+        ],
+        "properties": {
+          "entity": {
+            "type": "string",
+            "enum": [
+              "users",
+              "media"
+            ],
+            "$target": "param"
+          }
+        }
+      }
+    },
+    {
+      "name": "data_entity_insert",
+      "description": "Insert one or many",
       "inputSchema": {
         "type": "object",
         "required": [
           "entity",
-          "id"
+          "json"
         ],
         "properties": {
           "entity": {
@@ -120,35 +304,22 @@
             ],
             "$target": "param"
           },
-          "id": {
+          "json": {
             "anyOf": [
               {
-                "type": "number",
-                "title": "Integer"
+                "type": "object",
+                "properties": {}
               },
               {
-                "type": "string",
-                "title": "UUID"
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {}
+                }
               }
             ],
-            "$target": "param"
-          },
-          "offset": {
-            "type": "number",
-            "default": 0,
-            "$target": "query"
-          },
-          "sort": {
-            "type": "string",
-            "default": "id",
-            "$target": "query"
-          },
-          "select": {
-            "type": "array",
-            "$target": "query",
-            "items": {
-              "type": "string"
-            }
+            "$synthetic": true,
+            "$target": "json"
           }
         }
       }
@@ -229,13 +400,13 @@
       }
     },
     {
-      "name": "data_entity_insert",
-      "description": "Insert one or many",
+      "name": "data_entity_read_one",
+      "description": "Read one",
       "inputSchema": {
         "type": "object",
         "required": [
           "entity",
-          "json"
+          "id"
         ],
         "properties": {
           "entity": {
@@ -246,22 +417,35 @@
             ],
             "$target": "param"
           },
-          "json": {
+          "id": {
             "anyOf": [
               {
-                "type": "object",
-                "properties": {}
+                "type": "number",
+                "title": "Integer"
               },
               {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {}
-                }
+                "type": "string",
+                "title": "UUID"
               }
             ],
-            "$synthetic": true,
-            "$target": "json"
+            "$target": "param"
+          },
+          "offset": {
+            "type": "number",
+            "default": 0,
+            "$target": "query"
+          },
+          "sort": {
+            "type": "string",
+            "default": "id",
+            "$target": "query"
+          },
+          "select": {
+            "type": "array",
+            "$target": "query",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
@@ -340,100 +524,36 @@
       }
     },
     {
-      "name": "data_entity_delete_one",
-      "description": "Delete one",
+      "name": "data_sync",
+      "description": "Sync database schema",
       "inputSchema": {
         "type": "object",
-        "required": [
-          "entity",
-          "id"
-        ],
         "properties": {
-          "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
-            ],
-            "$target": "param"
+          "force": {
+            "type": "boolean",
+            "$target": "query"
           },
-          "id": {
-            "anyOf": [
-              {
-                "type": "number",
-                "title": "Integer"
-              },
-              {
-                "type": "string",
-                "title": "UUID"
-              }
-            ],
-            "$target": "param"
+          "drop": {
+            "type": "boolean",
+            "$target": "query"
           }
         }
+      },
+      "annotations": {
+        "destructiveHint": true
       }
     },
     {
-      "name": "data_entity_delete_many",
-      "description": "Delete many",
+      "name": "system_build",
+      "description": "Build the app",
       "inputSchema": {
         "type": "object",
-        "required": [
-          "entity",
-          "json"
-        ],
         "properties": {
-          "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
-            ],
-            "$target": "param"
+          "sync": {
+            "type": "boolean",
+            "$target": "query"
           },
-          "json": {
-            "type": "object",
-            "$synthetic": true,
-            "$target": "json",
-            "properties": {}
-          }
-        }
-      }
-    },
-    {
-      "name": "data_entity_info",
-      "description": "Retrieve entity info",
-      "inputSchema": {
-        "type": "object",
-        "required": [
-          "entity"
-        ],
-        "properties": {
-          "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
-            ],
-            "$target": "param"
-          }
-        }
-      }
-    },
-    {
-      "name": "auth_me",
-      "description": "Get the current user",
-      "inputSchema": {
-        "type": "object"
-      }
-    },
-    {
-      "name": "auth_strategies",
-      "description": "Get the available authentication strategies",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "include_disabled": {
+          "fetch": {
             "type": "boolean",
             "$target": "query"
           }
@@ -468,20 +588,10 @@
       }
     },
     {
-      "name": "system_build",
-      "description": "Build the app",
+      "name": "system_info",
+      "description": "Get the server info",
       "inputSchema": {
-        "type": "object",
-        "properties": {
-          "sync": {
-            "type": "boolean",
-            "$target": "query"
-          },
-          "fetch": {
-            "type": "boolean",
-            "$target": "query"
-          }
-        }
+        "type": "object"
       }
     },
     {
@@ -492,114 +602,8 @@
       }
     },
     {
-      "name": "system_info",
-      "description": "Get the server info",
-      "inputSchema": {
-        "type": "object"
-      }
-    },
-    {
-      "name": "auth_user_create",
-      "description": "Create a new user",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8
-          },
-          "role": {
-            "type": "string",
-            "enum": []
-          }
-        },
-        "required": [
-          "email",
-          "password"
-        ]
-      }
-    },
-    {
-      "name": "auth_user_token",
-      "description": "Get a user token",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          }
-        }
-      }
-    },
-    {
-      "name": "auth_user_password_change",
-      "description": "Change a user's password",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8
-          }
-        },
-        "required": [
-          "password"
-        ]
-      }
-    },
-    {
-      "name": "auth_user_password_test",
-      "description": "Test a user's password",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8
-          }
-        },
-        "required": [
-          "email",
-          "password"
-        ]
-      }
-    },
-    {
-      "name": "config_server_get",
-      "description": "Get Server configuration",
+      "name": "config_auth_get",
+      "title": "Get Authentication",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -627,157 +631,41 @@
       }
     },
     {
-      "name": "config_server_update",
-      "description": "Update Server configuration",
+      "name": "config_auth_roles_add",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "full": {
-            "type": "boolean",
-            "default": false
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          },
-          "value": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "cors": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "origin": {
-                    "type": "string",
-                    "default": "*"
-                  },
-                  "allow_methods": {
-                    "type": "array",
-                    "default": [
-                      "GET",
-                      "POST",
-                      "PATCH",
-                      "PUT",
-                      "DELETE"
-                    ],
-                    "uniqueItems": true,
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "GET",
-                        "POST",
-                        "PATCH",
-                        "PUT",
-                        "DELETE"
-                      ]
-                    }
-                  },
-                  "allow_headers": {
-                    "type": "array",
-                    "default": [
-                      "Content-Type",
-                      "Content-Length",
-                      "Authorization",
-                      "Accept"
-                    ],
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "allow_credentials": {
-                    "type": "boolean",
-                    "default": true
-                  }
-                }
-              },
-              "mcp": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "enabled": {
-                    "type": "boolean",
-                    "default": false
-                  }
-                }
-              }
-            }
-          }
-        },
-        "required": [
-          "value"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_data_get",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "path": {
+          "key": {
             "type": "string",
-            "title": "Path",
-            "description": "Path to the property to get, e.g. `key.subkey`",
-            "pattern": "^[a-zA-Z0-9_.]{0,}$"
-          },
-          "depth": {
-            "type": "number",
-            "description": "Limit the depth of the response"
-          },
-          "secrets": {
-            "type": "boolean",
-            "description": "Include secrets in the response config",
-            "default": false
-          }
-        }
-      },
-      "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false
-      }
-    },
-    {
-      "name": "config_data_update",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "full": {
-            "type": "boolean",
-            "default": false
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
+            "description": "key to add"
           },
           "value": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "basepath": {
-                "type": "string",
-                "default": "/api/data"
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               },
-              "default_primary_format": {
-                "type": "string",
-                "enum": [
-                  "integer",
-                  "uuid"
-                ],
-                "default": "integer"
+              "is_default": {
+                "type": "boolean"
+              },
+              "implicit_allow": {
+                "type": "boolean"
               }
             }
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
           }
         },
         "required": [
+          "key",
           "value"
         ]
       },
@@ -787,7 +675,7 @@
       }
     },
     {
-      "name": "config_data_entities_get",
+      "name": "config_auth_roles_get",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -811,6 +699,362 @@
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false
+      }
+    },
+    {
+      "name": "config_auth_roles_remove",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to remove"
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_auth_roles_update",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to update"
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "is_default": {
+                "type": "boolean"
+              },
+              "implicit_allow": {
+                "type": "boolean"
+              }
+            }
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_auth_strategies_add",
+      "title": "Add Strategies",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to add"
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "config": {
+                "type": "object",
+                "properties": {}
+              }
+            },
+            "required": [
+              "type",
+              "config"
+            ]
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_auth_strategies_get",
+      "title": "Get Strategies",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to get"
+          },
+          "secrets": {
+            "type": "boolean",
+            "description": "(optional) include secrets in the response config",
+            "default": false
+          },
+          "schema": {
+            "type": "boolean",
+            "description": "(optional) include the schema in the response",
+            "default": false
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
+      "name": "config_auth_strategies_remove",
+      "title": "Get Strategies",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to remove"
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_auth_strategies_update",
+      "title": "Update Strategies",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to update"
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "config": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_auth_update",
+      "title": "Update Authentication",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "full": {
+            "type": "boolean",
+            "default": false
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "basepath": {
+                "type": "string",
+                "default": "/api/auth"
+              },
+              "entity_name": {
+                "type": "string",
+                "default": "users"
+              },
+              "allow_register": {
+                "type": "boolean",
+                "default": true
+              },
+              "jwt": {
+                "type": "object",
+                "default": {},
+                "additionalProperties": false,
+                "properties": {
+                  "secret": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "alg": {
+                    "type": "string",
+                    "enum": [
+                      "HS256",
+                      "HS384",
+                      "HS512"
+                    ],
+                    "default": "HS256"
+                  },
+                  "expires": {
+                    "type": "number"
+                  },
+                  "issuer": {
+                    "type": "string"
+                  },
+                  "fields": {
+                    "type": "array",
+                    "default": [
+                      "id",
+                      "email",
+                      "role"
+                    ],
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "cookie": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "default": "/"
+                  },
+                  "sameSite": {
+                    "type": "string",
+                    "enum": [
+                      "strict",
+                      "lax",
+                      "none"
+                    ],
+                    "default": "lax"
+                  },
+                  "secure": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "httpOnly": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "expires": {
+                    "type": "number",
+                    "default": 604800
+                  },
+                  "partitioned": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "renew": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "pathSuccess": {
+                    "type": "string",
+                    "default": "/"
+                  },
+                  "pathLoggedOut": {
+                    "type": "string",
+                    "default": "/"
+                  }
+                }
+              },
+              "guard": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
       }
     },
     {
@@ -1913,6 +2157,58 @@
         "required": [
           "key",
           "value"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_data_entities_get",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to get"
+          },
+          "secrets": {
+            "type": "boolean",
+            "description": "(optional) include secrets in the response config",
+            "default": false
+          },
+          "schema": {
+            "type": "boolean",
+            "description": "(optional) include the schema in the response",
+            "default": false
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
+      "name": "config_data_entities_remove",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to remove"
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          }
+        },
+        "required": [
+          "key"
         ]
       },
       "annotations": {
@@ -3028,207 +3324,24 @@
       }
     },
     {
-      "name": "config_data_entities_remove",
+      "name": "config_data_get",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "key": {
+          "path": {
             "type": "string",
-            "description": "key to remove"
+            "title": "Path",
+            "description": "Path to the property to get, e.g. `key.subkey`",
+            "pattern": "^[a-zA-Z0-9_.]{0,}$"
           },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_data_relations_get",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to get"
+          "depth": {
+            "type": "number",
+            "description": "Limit the depth of the response"
           },
           "secrets": {
             "type": "boolean",
-            "description": "(optional) include secrets in the response config",
-            "default": false
-          },
-          "schema": {
-            "type": "boolean",
-            "description": "(optional) include the schema in the response",
-            "default": false
-          }
-        }
-      },
-      "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false
-      }
-    },
-    {
-      "name": "config_data_relations_add",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to add"
-          },
-          "value": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "1:1",
-                  "n:1",
-                  "m:n",
-                  "poly"
-                ]
-              },
-              "source": {
-                "type": "string"
-              },
-              "target": {
-                "type": "string"
-              },
-              "config": {
-                "type": "object",
-                "properties": {}
-              }
-            },
-            "required": [
-              "type",
-              "source",
-              "target"
-            ]
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key",
-          "value"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_data_relations_update",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to update"
-          },
-          "value": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "1:1",
-                  "n:1",
-                  "m:n",
-                  "poly"
-                ]
-              },
-              "source": {
-                "type": "string"
-              },
-              "target": {
-                "type": "string"
-              },
-              "config": {
-                "type": "object",
-                "properties": {}
-              }
-            }
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key",
-          "value"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_data_relations_remove",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to remove"
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_data_indices_get",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to get"
-          },
-          "secrets": {
-            "type": "boolean",
-            "description": "(optional) include secrets in the response config",
-            "default": false
-          },
-          "schema": {
-            "type": "boolean",
-            "description": "(optional) include the schema in the response",
+            "description": "Include secrets in the response config",
             "default": false
           }
         }
@@ -3289,6 +3402,33 @@
       }
     },
     {
+      "name": "config_data_indices_get",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "key to get"
+          },
+          "secrets": {
+            "type": "boolean",
+            "description": "(optional) include secrets in the response config",
+            "default": false
+          },
+          "schema": {
+            "type": "boolean",
+            "description": "(optional) include the schema in the response",
+            "default": false
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
       "name": "config_data_indices_remove",
       "inputSchema": {
         "type": "object",
@@ -3314,206 +3454,7 @@
       }
     },
     {
-      "name": "config_auth_get",
-      "title": "Get Authentication",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "path": {
-            "type": "string",
-            "title": "Path",
-            "description": "Path to the property to get, e.g. `key.subkey`",
-            "pattern": "^[a-zA-Z0-9_.]{0,}$"
-          },
-          "depth": {
-            "type": "number",
-            "description": "Limit the depth of the response"
-          },
-          "secrets": {
-            "type": "boolean",
-            "description": "Include secrets in the response config",
-            "default": false
-          }
-        }
-      },
-      "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false
-      }
-    },
-    {
-      "name": "config_auth_update",
-      "title": "Update Authentication",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "full": {
-            "type": "boolean",
-            "default": false
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          },
-          "value": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "enabled": {
-                "type": "boolean",
-                "default": false
-              },
-              "basepath": {
-                "type": "string",
-                "default": "/api/auth"
-              },
-              "entity_name": {
-                "type": "string",
-                "default": "users"
-              },
-              "allow_register": {
-                "type": "boolean",
-                "default": true
-              },
-              "jwt": {
-                "type": "object",
-                "default": {},
-                "additionalProperties": false,
-                "properties": {
-                  "secret": {
-                    "type": "string",
-                    "default": ""
-                  },
-                  "alg": {
-                    "type": "string",
-                    "enum": [
-                      "HS256",
-                      "HS384",
-                      "HS512"
-                    ],
-                    "default": "HS256"
-                  },
-                  "expires": {
-                    "type": "number"
-                  },
-                  "issuer": {
-                    "type": "string"
-                  },
-                  "fields": {
-                    "type": "array",
-                    "default": [
-                      "id",
-                      "email",
-                      "role"
-                    ],
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                }
-              },
-              "cookie": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "path": {
-                    "type": "string",
-                    "default": "/"
-                  },
-                  "sameSite": {
-                    "type": "string",
-                    "enum": [
-                      "strict",
-                      "lax",
-                      "none"
-                    ],
-                    "default": "lax"
-                  },
-                  "secure": {
-                    "type": "boolean",
-                    "default": true
-                  },
-                  "httpOnly": {
-                    "type": "boolean",
-                    "default": true
-                  },
-                  "expires": {
-                    "type": "number",
-                    "default": 604800
-                  },
-                  "partitioned": {
-                    "type": "boolean",
-                    "default": false
-                  },
-                  "renew": {
-                    "type": "boolean",
-                    "default": true
-                  },
-                  "pathSuccess": {
-                    "type": "string",
-                    "default": "/"
-                  },
-                  "pathLoggedOut": {
-                    "type": "string",
-                    "default": "/"
-                  }
-                }
-              },
-              "guard": {
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "type": "boolean",
-                    "default": false
-                  }
-                }
-              }
-            }
-          }
-        },
-        "required": [
-          "value"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_auth_strategies_get",
-      "title": "Get Strategies",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to get"
-          },
-          "secrets": {
-            "type": "boolean",
-            "description": "(optional) include secrets in the response config",
-            "default": false
-          },
-          "schema": {
-            "type": "boolean",
-            "description": "(optional) include the schema in the response",
-            "default": false
-          }
-        }
-      },
-      "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false
-      }
-    },
-    {
-      "name": "config_auth_strategies_add",
-      "title": "Add Strategies",
+      "name": "config_data_relations_add",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -3527,11 +3468,19 @@
             "additionalProperties": false,
             "properties": {
               "type": {
+                "type": "string",
+                "enum": [
+                  "1:1",
+                  "n:1",
+                  "m:n",
+                  "poly"
+                ]
+              },
+              "source": {
                 "type": "string"
               },
-              "enabled": {
-                "type": "boolean",
-                "default": true
+              "target": {
+                "type": "string"
               },
               "config": {
                 "type": "object",
@@ -3540,7 +3489,8 @@
             },
             "required": [
               "type",
-              "config"
+              "source",
+              "target"
             ]
           },
           "return_config": {
@@ -3560,77 +3510,7 @@
       }
     },
     {
-      "name": "config_auth_strategies_update",
-      "title": "Update Strategies",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to update"
-          },
-          "value": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "type": {
-                "type": "string"
-              },
-              "enabled": {
-                "type": "boolean",
-                "default": true
-              },
-              "config": {
-                "type": "object",
-                "properties": {}
-              }
-            }
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key",
-          "value"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_auth_strategies_remove",
-      "title": "Get Strategies",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to remove"
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_auth_roles_get",
+      "name": "config_data_relations_get",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -3657,95 +3537,7 @@
       }
     },
     {
-      "name": "config_auth_roles_add",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to add"
-          },
-          "value": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "permissions": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "is_default": {
-                "type": "boolean"
-              },
-              "implicit_allow": {
-                "type": "boolean"
-              }
-            }
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key",
-          "value"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_auth_roles_update",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "key": {
-            "type": "string",
-            "description": "key to update"
-          },
-          "value": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "permissions": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "is_default": {
-                "type": "boolean"
-              },
-              "implicit_allow": {
-                "type": "boolean"
-              }
-            }
-          },
-          "return_config": {
-            "type": "boolean",
-            "description": "If the new configuration should be returned",
-            "default": false
-          }
-        },
-        "required": [
-          "key",
-          "value"
-        ]
-      },
-      "annotations": {
-        "destructiveHint": true,
-        "idempotentHint": true
-      }
-    },
-    {
-      "name": "config_auth_roles_remove",
+      "name": "config_data_relations_remove",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -3770,35 +3562,58 @@
       }
     },
     {
-      "name": "config_media_get",
+      "name": "config_data_relations_update",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "path": {
+          "key": {
             "type": "string",
-            "title": "Path",
-            "description": "Path to the property to get, e.g. `key.subkey`",
-            "pattern": "^[a-zA-Z0-9_.]{0,}$"
+            "description": "key to update"
           },
-          "depth": {
-            "type": "number",
-            "description": "Limit the depth of the response"
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "1:1",
+                  "n:1",
+                  "m:n",
+                  "poly"
+                ]
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              },
+              "config": {
+                "type": "object",
+                "properties": {}
+              }
+            }
           },
-          "secrets": {
+          "return_config": {
             "type": "boolean",
-            "description": "Include secrets in the response config",
+            "description": "If the new configuration should be returned",
             "default": false
           }
-        }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
       },
       "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false
+        "destructiveHint": true,
+        "idempotentHint": true
       }
     },
     {
-      "name": "config_media_update",
+      "name": "config_data_update",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -3816,28 +3631,17 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "enabled": {
-                "type": "boolean",
-                "default": false
-              },
               "basepath": {
                 "type": "string",
-                "default": "/api/media"
+                "default": "/api/data"
               },
-              "entity_name": {
+              "default_primary_format": {
                 "type": "string",
-                "default": "media"
-              },
-              "storage": {
-                "type": "object",
-                "default": {},
-                "additionalProperties": false,
-                "properties": {
-                  "body_max_size": {
-                    "type": "number",
-                    "description": "Max size of the body in bytes. Leave blank for unlimited."
-                  }
-                }
+                "enum": [
+                  "integer",
+                  "uuid"
+                ],
+                "default": "integer"
               }
             }
           }
@@ -3999,6 +3803,206 @@
             "default": false
           }
         }
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_media_get",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "description": "Path to the property to get, e.g. `key.subkey`",
+            "pattern": "^[a-zA-Z0-9_.]{0,}$"
+          },
+          "depth": {
+            "type": "number",
+            "description": "Limit the depth of the response"
+          },
+          "secrets": {
+            "type": "boolean",
+            "description": "Include secrets in the response config",
+            "default": false
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
+      "name": "config_media_update",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "full": {
+            "type": "boolean",
+            "default": false
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "basepath": {
+                "type": "string",
+                "default": "/api/media"
+              },
+              "entity_name": {
+                "type": "string",
+                "default": "media"
+              },
+              "storage": {
+                "type": "object",
+                "default": {},
+                "additionalProperties": false,
+                "properties": {
+                  "body_max_size": {
+                    "type": "number",
+                    "description": "Max size of the body in bytes. Leave blank for unlimited."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true
+      }
+    },
+    {
+      "name": "config_server_get",
+      "description": "Get Server configuration",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "description": "Path to the property to get, e.g. `key.subkey`",
+            "pattern": "^[a-zA-Z0-9_.]{0,}$"
+          },
+          "depth": {
+            "type": "number",
+            "description": "Limit the depth of the response"
+          },
+          "secrets": {
+            "type": "boolean",
+            "description": "Include secrets in the response config",
+            "default": false
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
+      "name": "config_server_update",
+      "description": "Update Server configuration",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "full": {
+            "type": "boolean",
+            "default": false
+          },
+          "return_config": {
+            "type": "boolean",
+            "description": "If the new configuration should be returned",
+            "default": false
+          },
+          "value": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "cors": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "origin": {
+                    "type": "string",
+                    "default": "*"
+                  },
+                  "allow_methods": {
+                    "type": "array",
+                    "default": [
+                      "GET",
+                      "POST",
+                      "PATCH",
+                      "PUT",
+                      "DELETE"
+                    ],
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "GET",
+                        "POST",
+                        "PATCH",
+                        "PUT",
+                        "DELETE"
+                      ]
+                    }
+                  },
+                  "allow_headers": {
+                    "type": "array",
+                    "default": [
+                      "Content-Type",
+                      "Content-Length",
+                      "Authorization",
+                      "Accept"
+                    ],
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "allow_credentials": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              },
+              "mcp": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "value"
+        ]
       },
       "annotations": {
         "destructiveHint": true,

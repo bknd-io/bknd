@@ -1,0 +1,208 @@
+---
+title: "Overview"
+description: "Built-in full featured MCP server."
+tags: ["documentation"]
+---
+import { ImageZoom } from "fumadocs-ui/components/image-zoom";
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+
+<Callout type="warning">
+   The MCP server is currently experimental and may change in the future. During this period, it is disabled by default. To stabilize it, and make **bknd MCP native**, all configuration changes you can make today with the integrated Admin UI will be migrated to use the MCP server.
+</Callout>
+
+bknd includes a fully featured MCP server that can be used to interact with the bknd instance. It uses a lightweight MCP implementation that works in any environment bknd works in. Unlike other MCP servers, the exposed tools and resources are mainly dynamically generated from the schema, extracted from defined hono routes, and manually defined ones. This means exposed tools and resources are always up to date, and requires little overhead to maintain. 
+
+- Fully featured, always up to date MCP server natively integrated with bknd
+- Integrated MCP UI accessible from the Admin UI
+- Built-in MCP client directly usable from your app instance
+- CLI command to run an MCP server on stdio transport
+
+
+## Integrated MCP UI
+<video controls poster="/content/mcp/v0.17_mcp_o_frame_12.5s.jpg">
+   <source src="/content/mcp/v0.17_mcp_o.mp4" type="video/mp4" />
+</video>
+
+Once enabled, you can access the MCP UI at `/mcp` or choose "MCP" from the top right user menu.
+
+## Enable MCP
+
+If you're using `initialConfig`, you can enable the MCP server by setting the `server.mcp.enabled` property to `true`.
+
+```typescript
+import type { BkndConfig } from "bknd";
+
+export default {
+   initialConfig: {
+      server: {
+         mcp: {
+            enabled: true,
+         }
+      }
+   }   
+} satisfies BkndConfig;
+```
+
+Using the Admin UI, you can either navigate to `/settings/server` or click top right on the user menu, select "Settings", then "Server". Enable the MCP server by checking the "Enabled" checkbox under "Mcp".
+
+## Using the MCP Client
+
+The implementation is closely following the [MCP spec 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18) powered by [jsonv-ts](https://github.com/jsonv-ts/jsonv-ts), therefore any spec compliant client will work. However, there is a built-in MCP client:
+
+```typescript
+import { McpClient } from "bknd/utils";
+
+const client = new McpClient({
+   url: "http://localhost:1337/mcp",
+});
+```
+
+Alternatively, similar to the `getApi` function, you can use the `getMcpClient` function to get the client from your app instance that doesn't travel through the network.
+
+```typescript
+import { createApp } from "bknd";
+
+const app = createApp();
+const client = app.getMcpClient();
+```
+
+Unlike the official spec requires, there is no initialization required, but supported. Without connecting, initialization or fetching the list of tools, you can directly call them. For example, you could fetch a list of `posts`:
+
+```typescript
+const result = await client.callTool({
+   name: "data_entity_read_many",
+   arguments: {
+      entity: "posts",
+      limit: 3,
+      select: ["id", "title"],
+   },
+});
+// {
+//    data: [
+//       { id: 1, title: "Post 1" },
+//       { id: 2, title: "Post 2" },
+//       { id: 3, title: "Post 3" }
+//    ],
+// }
+```
+
+Refer to the [jsonv-ts docs](https://github.com/dswbx/jsonv-ts#mcp-client) for more information.
+
+## STDIO Transport
+
+To start an MCP server on stdio transport, you can use the `mcp` CLI command. This is useful when you want to use it with IDEs or other tools that support stdio transport.
+
+```bash
+npx bknd mcp
+```
+
+If you want have the Streamable HTTP endpoint disabled, you can still use the STDIO transport by passing the `--force` option.
+
+```bash
+npx bknd mcp --force
+```
+
+## Usage in external tools
+
+You can also use the MCP server in external tools, such as VS Code, Cursor, or other IDEs that support MCP. This list is not exhaustive, and will be updated. 
+
+<Accordions type="single">
+<Accordion title="Cursor">
+Go to: `Settings` -> `Cursor Settings` -> `Tools & Integrations` -> `Add a custom MCP server`
+
+Pasting the following config into your Cursor `~/.cursor/mcp.json` file is the recommended approach. You can also install in a specific project by creating `.cursor/mcp.json` in your project folder. See [Cursor MCP docs](https://docs.cursor.com/context/model-context-protocol) for more info.
+
+```json tab="Local"
+{
+  "mcpServers": {
+    "bknd": {
+      "command": "npx",
+      "args": ["-y", "bknd@latest", "mcp"]
+    }
+  }
+}
+```
+
+```json tab="Remote"
+{
+  "mcpServers": {
+    "bknd": {
+      "url": "http://localhost:1337/mcp"
+    }
+  }
+}
+```
+</Accordion>
+
+<Accordion title="VS Code">
+Add this to your VS Code MCP config. See [VS Code MCP docs](https://code.visualstudio.com/docs/copilot/chat/mcp-servers) for more info.
+
+```json tab="Local"
+{
+  "servers": {
+    "bknd": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "bknd@latest", "mcp"]
+    }
+  }
+}
+```
+
+```json tab="Remote"
+{
+  "servers": {
+    "bknd": {
+      "type": "http",
+      "url": "http://localhost:1337/mcp"
+    }
+  }
+}
+```
+</Accordion>
+
+<Accordion title="Claude Desktop">
+Add this to your Claude Desktop `claude_desktop_config.json` file. See [Claude Desktop MCP docs](https://modelcontextprotocol.io/quickstart/user) for more info.
+  
+```json title="claude_desktop_config.json"
+{
+  "mcpServers": {
+    "bknd": {
+      "command": "npx",
+      "args": ["-y", "bknd@latest", "mcp"]
+    }
+  }
+}
+```
+  </Accordion>
+</Accordions>
+
+If a tool you're using is not listed here, please let us know by [opening an issue](https://github.com/bknd-dev/bknd/issues/new) or [contacting us on Discord](https://discord.com/invite/Qjz9nNHYTB).
+
+## Authentication
+
+Both the Streamable HTTP and STDIO transport support authentication. The same authentication mechanism as the API is used, so permissions work the exact same way.
+
+When using the Streamable HTTP transport, you can pass the `Authorization` header to the client.
+
+```typescript
+const client = new McpClient({
+   url: "http://localhost:1337/mcp",
+   headers: {
+      Authorization: `Bearer ${token}`,
+   },
+});
+```
+
+When using the STDIO transport, you can pass an `--token` option to the CLI command.
+
+```bash
+npx bknd mcp --token <token>
+```
+
+Alternatively, you can also use the `BEARER_TOKEN` environment variable.
+
+```bash
+BEARER_TOKEN=<token> npx bknd mcp
+```

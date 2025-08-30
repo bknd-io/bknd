@@ -15,6 +15,7 @@
     "./usage/sdk",
     "./usage/react",
     "./usage/elements",
+    "./usage/mcp/",
     "---Extending---",
     "./extending/config",
     "./extending/events",
