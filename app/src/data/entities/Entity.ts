@@ -10,6 +10,15 @@ import {
    idHandlerRegistry,
 } from "../fields";
 
+// Custom ID handler configuration schema
+const customIdHandlerConfigSchema = s.strictObject({
+   type: s.string({ enum: ["function", "import"] }),
+   handler: s.any().optional(), // Function for type "function"
+   importPath: s.string().optional(), // Module path for type "import"
+   functionName: s.string().optional(), // Function name for type "import"
+   options: s.record(s.any()).optional(), // Additional options
+});
+
 // @todo: entity must be migrated to typebox
 export const entityConfigSchema = s
    .strictObject(
@@ -360,6 +369,13 @@ export class Entity<
             );
          }
 
+         // Validate handler type
+         if (!customHandler.type || !["function", "import"].includes(customHandler.type)) {
+            throw new Error(
+               `Entity "${this.name}": Invalid handler type. Must be "function" or "import"`
+            );
+         }
+
          // Validate handler configuration structure
          if (customHandler.type === "function" && !customHandler.handler) {
             throw new Error(
@@ -396,6 +412,11 @@ export class Entity<
          const handlerId = `entity_${this.name}`;
          
          try {
+            // Check if handler is already registered and remove it first
+            if (idHandlerRegistry.has(handlerId)) {
+               idHandlerRegistry.unregister(handlerId);
+            }
+            
             idHandlerRegistry.register(handlerId, {
                id: handlerId,
                name: `${this.name} Custom Handler`,

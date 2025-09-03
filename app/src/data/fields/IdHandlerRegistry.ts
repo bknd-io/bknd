@@ -187,6 +187,17 @@ export class IdHandlerRegistry extends Registry<IdHandler> {
   }
 
   /**
+   * Unregister a handler by ID
+   */
+  unregister(id: string): boolean {
+    if (this.has(id)) {
+      delete (this as any).items[id];
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Clear all handlers (mainly for testing)
    */
   clear(): void {
