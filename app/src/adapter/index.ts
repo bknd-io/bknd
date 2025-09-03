@@ -83,8 +83,12 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
       }
 
       app = App.create(appConfig);
-      apps.set(id, app);
+
+      if (!opts?.force) {
+         apps.set(id, app);
+      }
    }
+
    return app;
 }
 

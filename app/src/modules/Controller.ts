@@ -51,7 +51,7 @@ export class Controller {
 
    protected getEntitiesEnum(em: EntityManager<any>): s.StringSchema {
       const entities = em.entities.map((e) => e.name);
-      return entities.length > 0 ? s.string({ enum: entities }) : s.string();
+      return entities.length > 0 ? s.anyOf([s.string({ enum: entities }), s.string()]) : s.string();
    }
 
    registerMcp(): void {}

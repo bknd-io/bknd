@@ -1,4 +1,3 @@
-import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
 import { jsc, s, describeRoute, schemaToSpec, omitKeys, pickKeys, mcpTool } from "bknd/utils";
@@ -37,14 +36,6 @@ export class DataController extends Controller {
       const hono = this.create().use(auth(), permission(SystemPermissions.accessApi));
       const entitiesEnum = this.getEntitiesEnum(this.em);
 
-      // @todo: sample implementation how to augment handler with additional info
-      function handler<HH extends Handler>(name: string, h: HH): any {
-         const func = h;
-         // @ts-ignore
-         func.description = name;
-         return func;
-      }
-
       // info
       hono.get(
          "/",
@@ -52,10 +43,7 @@ export class DataController extends Controller {
             summary: "Retrieve data configuration",
             tags: ["data"],
          }),
-         handler("data info", (c) => {
-            // sample implementation
-            return c.json(this.em.toJSON());
-         }),
+         (c) => c.json(this.em.toJSON()),
       );
 
       // sync endpoint
