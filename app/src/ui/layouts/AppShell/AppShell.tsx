@@ -397,11 +397,16 @@ export function MaxHeightContainer(props: ComponentPropsWithoutRef<"div">) {
       }
    }
 
-   useEffect(updateHeaderHeight, []);
+   useEffect(() => {
+      updateHeaderHeight();
+      const resize = throttle(updateHeaderHeight, 500);
 
-   if (typeof window !== "undefined") {
-      window.addEventListener("resize", throttle(updateHeaderHeight, 500));
-   }
+      window.addEventListener("resize", resize);
+
+      return () => {
+         window.removeEventListener("resize", resize);
+      };
+   }, []);
 
    return (
       <div ref={scrollRef} style={{ height: `${height - offset}px` }} {...props}>
