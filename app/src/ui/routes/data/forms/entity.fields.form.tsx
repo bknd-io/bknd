@@ -1,4 +1,4 @@
-import { Tabs, TextInput, Textarea, Tooltip, Switch } from "@mantine/core";
+import { Tabs, TextInput, Textarea, Tooltip } from "@mantine/core";
 import {
    objectCleanEmpty,
    omitKeys,
@@ -11,7 +11,7 @@ import {
    fieldsSchemaObject as originalFieldsSchemaObject,
 } from "data/data-schema";
 import { omit } from "lodash-es";
-import { forwardRef, memo, useEffect, useImperativeHandle } from "react";
+import { forwardRef, memo, useEffect, useImperativeHandle, useState } from "react";
 import { type FieldArrayWithId, type UseFormReturn, useFieldArray, useForm } from "react-hook-form";
 import { TbGripVertical, TbSettings, TbTrash } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
@@ -26,9 +26,10 @@ import { type TFieldSpec, fieldSpecs } from "ui/modules/data/components/fields-s
 import { dataFieldsUiSchema } from "../../settings/routes/data.settings";
 import { useRoutePathState } from "ui/hooks/use-route-path-state";
 import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelect";
-import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
+import type { TPrimaryFieldFormat, CustomIdHandlerConfig } from "data/fields/PrimaryField";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
+import { CustomIdHandlerForm } from "ui/components/form/CustomIdHandlerForm";
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
 const fieldsSchema = s.anyOf(Object.values(fieldsSchemaObject));
@@ -38,7 +39,6 @@ const fieldSchema = s.strictObject({
    new: s.boolean({ const: true }).optional(),
    field: fieldsSchema,
 });
-type TFieldSchema = s.Static<typeof fieldSchema>;
 
 const schema = s.strictObject({
    fields: s.array(fieldSchema),
@@ -307,6 +307,7 @@ function EntityField({
    const prefix = `fields.${index}.field` as const;
    const type = field.field.type;
    const name = watch(`fields.${index}.name`);
+   const primaryFormat = watch(`${prefix}.config.format`) as TPrimaryFieldFormat;
    const { active, toggle } = useRoutePathState(routePattern ?? "", name);
    const fieldSpec = fieldSpecs.find((s) => s.type === type)!;
    const specificData = omit(field.field.config, commonProps);
@@ -315,6 +316,12 @@ function EntityField({
    const dragDisabled = index === 0;
    const hasErrors = !!errors?.fields?.[index];
    const is_primary = type === "primary";
+   const is_custom_primary = is_primary && primaryFormat === "custom";
+   
+   // State for custom handler configuration
+   const [customHandlerConfig, setCustomHandlerConfig] = useState<CustomIdHandlerConfig | undefined>(
+      field.field.config?.customHandler
+   );
 
    function handleDelete(index: number) {
       return () => {
@@ -327,6 +334,34 @@ function EntityField({
          }
       };
    }
+
+   function handleCustomHandlerChange(config: CustomIdHandlerConfig) {
+      setCustomHandlerConfig(config);
+      setValue(`${prefix}.config.customHandler`, config);
+   }
+
+   // Effect to clear custom handler when format changes away from custom
+   useEffect(() => {
+      if (is_primary && primaryFormat !== "custom") {
+         setCustomHandlerConfig(undefined);
+         setValue(`${prefix}.config.customHandler`, undefined);
+      }
+   }, [primaryFormat, is_primary, setValue, prefix]);
+
+   // Effect to validate custom handler configuration
+   useEffect(() => {
+      if (is_custom_primary) {
+         if (!customHandlerConfig) {
+            setError(`${prefix}.config.customHandler`, {
+               type: "required",
+               message: "Custom handler configuration is required when using custom format"
+            });
+         } else {
+            // Clear any existing errors for custom handler
+            setError(`${prefix}.config.customHandler`, {});
+         }
+      }
+   }, [is_custom_primary, customHandlerConfig, setError, prefix]);
    //console.log("register", register(`${prefix}.config.required`));
    const dndProps = dnd ? { ...dnd.provided.draggableProps, ref: dnd.provided.innerRef } : {};
 
@@ -377,7 +412,11 @@ function EntityField({
                   {is_primary ? (
                      <>
                         <MantineSelect
-                           data={["integer", "uuid"]}
+                           data={[
+                              { value: "integer", label: "Integer" },
+                              { value: "uuid", label: "UUID" },
+                              { value: "custom", label: "Custom" }
+                           ]}
                            defaultValue={primary?.defaultFormat}
                            disabled={!primary?.editable}
                            placeholder="Select format"
@@ -405,7 +444,7 @@ function EntityField({
                   <IconButton
                      size="lg"
                      Icon={TbSettings}
-                     disabled={is_primary}
+                     disabled={is_primary && !is_custom_primary}
                      iconProps={{ strokeWidth: 1.5 }}
                      onClick={() => toggle()}
                      variant={active ? "primary" : "ghost"}
@@ -430,46 +469,98 @@ function EntityField({
                   </Tabs.List>
                   <Tabs.Panel value="general">
                      <div className="flex flex-col gap-2 pt-3 pb-1" key={`${prefix}_${type}`}>
-                        <div className="flex flex-row">
-                           <MantineSwitch
-                              label="Required"
-                              name={`${prefix}.config.required`}
-                              control={control}
-                           />
-                        </div>
-                        <TextInput
-                           label="Label"
-                           placeholder="Label"
-                           {...register(`${prefix}.config.label`)}
-                        />
-                        <Textarea
-                           label="Description"
-                           placeholder="Description"
-                           {...register(`${prefix}.config.description`)}
-                        />
-                        {!hidden.includes("virtual") && (
-                           <MantineSwitch
-                              label="Virtual"
-                              name={`${prefix}.config.virtual`}
-                              control={control}
-                              disabled={disabled.includes("virtual")}
-                           />
+                        {is_primary ? (
+                           <div className="flex flex-col gap-3">
+                              <div className="flex flex-col gap-2">
+                                 <label className="text-sm font-medium">Primary Field Format</label>
+                                 <MantineSelect
+                                    data={[
+                                       { value: "integer", label: "Auto-increment Integer" },
+                                       { value: "uuid", label: "UUID" },
+                                       { value: "custom", label: "Custom Handler" }
+                                    ]}
+                                    name={`${prefix}.config.format`}
+                                    control={control}
+                                    disabled={!primary?.editable}
+                                    placeholder="Select format"
+                                    allowDeselect={false}
+                                 />
+                                 {is_custom_primary && (
+                                    <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
+                                       <strong>Note:</strong> Custom ID handlers require additional configuration in the "Specific" tab.
+                                       Auto-increment and UUID options are disabled when using custom handlers.
+                                    </div>
+                                 )}
+                              </div>
+                              <TextInput
+                                 label="Label"
+                                 placeholder="Label"
+                                 {...register(`${prefix}.config.label`)}
+                              />
+                              <Textarea
+                                 label="Description"
+                                 placeholder="Description"
+                                 {...register(`${prefix}.config.description`)}
+                              />
+                           </div>
+                        ) : (
+                           <>
+                              <div className="flex flex-row">
+                                 <MantineSwitch
+                                    label="Required"
+                                    name={`${prefix}.config.required`}
+                                    control={control}
+                                 />
+                              </div>
+                              <TextInput
+                                 label="Label"
+                                 placeholder="Label"
+                                 {...register(`${prefix}.config.label`)}
+                              />
+                              <Textarea
+                                 label="Description"
+                                 placeholder="Description"
+                                 {...register(`${prefix}.config.description`)}
+                              />
+                              {!hidden.includes("virtual") && (
+                                 <MantineSwitch
+                                    label="Virtual"
+                                    name={`${prefix}.config.virtual`}
+                                    control={control}
+                                    disabled={disabled.includes("virtual")}
+                                 />
+                              )}
+                           </>
                         )}
                      </div>
                   </Tabs.Panel>
                   <Tabs.Panel value="specific">
                      <div className="flex flex-col gap-2 pt-3 pb-1">
-                        <ErrorBoundary fallback={`Error rendering JSON Schema for ${type}`}>
-                           <SpecificForm
-                              field={field}
-                              onChange={(value) => {
-                                 setValue(`${prefix}.config`, {
-                                    ...getValues([`fields.${index}.config`])[0],
-                                    ...value,
-                                 });
-                              }}
-                           />
-                        </ErrorBoundary>
+                        {is_custom_primary ? (
+                           <div className="flex flex-col gap-4">
+                              <div className="text-sm text-muted-foreground">
+                                 Configure your custom ID generation handler for this primary field.
+                              </div>
+                              <CustomIdHandlerForm
+                                 value={customHandlerConfig}
+                                 onChange={handleCustomHandlerChange}
+                                 entityName={name || "entity"}
+                                 disabled={!primary?.editable}
+                              />
+                           </div>
+                        ) : (
+                           <ErrorBoundary fallback={`Error rendering JSON Schema for ${type}`}>
+                              <SpecificForm
+                                 field={field}
+                                 onChange={(value) => {
+                                    setValue(`${prefix}.config`, {
+                                       ...getValues([`fields.${index}.config`])[0],
+                                       ...value,
+                                    });
+                                 }}
+                              />
+                           </ErrorBoundary>
+                        )}
                      </div>
                   </Tabs.Panel>
                   <Tabs.Panel value="code">

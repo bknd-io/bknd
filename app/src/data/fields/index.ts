@@ -42,6 +42,7 @@ export * from "./Field";
 export * from "./PrimaryField";
 export * from "./VirtualField";
 export * from "./indices/EntityIndex";
+export * from "./IdHandlerRegistry";
 
 export const FieldClassMap = {
    primary: { schema: primaryFieldConfigSchema, field: PrimaryField },

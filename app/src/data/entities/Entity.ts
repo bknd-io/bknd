@@ -6,6 +6,8 @@ import {
    primaryFieldTypes,
    type TActionContext,
    type TRenderContext,
+   type CustomIdHandlerConfig,
+   idHandlerRegistry,
 } from "../fields";
 
 // @todo: entity must be migrated to typebox
@@ -18,6 +20,7 @@ export const entityConfigSchema = s
          sort_field: s.string({ default: config.data.default_primary_field }),
          sort_dir: s.string({ enum: ["asc", "desc"], default: "asc" }),
          primary_format: s.string({ enum: primaryFieldTypes }),
+         custom_id_handler: s.any().optional(),
       },
       { default: {} },
    )
@@ -61,7 +64,27 @@ export class Entity<
       }
 
       this.name = name;
-      this.config = parse(entityConfigSchema, config || {}) as EntityConfig;
+      
+      // Store the custom handler separately to avoid schema validation issues
+      const customHandler = config?.custom_id_handler;
+      const configForParsing = config ? { ...config } : {};
+      if (configForParsing.custom_id_handler) {
+         // Remove the handler for schema validation, we'll restore it after
+         delete configForParsing.custom_id_handler;
+      }
+      
+      this.config = parse(entityConfigSchema, configForParsing) as EntityConfig;
+      
+      // Restore the custom handler after schema validation
+      if (customHandler) {
+         this.config.custom_id_handler = customHandler;
+      }
+
+      // Validate custom ID handler configuration if present
+      this.validateCustomIdHandlerConfig();
+
+      // Register custom ID handler if configured
+      this.registerCustomIdHandler();
 
       // add id field if not given
       // @todo: add test
@@ -69,13 +92,22 @@ export class Entity<
       if (primary_count > 1) {
          throw new Error(`Entity "${name}" has more than one primary field`);
       }
+
+      // Create primary field with custom handler configuration if needed
+      const primaryFieldConfig: any = {
+         format: this.config.primary_format,
+      };
+
+      // If custom handler is configured at entity level, pass it to the primary field
+      if (this.config.custom_id_handler && this.config.primary_format === "custom") {
+         primaryFieldConfig.customHandler = this.config.custom_id_handler;
+      }
+
       this.fields =
          primary_count === 1
             ? []
             : [
-                 new PrimaryField(undefined, {
-                    format: this.config.primary_format,
-                 }),
+                 new PrimaryField(undefined, primaryFieldConfig),
               ];
 
       if (fields) {
@@ -312,5 +344,85 @@ export class Entity<
          fields: Object.fromEntries(this.fields.map((field) => [field.name, field.toJSON()])),
          config: this.config,
       };
+   }
+
+   /**
+    * Validates custom ID handler configuration at entity level
+    */
+   private validateCustomIdHandlerConfig(): void {
+      const customHandler = this.config.custom_id_handler;
+      
+      if (customHandler) {
+         // Ensure primary format is set to custom when custom handler is configured
+         if (this.config.primary_format !== "custom") {
+            throw new Error(
+               `Entity "${this.name}": custom_id_handler is configured but primary_format is not set to "custom"`
+            );
+         }
+
+         // Validate handler configuration structure
+         if (customHandler.type === "function" && !customHandler.handler) {
+            throw new Error(
+               `Entity "${this.name}": Handler function is required when type is "function"`
+            );
+         }
+
+         if (customHandler.type === "import") {
+            if (!customHandler.importPath) {
+               throw new Error(
+                  `Entity "${this.name}": Import path is required when type is "import"`
+               );
+            }
+            if (!customHandler.functionName) {
+               throw new Error(
+                  `Entity "${this.name}": Function name is required when type is "import"`
+               );
+            }
+         }
+      } else if (this.config.primary_format === "custom") {
+         throw new Error(
+            `Entity "${this.name}": primary_format is set to "custom" but no custom_id_handler is configured`
+         );
+      }
+   }
+
+   /**
+    * Registers custom ID handler with the global registry if configured
+    */
+   private registerCustomIdHandler(): void {
+      const customHandler = this.config.custom_id_handler;
+      
+      if (customHandler && customHandler.type === "function" && customHandler.handler) {
+         const handlerId = `entity_${this.name}`;
+         
+         try {
+            idHandlerRegistry.register(handlerId, {
+               id: handlerId,
+               name: `${this.name} Custom Handler`,
+               handler: customHandler.handler,
+               description: `Custom ID handler for entity: ${this.name}`,
+            });
+         } catch (error) {
+            throw new Error(
+               `Entity "${this.name}": Failed to register custom ID handler: ${
+                  error instanceof Error ? error.message : String(error)
+               }`
+            );
+         }
+      }
+   }
+
+   /**
+    * Gets the custom ID handler configuration for this entity
+    */
+   getCustomIdHandler(): CustomIdHandlerConfig | undefined {
+      return this.config.custom_id_handler;
+   }
+
+   /**
+    * Checks if this entity uses custom ID generation
+    */
+   hasCustomIdHandler(): boolean {
+      return this.config.primary_format === "custom" && !!this.config.custom_id_handler;
    }
 }

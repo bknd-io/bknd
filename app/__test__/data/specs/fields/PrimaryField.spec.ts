@@ -63,4 +63,75 @@ describe("[data] PrimaryField", async () => {
          import: [{ package: "kysely", name: "Generated" }],
       });
    });
+
+   test("custom format", () => {
+      // Test custom format with function handler
+      const customHandler = (entity: string) => `${entity}_${Date.now()}`;
+      const customField = new PrimaryField("custom", {
+         format: "custom",
+         customHandler: {
+            type: "function",
+            handler: customHandler,
+         },
+      });
+
+      expect(customField.format).toBe("custom");
+      expect(customField.fieldType).toBe("text");
+      expect(customField.isCustomFormat()).toBe(true);
+      const handler = customField.getCustomHandler();
+      expect(handler?.type).toBe("function");
+      expect(typeof handler?.handler).toBe("function");
+      expect(customField.getNewValue()).toBeUndefined(); // Custom generation handled elsewhere
+
+      // Test custom format with import handler
+      const importField = new PrimaryField("import", {
+         format: "custom",
+         customHandler: {
+            type: "import",
+            importPath: "./handlers/customId",
+            functionName: "generateId",
+         },
+      });
+
+      expect(importField.isCustomFormat()).toBe(true);
+      expect(importField.getCustomHandler()).toEqual({
+         type: "import",
+         importPath: "./handlers/customId",
+         functionName: "generateId",
+      });
+   });
+
+   test("custom format validation", () => {
+      // Should throw when custom format is used without handler
+      expect(() => {
+         new PrimaryField("invalid", { format: "custom" });
+      }).toThrow("Custom handler configuration is required when format is 'custom'");
+
+      // Should throw when function type is used without handler function
+      expect(() => {
+         new PrimaryField("invalid", {
+            format: "custom",
+            customHandler: { type: "function" },
+         });
+      }).toThrow("Handler function is required when type is 'function'");
+
+      // Should throw when import type is used without import path
+      expect(() => {
+         new PrimaryField("invalid", {
+            format: "custom",
+            customHandler: { type: "import" },
+         });
+      }).toThrow("Import path is required when type is 'import'");
+
+      // Should throw when import type is used without function name
+      expect(() => {
+         new PrimaryField("invalid", {
+            format: "custom",
+            customHandler: {
+               type: "import",
+               importPath: "./handlers/customId",
+            },
+         });
+      }).toThrow("Function name is required when type is 'import'");
+   });
 });

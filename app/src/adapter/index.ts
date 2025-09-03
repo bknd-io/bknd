@@ -11,12 +11,18 @@ import { $console } from "bknd/utils";
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { Manifest } from "vite";
+import type { CustomIdHandlerConfig } from "data/fields/PrimaryField";
 
 export type BkndConfig<Args = any> = CreateAppConfig & {
    app?: CreateAppConfig | ((args: Args) => MaybePromise<CreateAppConfig>);
    onBuilt?: (app: App) => Promise<void>;
    beforeBuild?: (app: App, registries?: typeof $registries) => Promise<void>;
    buildConfig?: Parameters<App["build"]>[0];
+   
+   /** Custom ID handlers configuration - can be global or per-entity */
+   idHandlers?: {
+      [entityName: string]: CustomIdHandlerConfig;
+   } | CustomIdHandlerConfig;
 };
 
 export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;
@@ -43,7 +49,7 @@ export async function makeConfig<Args = DefaultArgs>(
    args?: Args,
 ): Promise<CreateAppConfig> {
    let additionalConfig: CreateAppConfig = {};
-   const { app, ...rest } = config;
+   const { app, idHandlers, ...rest } = config;
    if (app) {
       if (typeof app === "function") {
          if (!args) {
@@ -55,7 +61,147 @@ export async function makeConfig<Args = DefaultArgs>(
       }
    }
 
+   // Validate idHandlers configuration if present
+   if (idHandlers) {
+      validateIdHandlersConfig(idHandlers);
+   }
+
    return { ...rest, ...additionalConfig };
+}
+
+/**
+ * Validates the idHandlers configuration from bknd.config.ts
+ */
+function validateIdHandlersConfig(idHandlers: BkndConfig["idHandlers"]): void {
+   if (!idHandlers) return;
+
+   // Check if it's a global handler or per-entity handlers
+   if (typeof idHandlers === "object" && !Array.isArray(idHandlers)) {
+      // Check if it looks like a CustomIdHandlerConfig (has type field)
+      if ("type" in idHandlers) {
+         // Global handler configuration
+         validateSingleHandlerConfig(idHandlers as CustomIdHandlerConfig, "global");
+      } else {
+         // Per-entity handlers configuration
+         for (const [entityName, handlerConfig] of Object.entries(idHandlers)) {
+            if (handlerConfig && typeof handlerConfig === "object") {
+               validateSingleHandlerConfig(handlerConfig as CustomIdHandlerConfig, entityName);
+            }
+         }
+      }
+   }
+}
+
+/**
+ * Validates a single handler configuration
+ */
+function validateSingleHandlerConfig(config: CustomIdHandlerConfig, context: string): void {
+   if (!config.type || !["function", "import"].includes(config.type)) {
+      throw new Error(`Invalid idHandler type for ${context}: must be 'function' or 'import'`);
+   }
+
+   if (config.type === "function") {
+      if (!config.handler || typeof config.handler !== "function") {
+         throw new Error(`Invalid idHandler for ${context}: handler function is required when type is 'function'`);
+      }
+   } else if (config.type === "import") {
+      if (!config.importPath || typeof config.importPath !== "string") {
+         throw new Error(`Invalid idHandler for ${context}: importPath is required when type is 'import'`);
+      }
+      if (config.functionName && typeof config.functionName !== "string") {
+         throw new Error(`Invalid idHandler for ${context}: functionName must be a string`);
+      }
+   }
+
+   // Validate options if present
+   if (config.options && (typeof config.options !== "object" || Array.isArray(config.options))) {
+      throw new Error(`Invalid idHandler options for ${context}: must be an object`);
+   }
+}
+
+/**
+ * Registers custom ID handlers from the configuration
+ */
+export async function registerIdHandlers<Args = DefaultArgs>(
+   config: BkndConfig<Args>,
+   app: App,
+): Promise<void> {
+   if (!config.idHandlers) return;
+
+   const { idHandlerRegistry } = await import("data/fields/IdHandlerRegistry");
+
+   try {
+      // Check if it's a global handler or per-entity handlers
+      if (typeof config.idHandlers === "object" && !Array.isArray(config.idHandlers)) {
+         // Check if it looks like a CustomIdHandlerConfig (has type field)
+         if ("type" in config.idHandlers) {
+            // Global handler configuration
+            await registerSingleHandler(
+               idHandlerRegistry,
+               "global",
+               config.idHandlers as CustomIdHandlerConfig,
+               "Global Custom Handler"
+            );
+         } else {
+            // Per-entity handlers configuration
+            for (const [entityName, handlerConfig] of Object.entries(config.idHandlers)) {
+               if (handlerConfig && typeof handlerConfig === "object") {
+                  await registerSingleHandler(
+                     idHandlerRegistry,
+                     `config_${entityName}`,
+                     handlerConfig as CustomIdHandlerConfig,
+                     `${entityName} Config Handler`
+                  );
+               }
+            }
+         }
+      }
+
+      $console.info("Custom ID handlers registered from configuration");
+   } catch (error) {
+      $console.error("Failed to register custom ID handlers:", error);
+      throw error;
+   }
+}
+
+/**
+ * Registers a single ID handler with the registry
+ */
+async function registerSingleHandler(
+   registry: any,
+   handlerId: string,
+   config: CustomIdHandlerConfig,
+   name: string,
+): Promise<void> {
+   let handlerFunction: (entity: string, data?: any) => string | number | Promise<string | number>;
+
+   if (config.type === "function") {
+      if (!config.handler) {
+         throw new Error(`Handler function is required for ${handlerId}`);
+      }
+      handlerFunction = config.handler;
+   } else if (config.type === "import") {
+      // For import-based handlers, we'll implement this in a future task
+      // For now, throw an error to indicate it's not yet supported
+      throw new Error(`Import-based handlers are not yet implemented for ${handlerId}. This will be added in task 10.`);
+   } else {
+      throw new Error(`Invalid handler type for ${handlerId}: ${config.type}`);
+   }
+
+   // Create the IdHandler object
+   const idHandler = {
+      id: handlerId,
+      name,
+      handler: handlerFunction,
+      description: `Custom ID handler configured in bknd.config.ts`,
+      validate: (validationConfig: any) => {
+         // Basic validation - can be extended later
+         return true;
+      },
+   };
+
+   // Register with the registry
+   registry.register(handlerId, idHandler);
 }
 
 // a map that contains all apps by id
@@ -110,6 +256,8 @@ export async function createFrameworkApp<Args = DefaultArgs>(
          );
       }
 
+      // Register custom ID handlers before building the app
+      await registerIdHandlers(config, app);
       await config.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }
@@ -143,6 +291,8 @@ export async function createRuntimeApp<Args = DefaultArgs>(
          "sync",
       );
 
+      // Register custom ID handlers before building the app
+      await registerIdHandlers(config, app);
       await config.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }

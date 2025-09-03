@@ -5,12 +5,14 @@ import {
 } from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
 import { html } from "@codemirror/lang-html";
+import { javascript } from "@codemirror/lang-javascript";
 import { useTheme } from "ui/client/use-theme";
 
 export type CodeEditorProps = ReactCodeMirrorProps & {
    _extensions?: Partial<{
       json: boolean;
       html: boolean;
+      javascript: boolean;
    }>;
 };
 
@@ -37,6 +39,8 @@ export default function CodeEditor({
             case "liquid":
             case "html":
                return html(config);
+            case "javascript":
+               return javascript(config);
          }
          return undefined;
       })

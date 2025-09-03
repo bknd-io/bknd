@@ -34,3 +34,4 @@ docker/tmp
 .history
 .aider*
 .vercel
+.kiro
