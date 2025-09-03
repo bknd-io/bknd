@@ -163,7 +163,7 @@ The [Cloudflare Vite Plugin](https://developers.cloudflare.com/workers/vite-plug
 To fix this, bknd exports a Vite plugin that provides filesystem access during development. You can use it by adding the following to your `vite.config.ts` file:
 
 ```ts
-import { devFsVitePlugin } from "bknd/adapter/cloudflare/vite";
+import { devFsVitePlugin } from "bknd/adapter/cloudflare";
 
 export default defineConfig({
   plugins: [devFsVitePlugin()], // [!code highlight]
@@ -173,7 +173,7 @@ export default defineConfig({
 Now to use this polyfill, you can use the `devFsWrite` function to write files to the filesystem.
 
 ```ts
-import { devFsWrite } from "bknd/adapter/cloudflare/vite"; // [!code highlight]
+import { devFsWrite } from "bknd/adapter/cloudflare"; // [!code highlight]
 import { syncTypes } from "bknd/plugins";
 
 export default {

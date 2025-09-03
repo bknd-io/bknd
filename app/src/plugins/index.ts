@@ -1,5 +1,6 @@
 export {
    cloudflareImageOptimization,
+   type CloudflareImageOptimizationSchema,
    type CloudflareImageOptimizationOptions,
 } from "./cloudflare/image-optimization.plugin";
 export { showRoutes, type ShowRoutesOptions } from "./dev/show-routes.plugin";
