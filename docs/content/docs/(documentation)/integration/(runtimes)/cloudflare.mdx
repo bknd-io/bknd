@@ -42,8 +42,7 @@ bun add bknd
 
 ## Serve the API
 
-If you don't choose anything specific, the following code will use the `warm` mode and uses the first D1 binding it finds. See the
-chapter [Using a different mode](#using-a-different-mode) for available modes.
+If you don't choose anything specific, it uses the first D1 binding it finds.
 
 ```ts title="src/index.ts"
 import { serve, d1 } from "bknd/adapter/cloudflare";
@@ -130,46 +129,6 @@ export default serve<Env>({
 
 The property `app.server` is a [Hono](https://hono.dev/) instance, you can literally anything you can do with Hono.
 
-## Using a different mode
-
-With the Cloudflare Workers adapter, you're being offered to 4 modes to choose from (default:
-`warm`):
-
-| Mode      | Description                                                                                | Use Case                                                                                                                                |
-| :-------- | :----------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `fresh`   | On every request, the configuration gets refetched, app built and then served.             | Ideal if you don't want to deal with eviction, KV or Durable Objects.                                                                   |
-| `warm`    | It tries to keep the built app in memory for as long as possible, and rebuilds if evicted. | Better response times, should be the default choice.                                                                                    |
-| `cache`   | The configuration is fetched from KV to reduce the initial roundtrip to the database.      | Generally faster response times with irregular access patterns.                                                                         |
-
-### Modes: `fresh` and `warm`
-
-To use either `fresh` or `warm`, all you have to do is adding the desired mode to `cloudflare.
-mode`, like so:
-
-```ts
-import { serve } from "bknd/adapter/cloudflare";
-
-export default serve({
-  // ...
-  mode: "fresh", // mode: "fresh" | "warm" | "cache" | "durable"
-});
-```
-
-### Mode: `cache`
-
-For the cache mode to work, you also need to specify the KV to be used. For this, use the
-`bindings` property:
-
-```ts
-import { serve } from "bknd/adapter/cloudflare";
-
-export default serve<Env>({
-  // ...
-  mode: "cache",
-  bindings: ({ env }) => ({ kv: env.KV }),
-});
-```
-
 ## D1 Sessions (experimental)
 
 D1 now supports to enable [global read replication](https://developers.cloudflare.com/d1/best-practices/read-replication/). This allows to reduce latency by reading from the closest region. In order for this to work, D1 has to be started from a bookmark. You can enable this behavior on bknd by setting the `d1.session` property:
@@ -178,9 +137,6 @@ D1 now supports to enable [global read replication](https://developers.cloudflar
 import { serve } from "bknd/adapter/cloudflare";
 
 export default serve({
-  // currently recommended to use "fresh" mode
-  // otherwise consecutive requests will use the same bookmark
-  mode: "fresh",
   // ...
   d1: {
     // enables D1 sessions
@@ -207,7 +163,7 @@ The [Cloudflare Vite Plugin](https://developers.cloudflare.com/workers/vite-plug
 To fix this, bknd exports a Vite plugin that provides filesystem access during development. You can use it by adding the following to your `vite.config.ts` file:
 
 ```ts
-import { devFsVitePlugin } from "bknd/adapter/cloudflare/vite";
+import { devFsVitePlugin } from "bknd/adapter/cloudflare";
 
 export default defineConfig({
   plugins: [devFsVitePlugin()], // [!code highlight]
@@ -217,7 +173,7 @@ export default defineConfig({
 Now to use this polyfill, you can use the `devFsWrite` function to write files to the filesystem.
 
 ```ts
-import { devFsWrite } from "bknd/adapter/cloudflare/vite"; // [!code highlight]
+import { devFsWrite } from "bknd/adapter/cloudflare"; // [!code highlight]
 import { syncTypes } from "bknd/plugins";
 
 export default {

@@ -376,6 +376,7 @@ export class SystemController extends Controller {
          }),
          (c) =>
             c.json({
+               id: this.app._id,
                version: {
                   config: c.get("app")?.version(),
                   bknd: getVersion(),

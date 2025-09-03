@@ -53,7 +53,7 @@ export function adapterTestSuite<
             url: overrides.dbUrl ?? ":memory:",
             origin: "localhost",
          } as any,
-         { id },
+         { force: false, id },
       );
       expect(app).toBeDefined();
       expect(app.toJSON().server.cors.origin).toEqual("localhost");
@@ -69,7 +69,7 @@ export function adapterTestSuite<
       };
 
       test("responds with the same app id", async () => {
-         const fetcher = makeHandler(undefined, undefined, { id });
+         const fetcher = makeHandler(undefined, undefined, { force: false, id });
 
          const { res, data } = await getConfig(fetcher);
          expect(res.ok).toBe(true);

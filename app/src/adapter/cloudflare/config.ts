@@ -8,7 +8,7 @@ import { getBinding } from "./bindings";
 import { d1Sqlite } from "./connection/D1Connection";
 import type { CloudflareBkndConfig, CloudflareEnv } from ".";
 import { App } from "bknd";
-import type { Context, ExecutionContext } from "hono";
+import type { Context as HonoContext, ExecutionContext } from "hono";
 import { $console } from "bknd/utils";
 import { setCookie } from "hono/cookie";
 
@@ -22,10 +22,10 @@ export const constants = {
    },
 };
 
-export type CfMakeConfigArgs<Env extends CloudflareEnv = CloudflareEnv> = {
+export type CloudflareContext<Env extends CloudflareEnv = CloudflareEnv> = {
    env: Env;
-   ctx?: ExecutionContext;
-   request?: Request;
+   ctx: ExecutionContext;
+   request: Request;
 };
 
 function getCookieValue(cookies: string | null, name: string) {
@@ -67,7 +67,7 @@ export function d1SessionHelper(config: CloudflareBkndConfig<any>) {
 
          return undefined;
       },
-      set: (c: Context, d1?: D1DatabaseSession) => {
+      set: (c: HonoContext, d1?: D1DatabaseSession) => {
          if (!d1 || !config.d1?.session) return;
 
          const session = d1.getBookmark();
@@ -91,7 +91,7 @@ export function d1SessionHelper(config: CloudflareBkndConfig<any>) {
 let media_registered: boolean = false;
 export async function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
-   args?: CfMakeConfigArgs<Env>,
+   args?: Partial<CloudflareContext<Env>>,
 ) {
    if (!media_registered && config.registerMedia !== false) {
       if (typeof config.registerMedia === "function") {

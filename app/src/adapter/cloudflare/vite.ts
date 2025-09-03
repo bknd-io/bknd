@@ -12,7 +12,7 @@ export function devFsVitePlugin({
 }: {
    verbose?: boolean;
    configFile?: string;
-}): Plugin {
+} = {}): any {
    let isDev = false;
    let projectRoot = "";
 
@@ -115,7 +115,7 @@ if (typeof globalThis !== 'undefined') {
             return polyfill + code;
          }
       },
-   };
+   } satisfies Plugin;
 }
 
 // Write function that uses the dev-fs polyfill injected by our Vite plugin

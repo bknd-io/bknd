@@ -1,8 +1,11 @@
 import { d1Sqlite, type D1ConnectionConfig } from "./connection/D1Connection";
 
-export * from "./cloudflare-workers.adapter";
-export { makeApp, getFresh } from "./modes/fresh";
-export { getCached } from "./modes/cached";
+export {
+   getFresh,
+   createApp,
+   type CloudflareEnv,
+   type CloudflareBkndConfig,
+} from "./cloudflare-workers.adapter";
 export { d1Sqlite, type D1ConnectionConfig };
 export { doSqlite, type DoConnectionConfig } from "./connection/DoConnection";
 export {
@@ -12,7 +15,7 @@ export {
    type GetBindingType,
    type BindingMap,
 } from "./bindings";
-export { constants } from "./config";
+export { constants, type CloudflareContext } from "./config";
 export { StorageR2Adapter, registerMedia } from "./storage/StorageR2Adapter";
 export { registries } from "bknd";
 export { devFsVitePlugin, devFsWrite } from "./vite";

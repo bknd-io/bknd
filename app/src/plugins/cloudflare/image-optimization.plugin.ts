@@ -16,7 +16,7 @@ const schema = s.partialObject({
    metadata: s.string({ enum: ["copyright", "keep", "none"] }),
    quality: s.number({ minimum: 1, maximum: 100 }),
 });
-type ImageOptimizationSchema = s.Static<typeof schema>;
+export type CloudflareImageOptimizationSchema = s.Static<typeof schema>;
 
 export type CloudflareImageOptimizationOptions = {
    /**
@@ -38,12 +38,12 @@ export type CloudflareImageOptimizationOptions = {
     * The default options to use
     * @default {}
     */
-   defaultOptions?: ImageOptimizationSchema;
+   defaultOptions?: CloudflareImageOptimizationSchema;
    /**
     * The fixed options to use
     * @default {}
     */
-   fixedOptions?: ImageOptimizationSchema;
+   fixedOptions?: CloudflareImageOptimizationSchema;
    /**
     * The cache control to use
     * @default public, max-age=31536000, immutable

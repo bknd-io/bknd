@@ -1,10 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { makeApp } from "./modes/fresh";
-import { makeConfig, type CfMakeConfigArgs } from "./config";
+import { makeConfig, type CloudflareContext } from "./config";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
-import type { CloudflareBkndConfig } from "./cloudflare-workers.adapter";
+import { type CloudflareBkndConfig, createApp } from "./cloudflare-workers.adapter";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
@@ -41,18 +40,19 @@ describe("cf adapter", () => {
       expect(dynamicConfig.connection).toBeDefined();
    });
 
-   adapterTestSuite<CloudflareBkndConfig, CfMakeConfigArgs<any>>(bunTestRunner, {
+   adapterTestSuite<CloudflareBkndConfig, CloudflareContext<any>>(bunTestRunner, {
       makeApp: async (c, a, o) => {
-         return await makeApp(c, { env: a } as any, o);
+         return await createApp(c, { env: a } as any, o);
       },
       makeHandler: (c, a, o) => {
+         console.log("args", a);
          return async (request: any) => {
-            const app = await makeApp(
+            const app = await createApp(
                // needs a fallback, otherwise tries to launch D1
                c ?? {
                   connection: { url: DB_URL },
                },
-               a!,
+               a as any,
                o,
             );
             return app.fetch(request);
