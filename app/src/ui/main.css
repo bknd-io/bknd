@@ -122,3 +122,7 @@ body,
 @utility debug-blue {
    @apply border-blue-500 border;
 }
+@utility w-min-content {
+   width: min-content;
+   width: -webkit-min-content;
+}

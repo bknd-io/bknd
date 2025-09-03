@@ -139,7 +139,7 @@ function Adapters() {
             <span className="font-bold">Media Adapter:</span>
             {ctx.selected === null && <span className="opacity-70"> (Choose one)</span>}
          </Formy.Label>
-         <div className="flex flex-row gap-1 mb-2">
+         <div className="grid grid-cols-2 md:flex flex-row gap-1 mb-2 flex-wrap">
             {ctx.schemas?.map((schema: any, i) => (
                <Button
                   key={i}
@@ -165,7 +165,7 @@ function Adapters() {
          </div>
          {ctx.selected !== null && (
             <Formy.Group as="fieldset" error={ctx.errors.length > 0}>
-               <Formy.Label as="legend" className="font-mono px-2">
+               <Formy.Label as="legend" className="font-mono px-2 w-min-content">
                   {autoFormatString(ctx.selectedSchema!.title!)}
                </Formy.Label>
                <FormContextOverride schema={ctx.selectedSchema} prefix={ctx.path}>
