@@ -383,8 +383,13 @@ function EntityField({
             ) : null}
             <div className="flex flex-row flex-grow gap-4 items-center md:mr-6">
                <Tooltip label={fieldSpec.label}>
-                  <div className="flex flex-row items-center p-2 bg-primary/5 rounded">
+                  <div className="flex flex-row items-center p-2 bg-primary/5 rounded relative">
                      <fieldSpec.icon className="size-5" />
+                     {is_custom_primary && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-600 rounded-full flex items-center justify-center">
+                           <TbSettings className="w-2 h-2 text-white" />
+                        </div>
+                     )}
                   </div>
                </Tooltip>
 
@@ -411,21 +416,28 @@ function EntityField({
                <div className="flex-col gap-1 hidden md:flex">
                   {is_primary ? (
                      <>
-                        <MantineSelect
-                           data={[
-                              { value: "integer", label: "Integer" },
-                              { value: "uuid", label: "UUID" },
-                              { value: "custom", label: "Custom" }
-                           ]}
-                           defaultValue={primary?.defaultFormat}
-                           disabled={!primary?.editable}
-                           placeholder="Select format"
-                           name={`${prefix}.config.format`}
-                           allowDeselect={false}
-                           control={control}
-                           size="xs"
-                           className="w-22"
-                        />
+                        <div className="flex items-center gap-1">
+                           <MantineSelect
+                              data={[
+                                 { value: "integer", label: "Integer" },
+                                 { value: "uuid", label: "UUID" },
+                                 { value: "custom", label: "Custom" }
+                              ]}
+                              defaultValue={primary?.defaultFormat}
+                              disabled={!primary?.editable}
+                              placeholder="Select format"
+                              name={`${prefix}.config.format`}
+                              allowDeselect={false}
+                              control={control}
+                              size="xs"
+                              className="w-22"
+                           />
+                           {is_custom_primary && (
+                              <Tooltip label="Custom ID Handler Active">
+                                 <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                              </Tooltip>
+                           )}
+                        </div>
                      </>
                   ) : (
                      <>

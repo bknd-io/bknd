@@ -1,6 +1,7 @@
 import type { Entity, EntityData } from "bknd";
 import { CellValue, DataTable, type DataTableProps } from "ui/components/table/DataTable";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
+import { TbSettings } from "react-icons/tb";
 
 type EntityTableProps<Data extends EntityData = EntityData> = Omit<
    DataTableProps<Data>,
@@ -22,7 +23,19 @@ export function EntityTable2({ entity, select, ...props }: EntityTableProps) {
    function renderHeader(column: string) {
       try {
          const field = getField(column)!;
-         return field.getLabel();
+         const label = field.getLabel();
+         
+         // Show custom handler indicator for primary fields with custom handlers
+         if (field.type === "primary" && field.isCustomFormat && field.isCustomFormat()) {
+            return (
+               <div className="flex items-center gap-1">
+                  {label}
+                  <TbSettings className="w-3 h-3 text-purple-600" title="Custom ID Handler" />
+               </div>
+            );
+         }
+         
+         return label;
       } catch (e) {
          console.warn("Couldn't render header", { entity, select, ...props }, e);
          return column;

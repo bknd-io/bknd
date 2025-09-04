@@ -8,6 +8,8 @@ import {
    TbSelector,
    TbTextCaption,
    TbToggleLeft,
+   TbKey,
+   TbSettings,
 } from "react-icons/tb";
 
 export type TFieldSpec = {
@@ -17,16 +19,26 @@ export type TFieldSpec = {
    addable?: boolean;
    disabled?: string[];
    hidden?: string[];
+   customBehavior?: {
+      showCustomIndicator?: boolean;
+      customIcon?: any;
+      customLabel?: string;
+   };
 };
 
 export const fieldSpecs: TFieldSpec[] = [
    {
       type: "primary",
       label: "Primary",
-      icon: TbTextCaption,
+      icon: TbKey,
       addable: false,
       disabled: ["name"],
       hidden: ["virtual"],
+      customBehavior: {
+         showCustomIndicator: true,
+         customIcon: TbSettings,
+         customLabel: "Custom ID",
+      },
    },
    {
       type: "text",
