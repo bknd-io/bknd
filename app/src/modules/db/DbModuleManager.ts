@@ -1,8 +1,8 @@
-import { mark, stripMark, $console, s } from "bknd/utils";
+import { mark, stripMark, $console, s, SecretSchema, setPath } from "bknd/utils";
 import { BkndError } from "core/errors";
 import * as $diff from "core/object/diff";
 import type { Connection } from "data/connection";
-import { EntityManager } from "data/entities/EntityManager";
+import type { EntityManager } from "data/entities/EntityManager";
 import * as proto from "data/prototype";
 import { TransformPersistFailedException } from "data/errors";
 import type { Kysely } from "kysely";
@@ -19,6 +19,7 @@ import {
    ModuleManager,
    ModuleManagerConfigUpdateEvent,
    type ModuleManagerOptions,
+   ModuleManagerSecretsExtractedEvent,
 } from "../ModuleManager";
 
 export type { ModuleBuildContext };
@@ -50,6 +51,10 @@ export const __bknd = proto.entity(TABLE_NAME, {
    created_at: proto.datetime(),
    updated_at: proto.datetime(),
 });
+const __schema = proto.em({ __bknd }, ({ index }, { __bknd }) => {
+   index(__bknd).on(["version", "type"]);
+});
+
 type ConfigTable2 = proto.Schema<typeof __bknd>;
 interface T_INTERNAL_EM {
    __bknd: ConfigTable2;
@@ -85,7 +90,8 @@ export class DbModuleManager extends ModuleManager {
 
       super(connection, { ...options, initial });
 
-      this.__em = new EntityManager([__bknd], this.connection);
+      this.__em = __schema.proto.withConnection(this.connection) as any;
+      //this.__em = new EntityManager(__schema.entities, this.connection);
       this._version = version;
       this._booted_with = booted_with;
 
@@ -131,22 +137,23 @@ export class DbModuleManager extends ModuleManager {
       return result;
    }
 
-   private async fetch(): Promise<ConfigTable | undefined> {
+   private async fetch(): Promise<{ configs?: ConfigTable; secrets?: ConfigTable } | undefined> {
       this.logger.context("fetch").log("fetching");
       const startTime = performance.now();
 
       // disabling console log, because the table might not exist yet
-      const { data: result } = await this.repo().findOne(
-         { type: "config" },
-         {
-            sort: { by: "version", dir: "desc" },
-         },
-      );
+      const { data: result } = await this.repo().findMany({
+         where: { type: { $in: ["config", "secrets"] } },
+         sort: { by: "version", dir: "desc" },
+      });
 
-      if (!result) {
+      if (!result.length) {
          this.logger.log("error fetching").clear();
          return undefined;
       }
+
+      const configs = result.filter((r) => r.type === "config")[0];
+      const secrets = result.filter((r) => r.type === "secrets")[0];
 
       this.logger
          .log("took", performance.now() - startTime, "ms", {
@@ -155,44 +162,93 @@ export class DbModuleManager extends ModuleManager {
          })
          .clear();
 
-      return result as unknown as ConfigTable;
+      return { configs, secrets };
+   }
+
+   extractSecrets() {
+      const moduleConfigs = structuredClone(this.configs());
+      const secrets = this.options?.secrets || ({} as any);
+
+      for (const [key, module] of Object.entries(this.modules)) {
+         const config = moduleConfigs[key];
+         const schema = module.getSchema();
+
+         const extracted = [...schema.walk({ data: config })].filter(
+            (n) => n.schema instanceof SecretSchema,
+         );
+
+         //console.log("extracted", key, extracted, config);
+         for (const n of extracted) {
+            const path = [key, ...n.instancePath].join(".");
+            if (typeof n.data === "string" && n.data.length > 0) {
+               secrets[path] = n.data;
+               setPath(moduleConfigs, path, "");
+            }
+         }
+      }
+
+      return {
+         configs: moduleConfigs,
+         secrets,
+      };
    }
 
    async save() {
       this.logger.context("save").log("saving version", this.version());
-      const configs = this.configs();
+      const { configs, secrets } = this.extractSecrets();
       const version = this.version();
+
+      await this.emgr.emit(
+         new ModuleManagerSecretsExtractedEvent({
+            ctx: this.ctx(),
+            secrets,
+         }),
+      );
 
       try {
          const state = await this.fetch();
-         if (!state) throw new BkndError("no config found");
-         this.logger.log("fetched version", state.version);
+         if (!state || !state.configs) throw new BkndError("no config found");
+         this.logger.log("fetched version", state.configs.version);
 
-         if (state.version !== version) {
+         if (state.configs.version !== version) {
             // @todo: mark all others as "backup"
-            this.logger.log("version conflict, storing new version", state.version, version);
-            await this.mutator().insertOne({
-               version: state.version,
-               type: "backup",
-               json: configs,
-            });
-            await this.mutator().insertOne({
-               version: version,
-               type: "config",
-               json: configs,
-            });
+            this.logger.log(
+               "version conflict, storing new version",
+               state.configs.version,
+               version,
+            );
+            const updates = [
+               {
+                  version: state.configs.version,
+                  type: "backup",
+                  json: state.configs.json,
+               },
+               {
+                  version: version,
+                  type: "config",
+                  json: configs,
+               },
+            ];
+            if (this.options?.storeSecrets) {
+               updates.push({
+                  version: state.configs.version,
+                  type: "secrets",
+                  json: secrets,
+               });
+            }
+            await this.mutator().insertMany(updates);
          } else {
-            this.logger.log("version matches", state.version);
+            this.logger.log("version matches", state.configs.version);
 
             // clean configs because of Diff() function
-            const diffs = $diff.diff(state.json, $diff.clone(configs));
+            const diffs = $diff.diff(state.configs.json, $diff.clone(configs));
             this.logger.log("checking diff", [diffs.length]);
+            const date = new Date();
 
             if (diffs.length > 0) {
                // validate diffs, it'll throw on invalid
                this.validateDiffs(diffs);
 
-               const date = new Date();
                // store diff
                await this.mutator().insertOne({
                   version,
@@ -216,6 +272,25 @@ export class DbModuleManager extends ModuleManager {
                );
             } else {
                this.logger.log("no diff, not saving");
+            }
+
+            // store secrets
+            if (this.options?.storeSecrets) {
+               if (!state.secrets || state.secrets?.version !== version) {
+                  await this.mutator().insertOne({
+                     version: state.configs.version,
+                     type: "secrets",
+                     json: secrets,
+                     created_at: date,
+                     updated_at: date,
+                  });
+               } else {
+                  await this.mutator().updateOne(state.secrets.id!, {
+                     version,
+                     json: secrets,
+                     updated_at: date,
+                  } as any);
+               }
             }
          }
       } catch (e) {
@@ -241,7 +316,7 @@ export class DbModuleManager extends ModuleManager {
       }
 
       // re-apply configs to all modules (important for system entities)
-      await this.setConfigs(configs);
+      await this.setConfigs(this.configs());
 
       // @todo: cleanup old versions?
 
@@ -308,17 +383,23 @@ export class DbModuleManager extends ModuleManager {
          const result = await this.fetch();
 
          // if no version, and nothing found, go with initial
-         if (!result) {
+         if (!result?.configs) {
             this.logger.log("nothing in database, go initial");
             await this.setupInitial();
          } else {
-            this.logger.log("db has", result.version);
+            this.logger.log("db has", result.configs.version);
             // set version and config from fetched
-            this._version = result.version;
+            this._version = result.configs.version;
+
+            if (result?.configs && result?.secrets) {
+               for (const [key, value] of Object.entries(result.secrets.json)) {
+                  setPath(result.configs.json, key, value);
+               }
+            }
 
             if (this.options?.trustFetched === true) {
                this.logger.log("trusting fetched config (mark)");
-               mark(result.json);
+               mark(result.configs.json);
             }
 
             // if version doesn't match, migrate before building
@@ -328,7 +409,7 @@ export class DbModuleManager extends ModuleManager {
                await this.syncConfigTable();
 
                const version_before = this.version();
-               const [_version, _configs] = await migrate(version_before, result.json, {
+               const [_version, _configs] = await migrate(version_before, result.configs.json, {
                   db: this.db,
                });
 
@@ -344,7 +425,7 @@ export class DbModuleManager extends ModuleManager {
             } else {
                this.logger.log("version is current", this.version());
 
-               await this.setConfigs(result.json);
+               await this.setConfigs(result.configs.json);
                await this.buildModules();
             }
          }

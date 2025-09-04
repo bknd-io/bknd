@@ -31,7 +31,7 @@ import * as SystemPermissions from "modules/permissions";
 import { getVersion } from "core/env";
 import type { Module } from "modules/Module";
 import { getSystemMcp } from "modules/mcp/system-mcp";
-import { DbModuleManager } from "modules/db/DbModuleManager";
+import type { DbModuleManager } from "modules/db/DbModuleManager";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -125,7 +125,7 @@ export class SystemController extends Controller {
             permission([SystemPermissions.configReadSecrets]),
             async (c) => {
                // @ts-expect-error "fetch" is private
-               return c.json(await this.app.modules.fetch());
+               return c.json(await this.app.modules.fetch().then((r) => r?.configs));
             },
          );
 

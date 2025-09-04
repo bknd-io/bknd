@@ -69,6 +69,10 @@ export type ModuleManagerOptions = {
    seed?: (ctx: ModuleBuildContext) => Promise<void>;
    // called right after modules are built, before finish
    onModulesBuilt?: (ctx: ModuleBuildContext) => Promise<void>;
+   // whether to store secrets in the database
+   storeSecrets?: boolean;
+   // provided secrets
+   secrets?: Record<string, any>;
    /** @deprecated */
    verbosity?: Verbosity;
 };
@@ -84,8 +88,14 @@ export class ModuleManagerConfigUpdateEvent<
 }> {
    static override slug = "mm-config-update";
 }
+export class ModuleManagerSecretsExtractedEvent extends ModuleManagerEvent<{
+   secrets: Record<string, any>;
+}> {
+   static override slug = "mm-secrets-extracted";
+}
 export const ModuleManagerEvents = {
    ModuleManagerConfigUpdateEvent,
+   ModuleManagerSecretsExtractedEvent,
 };
 
 // @todo: cleanup old diffs on upgrade

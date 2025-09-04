@@ -96,13 +96,7 @@ export type AppOptions = {
    };
    mode?: "db" | "code";
    readonly?: boolean;
-} & (
-   | {
-        mode?: "db";
-        secrets?: Record<string, any>;
-     }
-   | { mode?: "code" }
-);
+};
 export type CreateAppConfig = {
    /**
     * bla

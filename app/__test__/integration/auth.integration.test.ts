@@ -4,9 +4,6 @@ import { auth } from "../../src/auth/middlewares";
 import { randomString, secureRandomString, withDisabledConsole } from "../../src/core/utils";
 import { disableConsoleLog, enableConsoleLog, getDummyConnection } from "../helper";
 
-const { dummyConnection, afterAllCleanup } = getDummyConnection();
-afterEach(afterAllCleanup);
-
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
@@ -65,6 +62,7 @@ const configs = {
 };
 
 function createAuthApp() {
+   const { dummyConnection } = getDummyConnection();
    const app = createApp({
       connection: dummyConnection,
       config: {
