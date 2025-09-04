@@ -2,6 +2,7 @@ import { config } from "core/config";
 import { omitKeys, uuidv7, s } from "bknd/utils";
 import { Field, baseFieldConfigSchema } from "./Field";
 import type { TFieldTSType } from "data/entities/EntityTypescript";
+import { idHandlerImportResolver } from "./IdHandlerImportResolver";
 
 export const primaryFieldTypes = ["integer", "uuid", "custom"] as const;
 export type TPrimaryFieldFormat = (typeof primaryFieldTypes)[number];
@@ -146,8 +147,38 @@ export class PrimaryField<Required extends true | false = false> extends Field<
             throw new Error(`Custom handler execution failed: ${error instanceof Error ? error.message : String(error)}`);
          }
       } else if (handler.type === "import") {
-         // Import-based handler execution will be implemented in a later task
-         throw new Error("Import-based custom handlers are not yet implemented");
+         // Import-based handler execution
+         if (!handler.importPath) {
+            throw new Error("Import path is required for import-based handlers");
+         }
+
+         try {
+            const importResult = await idHandlerImportResolver.resolveHandler({
+               importPath: handler.importPath,
+               functionName: handler.functionName,
+               options: handler.options
+            });
+
+            if (!importResult.success) {
+               throw new Error(importResult.error || "Failed to resolve import handler");
+            }
+
+            if (!importResult.handler) {
+               throw new Error("No handler returned from import resolution");
+            }
+
+            // Execute the imported handler, merging options with data
+            const handlerData = { ...handler.options, ...data };
+            const result = await Promise.resolve(importResult.handler.handler(entity, handlerData));
+            
+            if (typeof result !== 'string' && typeof result !== 'number') {
+               throw new Error(`Imported handler returned invalid type: expected string or number, got ${typeof result}`);
+            }
+            
+            return result;
+         } catch (error) {
+            throw new Error(`Import handler execution failed: ${error instanceof Error ? error.message : String(error)}`);
+         }
       }
 
       throw new Error("Invalid custom handler configuration");
@@ -188,9 +219,7 @@ export class PrimaryField<Required extends true | false = false> extends Field<
             if (!handler.importPath) {
                throw new Error("Import path is required when type is 'import'");
             }
-            if (!handler.functionName) {
-               throw new Error("Function name is required when type is 'import'");
-            }
+            // Function name is optional - if not provided, will use default export or auto-detect
          }
       }
    }

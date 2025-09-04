@@ -60,13 +60,13 @@ describe('PrimaryField Custom ID Generation', () => {
       }).toThrow('Import path is required when type is \'import\'');
     });
 
-    it('should throw error when import type is used without function name', () => {
+    it('should allow import type without function name (uses default export)', () => {
       expect(() => {
         new PrimaryField('id', {
           format: 'custom',
           customHandler: { type: 'import', importPath: './handlers' }
         });
-      }).toThrow('Function name is required when type is \'import\'');
+      }).not.toThrow();
     });
   });
 
@@ -147,7 +147,7 @@ describe('PrimaryField Custom ID Generation', () => {
       );
     });
 
-    it('should throw error for import-based handlers (not yet implemented)', async () => {
+    it('should handle import-based handlers (now implemented)', async () => {
       const customHandler: CustomIdHandlerConfig = {
         type: 'import',
         importPath: './handlers/customId',
@@ -159,8 +159,9 @@ describe('PrimaryField Custom ID Generation', () => {
         customHandler
       });
 
+      // Since the import path doesn't exist, it should throw an import error
       await expect(field.generateCustomId('user')).rejects.toThrow(
-        'Import-based custom handlers are not yet implemented'
+        'Import handler execution failed'
       );
     });
   });
