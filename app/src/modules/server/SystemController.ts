@@ -409,6 +409,8 @@ export class SystemController extends Controller {
                   config: c.get("app")?.version(),
                   bknd: getVersion(),
                },
+               mode: this.app.mode,
+               readonly: this.app.isReadOnly(),
                runtime: getRuntimeKey(),
                connection: {
                   name: this.app.em.connection.name,

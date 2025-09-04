@@ -197,6 +197,7 @@ export class DbModuleManager extends ModuleManager {
       this.logger.context("save").log("saving version", this.version());
       const { configs, secrets } = this.extractSecrets();
       const version = this.version();
+      const store_secrets = this.options?.storeSecrets !== false;
 
       await this.emgr.emit(
          new ModuleManagerSecretsExtractedEvent({
@@ -229,7 +230,7 @@ export class DbModuleManager extends ModuleManager {
                   json: configs,
                },
             ];
-            if (this.options?.storeSecrets) {
+            if (store_secrets) {
                updates.push({
                   version: state.configs.version,
                   type: "secrets",
@@ -275,7 +276,7 @@ export class DbModuleManager extends ModuleManager {
             }
 
             // store secrets
-            if (this.options?.storeSecrets) {
+            if (store_secrets) {
                if (!state.secrets || state.secrets?.version !== version) {
                   await this.mutator().insertOne({
                      version: state.configs.version,

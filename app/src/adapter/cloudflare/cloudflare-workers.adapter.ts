@@ -34,7 +34,7 @@ export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> &
 };
 
 export async function createApp<Env extends CloudflareEnv = CloudflareEnv>(
-   config: CloudflareBkndConfig<Env>,
+   config: CloudflareBkndConfig<Env> = {},
    ctx: Partial<CloudflareContext<Env>> = {},
 ) {
    const appConfig = await makeConfig(
