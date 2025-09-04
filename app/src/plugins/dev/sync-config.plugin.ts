@@ -28,7 +28,7 @@ export function syncConfig({
 
          if (firstBoot) {
             firstBoot = false;
-            await write?.(app.toJSON(true));
+            await write?.(app.toJSON(includeSecrets));
          }
       },
    });

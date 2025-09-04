@@ -1,12 +1,12 @@
-import { hash, pickHeaders, s, parse } from "bknd/utils";
+import { hash, pickHeaders, s, parse, secret } from "bknd/utils";
 import type { FileBody, FileListObject, FileMeta } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
 
 export const cloudinaryAdapterConfig = s.object(
    {
       cloud_name: s.string(),
-      api_key: s.string(),
-      api_secret: s.string(),
+      api_key: secret(),
+      api_secret: secret(),
       upload_preset: s.string().optional(),
    },
    { title: "Cloudinary", description: "Cloudinary media storage" },

@@ -16,7 +16,7 @@ const path = `${assetsPath}/image.png`;
 
 async function makeApp(mediaOverride: Partial<TAppMediaConfig> = {}) {
    const app = createApp({
-      initialConfig: {
+      config: {
          media: mergeObject(
             {
                enabled: true,

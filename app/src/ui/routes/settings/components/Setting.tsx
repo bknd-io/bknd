@@ -54,7 +54,7 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
    properties,
 }: SettingProps<Schema>) {
    const [submitting, setSubmitting] = useState(false);
-   const { actions } = useBknd();
+   const { actions, readonly } = useBknd();
    const formRef = useRef<JsonSchemaFormRef>(null);
    const schemaLocalModalRef = useRef<SettingsSchemaModalRef>(null);
    const schemaModalRef = useRef<SettingsSchemaModalRef>(null);
@@ -120,14 +120,14 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
       extractedKeys.find((key) => window.location.pathname.endsWith(key)) ?? extractedKeys[0];
 
    const onToggleEdit = useEvent(() => {
-      if (!editAllowed) return;
+      if (!editAllowed || readonly) return;
 
       setEditing((prev) => !prev);
       //formRef.current?.cancel();
    });
 
    const onSave = useEvent(async () => {
-      if (!editAllowed || !editing) return;
+      if (!editAllowed || !editing || readonly) return;
 
       if (formRef.current?.validateForm()) {
          setSubmitting(true);
@@ -215,14 +215,14 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
                   >
                      <IconButton Icon={TbSettings} />
                   </Dropdown>
-                  <Button onClick={onToggleEdit} disabled={!editAllowed}>
+                  <Button onClick={onToggleEdit} disabled={!editAllowed || readonly}>
                      {editing ? "Cancel" : "Edit"}
                   </Button>
                   {editing && (
                      <Button
                         variant="primary"
                         onClick={onSave}
-                        disabled={submitting || !editAllowed}
+                        disabled={submitting || !editAllowed || readonly}
                      >
                         {submitting ? "Save..." : "Save"}
                      </Button>

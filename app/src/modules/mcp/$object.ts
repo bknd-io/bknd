@@ -6,7 +6,6 @@ import {
    type McpSchema,
    type SchemaWithMcpOptions,
 } from "./McpSchemaHelper";
-import type { Module } from "modules/Module";
 
 export interface ObjectToolSchemaOptions extends s.IObjectOptions, SchemaWithMcpOptions {}
 
@@ -79,6 +78,7 @@ export class ObjectToolSchema<
 
    private toolUpdate(node: s.Node<ObjectToolSchema>) {
       const schema = this.mcp.cleanSchema;
+
       return new Tool(
          [this.mcp.name, "update"].join("_"),
          {
@@ -97,11 +97,12 @@ export class ObjectToolSchema<
          async (params, ctx: AppToolHandlerCtx) => {
             const { full, value, return_config } = params;
             const [module_name] = node.instancePath;
+            const manager = this.mcp.getManager(ctx);
 
             if (full) {
-               await ctx.context.app.mutateConfig(module_name as any).set(value);
+               await manager.mutateConfigSafe(module_name as any).set(value);
             } else {
-               await ctx.context.app.mutateConfig(module_name as any).patch("", value);
+               await manager.mutateConfigSafe(module_name as any).patch("", value);
             }
 
             let config: any = undefined;

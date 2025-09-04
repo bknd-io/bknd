@@ -2,8 +2,10 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 
 import { Module } from "modules/Module";
-import { type ConfigTable, getDefaultConfig, ModuleManager } from "modules/ModuleManager";
-import { CURRENT_VERSION, TABLE_NAME } from "modules/migrations";
+import { getDefaultConfig } from "modules/ModuleManager";
+import { type ConfigTable, DbModuleManager as ModuleManager } from "modules/db/DbModuleManager";
+
+import { CURRENT_VERSION, TABLE_NAME } from "modules/db/migrations";
 import { getDummyConnection } from "../helper";
 import { s, stripMark } from "core/utils/schema";
 import { Connection } from "data/connection/Connection";

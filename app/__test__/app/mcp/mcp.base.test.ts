@@ -8,7 +8,7 @@ describe("mcp", () => {
       registries.media.register("local", StorageLocalAdapter);
 
       const app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
             },

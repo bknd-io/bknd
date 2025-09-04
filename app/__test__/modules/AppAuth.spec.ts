@@ -147,7 +147,7 @@ describe("AppAuth", () => {
 
    test("registers auth middleware for bknd routes only", async () => {
       const app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
                jwt: {
@@ -177,7 +177,7 @@ describe("AppAuth", () => {
 
    test("should allow additional user fields", async () => {
       const app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                entity_name: "users",
                enabled: true,
@@ -201,7 +201,7 @@ describe("AppAuth", () => {
 
    test("ensure user field configs is always correct", async () => {
       const app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
             },

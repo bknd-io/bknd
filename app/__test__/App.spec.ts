@@ -19,7 +19,7 @@ describe("App tests", async () => {
    test("plugins", async () => {
       const called: string[] = [];
       const app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
             },

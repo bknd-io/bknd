@@ -21,13 +21,6 @@ export type BkndConfig<Args = any> = CreateAppConfig & {
 
 export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;
 
-export type CreateAdapterAppOptions = {
-   force?: boolean;
-   id?: string;
-};
-export type FrameworkOptions = CreateAdapterAppOptions;
-export type RuntimeOptions = CreateAdapterAppOptions;
-
 export type RuntimeBkndConfig<Args = any> = BkndConfig<Args> & {
    distPath?: string;
    serveStatic?: MiddlewareHandler | [string, MiddlewareHandler];
@@ -63,41 +56,29 @@ const apps = new Map<string, App>();
 export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args = DefaultArgs>(
    config: Config = {} as Config,
    args?: Args,
-   opts?: CreateAdapterAppOptions,
 ): Promise<App> {
-   const id = opts?.id ?? "app";
-   let app = apps.get(id);
-   if (!app || opts?.force) {
-      const appConfig = await makeConfig(config, args);
-      if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
-         let connection: Connection | undefined;
-         if (Connection.isConnection(config.connection)) {
-            connection = config.connection;
-         } else {
-            const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
-            const conf = appConfig.connection ?? { url: ":memory:" };
-            connection = sqlite(conf) as any;
-            $console.info(`Using ${connection!.name} connection`, conf.url);
-         }
-         appConfig.connection = connection;
+   const appConfig = await makeConfig(config, args);
+   if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
+      let connection: Connection | undefined;
+      if (Connection.isConnection(config.connection)) {
+         connection = config.connection;
+      } else {
+         const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
+         const conf = appConfig.connection ?? { url: ":memory:" };
+         connection = sqlite(conf) as any;
+         $console.info(`Using ${connection!.name} connection`, conf.url);
       }
-
-      app = App.create(appConfig);
-
-      if (!opts?.force) {
-         apps.set(id, app);
-      }
+      appConfig.connection = connection;
    }
 
-   return app;
+   return App.create(appConfig);
 }
 
 export async function createFrameworkApp<Args = DefaultArgs>(
    config: FrameworkBkndConfig = {},
    args?: Args,
-   opts?: FrameworkOptions,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args, opts);
+   const app = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       if (config.onBuilt) {
@@ -120,9 +101,8 @@ export async function createFrameworkApp<Args = DefaultArgs>(
 export async function createRuntimeApp<Args = DefaultArgs>(
    { serveStatic, adminOptions, ...config }: RuntimeBkndConfig<Args> = {},
    args?: Args,
-   opts?: RuntimeOptions,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args, opts);
+   const app = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       app.emgr.onEvent(
