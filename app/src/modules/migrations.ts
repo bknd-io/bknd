@@ -99,6 +99,16 @@ export const migrations: Migration[] = [
          };
       },
    },
+   {
+      // add support for custom ID handlers in entity configurations
+      version: 10,
+      up: async (config) => {
+         // No changes needed - custom_id_handler field is optional
+         // and existing entities will continue to work without it
+         // This migration is mainly for documentation purposes
+         return config;
+      },
+   },
 ];
 
 export const CURRENT_VERSION = migrations[migrations.length - 1]?.version ?? 0;

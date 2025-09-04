@@ -10,7 +10,7 @@ import {
    IconSwitchHorizontal,
 } from "@tabler/icons-react";
 import type { Entity, TEntityType } from "bknd";
-import { TbDatabasePlus } from "react-icons/tb";
+import { TbDatabasePlus, TbSettings } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 import { Button } from "ui/components/buttons/Button";
@@ -18,6 +18,7 @@ import { IconButton } from "ui/components/buttons/IconButton";
 import { Empty } from "ui/components/display/Empty";
 import { Dropdown, type DropdownClickableChild } from "ui/components/overlay/Dropdown";
 import { Link, isLinkActive } from "ui/components/wouter/Link";
+import { isCustomIdField } from "ui/modules/data/utils/field-utils";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate, useRouteNavigate } from "ui/lib/routes";
@@ -110,6 +111,16 @@ const EntityLinkList = ({
 }: { entities: Entity[]; title?: string; context: "data" | "schema"; suggestCreate?: boolean }) => {
    const { $data } = useBkndData();
    const navigate = useRouteNavigate();
+   
+   // Helper function to check if entity has custom ID handlers
+   function hasCustomIdHandler(entity: Entity): boolean {
+      const fields = entity.getFields();
+      const primaryField = fields.find(field => field.type === "primary");
+      if (!primaryField) return false;
+      
+      // Check if it's a custom format primary field
+      return primaryField.isCustomFormat && primaryField.isCustomFormat();
+   }
    if (entities.length === 0) {
       return suggestCreate ? (
          <Empty
@@ -153,6 +164,8 @@ const EntityLinkList = ({
                context === "data"
                   ? routes.data.entity.list(entity.name)
                   : routes.data.schema.entity(entity.name);
+            const hasCustomHandler = hasCustomIdHandler(entity);
+            
             return (
                <EntityContextMenu key={entity.name} entity={entity}>
                   <AppShell.SidebarLink
@@ -160,7 +173,14 @@ const EntityLinkList = ({
                      href={href}
                      className="justify-between items-center"
                   >
-                     {entity.label}
+                     <div className="flex items-center gap-2">
+                        {entity.label}
+                        {hasCustomHandler && (
+                           <Tooltip label="Uses custom ID generation">
+                              <TbSettings className="w-3 h-3 text-purple-600" />
+                           </Tooltip>
+                        )}
+                     </div>
 
                      {isLinkActive(href, 1) && (
                         <Button

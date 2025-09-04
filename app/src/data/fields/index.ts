@@ -42,6 +42,13 @@ export * from "./Field";
 export * from "./PrimaryField";
 export * from "./VirtualField";
 export * from "./indices/EntityIndex";
+export * from "./IdHandlerRegistry";
+
+// Export comprehensive type definitions for custom ID generation
+export * from "./types";
+export { IdHandlerValidator } from "./IdHandlerValidator";
+export { IdHandlerErrorManager, idHandlerErrorManager } from "./IdHandlerErrorManager";
+export { IdHandlerImportResolver, idHandlerImportResolver } from "./IdHandlerImportResolver";
 
 export const FieldClassMap = {
    primary: { schema: primaryFieldConfigSchema, field: PrimaryField },

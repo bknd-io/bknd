@@ -145,7 +145,16 @@ export class Mutator<
 
       // primary
       const primary = entity.getPrimaryField();
-      const primary_value = primary.getNewValue();
+      let primary_value = primary.getNewValue();
+      
+      // Handle async custom ID generation
+      if (primary_value === undefined && primary.isCustomFormat()) {
+         const asyncResult = await primary.getNewValueAsync(entity.name, validatedData);
+         if (asyncResult.success && asyncResult.value !== undefined) {
+            primary_value = String(asyncResult.value);
+         }
+      }
+      
       if (primary_value) {
          validatedData = {
             [primary.name]: primary_value,
