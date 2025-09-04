@@ -26,12 +26,12 @@ import {
    type ModuleConfigs,
    type ModuleSchemas,
    type ModuleKey,
-} from "modules/manager/ModuleManager";
+} from "modules/ModuleManager";
 import * as SystemPermissions from "modules/permissions";
 import { getVersion } from "core/env";
 import type { Module } from "modules/Module";
 import { getSystemMcp } from "modules/mcp/system-mcp";
-import { DbModuleManager } from "modules/manager/DbModuleManager";
+import { DbModuleManager } from "modules/db/DbModuleManager";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;

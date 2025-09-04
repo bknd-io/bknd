@@ -1,5 +1,5 @@
 import type { ModuleConfigs, ModuleSchemas } from "modules";
-import { getDefaultConfig, getDefaultSchema } from "modules/manager/ModuleManager";
+import { getDefaultConfig, getDefaultSchema } from "modules/ModuleManager";
 import {
    createContext,
    startTransition,

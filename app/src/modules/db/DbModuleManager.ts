@@ -7,7 +7,7 @@ import * as proto from "data/prototype";
 import { TransformPersistFailedException } from "data/errors";
 import type { Kysely } from "kysely";
 import { mergeWith } from "lodash-es";
-import { CURRENT_VERSION, TABLE_NAME, migrate } from "modules/migrations";
+import { CURRENT_VERSION, TABLE_NAME, migrate } from "./migrations";
 import { Module, type ModuleBuildContext } from "../Module";
 import {
    type InitialModuleConfigs,
@@ -19,7 +19,7 @@ import {
    ModuleManager,
    ModuleManagerConfigUpdateEvent,
    type ModuleManagerOptions,
-} from "./ModuleManager";
+} from "../ModuleManager";
 
 export type { ModuleBuildContext };
 
@@ -45,7 +45,7 @@ const configJsonSchema = s.anyOf([
 ]);
 export const __bknd = proto.entity(TABLE_NAME, {
    version: proto.number().required(),
-   type: proto.enumm({ enum: ["config", "diff", "backup"] }).required(),
+   type: proto.enumm({ enum: ["config", "diff", "backup", "secrets"] }).required(),
    json: proto.jsonSchema({ schema: configJsonSchema.toJSON() }).required(),
    created_at: proto.datetime(),
    updated_at: proto.datetime(),

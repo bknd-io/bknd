@@ -30,7 +30,7 @@ export const serverConfigSchema = $object(
    {
       description: "Server configuration",
    },
-);
+).strict();
 
 export type AppServerConfig = s.Static<typeof serverConfigSchema>;
 

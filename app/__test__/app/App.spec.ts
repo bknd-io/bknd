@@ -2,7 +2,7 @@ import { describe, expect, mock, test } from "bun:test";
 import type { ModuleBuildContext } from "../../src";
 import { App, createApp } from "core/test/utils";
 import * as proto from "data/prototype";
-import { DbModuleManager } from "modules/manager/DbModuleManager";
+import { DbModuleManager } from "modules/db/DbModuleManager";
 
 describe("App", () => {
    test("use db mode by default", async () => {

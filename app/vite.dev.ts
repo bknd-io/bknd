@@ -4,7 +4,7 @@ import { showRoutes } from "hono/dev";
 import { App, registries } from "./src";
 import { StorageLocalAdapter } from "./src/adapter/node";
 import type { Connection } from "./src/data/connection/Connection";
-import { __bknd } from "modules/manager/DbModuleManager";
+import { __bknd } from "modules/db/DbModuleManager";
 import { nodeSqlite } from "./src/adapter/node/connection/NodeSqliteConnection";
 import { libsql } from "./src/data/connection/sqlite/libsql/LibsqlConnection";
 import { $console } from "core/utils/console";

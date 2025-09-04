@@ -10,7 +10,7 @@ export {
    type ModuleSchemas,
    MODULE_NAMES,
    type ModuleKey,
-} from "./manager/ModuleManager";
+} from "./ModuleManager";
 export type { ModuleBuildContext } from "./Module";
 
 export {

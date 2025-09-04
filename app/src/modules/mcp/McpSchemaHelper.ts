@@ -10,7 +10,7 @@ import {
 } from "bknd/utils";
 import type { ModuleBuildContext } from "modules";
 import { excludePropertyTypes, rescursiveClean } from "./utils";
-import type { DbModuleManager } from "modules/manager/DbModuleManager";
+import type { DbModuleManager } from "modules/db/DbModuleManager";
 
 export const mcpSchemaSymbol = Symbol.for("bknd-mcp-schema");
 

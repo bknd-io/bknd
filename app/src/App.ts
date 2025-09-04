@@ -11,8 +11,8 @@ import {
    ModuleManager,
    type ModuleBuildContext,
    type ModuleManagerOptions,
-} from "modules/manager/ModuleManager";
-import { DbModuleManager } from "modules/manager/DbModuleManager";
+} from "modules/ModuleManager";
+import { DbModuleManager } from "modules/db/DbModuleManager";
 import * as SystemPermissions from "modules/permissions";
 import { AdminController, type AdminControllerOptions } from "modules/server/AdminController";
 import { SystemController } from "modules/server/SystemController";
@@ -112,7 +112,7 @@ export type CreateAppConfig = {
    options?: AppOptions;
 };
 
-export type AppConfig = InitialModuleConfigs;
+export type AppConfig = { version: number } & ModuleConfigs;
 export type LocalApiOptions = Request | ApiOptions;
 
 export class App<C extends Connection = Connection, Options extends AppOptions = AppOptions> {

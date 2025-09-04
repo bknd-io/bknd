@@ -6,10 +6,9 @@ import { EventManager, Event } from "core/events";
 import type { Connection } from "data/connection";
 import { EntityManager } from "data/entities/EntityManager";
 import { Hono } from "hono";
-import { CURRENT_VERSION } from "modules/migrations";
-import type { ServerEnv } from "../Controller";
-import { Module, type ModuleBuildContext } from "../Module";
-import { ModuleHelper } from "../ModuleHelper";
+import type { ServerEnv } from "./Controller";
+import { Module, type ModuleBuildContext } from "./Module";
+import { ModuleHelper } from "./ModuleHelper";
 import { AppServer } from "modules/server/AppServer";
 import { AppAuth } from "auth/AppAuth";
 import { AppData } from "data/AppData";
@@ -43,9 +42,7 @@ export type ModuleConfigs = {
    [K in keyof ModuleSchemas]: s.Static<ModuleSchemas[K]>;
 };
 
-export type InitialModuleConfigs = {
-   version?: number;
-} & PartialRec<ModuleConfigs>;
+export type InitialModuleConfigs = { version?: number } & PartialRec<ModuleConfigs>;
 
 enum Verbosity {
    silent = 0,
