@@ -1,7 +1,7 @@
 import type { App } from "bknd";
 import { handle } from "hono/aws-lambda";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
+import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
 
 type AwsLambdaEnv = object;
 export type AwsLambdaBkndConfig<Env extends AwsLambdaEnv = AwsLambdaEnv> =
@@ -20,7 +20,6 @@ export type AwsLambdaBkndConfig<Env extends AwsLambdaEnv = AwsLambdaEnv> =
 export async function createApp<Env extends AwsLambdaEnv = AwsLambdaEnv>(
    { adminOptions = false, assets, ...config }: AwsLambdaBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ): Promise<App> {
    let additional: Partial<RuntimeBkndConfig> = {
       adminOptions,
@@ -57,17 +56,15 @@ export async function createApp<Env extends AwsLambdaEnv = AwsLambdaEnv>(
          ...additional,
       },
       args ?? process.env,
-      opts,
    );
 }
 
 export function serve<Env extends AwsLambdaEnv = AwsLambdaEnv>(
    config: AwsLambdaBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ) {
    return async (event) => {
-      const app = await createApp(config, args, opts);
+      const app = await createApp(config, args);
       return await handle(app.server)(event);
    };
 }

@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { serveStatic } from "hono/cloudflare-workers";
 import type { MaybePromise } from "bknd";
 import { $console } from "bknd/utils";
-import { createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
+import { createRuntimeApp } from "bknd/adapter";
 import { registerAsyncsExecutionContext, makeConfig, type CloudflareContext } from "./config";
 
 declare global {
@@ -36,10 +36,6 @@ export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> &
 export async function createApp<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
    ctx: Partial<CloudflareContext<Env>> = {},
-   opts: RuntimeOptions = {
-      // by default, require the app to be rebuilt every time
-      force: true,
-   },
 ) {
    const appConfig = await makeConfig(
       {
@@ -53,7 +49,7 @@ export async function createApp<Env extends CloudflareEnv = CloudflareEnv>(
       },
       ctx,
    );
-   return await createRuntimeApp<Env>(appConfig, ctx?.env, opts);
+   return await createRuntimeApp<Env>(appConfig, ctx?.env);
 }
 
 // compatiblity

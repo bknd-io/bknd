@@ -41,10 +41,10 @@ describe("cf adapter", () => {
    });
 
    adapterTestSuite<CloudflareBkndConfig, CloudflareContext<any>>(bunTestRunner, {
-      makeApp: async (c, a, o) => {
-         return await createApp(c, { env: a } as any, o);
+      makeApp: async (c, a) => {
+         return await createApp(c, { env: a } as any);
       },
-      makeHandler: (c, a, o) => {
+      makeHandler: (c, a) => {
          console.log("args", a);
          return async (request: any) => {
             const app = await createApp(
@@ -53,7 +53,6 @@ describe("cf adapter", () => {
                   connection: { url: DB_URL },
                },
                a as any,
-               o,
             );
             return app.fetch(request);
          };

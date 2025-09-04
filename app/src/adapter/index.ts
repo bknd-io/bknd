@@ -21,13 +21,6 @@ export type BkndConfig<Args = any> = CreateAppConfig & {
 
 export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;
 
-export type CreateAdapterAppOptions = {
-   force?: boolean;
-   id?: string;
-};
-export type FrameworkOptions = CreateAdapterAppOptions;
-export type RuntimeOptions = CreateAdapterAppOptions;
-
 export type RuntimeBkndConfig<Args = any> = BkndConfig<Args> & {
    distPath?: string;
    serveStatic?: MiddlewareHandler | [string, MiddlewareHandler];
@@ -63,7 +56,6 @@ const apps = new Map<string, App>();
 export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args = DefaultArgs>(
    config: Config = {} as Config,
    args?: Args,
-   opts?: CreateAdapterAppOptions,
 ): Promise<App> {
    const appConfig = await makeConfig(config, args);
    if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
@@ -85,9 +77,8 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
 export async function createFrameworkApp<Args = DefaultArgs>(
    config: FrameworkBkndConfig = {},
    args?: Args,
-   opts?: FrameworkOptions,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args, opts);
+   const app = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       if (config.onBuilt) {
@@ -110,9 +101,8 @@ export async function createFrameworkApp<Args = DefaultArgs>(
 export async function createRuntimeApp<Args = DefaultArgs>(
    { serveStatic, adminOptions, ...config }: RuntimeBkndConfig<Args> = {},
    args?: Args,
-   opts?: RuntimeOptions,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args, opts);
+   const app = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       app.emgr.onEvent(
