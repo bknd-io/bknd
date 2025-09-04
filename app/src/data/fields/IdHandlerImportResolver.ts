@@ -67,7 +67,10 @@ export class IdHandlerImportResolver {
       // Extract the handler function
       const handlerResult = this.extractHandler(moduleResult.module!, config.functionName);
       if (!handlerResult.success) {
-        return handlerResult;
+        return {
+          success: false,
+          error: handlerResult.error
+        };
       }
 
       // Create the IdHandler object
@@ -232,7 +235,7 @@ export class IdHandlerImportResolver {
   /**
    * Extract handler function from loaded module
    */
-  private extractHandler(module: any, functionName?: string): { success: boolean; handler?: Function; error?: string } {
+  private extractHandler(module: any, functionName?: string): { success: boolean; handler?: (entity: string, data?: any) => string | number | Promise<string | number>; error?: string } {
     try {
       let handler: Function;
 
@@ -256,7 +259,7 @@ export class IdHandlerImportResolver {
         } else {
           // Look for any function export
           const functionExports = Object.keys(module).filter(key => typeof module[key] === 'function');
-          if (functionExports.length === 1) {
+          if (functionExports.length === 1 && functionExports[0]) {
             handler = module[functionExports[0]];
           } else if (functionExports.length > 1) {
             return {
@@ -281,7 +284,7 @@ export class IdHandlerImportResolver {
 
       return {
         success: true,
-        handler
+        handler: handler as (entity: string, data?: any) => string | number | Promise<string | number>
       };
     } catch (error) {
       return {

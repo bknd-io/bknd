@@ -123,15 +123,16 @@ describe("[data] PrimaryField", async () => {
          });
       }).toThrow("Import path is required when type is 'import'");
 
-      // Should throw when import type is used without function name
-      expect(() => {
-         new PrimaryField("invalid", {
-            format: "custom",
-            customHandler: {
-               type: "import",
-               importPath: "./handlers/customId",
-            },
-         });
-      }).toThrow("Function name is required when type is 'import'");
+      // Should handle import type without function name (uses default export)
+      const field = new PrimaryField("invalid", {
+         format: "custom",
+         customHandler: {
+            type: "import",
+            importPath: "./handlers/customId",
+         },
+      });
+      
+      // The field should be created but validation errors should occur at runtime
+      expect(field.format).toBe("custom");
    });
 });

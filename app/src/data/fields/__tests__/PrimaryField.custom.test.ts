@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { PrimaryField, type CustomIdHandlerConfig } from '../PrimaryField';
 
 describe('PrimaryField Custom ID Generation', () => {
@@ -143,7 +143,7 @@ describe('PrimaryField Custom ID Generation', () => {
       });
 
       await expect(field.generateCustomId('user')).rejects.toThrow(
-        'Custom handler execution failed: Handler failed'
+        'Custom handler execution failed after'
       );
     });
 
@@ -179,7 +179,8 @@ describe('PrimaryField Custom ID Generation', () => {
       });
 
       const result = await field.generateCustomIdWithFallback('user');
-      expect(result).toBe('working-user');
+      expect(result.success).toBe(true);
+      expect(result.value).toBe('working-user');
     });
 
     it('should fallback to UUID when custom handler fails', async () => {
@@ -199,11 +200,13 @@ describe('PrimaryField Custom ID Generation', () => {
 
       const result = await field.generateCustomIdWithFallback('user');
       
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      expect(result.success).toBe(true);
+      expect(result.fallbackUsed).toBe(true);
+      expect(typeof result.value).toBe('string');
+      expect(result.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining("Custom ID generation failed for entity 'user'"),
-        expect.any(Error)
+        expect.stringContaining("Errors (1)")
       );
       
       consoleSpy.mockRestore();

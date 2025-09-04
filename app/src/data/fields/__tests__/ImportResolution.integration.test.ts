@@ -17,9 +17,10 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('user', { prefix: 'USR' });
-            expect(typeof id).toBe('string');
-            expect(id).toContain('USR_user_');
+            const result = await field.getNewValueAsync('user', { prefix: 'USR' });
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('USR_user_');
         });
 
         it('should successfully import and execute TypeScript named export', async () => {
@@ -32,9 +33,10 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('product');
-            expect(typeof id).toBe('string');
-            expect(id).toContain('NAMED_product_');
+            const result = await field.getNewValueAsync('product');
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('NAMED_product_');
         });
 
         it('should successfully import and execute async TypeScript handler', async () => {
@@ -47,9 +49,10 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('order');
-            expect(typeof id).toBe('string');
-            expect(id).toContain('ASYNC_order_');
+            const result = await field.getNewValueAsync('order');
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('ASYNC_order_');
         });
 
         it('should successfully import and execute CommonJS handler', async () => {
@@ -61,13 +64,14 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('invoice', { 
+            const result = await field.getNewValueAsync('invoice', { 
                 separator: '_',
                 includeRandom: false 
             });
-            expect(typeof id).toBe('string');
-            expect(id).toContain('INVOICE_');
-            expect(id).not.toMatch(/INVOICE_\d{4}_/); // Should not have random number
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('INVOICE_');
+            expect(result.value).not.toMatch(/INVOICE_\d{4}_/); // Should not have random number
         });
 
         it('should pass options from handler config to imported handler', async () => {
@@ -83,10 +87,11 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('customer');
-            expect(typeof id).toBe('string');
-            expect(id).toContain('CUSTOMER|');
-            expect(id).not.toMatch(/CUSTOMER\|\d{4}\|/); // Should not have random number
+            const result = await field.getNewValueAsync('customer');
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('CUSTOMER|');
+            expect(result.value).not.toMatch(/CUSTOMER\|\d{4}\|/); // Should not have random number
         });
 
         it('should merge handler options with runtime data', async () => {
@@ -103,13 +108,14 @@ describe('Import Resolution Integration Tests', () => {
             });
 
             // Runtime data should override handler options
-            const id = await field.getNewValueAsync('customer', { 
+            const result = await field.getNewValueAsync('customer', { 
                 separator: '_',
                 includeRandom: true 
             });
-            expect(typeof id).toBe('string');
-            expect(id).toContain('CUSTOMER_');
-            expect(id).toMatch(/CUSTOMER_\d+_/); // Should have random number
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('CUSTOMER_');
+            expect(result.value).toMatch(/CUSTOMER_\d+_/); // Should have random number
         });
     });
 
@@ -124,10 +130,12 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('test');
-            expect(typeof id).toBe('string');
+            const result = await field.getNewValueAsync('test');
+            expect(result.success).toBe(true);
+            expect(result.fallbackUsed).toBe(true);
+            expect(typeof result.value).toBe('string');
             // Should be a UUID format (36 characters with dashes)
-            expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+            expect(result.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
         });
 
         it('should fallback to UUID when function not found', async () => {
@@ -140,10 +148,12 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('test');
-            expect(typeof id).toBe('string');
+            const result = await field.getNewValueAsync('test');
+            expect(result.success).toBe(true);
+            expect(result.fallbackUsed).toBe(true);
+            expect(typeof result.value).toBe('string');
             // Should be a UUID format
-            expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+            expect(result.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
         });
 
         it('should throw error when generateCustomId is used (no fallback)', async () => {
@@ -171,17 +181,19 @@ describe('Import Resolution Integration Tests', () => {
             });
 
             // First call should import and cache
-            const id1 = await field.getNewValueAsync('test1');
-            expect(typeof id1).toBe('string');
+            const result1 = await field.getNewValueAsync('test1');
+            expect(result1.success).toBe(true);
+            expect(typeof result1.value).toBe('string');
 
             // Second call should use cache
-            const id2 = await field.getNewValueAsync('test2');
-            expect(typeof id2).toBe('string');
+            const result2 = await field.getNewValueAsync('test2');
+            expect(result2.success).toBe(true);
+            expect(typeof result2.value).toBe('string');
 
             // Both should be valid but different (due to timestamp)
-            expect(id1).not.toBe(id2);
-            expect(id1).toContain('ID_test1_');
-            expect(id2).toContain('ID_test2_');
+            expect(result1.value).not.toBe(result2.value);
+            expect(result1.value).toContain('ID_test1_');
+            expect(result2.value).toContain('ID_test2_');
         });
 
         it('should handle cache clearing correctly', async () => {
@@ -202,9 +214,10 @@ describe('Import Resolution Integration Tests', () => {
             expect(idHandlerImportResolver.getCachedHandlers().length).toBe(0);
 
             // Should still work after cache clear (re-import)
-            const id = await field.getNewValueAsync('test2');
-            expect(typeof id).toBe('string');
-            expect(id).toContain('ID_test2_');
+            const result = await field.getNewValueAsync('test2');
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('ID_test2_');
         });
     });
 
@@ -219,9 +232,10 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('test');
-            expect(typeof id).toBe('string');
-            expect(id).toContain('ID_test_');
+            const result = await field.getNewValueAsync('test');
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('ID_test_');
 
             // Test that relative paths fall back gracefully
             idHandlerImportResolver.clearCache();
@@ -233,10 +247,12 @@ describe('Import Resolution Integration Tests', () => {
                 }
             });
 
-            const id2 = await field2.getNewValueAsync('test');
-            expect(typeof id2).toBe('string');
+            const result2 = await field2.getNewValueAsync('test');
+            expect(result2.success).toBe(true);
+            expect(result2.fallbackUsed).toBe(true);
+            expect(typeof result2.value).toBe('string');
             // Should fallback to UUID
-            expect(id2).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+            expect(result2.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
         });
     });
 });

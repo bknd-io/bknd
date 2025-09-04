@@ -149,7 +149,10 @@ export class Mutator<
       
       // Handle async custom ID generation
       if (primary_value === undefined && primary.isCustomFormat()) {
-         primary_value = await primary.getNewValueAsync(entity.name, validatedData);
+         const asyncResult = await primary.getNewValueAsync(entity.name, validatedData);
+         if (asyncResult.success && asyncResult.value !== undefined) {
+            primary_value = String(asyncResult.value);
+         }
       }
       
       if (primary_value) {

@@ -48,11 +48,38 @@ export interface ErrorResult {
 }
 
 /**
- * Comprehensive error manager for custom ID handlers
+ * Comprehensive error manager for custom ID handlers.
+ * 
+ * Provides centralized error handling, categorization, and user-friendly
+ * error message generation for the custom ID generation system. Implements
+ * the singleton pattern to ensure consistent error handling across the application.
+ * 
+ * @example
+ * ```typescript
+ * import { idHandlerErrorManager } from './IdHandlerErrorManager';
+ * 
+ * // Handle a configuration error
+ * const errorResult = idHandlerErrorManager.handleConfigurationError(
+ *   config,
+ *   ["Handler function is required"],
+ *   { entity: "users" }
+ * );
+ * 
+ * // Display user-friendly error
+ * errorResult.errors.forEach(error => {
+ *   const formatted = idHandlerErrorManager.formatErrorForUI(error);
+ *   console.error(`${formatted.title}: ${formatted.message}`);
+ * });
+ * ```
  */
 export class IdHandlerErrorManager {
     private static instance: IdHandlerErrorManager | null = null;
 
+    /**
+     * Get the singleton instance of the error manager.
+     * 
+     * @returns The singleton IdHandlerErrorManager instance
+     */
     static getInstance(): IdHandlerErrorManager {
         if (!IdHandlerErrorManager.instance) {
             IdHandlerErrorManager.instance = new IdHandlerErrorManager();

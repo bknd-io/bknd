@@ -8,7 +8,7 @@ describe("Entity Integration Tests", () => {
       idHandlerRegistry.clear();
    });
 
-   it("should create entity and register custom handler during entity creation", () => {
+   it("should create entity and register custom handler during entity creation", async () => {
       // Create an entity with custom ID handler
       const entity = new Entity("products", [], {
          name: "Products",
@@ -33,11 +33,10 @@ describe("Entity Integration Tests", () => {
       expect(registeredHandler?.name).toBe("products Custom Handler");
 
       // Verify the handler can be executed
-      expect(async () => {
-         const id = await idHandlerRegistry.execute("entity_products", "products", { category: "ELEC" });
-         expect(typeof id).toBe("string");
-         expect(id).toMatch(/^ELEC_\d{6}$/);
-      }).not.toThrow();
+      const result = await idHandlerRegistry.execute("entity_products", "products", { category: "ELEC" });
+      expect(result.success).toBe(true);
+      expect(typeof result.value).toBe("string");
+      expect(result.value).toMatch(/^ELEC_\d{6}$/);
    });
 
    it("should handle entity creation without custom handlers", () => {

@@ -31,7 +31,23 @@ export {
 } from "./modules/ModuleManager";
 
 export type { ServerEnv } from "modules/Controller";
-export type { BkndConfig } from "bknd/adapter";
+
+/**
+ * Bknd Configuration Types
+ * 
+ * Comprehensive type definitions for bknd configuration with full
+ * TypeScript support and IDE autocomplete for custom ID handlers.
+ */
+export type { 
+  BkndConfig,
+  FrameworkBkndConfig,
+  RuntimeBkndConfig,
+  TypedBkndConfig,
+  DefaultArgs,
+  CreateAdapterAppOptions,
+  FrameworkOptions,
+  RuntimeOptions,
+} from "bknd/adapter";
 
 export * as middlewares from "modules/middlewares";
 export { registries } from "modules/registries";
@@ -128,6 +144,53 @@ export type { EntityRelation } from "data/relations";
 export type * from "data/entities/Entity";
 export type { EntityManager } from "data/entities/EntityManager";
 export type { SchemaManager } from "data/schema/SchemaManager";
+
+/**
+ * Custom ID Generation Types
+ * 
+ * Comprehensive type definitions for the custom ID generation system,
+ * providing full TypeScript support and IDE autocomplete.
+ */
+export type {
+  // Core interfaces
+  IdHandler,
+  IdHandlerRegistryInterface,
+  CustomIdHandlerConfig,
+  TPrimaryFieldFormat,
+  
+  // Result interfaces
+  ValidationResult,
+  HandlerExecutionResult,
+  
+  // Configuration types
+  BkndIdHandlersConfig,
+  BkndConfigWithIdHandlers,
+  
+  // Utility types
+  ExtractHandlerFunction,
+  TypedHandlerConfig,
+} from "data/fields/types";
+
+/**
+ * Custom ID Generation Constants
+ * 
+ * Constants and enums for working with custom ID handlers.
+ */
+export { 
+  ID_HANDLER_CONSTANTS,
+  isCustomIdHandlerConfig,
+  isBkndIdHandlersConfig 
+} from "data/fields/types";
+
+/**
+ * Custom ID Generation Registry
+ * 
+ * Global registry instance for managing custom ID handlers.
+ */
+export { 
+  idHandlerRegistry,
+  IdHandlerRegistry 
+} from "data/fields/IdHandlerRegistry";
 export {
    BaseIntrospector,
    Connection,

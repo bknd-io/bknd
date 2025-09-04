@@ -11,40 +11,38 @@ import { $console } from "bknd/utils";
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { Manifest } from "vite";
-import type { CustomIdHandlerConfig } from "data/fields/PrimaryField";
+import type { 
+  CustomIdHandlerConfig, 
+  BkndIdHandlersConfig 
+} from "data/fields/types";
 
-export type BkndConfig<Args = any> = CreateAppConfig & {
-   app?: CreateAppConfig | ((args: Args) => MaybePromise<CreateAppConfig>);
-   onBuilt?: (app: App) => Promise<void>;
-   beforeBuild?: (app: App, registries?: typeof $registries) => Promise<void>;
-   buildConfig?: Parameters<App["build"]>[0];
-   
-   /** Custom ID handlers configuration - can be global or per-entity */
-   idHandlers?: {
-      [entityName: string]: CustomIdHandlerConfig;
-   } | CustomIdHandlerConfig;
-};
+// Re-export comprehensive types for better IDE support
+export type {
+  BkndConfig,
+  FrameworkBkndConfig,
+  RuntimeBkndConfig,
+  CreateAdapterAppOptions,
+  FrameworkOptions,
+  RuntimeOptions,
+  DefaultArgs,
+  TypedBkndConfig,
+  ExtractConfigArgs,
+} from "./types";
 
-export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;
+// Import the comprehensive BkndConfig type from types module
+import type { 
+  BkndConfig, 
+  FrameworkBkndConfig, 
+  RuntimeBkndConfig,
+  DefaultArgs,
+  CreateAdapterAppOptions,
+  FrameworkOptions,
+  RuntimeOptions
+} from "./types";
 
-export type CreateAdapterAppOptions = {
-   force?: boolean;
-   id?: string;
-};
-export type FrameworkOptions = CreateAdapterAppOptions;
-export type RuntimeOptions = CreateAdapterAppOptions;
+// Types are now imported from ./types module and re-exported above
 
-export type RuntimeBkndConfig<Args = any> = BkndConfig<Args> & {
-   distPath?: string;
-   serveStatic?: MiddlewareHandler | [string, MiddlewareHandler];
-   adminOptions?: AdminControllerOptions | false;
-};
-
-export type DefaultArgs = {
-   [key: string]: any;
-};
-
-export async function makeConfig<Args = DefaultArgs>(
+export async function makeConfig<Args extends DefaultArgs = DefaultArgs>(
    config: BkndConfig<Args>,
    args?: Args,
 ): Promise<CreateAppConfig> {
@@ -70,7 +68,24 @@ export async function makeConfig<Args = DefaultArgs>(
 }
 
 /**
- * Validates the idHandlers configuration from bknd.config.ts
+ * Validate the idHandlers configuration from bknd.config.ts.
+ * 
+ * Performs comprehensive validation of ID handler configurations to ensure
+ * they are properly structured and contain all required fields.
+ * 
+ * @param idHandlers - The ID handlers configuration to validate
+ * 
+ * @throws {Error} If configuration is invalid with descriptive error messages
+ * 
+ * @example
+ * ```typescript
+ * try {
+ *   validateIdHandlersConfig(config.idHandlers);
+ *   console.log("ID handlers configuration is valid");
+ * } catch (error) {
+ *   console.error("Configuration error:", error.message);
+ * }
+ * ```
  */
 function validateIdHandlersConfig(idHandlers: BkndConfig["idHandlers"]): void {
    if (!idHandlers) return;
@@ -93,7 +108,17 @@ function validateIdHandlersConfig(idHandlers: BkndConfig["idHandlers"]): void {
 }
 
 /**
- * Validates a single handler configuration
+ * Validate a single ID handler configuration.
+ * 
+ * Checks that the handler configuration has the correct structure,
+ * required fields, and valid values for the specified handler type.
+ * 
+ * @param config - The handler configuration to validate
+ * @param context - Context string for error messages (e.g., entity name or "global")
+ * 
+ * @throws {Error} If the configuration is invalid
+ * 
+ * @private
  */
 function validateSingleHandlerConfig(config: CustomIdHandlerConfig, context: string): void {
    if (!config.type || !["function", "import"].includes(config.type)) {
@@ -120,9 +145,34 @@ function validateSingleHandlerConfig(config: CustomIdHandlerConfig, context: str
 }
 
 /**
- * Registers custom ID handlers from the configuration
+ * Register custom ID handlers from the bknd configuration.
+ * 
+ * Processes the idHandlers configuration and registers all defined handlers
+ * with the global ID handler registry. Supports both global and per-entity
+ * handler configurations.
+ * 
+ * @template Args - Type for configuration arguments
+ * @param config - The bknd configuration containing ID handlers
+ * @param app - The App instance for context and logging
+ * 
+ * @throws {Error} If handler registration fails
+ * 
+ * @example
+ * ```typescript
+ * const config: BkndConfig = {
+ *   idHandlers: {
+ *     users: {
+ *       type: "function",
+ *       handler: (entity) => `usr_${Date.now()}`
+ *     }
+ *   }
+ * };
+ * 
+ * await registerIdHandlers(config, app);
+ * console.log("ID handlers registered successfully");
+ * ```
  */
-export async function registerIdHandlers<Args = DefaultArgs>(
+export async function registerIdHandlers<Args extends DefaultArgs = DefaultArgs>(
    config: BkndConfig<Args>,
    app: App,
 ): Promise<void> {
@@ -165,7 +215,19 @@ export async function registerIdHandlers<Args = DefaultArgs>(
 }
 
 /**
- * Registers a single ID handler with the registry
+ * Register a single ID handler with the registry.
+ * 
+ * Creates an IdHandler object from the configuration and registers it
+ * with the provided registry instance.
+ * 
+ * @param registry - The ID handler registry instance
+ * @param handlerId - Unique identifier for the handler
+ * @param config - Handler configuration object
+ * @param name - Human-readable name for the handler
+ * 
+ * @throws {Error} If handler registration fails
+ * 
+ * @private
  */
 async function registerSingleHandler(
    registry: any,
@@ -206,7 +268,7 @@ async function registerSingleHandler(
 
 // a map that contains all apps by id
 const apps = new Map<string, App>();
-export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args = DefaultArgs>(
+export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args extends DefaultArgs = DefaultArgs>(
    config: Config = {} as Config,
    args?: Args,
    opts?: CreateAdapterAppOptions,
@@ -238,8 +300,8 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
    return app;
 }
 
-export async function createFrameworkApp<Args = DefaultArgs>(
-   config: FrameworkBkndConfig = {},
+export async function createFrameworkApp<Args extends DefaultArgs = DefaultArgs>(
+   config: FrameworkBkndConfig<Args> = {} as FrameworkBkndConfig<Args>,
    args?: Args,
    opts?: FrameworkOptions,
 ): Promise<App> {
@@ -265,8 +327,8 @@ export async function createFrameworkApp<Args = DefaultArgs>(
    return app;
 }
 
-export async function createRuntimeApp<Args = DefaultArgs>(
-   { serveStatic, adminOptions, ...config }: RuntimeBkndConfig<Args> = {},
+export async function createRuntimeApp<Args extends DefaultArgs = DefaultArgs>(
+   { serveStatic, adminOptions, ...config }: RuntimeBkndConfig<Args> = {} as RuntimeBkndConfig<Args>,
    args?: Args,
    opts?: RuntimeOptions,
 ): Promise<App> {

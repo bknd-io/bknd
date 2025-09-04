@@ -5,42 +5,116 @@ import type { TFieldTSType } from "data/entities/EntityTypescript";
 import { idHandlerImportResolver } from "./IdHandlerImportResolver";
 import { idHandlerErrorManager, type ErrorResult } from "./IdHandlerErrorManager";
 
+import type { TPrimaryFieldFormat, CustomIdHandlerConfig } from "./types";
+
+/**
+ * Array of supported primary field format types.
+ * 
+ * @deprecated Use TPrimaryFieldFormat type instead for type safety
+ */
 export const primaryFieldTypes = ["integer", "uuid", "custom"] as const;
-export type TPrimaryFieldFormat = (typeof primaryFieldTypes)[number];
 
-// Custom ID handler configuration interface
-export interface CustomIdHandlerConfig {
-   type: "function" | "import";
-   handler?: (entity: string, data?: any) => string | number | Promise<string | number>;
-   importPath?: string;
-   functionName?: string;
-   options?: Record<string, any>;
-}
+// Re-export types for backward compatibility
+export type { TPrimaryFieldFormat, CustomIdHandlerConfig } from "./types";
 
+/**
+ * Schema definition for primary field configuration.
+ * 
+ * Defines the structure and validation rules for primary field configuration,
+ * including support for custom ID handlers.
+ */
 export const primaryFieldConfigSchema = s
    .strictObject({
+      /** The format type for primary field ID generation */
       format: s.string({ enum: primaryFieldTypes, default: "integer" }),
+      /** Whether the field is required (always false for primary fields) */
       required: s.boolean({ default: false }),
+      /** Custom ID handler configuration when format is "custom" */
       customHandler: s.strictObject({
+         /** Type of custom handler: function or import */
          type: s.string({ enum: ["function", "import"] }),
+         /** Direct handler function (for type: "function") */
          handler: s.any().optional(),
+         /** Import path for external handler (for type: "import") */
          importPath: s.string().optional(),
+         /** Function name to import (optional, uses default export if not specified) */
          functionName: s.string().optional(),
+         /** Additional options to pass to the handler */
          options: s.record(s.any()).optional(),
       }).optional(),
       ...omitKeys(baseFieldConfigSchema.properties, ["required"]),
    })
    .partial();
 
+/**
+ * TypeScript type for primary field configuration.
+ * 
+ * Represents the configuration object for primary fields, including
+ * all supported options and custom handler configuration.
+ */
 export type PrimaryFieldConfig = s.Static<typeof primaryFieldConfigSchema>;
 
+/**
+ * Primary field class for entity primary key management.
+ * 
+ * Handles primary key generation using various strategies including auto-increment,
+ * UUID, and custom ID generation handlers. Supports both synchronous and asynchronous
+ * ID generation patterns.
+ * 
+ * @template Required - Whether the field is required (always false for primary fields)
+ * 
+ * @example
+ * ```typescript
+ * // Integer primary field (auto-increment)
+ * const integerPrimary = new PrimaryField("id", { format: "integer" });
+ * 
+ * // UUID primary field
+ * const uuidPrimary = new PrimaryField("id", { format: "uuid" });
+ * 
+ * // Custom ID handler
+ * const customPrimary = new PrimaryField("id", {
+ *   format: "custom",
+ *   customHandler: {
+ *     type: "function",
+ *     handler: (entity) => `${entity}_${Date.now()}`
+ *   }
+ * });
+ * ```
+ */
 export class PrimaryField<Required extends true | false = false> extends Field<
    PrimaryFieldConfig,
    string,
    Required
 > {
+   /** Field type identifier */
    override readonly type = "primary";
 
+   /**
+    * Create a new primary field instance.
+    * 
+    * @param name - The field name (defaults to configured default primary field name)
+    * @param cfg - Field configuration including format and custom handler options
+    * 
+    * @throws {Error} If custom handler configuration is invalid
+    * 
+    * @example
+    * ```typescript
+    * // Default integer primary field
+    * const field1 = new PrimaryField();
+    * 
+    * // Named UUID primary field
+    * const field2 = new PrimaryField("user_id", { format: "uuid" });
+    * 
+    * // Custom handler primary field
+    * const field3 = new PrimaryField("id", {
+    *   format: "custom",
+    *   customHandler: {
+    *     type: "function",
+    *     handler: (entity) => `${entity}_${Date.now()}`
+    *   }
+    * });
+    * ```
+    */
    constructor(name: string = config.data.default_primary_field, cfg?: PrimaryFieldConfig) {
       // Store the handler separately to avoid schema validation issues
       const customHandler = cfg?.customHandler;
@@ -71,10 +145,20 @@ export class PrimaryField<Required extends true | false = false> extends Field<
       return primaryFieldConfigSchema;
    }
 
-   get format() {
+   /**
+    * Get the primary field format type.
+    * 
+    * @returns The format type: "integer", "uuid", or "custom"
+    */
+   get format(): TPrimaryFieldFormat {
       return this.config.format ?? "integer";
    }
 
+   /**
+    * Get the database field type based on the format.
+    * 
+    * @returns "integer" for integer format, "text" for uuid and custom formats
+    */
    get fieldType(): "integer" | "text" {
       if (this.format === "integer") return "integer";
       return "text";
@@ -89,7 +173,25 @@ export class PrimaryField<Required extends true | false = false> extends Field<
       });
    }
 
-   getNewValue(): any {
+   /**
+    * Generate a new ID value synchronously.
+    * 
+    * For UUID format, returns a new UUID v7. For custom format, returns undefined
+    * to indicate that async generation is required. For integer format, returns
+    * undefined as the database handles auto-increment.
+    * 
+    * @returns The generated ID for UUID format, undefined for other formats
+    * 
+    * @example
+    * ```typescript
+    * const uuidField = new PrimaryField("id", { format: "uuid" });
+    * const id = uuidField.getNewValue(); // Returns UUID v7 string
+    * 
+    * const customField = new PrimaryField("id", { format: "custom", ... });
+    * const id = customField.getNewValue(); // Returns undefined (use getNewValueAsync)
+    * ```
+    */
+   getNewValue(): string | undefined {
       if (this.format === "uuid") {
          return uuidv7();
       }
@@ -104,10 +206,32 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    }
 
    /**
-    * Async version of getNewValue that supports custom ID generation
-    * @param entity - The entity name for custom ID generation
+    * Generate a new ID value asynchronously with support for custom handlers.
+    * 
+    * This method supports all ID generation formats and provides detailed
+    * result information including error handling and fallback usage.
+    * 
+    * @param entity - The entity name for custom ID generation (required for custom format)
     * @param data - Optional data to pass to custom handlers
-    * @returns Promise resolving to the new ID value
+    * @returns Promise resolving to generation result with success status and value
+    * 
+    * @example
+    * ```typescript
+    * // UUID generation
+    * const result = await field.getNewValueAsync();
+    * if (result.success) {
+    *   console.log(`Generated UUID: ${result.value}`);
+    * }
+    * 
+    * // Custom handler generation
+    * const result = await customField.getNewValueAsync("users", { prefix: "usr" });
+    * if (result.success) {
+    *   console.log(`Generated ID: ${result.value}`);
+    *   if (result.fallbackUsed) {
+    *     console.warn("Custom handler failed, fallback was used");
+    *   }
+    * }
+    * ```
     */
    async getNewValueAsync(entity?: string, data?: any): Promise<{
       success: boolean;
@@ -146,7 +270,29 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    }
 
    /**
-    * Generate a new ID using custom handler if configured
+    * Generate a new ID using the configured custom handler.
+    * 
+    * Executes the custom ID handler (either function-based or import-based)
+    * and returns the generated ID. Includes comprehensive error handling
+    * and performance monitoring.
+    * 
+    * @param entity - The entity name for ID generation
+    * @param data - Optional data to pass to the handler
+    * @returns Promise resolving to the generated ID
+    * 
+    * @throws {Error} If custom ID generation is not configured
+    * @throws {Error} If handler execution fails
+    * @throws {Error} If handler returns invalid type or value
+    * 
+    * @example
+    * ```typescript
+    * try {
+    *   const id = await field.generateCustomId("users", { userId: 123 });
+    *   console.log(`Generated custom ID: ${id}`);
+    * } catch (error) {
+    *   console.error("Custom ID generation failed:", error.message);
+    * }
+    * ```
     */
    async generateCustomId(entity: string, data?: any): Promise<string | number> {
       if (this.format !== "custom" || !this.config.customHandler) {
@@ -244,7 +390,26 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    }
 
    /**
-    * Generate a new ID using custom handler with fallback to UUID
+    * Generate a new ID using custom handler with automatic UUID fallback.
+    * 
+    * Attempts to generate an ID using the custom handler, but falls back to
+    * UUID v7 generation if the handler fails. This ensures ID generation
+    * never completely fails in production environments.
+    * 
+    * @param entity - The entity name for ID generation
+    * @param data - Optional data to pass to the handler
+    * @returns Promise resolving to generation result with fallback information
+    * 
+    * @example
+    * ```typescript
+    * const result = await field.generateCustomIdWithFallback("users");
+    * console.log(`Generated ID: ${result.value}`);
+    * 
+    * if (result.fallbackUsed) {
+    *   console.warn("Custom handler failed, UUID fallback was used");
+    *   console.error("Original error:", result.error);
+    * }
+    * ```
     */
    async generateCustomIdWithFallback(entity: string, data?: any): Promise<{
       success: boolean;
@@ -286,7 +451,14 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    }
 
    /**
-    * Validates custom handler configuration when format is "custom"
+    * Validate the custom handler configuration.
+    * 
+    * Performs validation on the custom handler configuration to ensure
+    * all required fields are present and properly configured.
+    * 
+    * @throws {Error} If custom handler configuration is invalid
+    * 
+    * @private
     */
    private validateCustomHandlerConfig(): void {
       if (this.format === "custom") {
@@ -310,14 +482,38 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    }
 
    /**
-    * Gets the custom handler configuration
+    * Get the custom handler configuration for this field.
+    * 
+    * @returns The custom handler configuration if present, undefined otherwise
+    * 
+    * @example
+    * ```typescript
+    * const handler = field.getCustomHandler();
+    * if (handler) {
+    *   console.log(`Handler type: ${handler.type}`);
+    *   if (handler.type === "import") {
+    *     console.log(`Import path: ${handler.importPath}`);
+    *   }
+    * }
+    * ```
     */
    getCustomHandler(): CustomIdHandlerConfig | undefined {
       return this.config.customHandler;
    }
 
    /**
-    * Checks if this field uses custom ID generation
+    * Check if this field uses custom ID generation.
+    * 
+    * @returns `true` if the field format is "custom", `false` otherwise
+    * 
+    * @example
+    * ```typescript
+    * if (field.isCustomFormat()) {
+    *   const result = await field.getNewValueAsync("users");
+    * } else {
+    *   const id = field.getNewValue();
+    * }
+    * ```
     */
    isCustomFormat(): boolean {
       return this.format === "custom";

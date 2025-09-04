@@ -187,10 +187,12 @@ describe('PrimaryField Import-based Custom Handlers', () => {
                 }
             });
 
-            const id = await field.generateCustomIdWithFallback('test_entity');
-            expect(typeof id).toBe('string');
+            const result = await field.generateCustomIdWithFallback('test_entity');
+            expect(result.success).toBe(true);
+            expect(result.fallbackUsed).toBe(true);
+            expect(typeof result.value).toBe('string');
             // Should be a UUID format (36 characters with dashes)
-            expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+            expect(result.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
         });
     });
 
@@ -205,9 +207,10 @@ describe('PrimaryField Import-based Custom Handlers', () => {
                 }
             });
 
-            const id = await field.getNewValueAsync('test_entity');
-            expect(typeof id).toBe('string');
-            expect(id).toContain('ASYNC_test_entity_');
+            const result = await field.getNewValueAsync('test_entity');
+            expect(result.success).toBe(true);
+            expect(typeof result.value).toBe('string');
+            expect(result.value).toContain('ASYNC_test_entity_');
         });
 
         it('should require entity name for custom format', async () => {
@@ -219,7 +222,10 @@ describe('PrimaryField Import-based Custom Handlers', () => {
                 }
             });
 
-            await expect(field.getNewValueAsync()).rejects.toThrow('Entity name is required');
+            const result = await field.getNewValueAsync();
+            expect(result.success).toBe(false);
+            expect(result.error).toBeDefined();
+            expect(result.error?.errors?.[0]?.message).toContain('Entity name is required');
         });
     });
 });

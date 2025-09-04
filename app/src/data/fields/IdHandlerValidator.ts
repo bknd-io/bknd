@@ -5,11 +5,50 @@ import { resolve } from "path";
 import { existsSync } from "fs";
 
 /**
- * Comprehensive validation system for custom ID handlers
+ * Comprehensive validation system for custom ID handlers.
+ * 
+ * Provides thorough validation of custom ID handler configurations,
+ * including configuration structure validation, import resolution testing,
+ * and handler execution testing with detailed error reporting.
+ * 
+ * @example
+ * ```typescript
+ * const validator = new IdHandlerValidator();
+ * 
+ * // Validate a function-based handler config
+ * const result = validator.validateConfig({
+ *   type: "function",
+ *   handler: (entity) => `${entity}_${Date.now()}`
+ * });
+ * 
+ * if (!result.valid) {
+ *   console.error("Validation failed:", result.errors);
+ * }
+ * ```
  */
 export class IdHandlerValidator {
   /**
-   * Validate a custom ID handler configuration with enhanced error handling
+   * Validate a custom ID handler configuration with enhanced error handling.
+   * 
+   * Performs comprehensive validation of the handler configuration including
+   * type checking, required field validation, and logical consistency checks.
+   * 
+   * @param config - The custom ID handler configuration to validate
+   * @returns Validation result with detailed error and warning information
+   * 
+   * @example
+   * ```typescript
+   * const validator = new IdHandlerValidator();
+   * const result = validator.validateConfig({
+   *   type: "import",
+   *   importPath: "./handlers/customId",
+   *   functionName: "generateId"
+   * });
+   * 
+   * if (!result.valid) {
+   *   result.errors.forEach(error => console.error(error));
+   * }
+   * ```
    */
   validateConfig(config: CustomIdHandlerConfig): ValidationResult {
     const errors: string[] = [];
@@ -185,7 +224,32 @@ export class IdHandlerValidator {
   }
 
   /**
-   * Test ID generation with a handler
+   * Test ID generation with a handler to verify it works correctly.
+   * 
+   * Executes the handler with test parameters and validates the returned
+   * ID value for type correctness, uniqueness, and other quality checks.
+   * 
+   * @param handler - The ID handler to test
+   * @param entity - Entity name to use for testing
+   * @param testData - Optional test data to pass to the handler
+   * @returns Promise resolving to validation result with test outcomes
+   * 
+   * @example
+   * ```typescript
+   * const validator = new IdHandlerValidator();
+   * const handler = {
+   *   id: "test-handler",
+   *   name: "Test Handler",
+   *   handler: (entity) => `${entity}_${Date.now()}`
+   * };
+   * 
+   * const result = await validator.testGeneration(handler, "users");
+   * if (result.valid) {
+   *   console.log("Handler test passed");
+   * } else {
+   *   console.error("Handler test failed:", result.errors);
+   * }
+   * ```
    */
   async testGeneration(handler: IdHandler, entity: string, testData?: any): Promise<ValidationResult> {
     const errors: string[] = [];
