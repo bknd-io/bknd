@@ -247,7 +247,7 @@ export function connectionTestSuite(
 
          const app = createApp({
             connection: ctx.connection,
-            initialConfig: {
+            config: {
                data: schema.toJSON(),
             },
          });
@@ -333,7 +333,7 @@ export function connectionTestSuite(
 
          const app = createApp({
             connection: ctx.connection,
-            initialConfig: {
+            config: {
                data: schema.toJSON(),
             },
          });

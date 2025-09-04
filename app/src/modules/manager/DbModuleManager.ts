@@ -72,9 +72,9 @@ export class DbModuleManager extends ModuleManager {
 
       if (options?.initial) {
          if ("version" in options.initial && options.initial.version) {
-            const { version: _v, ...initialConfig } = options.initial;
+            const { version: _v, ...config } = options.initial;
             version = _v as number;
-            initial = stripMark(initialConfig) as any;
+            initial = stripMark(config) as any;
 
             booted_with = "provided";
          } else {
@@ -241,7 +241,7 @@ export class DbModuleManager extends ModuleManager {
       }
 
       // re-apply configs to all modules (important for system entities)
-      this.setConfigs(configs);
+      await this.setConfigs(configs);
 
       // @todo: cleanup old versions?
 
@@ -249,10 +249,10 @@ export class DbModuleManager extends ModuleManager {
       return this;
    }
 
-   private revertModules() {
+   private async revertModules() {
       if (this._stable_configs) {
          $console.warn("ModuleManager: Reverting modules");
-         this.setConfigs(this._stable_configs as any);
+         await this.setConfigs(this._stable_configs as any);
       } else {
          $console.error("ModuleManager: No stable configs to revert to");
       }
@@ -339,12 +339,12 @@ export class DbModuleManager extends ModuleManager {
                $console.log("Migrated config from", version_before, "to", this.version());
 
                // @ts-expect-error
-               this.setConfigs(_configs);
+               await this.setConfigs(_configs);
                await this.buildModules();
             } else {
                this.logger.log("version is current", this.version());
 
-               this.setConfigs(result.json);
+               await this.setConfigs(result.json);
                await this.buildModules();
             }
          }
@@ -504,5 +504,9 @@ export class DbModuleManager extends ModuleManager {
             };
          },
       });
+   }
+
+   override version() {
+      return this._version;
    }
 }

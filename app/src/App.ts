@@ -98,10 +98,10 @@ export type AppOptions = {
    readonly?: boolean;
 } & (
    | {
-        mode: "db";
+        mode?: "db";
         secrets?: Record<string, any>;
      }
-   | { mode: "code" }
+   | { mode?: "code" }
 );
 export type CreateAppConfig = {
    /**
@@ -163,7 +163,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
    }
 
    isReadOnly() {
-      return this.mode === "code" || this.options?.readonly;
+      return Boolean(this.mode === "code" || this.options?.readonly);
    }
 
    get emgr() {

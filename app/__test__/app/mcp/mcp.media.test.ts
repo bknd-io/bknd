@@ -21,7 +21,7 @@ describe("mcp media", async () => {
    beforeEach(async () => {
       registries.media.register("local", StorageLocalAdapter);
       app = createApp({
-         initialConfig: {
+         config: {
             media: {
                enabled: true,
                adapter: {

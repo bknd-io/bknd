@@ -50,7 +50,7 @@ export function serve<Env = BunEnv>(
    {
       distPath,
       connection,
-      initialConfig,
+      config: _config,
       options,
       port = config.server.default_port,
       onBuilt,
@@ -68,7 +68,7 @@ export function serve<Env = BunEnv>(
       fetch: createHandler(
          {
             connection,
-            initialConfig,
+            config: _config,
             options,
             onBuilt,
             buildConfig,

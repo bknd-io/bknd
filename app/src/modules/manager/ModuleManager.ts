@@ -200,19 +200,19 @@ export class ModuleManager {
       };
    }
 
-   protected setConfigs(configs: ModuleConfigs): void {
+   protected async setConfigs(configs: ModuleConfigs): Promise<void> {
       this.logger.log("setting configs");
-      objectEach(configs, (config, key) => {
+      for await (const [key, config] of Object.entries(configs)) {
          try {
             // setting "noEmit" to true, to not force listeners to update
-            this.modules[key].schema().set(config as any, true);
+            const result = await this.modules[key].schema().set(config as any, true);
          } catch (e) {
             console.error(e);
             throw new Error(
                `Failed to set config for module ${key}: ${JSON.stringify(config, null, 2)}`,
             );
          }
-      });
+      }
    }
 
    async build(opts?: any) {
@@ -293,7 +293,7 @@ export class ModuleManager {
    }
 
    version() {
-      return CURRENT_VERSION;
+      return 0;
    }
 
    built() {
