@@ -176,31 +176,33 @@ describe('IdHandlerRegistry', () => {
 
     it('should execute synchronous handler', async () => {
       const result = await registry.execute('sync-handler', 'user', { suffix: 'test' });
-      expect(result).toBe('user-test');
+      expect(result.success).toBe(true);
+      expect(result.value).toBe('user-test');
     });
 
     it('should execute asynchronous handler', async () => {
       const result = await registry.execute('async-handler', 'product');
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^async-product-\d+$/);
+      expect(result.success).toBe(true);
+      expect(typeof result.value).toBe('string');
+      expect(result.value).toMatch(/^async-product-\d+$/);
     });
 
-    it('should throw error for non-existent handler', async () => {
-      await expect(registry.execute('non-existent', 'entity')).rejects.toThrow(
-        "Handler with id 'non-existent' not found"
-      );
+    it('should return error for non-existent handler', async () => {
+      const result = await registry.execute('non-existent', 'entity');
+      expect(result.success).toBe(false);
+      expect(result.error?.errors[0].message).toContain("Handler with id 'non-existent' not found");
     });
 
-    it('should throw error when handler execution fails', async () => {
-      await expect(registry.execute('error-handler', 'entity')).rejects.toThrow(
-        "Handler 'error-handler' execution failed: Handler execution failed"
-      );
+    it('should return error when handler execution fails', async () => {
+      const result = await registry.execute('error-handler', 'entity');
+      expect(result.success).toBe(false);
+      expect(result.error?.errors[0].message).toContain("Handler execution failed");
     });
 
-    it('should throw error when handler returns invalid type', async () => {
-      await expect(registry.execute('invalid-return', 'entity')).rejects.toThrow(
-        "Handler 'invalid-return' returned invalid type: expected string or number, got object"
-      );
+    it('should return error when handler returns invalid type', async () => {
+      const result = await registry.execute('invalid-return', 'entity');
+      expect(result.success).toBe(false);
+      expect(result.error?.errors[0].message).toContain("Handler returned invalid type");
     });
   });
 
@@ -226,7 +228,9 @@ describe('IdHandlerRegistry', () => {
 
     it('should return handler result when execution succeeds', async () => {
       const result = await registry.executeWithFallback('working-handler', 'entity');
-      expect(result).toBe('working-id');
+      expect(result.success).toBe(true);
+      expect(result.value).toBe('working-id');
+      expect(result.fallbackUsed).toBeUndefined();
     });
 
     it('should fallback to UUID when handler fails', async () => {
@@ -234,11 +238,13 @@ describe('IdHandlerRegistry', () => {
       
       const result = await registry.executeWithFallback('failing-handler', 'entity');
       
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      expect(result.success).toBe(true);
+      expect(result.fallbackUsed).toBe(true);
+      expect(typeof result.value).toBe('string');
+      expect(result.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining("Custom ID handler 'failing-handler' failed"),
-        expect.any(Error)
+        expect.any(String)
       );
       
       consoleSpy.mockRestore();
@@ -249,8 +255,10 @@ describe('IdHandlerRegistry', () => {
       
       const result = await registry.executeWithFallback('non-existent', 'entity');
       
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      expect(result.success).toBe(true);
+      expect(result.fallbackUsed).toBe(true);
+      expect(typeof result.value).toBe('string');
+      expect(result.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
       expect(consoleSpy).toHaveBeenCalled();
       
       consoleSpy.mockRestore();

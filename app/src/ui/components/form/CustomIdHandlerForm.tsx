@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
-import { TbCode, TbFileImport, TbAlertCircle, TbCheck } from "react-icons/tb";
+import { useState, useEffect } from "react";
+import { TbAlertCircle, TbCheck, TbInfoCircle, TbBulb, TbExclamationMark } from "react-icons/tb";
 import type { CustomIdHandlerConfig } from "data/fields/PrimaryField";
+import { idHandlerValidator } from "data/fields/IdHandlerValidator";
+import { idHandlerErrorManager, type ErrorResult } from "data/fields/IdHandlerErrorManager";
 import { SegmentedControl } from "./SegmentedControl";
 import * as Formy from "./Formy";
 import CodeEditor from "ui/components/code/CodeEditor";
@@ -27,8 +29,8 @@ export function CustomIdHandlerForm({
    );
    const [importPath, setImportPath] = useState<string>(value?.importPath || "");
    const [functionName, setFunctionName] = useState<string>(value?.functionName || "");
-   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
+   const [validationResult, setValidationResult] = useState<ErrorResult | null>(null);
+   const [isValidating, setIsValidating] = useState(false);
 
    // Update internal state when value prop changes
    useEffect(() => {
@@ -44,57 +46,93 @@ export function CustomIdHandlerForm({
       }
    }, [value]);
 
-   // Validate configuration and update parent
+   // Validate configuration and update parent with enhanced error handling
    useEffect(() => {
-      const errors: string[] = [];
-      const warnings: string[] = [];
-      let config: CustomIdHandlerConfig;
+      const validateConfiguration = async () => {
+         setIsValidating(true);
+         
+         let config: CustomIdHandlerConfig;
 
-      if (handlerType === "function") {
-         // Validate function code
-         const validation = validateFunctionCode(functionCode);
-         errors.push(...validation.errors);
-         warnings.push(...validation.warnings);
+         if (handlerType === "function") {
+            // Validate function code with enhanced error handling
+            const validation = validateFunctionCode(functionCode);
+            
+            config = {
+               type: "function",
+               handler: validation.isValid ? validation.compiledFunction as (entity: string, data?: any) => string | number | Promise<string | number> : undefined,
+            };
 
-         config = {
-            type: "function",
-            handler: validation.isValid ? validation.compiledFunction as (entity: string, data?: any) => string | number | Promise<string | number> : undefined,
-         };
-      } else {
-         // Validate import configuration
-         if (!importPath.trim()) {
-            errors.push("Import path is required");
+            // Convert basic validation to structured error result
+            const errorResult: ErrorResult = {
+               success: validation.isValid,
+               errors: validation.errors.map(error => 
+                  idHandlerErrorManager.createError(
+                     idHandlerErrorManager.constructor.name.includes('Configuration') ? 
+                        idHandlerErrorManager.constructor.name as any : 'configuration' as any,
+                     'error' as any,
+                     error,
+                     { suggestions: getErrorSuggestions(error, 'function') }
+                  )
+               ),
+               warnings: validation.warnings.map(warning => 
+                  idHandlerErrorManager.createError(
+                     'configuration' as any,
+                     'warning' as any,
+                     warning,
+                     { suggestions: getErrorSuggestions(warning, 'function') }
+                  )
+               ),
+               infos: [],
+               recoverySuggestions: validation.isValid ? [] : [
+                  "Fix function syntax errors before proceeding",
+                  "Ensure function returns string or number",
+                  "Test function with sample data"
+               ]
+            };
+
+            setValidationResult(errorResult);
+         } else {
+            // Validate import configuration with enhanced error handling
+            config = {
+               type: "import",
+               importPath: importPath.trim(),
+               functionName: functionName.trim(),
+            };
+
+            // Use comprehensive validator for import configuration
+            try {
+               const validationResult = idHandlerValidator.validateConfig(config);
+               const errorResult = idHandlerErrorManager.processValidationResult(
+                  validationResult,
+                  { entityName, handlerType: 'import' }
+               );
+               
+               setValidationResult(errorResult);
+            } catch (error) {
+               const errorResult = idHandlerErrorManager.handleConfigurationError(
+                  config,
+                  [error instanceof Error ? error.message : String(error)],
+                  { entityName, handlerType: 'import' }
+               );
+               setValidationResult(errorResult);
+            }
          }
-         if (!functionName.trim()) {
-            errors.push("Function name is required");
+
+         setIsValidating(false);
+
+         // Only call onChange if configuration is valid
+         if (validationResult?.success !== false) {
+            onChange(config);
          }
+      };
 
-         // Basic import path validation
-         if (importPath.trim() && !isValidImportPath(importPath)) {
-            errors.push("Invalid import path format");
-         }
-
-         config = {
-            type: "import",
-            importPath: importPath.trim(),
-            functionName: functionName.trim(),
-         };
-      }
-
-      setValidationErrors(errors);
-      setValidationWarnings(warnings);
-
-      // Only call onChange if configuration is valid
-      if (errors.length === 0) {
-         onChange(config);
-      }
-   }, [handlerType, functionCode, importPath, functionName, onChange]);
+      validateConfiguration();
+   }, [handlerType, functionCode, importPath, functionName, onChange, entityName]);
 
    const handleTypeChange = (type: string) => {
       setHandlerType(type as "function" | "import");
       // Reset validation when switching types
-      setValidationErrors([]);
-      setValidationWarnings([]);
+      setValidationResult(null);
    };
 
    const handleFunctionCodeChange = (code: string) => {
@@ -109,7 +147,7 @@ export function CustomIdHandlerForm({
       setFunctionName(e.target.value);
    };
 
-   const isValid = validationErrors.length === 0;
+   const isValid = validationResult?.success !== false;
 
    return (
       <div className="space-y-4">
@@ -211,39 +249,97 @@ export function generateCustomId(entity: string, data?: any): string {
             </>
          )}
 
-         {/* Validation Feedback */}
-         {validationErrors.length > 0 && (
-            <Alert.Exception className="space-y-1">
+         {/* Enhanced Validation Feedback */}
+         {isValidating && (
+            <Alert.Info className="flex items-center gap-2">
+               <TbInfoCircle size={16} />
+               <span>Validating configuration...</span>
+            </Alert.Info>
+         )}
+
+         {validationResult && validationResult.errors.length > 0 && (
+            <Alert.Exception className="space-y-3">
                <div className="flex items-center gap-2">
-                  <TbAlertCircle size={16} />
+                  <TbExclamationMark size={16} />
                   <span className="font-medium">Configuration Errors</span>
                </div>
-               <ul className="list-disc list-inside space-y-1 text-sm">
-                  {validationErrors.map((error, index) => (
-                     <li key={index}>{error}</li>
+               <div className="space-y-2">
+                  {validationResult.errors.map((error, index) => (
+                     <div key={index} className="border-l-2 border-red-300 pl-3">
+                        <div className="text-sm font-medium text-red-800">{error.message}</div>
+                        {error.suggestions.length > 0 && (
+                           <div className="mt-1">
+                              <div className="text-xs text-red-600 mb-1">Suggestions:</div>
+                              <ul className="list-disc list-inside text-xs text-red-700 space-y-0.5">
+                                 {error.suggestions.map((suggestion, suggestionIndex) => (
+                                    <li key={suggestionIndex}>{suggestion}</li>
+                                 ))}
+                              </ul>
+                           </div>
+                        )}
+                     </div>
                   ))}
-               </ul>
+               </div>
+               {validationResult.recoverySuggestions.length > 0 && (
+                  <div className="mt-3 p-2 bg-red-50 rounded border border-red-200">
+                     <div className="flex items-center gap-1 text-xs font-medium text-red-800 mb-1">
+                        <TbBulb size={12} />
+                        Recovery Steps:
+                     </div>
+                     <ul className="list-disc list-inside text-xs text-red-700 space-y-0.5">
+                        {validationResult.recoverySuggestions.map((suggestion, index) => (
+                           <li key={index}>{suggestion}</li>
+                        ))}
+                     </ul>
+                  </div>
+               )}
             </Alert.Exception>
          )}
 
-         {validationWarnings.length > 0 && (
-            <Alert.Warning className="space-y-1">
+         {validationResult && validationResult.warnings.length > 0 && (
+            <Alert.Warning className="space-y-3">
                <div className="flex items-center gap-2">
                   <TbAlertCircle size={16} />
-                  <span className="font-medium">Warnings</span>
+                  <span className="font-medium">Configuration Warnings</span>
                </div>
-               <ul className="list-disc list-inside space-y-1 text-sm">
-                  {validationWarnings.map((warning, index) => (
-                     <li key={index}>{warning}</li>
+               <div className="space-y-2">
+                  {validationResult.warnings.map((warning, index) => (
+                     <div key={index} className="border-l-2 border-yellow-300 pl-3">
+                        <div className="text-sm font-medium text-yellow-800">{warning.message}</div>
+                        {warning.suggestions.length > 0 && (
+                           <div className="mt-1">
+                              <div className="text-xs text-yellow-600 mb-1">Suggestions:</div>
+                              <ul className="list-disc list-inside text-xs text-yellow-700 space-y-0.5">
+                                 {warning.suggestions.map((suggestion, suggestionIndex) => (
+                                    <li key={suggestionIndex}>{suggestion}</li>
+                                 ))}
+                              </ul>
+                           </div>
+                        )}
+                     </div>
                   ))}
-               </ul>
+               </div>
             </Alert.Warning>
          )}
 
-         {isValid && (handlerType === "function" ? functionCode.trim() : importPath.trim() && functionName.trim()) && (
+         {validationResult && validationResult.infos.length > 0 && (
+            <Alert.Info className="space-y-2">
+               <div className="flex items-center gap-2">
+                  <TbInfoCircle size={16} />
+                  <span className="font-medium">Information</span>
+               </div>
+               <div className="space-y-1">
+                  {validationResult.infos.map((info, index) => (
+                     <div key={index} className="text-sm text-blue-700">{info.message}</div>
+                  ))}
+               </div>
+            </Alert.Info>
+         )}
+
+         {isValid && !isValidating && (handlerType === "function" ? functionCode.trim() : importPath.trim() && functionName.trim()) && (
             <Alert.Success className="flex items-center gap-2">
                <TbCheck size={16} />
-               <span>Configuration is valid</span>
+               <span>Configuration is valid and ready to use</span>
             </Alert.Success>
          )}
       </div>
@@ -330,4 +426,48 @@ function isValidImportPath(path: string): boolean {
    const packageName = /^[a-zA-Z@][a-zA-Z0-9\-_/@]*$/.test(path);
    
    return relativePath || packageName;
+}
+
+function getErrorSuggestions(error: string, type: 'function' | 'import'): string[] {
+   const suggestions: string[] = [];
+   
+   if (type === 'function') {
+      if (error.includes('compilation failed') || error.includes('syntax')) {
+         suggestions.push("Check for syntax errors in your function code");
+         suggestions.push("Ensure proper JavaScript/TypeScript syntax");
+         suggestions.push("Verify parentheses and brackets are balanced");
+      }
+      
+      if (error.includes('parameters')) {
+         suggestions.push("Function should accept (entity: string, data?: any) parameters");
+         suggestions.push("Remove extra parameters or make them optional");
+      }
+      
+      if (error.includes('console.log')) {
+         suggestions.push("Remove console.log statements for production use");
+         suggestions.push("Use proper logging if needed");
+      }
+      
+      if (error.includes('Math.random')) {
+         suggestions.push("Consider using crypto.randomUUID() for better uniqueness");
+         suggestions.push("Ensure your random generation provides sufficient uniqueness");
+      }
+   } else if (type === 'import') {
+      if (error.includes('path') || error.includes('required')) {
+         suggestions.push("Provide a valid import path (e.g., './utils/handlers' or 'my-package')");
+         suggestions.push("Use relative paths for local files or package names for npm modules");
+      }
+      
+      if (error.includes('function') || error.includes('name')) {
+         suggestions.push("Specify the exact name of the exported function");
+         suggestions.push("Check the module exports to verify the function name");
+      }
+   }
+   
+   if (suggestions.length === 0) {
+      suggestions.push("Review the configuration and try again");
+      suggestions.push("Check the documentation for examples");
+   }
+   
+   return suggestions;
 }

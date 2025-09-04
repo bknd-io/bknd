@@ -9,6 +9,7 @@ import {
    type CustomIdHandlerConfig,
    idHandlerRegistry,
 } from "../fields";
+import { createEntityErrorHandler } from "./EntityErrorHandler";
 
 // Custom ID handler configuration schema
 const customIdHandlerConfigSchema = s.strictObject({
@@ -356,65 +357,55 @@ export class Entity<
    }
 
    /**
-    * Validates custom ID handler configuration at entity level
+    * Validates custom ID handler configuration at entity level with enhanced error handling
     */
    private validateCustomIdHandlerConfig(): void {
-      const customHandler = this.config.custom_id_handler;
-      
-      if (customHandler) {
-         // Ensure primary format is set to custom when custom handler is configured
-         if (this.config.primary_format !== "custom") {
-            throw new Error(
-               `Entity "${this.name}": custom_id_handler is configured but primary_format is not set to "custom"`
-            );
-         }
+      const errorHandler = createEntityErrorHandler(this.name);
+      const validationResult = errorHandler.handleConfigurationValidation(
+         this.config.custom_id_handler,
+         this.config.primary_format
+      );
 
-         // Validate handler type
-         if (!customHandler.type || !["function", "import"].includes(customHandler.type)) {
-            throw new Error(
-               `Entity "${this.name}": Invalid handler type. Must be "function" or "import"`
-            );
-         }
+      if (validationResult && !validationResult.success) {
+         // Log detailed error information for debugging
+         errorHandler.logError(validationResult, "configuration validation");
 
-         // Validate handler configuration structure
-         if (customHandler.type === "function" && !customHandler.handler) {
-            throw new Error(
-               `Entity "${this.name}": Handler function is required when type is "function"`
-            );
-         }
+         // Create recovery plan
+         const recoveryPlan = errorHandler.createRecoveryPlan(validationResult);
+         
+         // Format error for user display
+         const formattedError = errorHandler.formatConfigurationError(validationResult);
 
-         if (customHandler.type === "import") {
-            if (!customHandler.importPath) {
-               throw new Error(
-                  `Entity "${this.name}": Import path is required when type is "import"`
-               );
-            }
-            if (!customHandler.functionName) {
-               throw new Error(
-                  `Entity "${this.name}": Function name is required when type is "import"`
-               );
-            }
-         }
-      } else if (this.config.primary_format === "custom") {
-         throw new Error(
-            `Entity "${this.name}": primary_format is set to "custom" but no custom_id_handler is configured`
-         );
+         // Throw error with comprehensive information
+         const errorMessage = [
+            formattedError.message,
+            "",
+            "Issues found:",
+            ...formattedError.details,
+            "",
+            "Recovery steps:",
+            ...recoveryPlan.steps.map((step, index) => `${index + 1}. ${step}`)
+         ].join('\n');
+
+         throw new Error(errorMessage);
       }
    }
 
    /**
-    * Registers custom ID handler with the global registry if configured
+    * Registers custom ID handler with the global registry if configured with enhanced error handling
     */
    private registerCustomIdHandler(): void {
       const customHandler = this.config.custom_id_handler;
       
       if (customHandler && customHandler.type === "function" && customHandler.handler) {
          const handlerId = `entity_${this.name}`;
+         const errorHandler = createEntityErrorHandler(this.name);
          
          try {
             // Check if handler is already registered and remove it first
             if (idHandlerRegistry.has(handlerId)) {
                idHandlerRegistry.unregister(handlerId);
+               $console.info(`Replaced existing custom ID handler for entity: ${this.name}`);
             }
             
             idHandlerRegistry.register(handlerId, {
@@ -423,12 +414,34 @@ export class Entity<
                handler: customHandler.handler,
                description: `Custom ID handler for entity: ${this.name}`,
             });
+
+            $console.info(`Successfully registered custom ID handler for entity: ${this.name}`);
          } catch (error) {
-            throw new Error(
-               `Entity "${this.name}": Failed to register custom ID handler: ${
-                  error instanceof Error ? error.message : String(error)
-               }`
-            );
+            const registrationError = error instanceof Error ? error : new Error(String(error));
+            const errorResult = errorHandler.handleRegistrationError(registrationError, customHandler);
+            
+            // Log detailed error information
+            errorHandler.logError(errorResult, "handler registration");
+
+            // Create recovery plan
+            const recoveryPlan = errorHandler.createRecoveryPlan(errorResult);
+            
+            // Format error for user display
+            const formattedError = errorHandler.formatConfigurationError(errorResult);
+
+            // Throw error with comprehensive information
+            const errorMessage = [
+               `Failed to register custom ID handler for entity "${this.name}":`,
+               formattedError.message,
+               "",
+               "Issues found:",
+               ...formattedError.details,
+               "",
+               "Recovery steps:",
+               ...recoveryPlan.steps.map((step, index) => `${index + 1}. ${step}`)
+            ].join('\n');
+
+            throw new Error(errorMessage);
          }
       }
    }

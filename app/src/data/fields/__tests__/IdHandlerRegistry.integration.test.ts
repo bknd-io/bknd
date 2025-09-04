@@ -25,23 +25,27 @@ describe('ID Handler Registry Integration', () => {
     it('should execute prefixed ID handler', async () => {
       const result = await idHandlerRegistry.execute('prefixed-id', 'user', { prefix: 'USR' });
       
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^USR-\d+$/);
+      expect(result.success).toBe(true);
+      expect(typeof result.value).toBe('string');
+      expect(result.value).toMatch(/^USR-\d+$/);
     });
 
     it('should execute sequential ID handler', async () => {
       const result1 = await idHandlerRegistry.execute('sequential-id', 'product');
       const result2 = await idHandlerRegistry.execute('sequential-id', 'product');
       
-      expect(result1).toBe('0001');
-      expect(result2).toBe('0002');
+      expect(result1.success).toBe(true);
+      expect(result2.success).toBe(true);
+      expect(result1.value).toBe('0001');
+      expect(result2.value).toBe('0002');
     });
 
     it('should execute UUID with prefix handler', async () => {
       const result = await idHandlerRegistry.execute('uuid-with-prefix', 'order', { prefix: 'ORD' });
       
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^ORD_[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      expect(result.success).toBe(true);
+      expect(typeof result.value).toBe('string');
+      expect(result.value).toMatch(/^ORD_[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     });
 
     it('should validate handler configurations', () => {
@@ -101,8 +105,10 @@ describe('ID Handler Registry Integration', () => {
 
       // Test fallback on error
       const fallbackResult = await field.generateCustomIdWithFallback('employee', {});
-      expect(typeof fallbackResult).toBe('string');
-      expect(fallbackResult).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      expect(fallbackResult.success).toBe(true);
+      expect(fallbackResult.fallbackUsed).toBe(true);
+      expect(typeof fallbackResult.value).toBe('string');
+      expect(fallbackResult.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     });
 
     it('should handle async custom handlers', async () => {
@@ -149,8 +155,10 @@ describe('ID Handler Registry Integration', () => {
     it('should demonstrate registry fallback behavior', async () => {
       const result = await idHandlerRegistry.executeWithFallback('non-existent-handler', 'entity');
       
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      expect(result.success).toBe(true);
+      expect(result.fallbackUsed).toBe(true);
+      expect(typeof result.value).toBe('string');
+      expect(result.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     });
 
     it('should maintain separate counters for different entities in sequential handler', async () => {
@@ -158,9 +166,12 @@ describe('ID Handler Registry Integration', () => {
       const productResult1 = await idHandlerRegistry.execute('sequential-id', 'product');
       const userResult2 = await idHandlerRegistry.execute('sequential-id', 'user');
       
-      expect(userResult1).toBe('0001');
-      expect(productResult1).toBe('0001');
-      expect(userResult2).toBe('0002');
+      expect(userResult1.success).toBe(true);
+      expect(productResult1.success).toBe(true);
+      expect(userResult2.success).toBe(true);
+      expect(userResult1.value).toBe('0001');
+      expect(productResult1.value).toBe('0001');
+      expect(userResult2.value).toBe('0002');
     });
   });
 });

@@ -1,4 +1,5 @@
 import { Registry } from "core/registry/Registry";
+import { idHandlerErrorManager, type ErrorResult } from "./IdHandlerErrorManager";
 
 /**
  * Interface for custom ID generation handlers
@@ -23,6 +24,17 @@ export interface ValidationResult {
   valid: boolean;
   errors: string[];
   warnings: string[];
+}
+
+/**
+ * Handler execution result with detailed error information
+ */
+export interface HandlerExecutionResult {
+  success: boolean;
+  value?: string | number;
+  error?: ErrorResult;
+  executionTime?: number;
+  fallbackUsed?: boolean;
 }
 
 /**
@@ -114,40 +126,126 @@ export class IdHandlerRegistry extends Registry<IdHandler> {
   }
 
   /**
-   * Execute a handler to generate an ID
+   * Execute a handler to generate an ID with comprehensive error handling
    */
-  async execute(id: string, entity: string, data?: any): Promise<string | number> {
+  async execute(id: string, entity: string, data?: any): Promise<HandlerExecutionResult> {
+    const startTime = Date.now();
     const handler = this.getHandler(id);
+    
     if (!handler) {
-      throw new Error(`Handler with id '${id}' not found`);
+      const error = idHandlerErrorManager.handleExecutionError(
+        new Error(`Handler with id '${id}' not found`),
+        id,
+        entity,
+        { availableHandlers: Object.keys(this.all()) }
+      );
+      
+      return {
+        success: false,
+        error,
+        executionTime: Date.now() - startTime
+      };
     }
 
     try {
       const result = await Promise.resolve(handler.handler(entity, data));
+      const executionTime = Date.now() - startTime;
       
       // Validate the result type
       if (typeof result !== 'string' && typeof result !== 'number') {
-        throw new Error(`Handler '${id}' returned invalid type: expected string or number, got ${typeof result}`);
+        const error = idHandlerErrorManager.handleExecutionError(
+          new Error(`Handler returned invalid type: expected string or number, got ${typeof result}`),
+          id,
+          entity,
+          { returnedValue: result, returnedType: typeof result }
+        );
+        
+        return {
+          success: false,
+          error,
+          executionTime
+        };
       }
 
-      return result;
+      // Check for performance issues
+      if (executionTime > 100) {
+        const performanceWarning = idHandlerErrorManager.handlePerformanceWarning(
+          executionTime,
+          id,
+          { entity, dataProvided: !!data }
+        );
+        
+        return {
+          success: true,
+          value: result,
+          executionTime,
+          error: performanceWarning.warnings.length > 0 ? performanceWarning : undefined
+        };
+      }
+
+      return {
+        success: true,
+        value: result,
+        executionTime
+      };
     } catch (error) {
-      throw new Error(`Handler '${id}' execution failed: ${error instanceof Error ? error.message : String(error)}`);
+      const executionTime = Date.now() - startTime;
+      const errorResult = idHandlerErrorManager.handleExecutionError(
+        error instanceof Error ? error : new Error(String(error)),
+        id,
+        entity,
+        { executionTime, dataProvided: !!data }
+      );
+      
+      return {
+        success: false,
+        error: errorResult,
+        executionTime
+      };
     }
   }
 
   /**
-   * Execute a handler with fallback to UUID generation
+   * Execute a handler with automatic fallback to UUID generation
    */
-  async executeWithFallback(id: string, entity: string, data?: any): Promise<string | number> {
-    try {
-      return await this.execute(id, entity, data);
-    } catch (error) {
-      console.warn(`Custom ID handler '${id}' failed, falling back to UUID:`, error);
-      // Import uuidv7 dynamically to avoid circular dependencies
-      const { uuidv7 } = await import("bknd/utils");
-      return uuidv7();
+  async executeWithFallback(id: string, entity: string, data?: any): Promise<HandlerExecutionResult> {
+    const result = await this.execute(id, entity, data);
+    
+    if (!result.success) {
+      // Log the error for debugging
+      console.warn(`Custom ID handler '${id}' failed, falling back to UUID:`, 
+        idHandlerErrorManager.generateErrorSummary(result.error!));
+      
+      try {
+        // Import uuidv7 dynamically to avoid circular dependencies
+        const { uuidv7 } = await import("bknd/utils");
+        const fallbackValue = uuidv7();
+        
+        return {
+          success: true,
+          value: fallbackValue,
+          executionTime: result.executionTime,
+          fallbackUsed: true,
+          error: result.error // Keep original error for reference
+        };
+      } catch (fallbackError) {
+        // Even fallback failed - this is a critical error
+        const criticalError = idHandlerErrorManager.handleExecutionError(
+          new Error(`Both custom handler and UUID fallback failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`),
+          id,
+          entity,
+          { originalError: result.error, fallbackError }
+        );
+        
+        return {
+          success: false,
+          error: criticalError,
+          executionTime: result.executionTime
+        };
+      }
     }
+    
+    return result;
   }
 
   /**

@@ -1,5 +1,6 @@
 import type { CustomIdHandlerConfig } from "./PrimaryField";
 import type { IdHandler, ValidationResult } from "./IdHandlerRegistry";
+import { idHandlerErrorManager, type ErrorResult, ErrorCategory, ErrorSeverity } from "./IdHandlerErrorManager";
 import { resolve } from "path";
 import { existsSync } from "fs";
 
@@ -8,45 +9,45 @@ import { existsSync } from "fs";
  */
 export class IdHandlerValidator {
   /**
-   * Validate a custom ID handler configuration
+   * Validate a custom ID handler configuration with enhanced error handling
    */
   validateConfig(config: CustomIdHandlerConfig): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Validate required fields
+    // Validate required fields with detailed error messages
     if (!config.type) {
-      errors.push("Handler type is required");
+      errors.push("Handler type is required. Choose either 'function' for inline handlers or 'import' for external modules.");
     } else if (!["function", "import"].includes(config.type)) {
-      errors.push("Handler type must be 'function' or 'import'");
+      errors.push(`Invalid handler type '${config.type}'. Must be 'function' or 'import'.`);
     }
 
-    // Validate function type configuration
+    // Validate function type configuration with enhanced feedback
     if (config.type === "function") {
       if (!config.handler) {
-        errors.push("Handler function is required when type is 'function'");
+        errors.push("Handler function is required when type is 'function'. Provide a function that accepts (entity: string, data?: any) and returns string | number | Promise<string | number>.");
       } else if (typeof config.handler !== "function") {
-        errors.push("Handler must be a function when type is 'function'");
+        errors.push(`Handler must be a function when type is 'function', got ${typeof config.handler}. Ensure you're providing a valid JavaScript function.`);
       } else {
-        // Validate function signature
+        // Validate function signature with detailed feedback
         const funcValidation = this.validateHandlerFunction(config.handler);
         errors.push(...funcValidation.errors);
         warnings.push(...funcValidation.warnings);
       }
 
-      // Warn about unused import fields
+      // Warn about unused import fields with helpful context
       if (config.importPath) {
-        warnings.push("importPath is ignored when type is 'function'");
+        warnings.push("importPath is ignored when type is 'function'. Remove this field or change type to 'import' if you want to use an external module.");
       }
       if (config.functionName) {
-        warnings.push("functionName is ignored when type is 'function'");
+        warnings.push("functionName is ignored when type is 'function'. Remove this field or change type to 'import' if you want to use an external module.");
       }
     }
 
-    // Validate import type configuration
+    // Validate import type configuration with enhanced feedback
     if (config.type === "import") {
       if (!config.importPath) {
-        errors.push("importPath is required when type is 'import'");
+        errors.push("importPath is required when type is 'import'. Provide the path to the module containing your ID handler function (e.g., './utils/id-generators' or 'my-id-package').");
       } else {
         const importValidation = this.validateImportPath(config.importPath);
         errors.push(...importValidation.errors);
@@ -54,21 +55,34 @@ export class IdHandlerValidator {
       }
 
       if (config.functionName === undefined || config.functionName === null) {
-        errors.push("functionName is required when type is 'import'");
+        errors.push("functionName is required when type is 'import'. Specify the name of the exported function to use as the ID handler.");
       } else if (typeof config.functionName !== "string" || config.functionName.trim() === "") {
-        errors.push("functionName must be a non-empty string");
+        errors.push("functionName must be a non-empty string. Provide the exact name of the exported function.");
       }
 
-      // Warn about unused function field
+      // Warn about unused function field with helpful context
       if (config.handler) {
-        warnings.push("handler function is ignored when type is 'import'");
+        warnings.push("handler function is ignored when type is 'import'. Remove this field or change type to 'function' if you want to use an inline function.");
       }
     }
 
-    // Validate options if present
+    // Validate options with enhanced feedback
     if (config.options !== undefined) {
       if (typeof config.options !== "object" || config.options === null || Array.isArray(config.options)) {
-        errors.push("options must be a plain object");
+        errors.push("options must be a plain object (e.g., { prefix: 'USER', startFrom: 1000 }). Arrays and null values are not allowed.");
+      } else {
+        // Check for potentially problematic option values
+        const optionKeys = Object.keys(config.options);
+        if (optionKeys.length > 10) {
+          warnings.push(`Large number of options (${optionKeys.length}). Consider simplifying the configuration for better maintainability.`);
+        }
+        
+        // Check for reserved option names that might conflict
+        const reservedNames = ['entity', 'data', 'type', 'handler'];
+        const conflictingKeys = optionKeys.filter(key => reservedNames.includes(key));
+        if (conflictingKeys.length > 0) {
+          warnings.push(`Option keys [${conflictingKeys.join(', ')}] may conflict with handler parameters. Consider using different names.`);
+        }
       }
     }
 
