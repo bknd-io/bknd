@@ -10,6 +10,7 @@ import {
 } from "bknd/utils";
 import type { ModuleBuildContext } from "modules";
 import { excludePropertyTypes, rescursiveClean } from "./utils";
+import type { DbModuleManager } from "modules/manager/DbModuleManager";
 
 export const mcpSchemaSymbol = Symbol.for("bknd-mcp-schema");
 
@@ -73,5 +74,14 @@ export class McpSchemaHelper<AdditionalOptions = {}> {
             ...rest.annotations,
          },
       };
+   }
+
+   getManager(ctx: AppToolHandlerCtx): DbModuleManager {
+      const manager = ctx.context.app.modules;
+      if ("mutateConfigSafe" in manager) {
+         return manager as DbModuleManager;
+      }
+
+      throw new Error("Manager not found");
    }
 }

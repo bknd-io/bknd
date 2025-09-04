@@ -19,9 +19,11 @@ export function getSystemMcp(app: App) {
    ].sort((a, b) => a.name.localeCompare(b.name));
 
    // tools from app schema
-   tools.push(
-      ...nodes.flatMap((n) => n.schema.getTools(n)).sort((a, b) => a.name.localeCompare(b.name)),
-   );
+   if (!app.isReadOnly()) {
+      tools.push(
+         ...nodes.flatMap((n) => n.schema.getTools(n)).sort((a, b) => a.name.localeCompare(b.name)),
+      );
+   }
 
    const resources = [...middlewareServer.resources, ...app.modules.ctx().mcp.resources];
 

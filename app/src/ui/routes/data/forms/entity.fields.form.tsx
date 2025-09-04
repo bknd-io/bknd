@@ -29,6 +29,7 @@ import { MantineSelect } from "ui/components/form/hook-form-mantine/MantineSelec
 import type { TPrimaryFieldFormat } from "data/fields/PrimaryField";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import ErrorBoundary from "ui/components/display/ErrorBoundary";
+import { SchemaEditable } from "ui/client/bknd";
 
 const fieldsSchemaObject = originalFieldsSchemaObject;
 const fieldsSchema = s.anyOf(Object.values(fieldsSchemaObject));
@@ -64,6 +65,7 @@ export type EntityFieldsFormProps = {
    routePattern?: string;
    defaultPrimaryFormat?: TPrimaryFieldFormat;
    isNew?: boolean;
+   readonly?: boolean;
 };
 
 export type EntityFieldsFormRef = {
@@ -76,7 +78,7 @@ export type EntityFieldsFormRef = {
 
 export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsFormProps>(
    function EntityFieldsForm(
-      { fields: _fields, sortable, additionalFieldTypes, routePattern, isNew, ...props },
+      { fields: _fields, sortable, additionalFieldTypes, routePattern, isNew, readonly, ...props },
       ref,
    ) {
       const entityFields = Object.entries(_fields).map(([name, field]) => ({
@@ -162,6 +164,7 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
                            disableIndices={[0]}
                            renderItem={({ dnd, ...props }, index) => (
                               <EntityFieldMemo
+                                 readonly={readonly}
                                  key={props.id}
                                  field={props as any}
                                  index={index}
@@ -181,6 +184,7 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
                         <div>
                            {fields.map((field, index) => (
                               <EntityField
+                                 readonly={readonly}
                                  key={field.id}
                                  field={field as any}
                                  index={index}
@@ -197,20 +201,22 @@ export const EntityFieldsForm = forwardRef<EntityFieldsFormRef, EntityFieldsForm
                         </div>
                      )}
 
-                     <Popover
-                        className="flex flex-col w-full"
-                        target={({ toggle }) => (
-                           <SelectType
-                              additionalFieldTypes={additionalFieldTypes}
-                              onSelected={toggle}
-                              onSelect={(type) => {
-                                 handleAppend(type as any);
-                              }}
-                           />
-                        )}
-                     >
-                        <Button className="justify-center">Add Field</Button>
-                     </Popover>
+                     <SchemaEditable>
+                        <Popover
+                           className="flex flex-col w-full"
+                           target={({ toggle }) => (
+                              <SelectType
+                                 additionalFieldTypes={additionalFieldTypes}
+                                 onSelected={toggle}
+                                 onSelect={(type) => {
+                                    handleAppend(type as any);
+                                 }}
+                              />
+                           )}
+                        >
+                           <Button className="justify-center">Add Field</Button>
+                        </Popover>
+                     </SchemaEditable>
                   </div>
                </div>
             </div>
@@ -288,6 +294,7 @@ function EntityField({
    dnd,
    routePattern,
    primary,
+   readonly,
 }: {
    field: FieldArrayWithId<TFieldsFormSchema, "fields", "id">;
    index: number;
@@ -303,6 +310,7 @@ function EntityField({
       defaultFormat?: TPrimaryFieldFormat;
       editable?: boolean;
    };
+   readonly?: boolean;
 }) {
    const prefix = `fields.${index}.field` as const;
    const type = field.field.type;
@@ -393,6 +401,7 @@ function EntityField({
                         <span className="text-xs text-primary/50 leading-none">Required</span>
                         <MantineSwitch
                            size="sm"
+                           disabled={readonly}
                            name={`${prefix}.config.required`}
                            control={control}
                         />
@@ -433,6 +442,7 @@ function EntityField({
                         <div className="flex flex-row">
                            <MantineSwitch
                               label="Required"
+                              disabled={readonly}
                               name={`${prefix}.config.required`}
                               control={control}
                            />
@@ -440,11 +450,13 @@ function EntityField({
                         <TextInput
                            label="Label"
                            placeholder="Label"
+                           disabled={readonly}
                            {...register(`${prefix}.config.label`)}
                         />
                         <Textarea
                            label="Description"
                            placeholder="Description"
+                           disabled={readonly}
                            {...register(`${prefix}.config.description`)}
                         />
                         {!hidden.includes("virtual") && (
@@ -452,7 +464,7 @@ function EntityField({
                               label="Virtual"
                               name={`${prefix}.config.virtual`}
                               control={control}
-                              disabled={disabled.includes("virtual")}
+                              disabled={disabled.includes("virtual") || readonly}
                            />
                         )}
                      </div>
@@ -468,6 +480,7 @@ function EntityField({
                                     ...value,
                                  });
                               }}
+                              readonly={readonly}
                            />
                         </ErrorBoundary>
                      </div>
@@ -478,16 +491,18 @@ function EntityField({
                         return <JsonViewer json={json} expand={4} />;
                      })()}
                   </Tabs.Panel>
-                  <div className="flex flex-row justify-end">
-                     <Button
-                        IconLeft={TbTrash}
-                        onClick={handleDelete(index)}
-                        size="small"
-                        variant="subtlered"
-                     >
-                        Delete
-                     </Button>
-                  </div>
+                  {!readonly && (
+                     <div className="flex flex-row justify-end">
+                        <Button
+                           IconLeft={TbTrash}
+                           onClick={handleDelete(index)}
+                           size="small"
+                           variant="subtlered"
+                        >
+                           Delete
+                        </Button>
+                     </div>
+                  )}
                </Tabs>
             </div>
          )}
@@ -498,9 +513,11 @@ function EntityField({
 const SpecificForm = ({
    field,
    onChange,
+   readonly,
 }: {
    field: FieldArrayWithId<TFieldsFormSchema, "fields", "id">;
    onChange: (value: any) => void;
+   readonly?: boolean;
 }) => {
    const type = field.field.type;
    const specificData = omit(field.field.config, commonProps);
@@ -513,6 +530,7 @@ const SpecificForm = ({
          uiSchema={dataFieldsUiSchema.config}
          className="legacy hide-required-mark fieldset-alternative mute-root"
          onChange={onChange}
+         readonly={readonly}
       />
    );
 };

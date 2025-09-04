@@ -28,7 +28,7 @@ export {
    type ModuleBuildContext,
    type InitialModuleConfigs,
    ModuleManagerEvents,
-} from "./modules/ModuleManager";
+} from "./modules/manager/ModuleManager";
 
 export type { ServerEnv } from "modules/Controller";
 export type { BkndConfig } from "bknd/adapter";

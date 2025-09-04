@@ -65,31 +65,21 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
    args?: Args,
    opts?: CreateAdapterAppOptions,
 ): Promise<App> {
-   const id = opts?.id ?? "app";
-   let app = apps.get(id);
-   if (!app || opts?.force) {
-      const appConfig = await makeConfig(config, args);
-      if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
-         let connection: Connection | undefined;
-         if (Connection.isConnection(config.connection)) {
-            connection = config.connection;
-         } else {
-            const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
-            const conf = appConfig.connection ?? { url: ":memory:" };
-            connection = sqlite(conf) as any;
-            $console.info(`Using ${connection!.name} connection`, conf.url);
-         }
-         appConfig.connection = connection;
+   const appConfig = await makeConfig(config, args);
+   if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
+      let connection: Connection | undefined;
+      if (Connection.isConnection(config.connection)) {
+         connection = config.connection;
+      } else {
+         const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
+         const conf = appConfig.connection ?? { url: ":memory:" };
+         connection = sqlite(conf) as any;
+         $console.info(`Using ${connection!.name} connection`, conf.url);
       }
-
-      app = App.create(appConfig);
-
-      if (!opts?.force) {
-         apps.set(id, app);
-      }
+      appConfig.connection = connection;
    }
 
-   return app;
+   return App.create(appConfig);
 }
 
 export async function createFrameworkApp<Args = DefaultArgs>(

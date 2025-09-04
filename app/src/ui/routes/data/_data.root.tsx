@@ -22,6 +22,7 @@ import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate, useRouteNavigate } from "ui/lib/routes";
 import { testIds } from "ui/lib/config";
+import { SchemaEditable, useBknd } from "ui/client/bknd";
 
 export function DataRoot({ children }) {
    // @todo: settings routes should be centralized
@@ -73,9 +74,11 @@ export function DataRoot({ children }) {
                         value={context}
                         onChange={handleSegmentChange}
                      />
-                     <Tooltip label="New Entity">
-                        <IconButton Icon={TbDatabasePlus} onClick={$data.modals.createEntity} />
-                     </Tooltip>
+                     <SchemaEditable>
+                        <Tooltip label="New Entity">
+                           <IconButton Icon={TbDatabasePlus} onClick={$data.modals.createEntity} />
+                        </Tooltip>
+                     </SchemaEditable>
                   </>
                }
             >
@@ -254,9 +257,24 @@ export function DataEmpty() {
    useBrowserTitle(["Data"]);
    const [navigate] = useNavigate();
    const { $data } = useBkndData();
+   const { readonly } = useBknd();
 
    function handleButtonClick() {
       navigate(routes.data.schema.root());
+   }
+
+   if (readonly) {
+      return (
+         <Empty
+            Icon={IconDatabase}
+            title="No entity selected"
+            description="Please select an entity from the left sidebar."
+            primary={{
+               children: "Go to schema",
+               onClick: handleButtonClick,
+            }}
+         />
+      );
    }
 
    return (
