@@ -3,6 +3,7 @@ import { d1Sqlite, type D1ConnectionConfig } from "./connection/D1Connection";
 export {
    getFresh,
    createApp,
+   serve,
    type CloudflareEnv,
    type CloudflareBkndConfig,
 } from "./cloudflare-workers.adapter";
