@@ -165,34 +165,6 @@ export class DbModuleManager extends ModuleManager {
       return { configs, secrets };
    }
 
-   extractSecrets() {
-      const moduleConfigs = structuredClone(this.configs());
-      const secrets = this.options?.secrets || ({} as any);
-
-      for (const [key, module] of Object.entries(this.modules)) {
-         const config = moduleConfigs[key];
-         const schema = module.getSchema();
-
-         const extracted = [...schema.walk({ data: config })].filter(
-            (n) => n.schema instanceof SecretSchema,
-         );
-
-         //console.log("extracted", key, extracted, config);
-         for (const n of extracted) {
-            const path = [key, ...n.instancePath].join(".");
-            if (typeof n.data === "string" && n.data.length > 0) {
-               secrets[path] = n.data;
-               setPath(moduleConfigs, path, "");
-            }
-         }
-      }
-
-      return {
-         configs: moduleConfigs,
-         secrets,
-      };
-   }
-
    async save() {
       this.logger.context("save").log("saving version", this.version());
       const { configs, secrets } = this.extractSecrets();
@@ -234,7 +206,7 @@ export class DbModuleManager extends ModuleManager {
                updates.push({
                   version: state.configs.version,
                   type: "secrets",
-                  json: secrets,
+                  json: secrets as any,
                });
             }
             await this.mutator().insertMany(updates);

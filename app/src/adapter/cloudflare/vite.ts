@@ -24,7 +24,9 @@ export function devFsVitePlugin({
          projectRoot = config.root;
       },
       configureServer(server) {
-         if (!isDev) return;
+         if (!isDev) {
+            return;
+         }
 
          // Intercept stdout to watch for our write requests
          const originalStdoutWrite = process.stdout.write;
@@ -78,7 +80,10 @@ export function devFsVitePlugin({
       // @ts-ignore
       transform(code, id, options) {
          // Only transform in SSR mode during development
-         if (!isDev || !options?.ssr) return;
+         //if (!isDev || !options?.ssr) return;
+         if (!isDev) {
+            return;
+         }
 
          // Check if this is the bknd config file
          if (id.includes(configFile)) {
