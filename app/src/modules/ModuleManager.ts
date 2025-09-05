@@ -210,7 +210,7 @@ export class ModuleManager {
 
    extractSecrets() {
       const moduleConfigs = structuredClone(this.configs());
-      const secrets = this.options?.secrets || ({} as any);
+      const secrets = { ...this.options?.secrets };
       const extractedKeys: string[] = [];
 
       for (const [key, module] of Object.entries(this.modules)) {
@@ -221,11 +221,10 @@ export class ModuleManager {
             (n) => n.schema instanceof SecretSchema,
          );
 
-         //console.log("extracted", key, extracted, config);
          for (const n of extracted) {
             const path = [key, ...n.instancePath].join(".");
 
-            if (typeof n.data === "string" && n.data.length > 0) {
+            if (typeof n.data === "string") {
                extractedKeys.push(path);
                secrets[path] = n.data;
                setPath(moduleConfigs, path, "");
@@ -264,11 +263,11 @@ export class ModuleManager {
       // if secrets were provided, extract, merge and build again
       const provided_secrets = this.options?.secrets ?? {};
       if (Object.keys(provided_secrets).length > 0) {
-         const { configs, secrets, extractedKeys } = this.extractSecrets();
+         const { configs, extractedKeys } = this.extractSecrets();
 
          for (const key of extractedKeys) {
             if (key in provided_secrets) {
-               setPath(configs, key, secrets[key]);
+               setPath(configs, key, provided_secrets[key]);
             }
          }
 
