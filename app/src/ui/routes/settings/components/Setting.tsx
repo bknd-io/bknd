@@ -107,8 +107,8 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
       return;
    });
 
-   const deleteAllowed = options?.allowDelete?.(config) ?? true;
-   const editAllowed = options?.allowEdit?.(config) ?? true;
+   const deleteAllowed = (options?.allowDelete?.(config) ?? true) && !readonly;
+   const editAllowed = (options?.allowEdit?.(config) ?? true) && !readonly;
    const showAlert = options?.showAlert?.(config) ?? undefined;
 
    console.log("--setting", { schema, config, prefix, path, exclude });
@@ -120,14 +120,14 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
       extractedKeys.find((key) => window.location.pathname.endsWith(key)) ?? extractedKeys[0];
 
    const onToggleEdit = useEvent(() => {
-      if (!editAllowed || readonly) return;
+      if (!editAllowed) return;
 
       setEditing((prev) => !prev);
       //formRef.current?.cancel();
    });
 
    const onSave = useEvent(async () => {
-      if (!editAllowed || !editing || readonly) return;
+      if (!editAllowed || !editing) return;
 
       if (formRef.current?.validateForm()) {
          setSubmitting(true);
@@ -215,14 +215,14 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
                   >
                      <IconButton Icon={TbSettings} />
                   </Dropdown>
-                  <Button onClick={onToggleEdit} disabled={!editAllowed || readonly}>
+                  <Button onClick={onToggleEdit} disabled={!editAllowed}>
                      {editing ? "Cancel" : "Edit"}
                   </Button>
                   {editing && (
                      <Button
                         variant="primary"
                         onClick={onSave}
-                        disabled={submitting || !editAllowed || readonly}
+                        disabled={submitting || !editAllowed}
                      >
                         {submitting ? "Save..." : "Save"}
                      </Button>

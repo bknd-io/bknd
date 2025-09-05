@@ -339,15 +339,15 @@ export const SectionHeaderLink = <E extends React.ElementType = "a">({
       <Tag
          {...props}
          className={twMerge(
-            "hover:bg-primary/5 flex flex-row items-center justify-center gap-2.5 px-5 h-12 leading-none font-medium text-primary/80 rounded-tr-lg rounded-tl-lg",
+            "flex flex-row items-center justify-center gap-2.5 px-5 h-12 leading-none font-medium text-primary/80 rounded-tr-lg rounded-tl-lg cursor-pointer z-2",
             active
-               ? "bg-background hover:bg-background text-primary border border-muted border-b-0"
-               : "link",
+               ? "bg-primary/3 text-primary border border-muted border-b-0"
+               : "link hover:bg-primary/2",
             badge && "pr-4",
             className,
          )}
       >
-         {children}
+         <span className="truncate">{children}</span>
          {badge ? (
             <span className="px-3 py-1 rounded-full font-mono bg-primary/5 text-sm leading-none">
                {badge}
@@ -365,8 +365,8 @@ export type SectionHeaderTabsProps = {
 };
 export const SectionHeaderTabs = ({ title, items }: SectionHeaderTabsProps) => {
    return (
-      <SectionHeader className="mt-10 border-t pl-3 pb-0 items-end">
-         <div className="flex flex-row items-center gap-6 -mb-px">
+      <SectionHeader className="mt-10 border-t border-t-muted pl-3 pb-0 items-end overflow-x-scroll app-scrollbar relative after:inset-0 after:z-1">
+         <div className="flex flex-row items-center gap-6 relative">
             {title && (
                <SectionHeaderTitle className="pl-2 hidden md:block">{title}</SectionHeaderTitle>
             )}

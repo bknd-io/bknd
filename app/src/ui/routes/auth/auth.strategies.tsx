@@ -60,6 +60,7 @@ const formOptions = {
 };
 
 function AuthStrategiesListInternal() {
+   const { readonly } = useBknd();
    const $auth = useBkndAuth();
    const config = $auth.config.strategies;
    const schema = $auth.schema.properties.strategies;
@@ -80,6 +81,7 @@ function AuthStrategiesListInternal() {
          initialValues={config}
          onSubmit={handleSubmit}
          options={formOptions}
+         readOnly={readonly}
       >
          <Subscribe
             selector={(state) => ({
@@ -92,13 +94,15 @@ function AuthStrategiesListInternal() {
                <AppShell.SectionHeader
                   className="pl-4"
                   right={
-                     <Button
-                        variant="primary"
-                        type="submit"
-                        disabled={!dirty || errors || submitting}
-                     >
-                        Update
-                     </Button>
+                     !readonly && (
+                        <Button
+                           variant="primary"
+                           type="submit"
+                           disabled={!dirty || errors || submitting}
+                        >
+                           Update
+                        </Button>
+                     )
                   }
                >
                   Strategies
