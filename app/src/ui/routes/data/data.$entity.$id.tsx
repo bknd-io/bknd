@@ -17,6 +17,7 @@ import { bkndModals } from "ui/modals";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
+import { notifications } from "@mantine/notifications";
 
 export function DataEntityUpdate({ params }) {
    return <DataEntityUpdateImpl params={params} key={params.entity} />;
@@ -58,14 +59,22 @@ function DataEntityUpdateImpl({ params }) {
    async function onSubmitted(changeSet?: EntityData) {
       //return;
       if (!changeSet) {
-         goBack();
+         notifications.show({
+            title: `Updating ${entity?.label}`,
+            message: "No changes to update",
+            color: "yellow",
+         });
          return;
       }
 
       try {
          await $q.update(changeSet);
          if (error) setError(null);
-         goBack();
+         notifications.show({
+            title: `Updating ${entity?.label}`,
+            message: `Successfully updated ID ${entityId}`,
+            color: "green",
+         });
       } catch (e) {
          setError(e instanceof Error ? e.message : "Failed to update");
       }
@@ -76,6 +85,11 @@ function DataEntityUpdateImpl({ params }) {
          try {
             await $q._delete();
             if (error) setError(null);
+            notifications.show({
+               title: `Deleting ${entity?.label}`,
+               message: `Successfully deleted ID ${entityId}`,
+               color: "green",
+            });
             goBack();
          } catch (e) {
             setError(e instanceof Error ? e.message : "Failed to delete");
@@ -233,7 +247,7 @@ function EntityDetailRelations({
                return {
                   as: "button",
                   type: "button",
-                  label: ucFirst(other.reference),
+                  label: ucFirst(other.entity.label),
                   onClick: () => handleClick(relation),
                   active: selected?.other(entity).reference === other.reference,
                   badge: relation.type(),

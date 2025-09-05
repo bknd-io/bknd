@@ -12,6 +12,7 @@ import { routes, useNavigate } from "ui/lib/routes";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
 import { s } from "bknd/utils";
+import { notifications } from "@mantine/notifications";
 
 export function DataEntityCreate({ params }) {
    const { $data } = useBkndData();
@@ -39,10 +40,18 @@ export function DataEntityCreate({ params }) {
       if (!changeSet) return;
 
       try {
-         await $q.create(changeSet);
+         const result = await $q.create(changeSet);
          if (error) setError(null);
-         // @todo: navigate to created?
-         goBack();
+         if (result.id) {
+            notifications.show({
+               title: `Creating ${entity?.label}`,
+               message: `Successfully created with ID ${result.id}`,
+               color: "green",
+            });
+            navigate(routes.data.entity.edit(params.entity, result.id));
+         } else {
+            goBack();
+         }
       } catch (e) {
          setError(e instanceof Error ? e.message : "Failed to create");
       }
@@ -79,8 +88,12 @@ export function DataEntityCreate({ params }) {
                   />
                </>
             }
+            className="pl-3"
          >
-            <Breadcrumbs2 backTo={backHref} path={[{ label: entity.label }, { label: "Create" }]} />
+            <Breadcrumbs2
+               backTo={backHref}
+               path={[{ label: entity.label, href: backHref }, { label: "Create" }]}
+            />
          </AppShell.SectionHeader>
          <AppShell.Scrollable key={entity.name}>
             {error && (

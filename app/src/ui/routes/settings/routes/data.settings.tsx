@@ -67,7 +67,7 @@ export const DataSettings = ({
    schema,
    config,
 }: { schema: ModuleSchemas["data"]; config: ModuleConfigs["data"] }) => {
-   const { app } = useBknd();
+   const { app, readonly } = useBknd();
    const prefix = app.getAbsolutePath("settings");
    const entities = Object.keys(config.entities ?? {});
 
@@ -105,7 +105,7 @@ export const DataSettings = ({
                         options={{
                            showAlert: (config: any) => {
                               // it's weird, but after creation, the config is not set (?)
-                              if (config?.type === "primary") {
+                              if (config?.type === "primary" && !readonly) {
                                  return "Modifying the primary field may result in strange behaviors.";
                               }
                               return;
@@ -137,7 +137,7 @@ export const DataSettings = ({
                         config={config.entities?.[entity] as any}
                         options={{
                            showAlert: (config: any) => {
-                              if (config.type === "system") {
+                              if (config.type === "system" && !readonly) {
                                  return "Modifying the system entities may result in strange behaviors.";
                               }
                               return;

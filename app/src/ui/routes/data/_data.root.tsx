@@ -112,18 +112,27 @@ const EntityLinkList = ({
    suggestCreate = false,
 }: { entities: Entity[]; title?: string; context: "data" | "schema"; suggestCreate?: boolean }) => {
    const { $data } = useBkndData();
+   const { readonly } = useBknd();
    const navigate = useRouteNavigate();
+
    if (entities.length === 0) {
-      return suggestCreate ? (
-         <Empty
-            className="py-10"
-            description="Create your first entity to get started."
-            secondary={{
-               children: "Create entity",
-               onClick: () => $data.modals.createEntity(),
-            }}
-         />
-      ) : null;
+      if (suggestCreate) {
+         if (readonly) {
+            return <Empty className="py-10" description="No entities created." />;
+         }
+         return (
+            <Empty
+               className="py-10"
+               description="Create your first entity to get started."
+               secondary={{
+                  children: "Create entity",
+                  onClick: () => $data.modals.createEntity(),
+               }}
+            />
+         );
+      }
+
+      return null;
    }
 
    function handleClick(entity: Entity) {
@@ -163,7 +172,7 @@ const EntityLinkList = ({
                      href={href}
                      className="justify-between items-center"
                   >
-                     {entity.label}
+                     <span className="truncate">{entity.label}</span>
 
                      {isLinkActive(href, 1) && (
                         <Button
