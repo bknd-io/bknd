@@ -18,7 +18,7 @@ describe("AppMedia", () => {
       registries.media.register("local", StorageLocalAdapter);
 
       const app = createApp({
-         initialConfig: {
+         config: {
             media: {
                entity_name: "media",
                enabled: true,

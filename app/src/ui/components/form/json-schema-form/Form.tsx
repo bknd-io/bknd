@@ -61,6 +61,7 @@ export type FormContext<Data> = {
    options: FormOptions;
    root: string;
    _formStateAtom: PrimitiveAtom<FormState<Data>>;
+   readOnly: boolean;
 };
 
 const FormContext = createContext<FormContext<any>>(undefined!);
@@ -81,6 +82,7 @@ export function Form<
    hiddenSubmit = true,
    ignoreKeys = [],
    options = {},
+   readOnly = false,
    ...props
 }: Omit<ComponentPropsWithoutRef<"form">, "onChange" | "onSubmit"> & {
    schema: Schema;
@@ -93,6 +95,7 @@ export function Form<
    hiddenSubmit?: boolean;
    options?: FormOptions;
    initialValues?: Schema extends JSONSchema ? FromSchema<Schema> : never;
+   readOnly?: boolean;
 }) {
    const [schema, initial] = omitSchema(_schema, ignoreKeys, _initialValues);
    const lib = useMemo(() => new Draft2019(schema), [JSON.stringify(schema)]);
@@ -190,8 +193,9 @@ export function Form<
          options,
          root: "",
          path: "",
+         readOnly,
       }),
-      [schema, initialValues, options],
+      [schema, initialValues, options, readOnly],
    ) as any;
 
    return (

@@ -51,6 +51,7 @@ export class DataController extends Controller {
          "/sync",
          permission(DataPermissions.databaseSync),
          mcpTool("data_sync", {
+            // @todo: should be removed if readonly
             annotations: {
                destructiveHint: true,
             },

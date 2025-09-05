@@ -88,6 +88,7 @@ const FieldImpl = ({
    }, [inputProps?.defaultValue]);
 
    const disabled = firstDefined(
+      ctx.readOnly,
       inputProps?.disabled,
       props.disabled,
       schema.readOnly,

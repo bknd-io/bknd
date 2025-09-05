@@ -1,6 +1,14 @@
 import type { ModuleConfigs, ModuleSchemas } from "modules";
 import { getDefaultConfig, getDefaultSchema } from "modules/ModuleManager";
-import { createContext, startTransition, useContext, useEffect, useRef, useState } from "react";
+import {
+   createContext,
+   startTransition,
+   useContext,
+   useEffect,
+   useRef,
+   useState,
+   type ReactNode,
+} from "react";
 import { useApi } from "ui/client";
 import { type TSchemaActions, getSchemaActions } from "./schema/actions";
 import { AppReduced } from "./utils/AppReduced";
@@ -15,6 +23,7 @@ export type BkndAdminOptions = {
 };
 type BkndContext = {
    version: number;
+   readonly: boolean;
    schema: ModuleSchemas;
    config: ModuleConfigs;
    permissions: string[];
@@ -48,7 +57,12 @@ export function BkndProvider({
 }) {
    const [withSecrets, setWithSecrets] = useState<boolean>(includeSecrets);
    const [schema, setSchema] =
-      useState<Pick<BkndContext, "version" | "schema" | "config" | "permissions" | "fallback">>();
+      useState<
+         Pick<
+            BkndContext,
+            "version" | "schema" | "config" | "permissions" | "fallback" | "readonly"
+         >
+      >();
    const [fetched, setFetched] = useState(false);
    const [error, setError] = useState<boolean>();
    const errorShown = useRef<boolean>(false);
@@ -97,6 +111,7 @@ export function BkndProvider({
          ? res.body
          : ({
               version: 0,
+              mode: "db",
               schema: getDefaultSchema(),
               config: getDefaultConfig(),
               permissions: [],
@@ -172,4 +187,9 @@ export function useBkndOptions(): BkndAdminOptions {
          basepath: "/",
       }
    );
+}
+
+export function SchemaEditable({ children }: { children: ReactNode }) {
+   const { readonly } = useBknd();
+   return !readonly ? children : null;
 }

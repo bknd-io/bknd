@@ -2,7 +2,7 @@ import path from "node:path";
 import { serve as honoServe } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { registerLocalMediaAdapter } from "adapter/node/storage";
-import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
+import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
 import { config as $config, type App } from "bknd";
 import { $console } from "bknd/utils";
 
@@ -18,7 +18,6 @@ export type NodeBkndConfig<Env = NodeEnv> = RuntimeBkndConfig<Env> & {
 export async function createApp<Env = NodeEnv>(
    { distPath, relativeDistPath, ...config }: NodeBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ) {
    const root = path.relative(
       process.cwd(),
@@ -36,19 +35,17 @@ export async function createApp<Env = NodeEnv>(
       },
       // @ts-ignore
       args ?? { env: process.env },
-      opts,
    );
 }
 
 export function createHandler<Env = NodeEnv>(
    config: NodeBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ) {
    let app: App | undefined;
    return async (req: Request) => {
       if (!app) {
-         app = await createApp(config, args ?? (process.env as Env), opts);
+         app = await createApp(config, args ?? (process.env as Env));
       }
       return app.fetch(req);
    };
@@ -57,13 +54,12 @@ export function createHandler<Env = NodeEnv>(
 export function serve<Env = NodeEnv>(
    { port = $config.server.default_port, hostname, listener, ...config }: NodeBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ) {
    honoServe(
       {
          port,
          hostname,
-         fetch: createHandler(config, args, opts),
+         fetch: createHandler(config, args),
       },
       (connInfo) => {
          $console.log(`Server is running on http://localhost:${connInfo.port}`);

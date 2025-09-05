@@ -8,7 +8,9 @@ import { s } from "bknd/utils";
 import { cloneSchema } from "core/utils/schema";
 
 const schema = s.object({
-   name: entitySchema.properties.name,
+   name: s.string({
+      pattern: /^[a-z][a-zA-Z_]+$/,
+   }),
    config: entitySchema.properties.config.partial().optional(),
 });
 type Schema = s.Static<typeof schema>;

@@ -3,7 +3,7 @@ import { createApp } from "bknd/adapter/bun";
 async function generate() {
    console.info("Generating MCP documentation...");
    const app = await createApp({
-      initialConfig: {
+      config: {
          server: {
             mcp: {
                enabled: true,

@@ -88,7 +88,7 @@ describe("repros", async () => {
             fns.relation(schema.product_likes).manyToOne(schema.users);
          },
       );
-      const app = createApp({ initialConfig: { data: schema.toJSON() } });
+      const app = createApp({ config: { data: schema.toJSON() } });
       await app.build();
 
       const info = (await (await app.server.request("/api/data/info/products")).json()) as any;

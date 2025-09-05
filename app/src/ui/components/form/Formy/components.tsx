@@ -88,7 +88,7 @@ export const Input = forwardRef<HTMLInputElement, React.ComponentProps<"input">>
          {...props}
          ref={ref}
          className={twMerge(
-            "bg-muted/40 h-11 rounded-md py-2.5 px-4 outline-none w-full",
+            "bg-muted/40 h-11 rounded-md py-2.5 px-4 outline-none w-full disabled:cursor-not-allowed",
             disabledOrReadonly && "bg-muted/50 text-primary/50",
             !disabledOrReadonly &&
                "focus:bg-muted focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all",

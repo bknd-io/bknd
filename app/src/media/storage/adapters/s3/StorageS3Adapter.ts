@@ -8,15 +8,15 @@ import type {
 } from "@aws-sdk/client-s3";
 import { AwsClient } from "core/clients/aws/AwsClient";
 import { isDebug } from "core/env";
-import { isFile, pickHeaders2, parse, s } from "bknd/utils";
+import { isFile, pickHeaders2, parse, s, secret } from "bknd/utils";
 import { transform } from "lodash-es";
 import type { FileBody, FileListObject } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
 
 export const s3AdapterConfig = s.object(
    {
-      access_key: s.string(),
-      secret_access_key: s.string(),
+      access_key: secret(),
+      secret_access_key: secret(),
       url: s.string({
          pattern: "^https?://(?:.*)?[^/.]+$",
          description: "URL to S3 compatible endpoint without trailing slash",

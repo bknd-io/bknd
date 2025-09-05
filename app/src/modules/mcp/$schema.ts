@@ -58,8 +58,9 @@ export const $schema = <
          async (params, ctx: AppToolHandlerCtx) => {
             const { value, return_config, secrets } = params;
             const [module_name, ...rest] = node.instancePath;
+            const manager = mcp.getManager(ctx);
 
-            await ctx.context.app.mutateConfig(module_name as any).overwrite(rest, value);
+            await manager.mutateConfigSafe(module_name as any).overwrite(rest, value);
 
             let config: any = undefined;
             if (return_config) {

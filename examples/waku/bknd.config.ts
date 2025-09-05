@@ -25,7 +25,7 @@ export default {
       url: process.env.DB_URL ?? "file:data.db",
    },
    // an initial config is only applied if the database is empty
-   initialConfig: {
+   config: {
       data: schema.toJSON(),
       // we're enabling auth ...
       auth: {

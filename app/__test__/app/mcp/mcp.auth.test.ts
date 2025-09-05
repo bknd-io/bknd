@@ -29,7 +29,7 @@ describe("mcp auth", async () => {
    let server: McpServer;
    beforeEach(async () => {
       app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
                jwt: {

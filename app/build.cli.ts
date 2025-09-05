@@ -3,20 +3,25 @@ import c from "picocolors";
 import { formatNumber } from "bknd/utils";
 import * as esbuild from "esbuild";
 
+const deps = Object.keys(pkg.dependencies);
+const external = ["jsonv-ts/*", ...deps];
+
 if (process.env.DEBUG) {
-   await esbuild.build({
+   const result = await esbuild.build({
       entryPoints: ["./src/cli/index.ts"],
       outdir: "./dist/cli",
       platform: "node",
-      minify: false,
+      minify: true,
       format: "esm",
+      metafile: true,
       bundle: true,
-      external: ["jsonv-ts", "jsonv-ts/*"],
+      external,
       define: {
          __isDev: "0",
          __version: JSON.stringify(pkg.version),
       },
    });
+   await Bun.write("./dist/cli/metafile-esm.json", JSON.stringify(result.metafile, null, 2));
    process.exit(0);
 }
 
@@ -26,7 +31,7 @@ const result = await Bun.build({
    outdir: "./dist/cli",
    env: "PUBLIC_*",
    minify: true,
-   external: ["jsonv-ts", "jsonv-ts/*"],
+   external,
    define: {
       __isDev: "0",
       __version: JSON.stringify(pkg.version),

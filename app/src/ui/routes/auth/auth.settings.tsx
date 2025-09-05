@@ -52,6 +52,7 @@ const formConfig = {
 
 function AuthSettingsInternal() {
    const { config, schema: _schema, actions, $auth } = useBkndAuth();
+   const { readonly } = useBknd();
    const schema = JSON.parse(JSON.stringify(_schema));
 
    schema.properties.jwt.required = ["alg"];
@@ -61,7 +62,13 @@ function AuthSettingsInternal() {
    }
 
    return (
-      <Form schema={schema} initialValues={config as any} onSubmit={onSubmit} {...formConfig}>
+      <Form
+         schema={schema}
+         initialValues={config as any}
+         onSubmit={onSubmit}
+         {...formConfig}
+         readOnly={readonly}
+      >
          <Subscribe
             selector={(state) => ({
                dirty: state.dirty,
@@ -73,13 +80,15 @@ function AuthSettingsInternal() {
                <AppShell.SectionHeader
                   className="pl-4"
                   right={
-                     <Button
-                        variant="primary"
-                        type="submit"
-                        disabled={!dirty || errors || submitting}
-                     >
-                        Update
-                     </Button>
+                     !readonly && (
+                        <Button
+                           variant="primary"
+                           type="submit"
+                           disabled={!dirty || errors || submitting}
+                        >
+                           Update
+                        </Button>
+                     )
                   }
                >
                   Settings

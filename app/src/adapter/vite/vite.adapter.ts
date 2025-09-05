@@ -1,7 +1,7 @@
 import { serveStatic } from "@hono/node-server/serve-static";
 import { type DevServerOptions, default as honoViteDevServer } from "@hono/vite-dev-server";
 import type { App } from "bknd";
-import { type RuntimeBkndConfig, createRuntimeApp, type FrameworkOptions } from "bknd/adapter";
+import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
 import { devServerConfig } from "./dev-server-config";
 import type { MiddlewareHandler } from "hono";
@@ -30,7 +30,6 @@ ${addBkndContext ? "<!-- BKND_CONTEXT -->" : ""}
 async function createApp<ViteEnv>(
    config: ViteBkndConfig<ViteEnv> = {},
    env: ViteEnv = {} as ViteEnv,
-   opts: FrameworkOptions = {},
 ): Promise<App> {
    registerLocalMediaAdapter();
    return await createRuntimeApp(
@@ -47,18 +46,13 @@ async function createApp<ViteEnv>(
          ],
       },
       env,
-      opts,
    );
 }
 
-export function serve<ViteEnv>(
-   config: ViteBkndConfig<ViteEnv> = {},
-   args?: ViteEnv,
-   opts?: FrameworkOptions,
-) {
+export function serve<ViteEnv>(config: ViteBkndConfig<ViteEnv> = {}, args?: ViteEnv) {
    return {
       async fetch(request: Request, env: any, ctx: ExecutionContext) {
-         const app = await createApp(config, env, opts);
+         const app = await createApp(config, env);
          return app.fetch(request, env, ctx);
       },
    };
