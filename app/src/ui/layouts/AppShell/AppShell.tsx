@@ -339,10 +339,10 @@ export const SectionHeaderLink = <E extends React.ElementType = "a">({
       <Tag
          {...props}
          className={twMerge(
-            "flex flex-row items-center justify-center gap-2.5 px-5 h-12 leading-none font-medium text-primary/80 rounded-tr-lg rounded-tl-lg cursor-pointer z-2",
+            "hover:bg-primary/5 flex flex-row items-center justify-center gap-2.5 px-5 h-12 leading-none font-medium text-primary/80 rounded-tr-lg rounded-tl-lg cursor-pointer border border-transparent border-b-0",
             active
-               ? "bg-primary/3 text-primary border border-muted border-b-0"
-               : "link hover:bg-primary/2",
+               ? "bg-background hover:bg-background text-primary border-muted border-b-0"
+               : "link opacity-80",
             badge && "pr-4",
             className,
          )}
@@ -365,20 +365,27 @@ export type SectionHeaderTabsProps = {
 };
 export const SectionHeaderTabs = ({ title, items }: SectionHeaderTabsProps) => {
    return (
-      <SectionHeader className="mt-10 border-t border-t-muted pl-3 pb-0 items-end overflow-x-scroll app-scrollbar relative after:inset-0 after:z-1">
-         <div className="flex flex-row items-center gap-6 relative">
-            {title && (
-               <SectionHeaderTitle className="pl-2 hidden md:block">{title}</SectionHeaderTitle>
-            )}
-            <div className="flex flex-row items-center gap-3">
-               {items?.map(({ label, ...item }, key) => (
-                  <SectionHeaderLink key={key} {...item}>
-                     {label}
-                  </SectionHeaderLink>
-               ))}
-            </div>
+      <div className="relative">
+         <div className="absolute left-0 right-0 bottom-0 z-0 h-px bg-muted" />
+         <div className="overflow-x-scroll app-scrollbar mt-10 border-t border-t-muted">
+            <SectionHeader className="pl-3 pb-0 items-end ">
+               <div className="flex flex-row items-center gap-6 -mb-px">
+                  {title && (
+                     <SectionHeaderTitle className="pl-2 hidden md:block">
+                        {title}
+                     </SectionHeaderTitle>
+                  )}
+                  <div className="flex flex-row items-center gap-3 pr-3">
+                     {items?.map(({ label, ...item }, key) => (
+                        <SectionHeaderLink key={key} {...item} className="relative z-2">
+                           {label}
+                        </SectionHeaderLink>
+                     ))}
+                  </div>
+               </div>
+            </SectionHeader>
          </div>
-      </SectionHeader>
+      </div>
    );
 };
 
