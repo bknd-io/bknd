@@ -1,4 +1,4 @@
-import { objectEach, transformObject, McpServer, type s } from "bknd/utils";
+import { objectEach, transformObject, McpServer, type s, SecretSchema, setPath } from "bknd/utils";
 import { DebugLogger } from "core/utils/DebugLogger";
 import { Guard } from "auth/authorize/Guard";
 import { env } from "core/env";
@@ -15,6 +15,7 @@ import { AppData } from "data/AppData";
 import { AppFlows } from "flows/AppFlows";
 import { AppMedia } from "media/AppMedia";
 import type { PartialRec } from "core/types";
+import { mergeWith, pick } from "lodash-es";
 
 export type { ModuleBuildContext };
 
@@ -207,9 +208,43 @@ export class ModuleManager {
       };
    }
 
+   extractSecrets() {
+      const moduleConfigs = structuredClone(this.configs());
+      const secrets = this.options?.secrets || ({} as any);
+      const extractedKeys: string[] = [];
+
+      for (const [key, module] of Object.entries(this.modules)) {
+         const config = moduleConfigs[key];
+         const schema = module.getSchema();
+
+         const extracted = [...schema.walk({ data: config })].filter(
+            (n) => n.schema instanceof SecretSchema,
+         );
+
+         //console.log("extracted", key, extracted, config);
+         for (const n of extracted) {
+            const path = [key, ...n.instancePath].join(".");
+
+            if (typeof n.data === "string" && n.data.length > 0) {
+               extractedKeys.push(path);
+               secrets[path] = n.data;
+               setPath(moduleConfigs, path, "");
+            }
+         }
+      }
+
+      return {
+         configs: moduleConfigs,
+         secrets: pick(secrets, extractedKeys),
+         extractedKeys,
+      };
+   }
+
    protected async setConfigs(configs: ModuleConfigs): Promise<void> {
       this.logger.log("setting configs");
       for await (const [key, config] of Object.entries(configs)) {
+         if (!(key in this.modules)) continue;
+
          try {
             // setting "noEmit" to true, to not force listeners to update
             const result = await this.modules[key].schema().set(config as any, true);
@@ -225,6 +260,21 @@ export class ModuleManager {
    async build(opts?: any) {
       this.createModules(this.options?.initial ?? {});
       await this.buildModules();
+
+      // if secrets were provided, extract, merge and build again
+      const provided_secrets = this.options?.secrets ?? {};
+      if (Object.keys(provided_secrets).length > 0) {
+         const { configs, secrets, extractedKeys } = this.extractSecrets();
+
+         for (const key of extractedKeys) {
+            if (key in provided_secrets) {
+               setPath(configs, key, secrets[key]);
+            }
+         }
+
+         await this.setConfigs(configs);
+         await this.buildModules();
+      }
 
       return this;
    }

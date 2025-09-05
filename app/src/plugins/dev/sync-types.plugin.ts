@@ -2,10 +2,15 @@ import { App, type AppPlugin, EntityTypescript } from "bknd";
 
 export type SyncTypesOptions = {
    enabled?: boolean;
+   includeFirstBoot?: boolean;
    write: (et: EntityTypescript) => Promise<void>;
 };
 
-export function syncTypes({ enabled = true, write }: SyncTypesOptions): AppPlugin {
+export function syncTypes({
+   enabled = true,
+   includeFirstBoot = false,
+   write,
+}: SyncTypesOptions): AppPlugin {
    let firstBoot = true;
    return (app: App) => ({
       name: "bknd-sync-types",
@@ -21,7 +26,7 @@ export function syncTypes({ enabled = true, write }: SyncTypesOptions): AppPlugi
             },
          );
 
-         if (firstBoot) {
+         if (firstBoot && includeFirstBoot) {
             firstBoot = false;
             await write?.(new EntityTypescript(app.em));
          }
