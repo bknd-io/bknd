@@ -20,9 +20,13 @@ export class AppReduced {
 
    constructor(
       protected appJson: AppType,
-      protected _options: BkndAdminOptions = {},
+      protected _options: BkndAdminOptions & { basepath?: string } = {
+         basepath: "/",
+         admin_basepath: "",
+         logo_return_path: "/",
+      },
    ) {
-      //console.log("received appjson", appJson);
+      //console.log("received appjson", _options);
 
       this._entities = Object.entries(this.appJson.data.entities ?? {}).map(([name, entity]) => {
          return constructEntity(name, entity);
@@ -70,20 +74,28 @@ export class AppReduced {
 
    get options() {
       return {
-         basepath: "",
+         basepath: "/",
+         admin_basepath: "",
          logo_return_path: "/",
          ...this._options,
       };
    }
 
+   withBasePath(path: string | string[], absolute = false): string {
+      const paths = Array.isArray(path) ? path : [path];
+      return [absolute ? "~" : null, this.options.basepath, this.options.admin_basepath, ...paths]
+         .filter(Boolean)
+         .join("/")
+         .replace(/\/+/g, "/")
+         .replace(/\/$/, "");
+   }
+
    getSettingsPath(path: string[] = []): string {
-      const base = `~/${this.options.basepath}/settings`.replace(/\/+/g, "/");
-      return [base, ...path].join("/");
+      return this.withBasePath(["settings", ...path], true);
    }
 
    getAbsolutePath(path?: string): string {
-      const { basepath } = this.options;
-      return (path ? `~/${basepath}/${path}` : `~/${basepath}`).replace(/\/+/g, "/");
+      return this.withBasePath(path ?? [], true);
    }
 
    getAuthConfig() {
