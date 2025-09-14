@@ -86,10 +86,10 @@ async function buildApi() {
       outDir: "dist",
       external: [...external],
       metafile: true,
-      platform: "browser",
+      target: "esnext",
+      platform: "neutral",
       format: ["esm"],
       splitting: false,
-      treeshake: true,
       loader: {
          ".svg": "dataurl",
       },
@@ -245,6 +245,8 @@ async function buildAdapters() {
       // base adapter handles
       tsup.build({
          ...baseConfig(""),
+         target: "esnext",
+         platform: "neutral",
          entry: ["src/adapter/index.ts"],
          outDir: "dist/adapter",
       }),
