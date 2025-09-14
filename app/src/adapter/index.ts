@@ -173,7 +173,9 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
    return async (c: Context, next: Next) => {
       if (!files) {
          const manifest =
-            opts?.manifest || ((await import("bknd/dist/manifest.json")).default as Manifest);
+            opts?.manifest ||
+            ((await import("bknd/dist/manifest.json", { with: { type: "json" } }))
+               .default as Manifest);
          files = Object.values(manifest).flatMap((asset) => [asset.file, ...(asset.css || [])]);
       }
 
@@ -181,7 +183,7 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
       if (files.includes(path)) {
          try {
             const content = await import(/* @vite-ignore */ `bknd/static/${path}?raw`, {
-               assert: { type: "text" },
+               with: { type: "text" },
             }).then((m) => m.default);
 
             if (content) {
