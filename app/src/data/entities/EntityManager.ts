@@ -258,6 +258,9 @@ export class EntityManager<TBD extends object = DefaultDB> {
 
    // @todo: centralize and add tests
    hydrate(entity_name: string, _data: EntityData[]) {
+      if (!Array.isArray(_data) || _data.length === 0) {
+         return [];
+      }
       const entity = this.entity(entity_name);
       const data: EntityData[] = [];
 

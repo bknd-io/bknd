@@ -59,7 +59,7 @@ You can create a custom kysely postgres dialect by using the `createCustomPostgr
 ```ts
 import { createCustomPostgresConnection } from "@bknd/postgres";
 
-const connection = createCustomPostgresConnection(MyDialect)({
+const connection = createCustomPostgresConnection("my_postgres_dialect", MyDialect)({
    // your custom dialect configuration
    supports: {
       batching: true
@@ -75,7 +75,7 @@ const connection = createCustomPostgresConnection(MyDialect)({
 import { createCustomPostgresConnection } from "@bknd/postgres";
 import { NeonDialect } from "kysely-neon";
 
-const connection = createCustomPostgresConnection(NeonDialect)({
+const connection = createCustomPostgresConnection("neon", NeonDialect)({
    connectionString: process.env.NEON,
 });
 ```
@@ -94,7 +94,7 @@ const xata = new client({
    branch: process.env.XATA_BRANCH,
 });
 
-const connection = createCustomPostgresConnection(XataDialect, {
+const connection = createCustomPostgresConnection("xata", XataDialect, {
    supports: {
       batching: false,
    },

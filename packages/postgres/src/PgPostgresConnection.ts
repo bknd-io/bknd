@@ -1,12 +1,13 @@
 import { Kysely, PostgresDialect } from "kysely";
 import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
-import { customIntrospector } from "bknd/data";
+import { customIntrospector } from "bknd";
 import $pg from "pg";
 
 export type PgPostgresConnectionConfig = $pg.PoolConfig;
 
 export class PgPostgresConnection extends PostgresConnection {
+   override name = "pg";
    private pool: $pg.Pool;
 
    constructor(config: PgPostgresConnectionConfig) {
