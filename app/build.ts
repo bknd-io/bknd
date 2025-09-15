@@ -61,8 +61,11 @@ function delayTypes() {
    watcher_timeout = setTimeout(buildTypes, 1000);
 }
 
+const dependencies = Object.keys(pkg.dependencies);
+
 // collection of always-external packages
 const external = [
+   ...dependencies,
    "bun:test",
    "node:test",
    "node:assert/strict",
@@ -87,7 +90,7 @@ async function buildApi() {
       external: [...external],
       metafile: true,
       target: "esnext",
-      platform: "neutral",
+      platform: "browser",
       format: ["esm"],
       splitting: false,
       loader: {
