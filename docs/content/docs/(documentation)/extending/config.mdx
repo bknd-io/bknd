@@ -40,24 +40,49 @@ export type BkndConfig = CreateAppConfig & {
   onBuilt?: (app: App) => Promise<void>;
   // passed as the first argument to the `App.build` method
   buildConfig?: Parameters<App["build"]>[0];
-  // force the app to be recreated
-  force?: boolean;
-  // the id of the app, defaults to `app`
-  id?: string;
 };
 ```
 
 The supported configuration file extensions are `js`, `ts`, `mjs`, `cjs` and `json`. Throughout the documentation, we'll use `ts` for the file extension.
 
+## Example
+
+Here is an example of a configuration file that specifies a database connection, registers a plugin, add custom routes using [Hono](https://hono.dev/) and performs a [Kysely](https://kysely.dev/) query.
+
+```typescript
+import type { BkndConfig } from "bknd/adapter";
+import { showRoutes } from "bknd/plugins";
+
+export default {
+  connection: {
+    url: process.env.DB_URL ?? "file:data.db",
+  },
+  onBuilt: async (app) => {
+    // `app.server` is a Hono instance
+    const hono = app.server;
+    hono.get("/hello", (c) => c.text("Hello World"));
+
+    // for complex queries, you can use Kysely directly
+    const db = app.connection.kysely;
+    hono.get("/custom_query", async (c) => {
+      return c.json(await db.selectFrom("pages").selectAll().execute());
+    });
+  },
+  options: {
+    plugins: [showRoutes()],
+  },
+} satisfies BkndConfig;
+```
+
 ### `app` (CreateAppConfig)
 
-The `app` property is a function that returns a `CreateAppConfig` object. It allows to pass in the environment variables to the configuration object.
+The `app` property is a function that returns a `CreateAppConfig` object. It allows accessing the adapter specific environment variables. This is especially useful when using the [Cloudflare Workers](/integration/cloudflare) runtime, where the environment variables are only available inside the request handler.
 
 ```typescript
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-  app: ({ env }) => ({
+  app: (env) => ({
     connection: {
       url: env.DB_URL,
     },
@@ -103,12 +128,6 @@ export default {
   },
 };
 ```
-
-### `force` & `id`
-
-The `force` property is a boolean that forces the app to be recreated. This is mainly useful for serverless environments where the execution environment is re-used, and you may or may not want to recreate the app on every request.
-
-The `id` property is the reference in a cache map. You may create multiple instances of apps in the same process by using different ids (e.g. multi tenant applications).
 
 ## Framework & Runtime configuration
 
