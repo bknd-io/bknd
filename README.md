@@ -19,7 +19,7 @@ bknd simplifies app development by providing a fully functional backend for data
 **For documentation and examples, please visit https://docs.bknd.io.**
 
 > [!WARNING]
-> This project requires Node.js 22 or higher (because of `node:sqlite`).
+> This project requires Node.js 22.13 or higher (because of `node:sqlite`).
 >
 > Please keep in mind that **bknd** is still under active development
 > and therefore full backward compatibility is not guaranteed before reaching v1.0.0.

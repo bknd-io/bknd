@@ -5,7 +5,7 @@ WORKDIR /app
 
 # define bknd version to be used as:
 # `docker build --build-arg VERSION=<version> -t bknd .`
-ARG VERSION=0.13.0
+ARG VERSION=0.17.1
 
 # Install & copy required cli
 RUN npm install --omit=dev bknd@${VERSION}
@@ -16,10 +16,10 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-# Install pm2 and libsql
+# Install required dependencies
 RUN npm install -g pm2
 RUN echo '{"type":"module"}' > package.json
-RUN npm install @libsql/client
+RUN npm install jsonv-ts @libsql/client
 
 # Create volume and init args
 VOLUME /data

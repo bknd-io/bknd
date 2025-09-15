@@ -1,4 +1,11 @@
-import { Connection, type DbFunctions, type FieldSpec, type SchemaResponse } from "bknd/data";
+import {
+   Connection,
+   type DbFunctions,
+   type FieldSpec,
+   type SchemaResponse,
+   type ConnQuery,
+   type ConnQueryResults,
+} from "bknd";
 import {
    ParseJSONResultsPlugin,
    type ColumnDataType,
@@ -13,12 +20,13 @@ export type QB = SelectQueryBuilder<any, any, any>;
 
 export const plugins = [new ParseJSONResultsPlugin()];
 
-export abstract class PostgresConnection<DB = any> extends Connection<DB> {
+export abstract class PostgresConnection extends Connection {
    protected override readonly supported = {
       batching: true,
+      softscans: true,
    };
 
-   constructor(kysely: Kysely<DB>, fn?: Partial<DbFunctions>, _plugins?: KyselyPlugin[]) {
+   constructor(kysely: Kysely<any>, fn?: Partial<DbFunctions>, _plugins?: KyselyPlugin[]) {
       super(
          kysely,
          fn ?? {
@@ -73,13 +81,9 @@ export abstract class PostgresConnection<DB = any> extends Connection<DB> {
       ];
    }
 
-   protected override async batch<Queries extends QB[]>(
-      queries: [...Queries],
-   ): Promise<{
-      [K in keyof Queries]: Awaited<ReturnType<Queries[K]["execute"]>>;
-   }> {
+   override async executeQueries<O extends ConnQuery[]>(...qbs: O): Promise<ConnQueryResults<O>> {
       return this.kysely.transaction().execute(async (trx) => {
-         return Promise.all(queries.map((q) => trx.executeQuery(q).then((r) => r.rows)));
+         return Promise.all(qbs.map((q) => trx.executeQuery(q)));
       }) as any;
    }
 }

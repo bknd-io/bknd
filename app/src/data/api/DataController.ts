@@ -1,6 +1,15 @@
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec, omitKeys, pickKeys, mcpTool } from "bknd/utils";
+import {
+   jsc,
+   s,
+   describeRoute,
+   schemaToSpec,
+   omitKeys,
+   pickKeys,
+   mcpTool,
+   convertNumberedObjectToArray,
+} from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
 import type { EntityManager, EntityData } from "data/entities";
@@ -420,7 +429,13 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const body = (await c.req.json()) as EntityData | EntityData[];
+
+            const _body = (await c.req.json()) as EntityData | EntityData[];
+            // @todo: check on jsonv-ts how to handle this better
+            // temporary fix for numbered object to array
+            // this happens when the MCP tool uses the allOf function
+            // to transform all validation targets into a single object
+            const body = convertNumberedObjectToArray(_body);
 
             if (Array.isArray(body)) {
                const result = await this.em.mutator(entity).insertMany(body);
