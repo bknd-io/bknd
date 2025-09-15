@@ -147,7 +147,7 @@ To manually specify which D1 database to take, you can specify it explicitly:
 import { serve, d1 } from "bknd/adapter/cloudflare";
 
 export default serve<Env>({
-  app: ({ env }) => d1({ binding: env.D1_BINDING }),
+  app: (env) => d1({ binding: env.D1_BINDING }),
 });
 ```
 

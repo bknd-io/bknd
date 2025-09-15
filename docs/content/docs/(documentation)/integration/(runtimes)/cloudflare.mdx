@@ -52,17 +52,17 @@ export default serve();
 
 // manually specifying a D1 binding:
 export default serve<Env>({
-  app: ({ env }) => d1({ binding: env.D1_BINDING }),
+  app: (env) => d1({ binding: env.D1_BINDING }),
 });
 
 // or specify binding using `bindings`
 export default serve<Env>({
-  bindings: ({ env }) => ({ db: env.D1_BINDING }),
+  bindings: (env) => ({ db: env.D1_BINDING }),
 });
 
 // or use LibSQL
 export default serve<Env>({
-  app: ({ env }) => ({ url: env.DB_URL }),
+  app: (env) => ({ url: env.DB_URL }),
 });
 ```
 
@@ -199,7 +199,7 @@ import { d1 } from "bknd/adapter/cloudflare";
 import { withPlatformProxy } from "bknd/adapter/cloudflare/proxy";
 
 export default withPlatformProxy({
-  app: ({ env }) => ({
+  app: (env) => ({
      connection: d1({ binding: env.DB }),
   }),
 });
@@ -217,7 +217,7 @@ Instead, it's recommended to split this configuration into separate files, e.g. 
 import type { CloudflareBkndConfig } from "bknd/adapter/cloudflare";
 
 export default {
-  app: ({ env }) => ({
+  app: (env) => ({
      connection: d1({ binding: env.DB }),
   }),
 } satisfies CloudflareBkndConfig;

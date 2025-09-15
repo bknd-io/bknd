@@ -86,7 +86,7 @@ export default {
     url: "file:data.db",
   },
   // or use the `app` function which passes the environment variables
-  app: ({ env }) => ({
+  app: (env) => ({
     connection: {
       url: env.DB_URL,
     },
