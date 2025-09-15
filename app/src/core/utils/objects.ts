@@ -505,3 +505,10 @@ export function deepFreeze<T extends object>(object: T): T {
 
    return Object.freeze(object);
 }
+
+export function convertNumberedObjectToArray(obj: object): any[] | object {
+   if (Object.keys(obj).every((key) => Number.isInteger(Number(key)))) {
+      return Object.values(obj);
+   }
+   return obj;
+}

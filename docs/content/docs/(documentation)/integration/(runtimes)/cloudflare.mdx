@@ -52,17 +52,17 @@ export default serve();
 
 // manually specifying a D1 binding:
 export default serve<Env>({
-  app: ({ env }) => d1({ binding: env.D1_BINDING }),
+  app: (env) => d1({ binding: env.D1_BINDING }),
 });
 
 // or specify binding using `bindings`
 export default serve<Env>({
-  bindings: ({ env }) => ({ db: env.D1_BINDING }),
+  bindings: (env) => ({ db: env.D1_BINDING }),
 });
 
 // or use LibSQL
 export default serve<Env>({
-  app: ({ env }) => ({ url: env.DB_URL }),
+  app: (env) => ({ url: env.DB_URL }),
 });
 ```
 
@@ -81,7 +81,7 @@ your browser.
 
 Now in order to also server the static admin files, you have to modify the `wrangler.toml` to include the static assets. You can do so by either serving the static using the new [Assets feature](https://developers.cloudflare.com/workers/static-assets/), or the deprecated [Workers Site](https://developers.cloudflare.com/workers/configuration/sites/configuration/).
 
-### Assets
+### Assets (recommended)
 
 Make sure your assets point to the static assets included in the bknd package:
 
@@ -89,7 +89,7 @@ Make sure your assets point to the static assets included in the bknd package:
 assets = { directory = "node_modules/bknd/dist/static" }
 ```
 
-### Workers Sites
+### Workers Sites (legacy)
 
 Make sure your site points to the static assets included in the bknd package:
 
@@ -108,6 +108,7 @@ export default serve<Env>({
   app: () => ({
     /* ... */
   }),
+  assets: "kv", // [!code highlight]
   manifest, // [!code highlight]
 });
 ```
@@ -198,7 +199,7 @@ import { d1 } from "bknd/adapter/cloudflare";
 import { withPlatformProxy } from "bknd/adapter/cloudflare/proxy";
 
 export default withPlatformProxy({
-  app: ({ env }) => ({
+  app: (env) => ({
      connection: d1({ binding: env.DB }),
   }),
 });
@@ -216,7 +217,7 @@ Instead, it's recommended to split this configuration into separate files, e.g. 
 import type { CloudflareBkndConfig } from "bknd/adapter/cloudflare";
 
 export default {
-  app: ({ env }) => ({
+  app: (env) => ({
      connection: d1({ binding: env.DB }),
   }),
 } satisfies CloudflareBkndConfig;

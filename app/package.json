@@ -15,7 +15,7 @@
   },
   "packageManager": "bun@1.2.19",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13"
   },
   "scripts": {
     "dev": "BKND_CLI_LOG_LEVEL=debug vite",
@@ -30,7 +30,7 @@
     "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly && tsc-alias",
     "updater": "bun x npm-check-updates -ui",
     "cli": "LOCAL=1 bun src/cli/index.ts",
-    "prepublishOnly": "bun run types && bun run test && bun run test:node && bun run test:e2e && bun run build:all && cp ../README.md ./",
+    "prepublishOnly": "bun run types && bun run test && bun run test:node && VITE_DB_URL=:memory: bun run test:e2e && bun run build:all && cp ../README.md ./",
     "postpublish": "rm -f README.md",
     "test": "ALL_TESTS=1 bun test --bail",
     "test:all": "bun run test && bun run test:node",
@@ -39,8 +39,8 @@
     "test:adapters": "bun test src/adapter/**/*.adapter.spec.ts --bail",
     "test:coverage": "ALL_TESTS=1 bun test --bail --coverage",
     "test:vitest:coverage": "vitest run --coverage",
-    "test:e2e": "VITE_DB_URL=:memory: playwright test",
-    "test:e2e:adapters": "VITE_DB_URL=:memory: bun run e2e/adapters.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:adapters": "bun run e2e/adapters.ts",
     "test:e2e:ui": "VITE_DB_URL=:memory: playwright test --ui",
     "test:e2e:debug": "VITE_DB_URL=:memory: playwright test --debug",
     "test:e2e:report": "VITE_DB_URL=:memory: playwright show-report",
@@ -71,6 +71,7 @@
     "oauth4webapi": "^2.11.1",
     "object-path-immutable": "^4.1.2",
     "radix-ui": "^1.1.3",
+    "picocolors": "^1.1.1",
     "swr": "^2.3.3"
   },
   "devDependencies": {
@@ -108,7 +109,6 @@
     "libsql-stateless-easy": "^1.8.0",
     "open": "^10.1.0",
     "openapi-types": "^12.1.3",
-    "picocolors": "^1.1.1",
     "postcss": "^8.5.3",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",

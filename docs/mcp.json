@@ -35,8 +35,7 @@
             "minLength": 8
           },
           "role": {
-            "type": "string",
-            "enum": []
+            "type": "string"
           }
         },
         "required": [
@@ -134,10 +133,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -161,10 +167,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -194,10 +207,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -235,10 +255,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -276,10 +303,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           }
@@ -297,10 +331,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -334,10 +375,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -410,10 +458,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -462,10 +517,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -494,10 +556,17 @@
         ],
         "properties": {
           "entity": {
-            "type": "string",
-            "enum": [
-              "users",
-              "media"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "users",
+                  "media"
+                ]
+              },
+              {
+                "type": "string"
+              }
             ],
             "$target": "param"
           },
@@ -3994,6 +4063,10 @@
                   "enabled": {
                     "type": "boolean",
                     "default": false
+                  },
+                  "path": {
+                    "type": "string",
+                    "default": "/api/system/mcp"
                   }
                 }
               }

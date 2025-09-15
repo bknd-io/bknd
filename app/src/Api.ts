@@ -43,7 +43,7 @@ export type ApiOptions = {
 } & (
    | {
         token?: string;
-        user?: TApiUser;
+        user?: TApiUser | null;
      }
    | {
         request: Request;

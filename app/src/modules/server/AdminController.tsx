@@ -11,6 +11,7 @@ import { css, Style } from "hono/css";
 import { Controller } from "modules/Controller";
 import * as SystemPermissions from "modules/permissions";
 import type { TApiUser } from "Api";
+import type { Manifest } from "vite";
 
 const htmlBkndContextReplace = "<!-- BKND_CONTEXT -->";
 
@@ -32,6 +33,7 @@ export type AdminControllerOptions = {
    debugRerenders?: boolean;
    theme?: "dark" | "light" | "system";
    logoReturnPath?: string;
+   manifest?: Manifest;
 };
 
 export class AdminController extends Controller {
@@ -194,8 +196,10 @@ export class AdminController extends Controller {
       };
 
       if (isProd) {
-         let manifest: any;
-         if (this.options.assetsPath.startsWith("http")) {
+         let manifest: Manifest;
+         if (this.options.manifest) {
+            manifest = this.options.manifest;
+         } else if (this.options.assetsPath.startsWith("http")) {
             manifest = await fetch(this.options.assetsPath + ".vite/manifest.json", {
                headers: {
                   Accept: "application/json",
@@ -204,14 +208,14 @@ export class AdminController extends Controller {
          } else {
             // @ts-ignore
             manifest = await import("bknd/dist/manifest.json", {
-               assert: { type: "json" },
+               with: { type: "json" },
             }).then((res) => res.default);
          }
 
          try {
             // @todo: load all marked as entry (incl. css)
-            assets.js = manifest["src/ui/main.tsx"].file;
-            assets.css = manifest["src/ui/main.tsx"].css[0] as any;
+            assets.js = manifest["src/ui/main.tsx"]?.file!;
+            assets.css = manifest["src/ui/main.tsx"]?.css?.[0] as any;
          } catch (e) {
             $console.warn("Couldn't find assets in manifest", e);
          }

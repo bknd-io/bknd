@@ -9,6 +9,9 @@ import { nodeSqlite } from "./src/adapter/node/connection/NodeSqliteConnection";
 import { libsql } from "./src/data/connection/sqlite/libsql/LibsqlConnection";
 import { $console } from "core/utils/console";
 import { createClient } from "@libsql/client";
+import util from "node:util";
+
+util.inspect.defaultOptions.depth = 5;
 
 registries.media.register("local", StorageLocalAdapter);
 

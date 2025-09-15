@@ -7,6 +7,7 @@ async function generate() {
          server: {
             mcp: {
                enabled: true,
+               path: "/mcp",
             },
          },
          auth: {

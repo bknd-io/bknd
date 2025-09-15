@@ -61,8 +61,11 @@ function delayTypes() {
    watcher_timeout = setTimeout(buildTypes, 1000);
 }
 
+const dependencies = Object.keys(pkg.dependencies);
+
 // collection of always-external packages
 const external = [
+   ...dependencies,
    "bun:test",
    "node:test",
    "node:assert/strict",
@@ -86,10 +89,10 @@ async function buildApi() {
       outDir: "dist",
       external: [...external],
       metafile: true,
+      target: "esnext",
       platform: "browser",
       format: ["esm"],
       splitting: false,
-      treeshake: true,
       loader: {
          ".svg": "dataurl",
       },
@@ -245,6 +248,8 @@ async function buildAdapters() {
       // base adapter handles
       tsup.build({
          ...baseConfig(""),
+         target: "esnext",
+         platform: "neutral",
          entry: ["src/adapter/index.ts"],
          outDir: "dist/adapter",
       }),

@@ -221,6 +221,7 @@ export class AuthController extends Controller {
          return user;
       };
 
+      const roles = Object.keys(this.auth.config.roles ?? {});
       mcp.tool(
          // @todo: needs permission
          "auth_user_create",
@@ -231,7 +232,7 @@ export class AuthController extends Controller {
                password: s.string({ minLength: 8 }),
                role: s
                   .string({
-                     enum: Object.keys(this.auth.config.roles ?? {}),
+                     enum: roles.length > 0 ? roles : undefined,
                   })
                   .optional(),
             }),
