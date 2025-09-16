@@ -5,7 +5,7 @@ import {
    type CloudflareBkndConfig,
    type CloudflareEnv,
 } from "bknd/adapter/cloudflare";
-import type { PlatformProxy } from "wrangler";
+import type { GetPlatformProxyOptions, PlatformProxy } from "wrangler";
 import process from "node:process";
 
 export type WithPlatformProxyOptions = {
@@ -14,10 +14,11 @@ export type WithPlatformProxyOptions = {
     * You can override/force this by setting this option.
     */
    useProxy?: boolean;
+   proxyOptions?: GetPlatformProxyOptions;
 };
 
 export function withPlatformProxy<Env extends CloudflareEnv>(
-   config?: CloudflareBkndConfig<Env>,
+   config: CloudflareBkndConfig<Env> = {},
    opts?: WithPlatformProxyOptions,
 ) {
    const use_proxy =
@@ -28,8 +29,10 @@ export function withPlatformProxy<Env extends CloudflareEnv>(
       if (use_proxy) {
          if (!proxy) {
             const getPlatformProxy = await import("wrangler").then((mod) => mod.getPlatformProxy);
-            proxy = await getPlatformProxy();
-            setTimeout(proxy?.dispose, 1000);
+            proxy = await getPlatformProxy(opts?.proxyOptions);
+            process.on("exit", () => {
+               proxy?.dispose();
+            });
          }
          return proxy.env as unknown as Env;
       }

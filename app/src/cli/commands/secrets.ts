@@ -53,6 +53,7 @@ export const secrets: CliCommand = (program) => {
                }
             }
             console.info("");
+            process.exit(0);
          },
       );
 };

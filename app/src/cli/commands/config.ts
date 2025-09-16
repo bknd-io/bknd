@@ -39,5 +39,7 @@ export const config: CliCommand = (program) => {
          } else {
             console.info(JSON.parse(config));
          }
+
+         process.exit(0);
       });
 };

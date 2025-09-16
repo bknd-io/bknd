@@ -130,7 +130,8 @@
     "vite-plugin-circular-dependency": "^0.5.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.9",
-    "wouter": "^3.6.0"
+    "wouter": "^3.6.0",
+    "wrangler": "^4.37.1"
   },
   "optionalDependencies": {
     "@hono/node-server": "^1.14.3"
