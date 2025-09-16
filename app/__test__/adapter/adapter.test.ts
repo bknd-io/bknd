@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeAll, afterAll } from "bun:test";
+import { expect, describe, it, beforeAll, afterAll, mock } from "bun:test";
 import * as adapter from "adapter";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
@@ -27,6 +27,31 @@ describe("adapter", () => {
       ).toEqual({
          config: { server: { cors: { origin: "test" } } },
       });
+   });
+
+   it("allows all properties in app function", async () => {
+      const called = mock(() => null);
+      const config = await adapter.makeConfig(
+         {
+            app: (env) => ({
+               connection: { url: "test" },
+               config: { server: { cors: { origin: "test" } } },
+               options: {
+                  mode: "db",
+               },
+               onBuilt: () => {
+                  called();
+                  expect(env).toEqual({ foo: "bar" });
+               },
+            }),
+         },
+         { foo: "bar" },
+      );
+      expect(config.connection).toEqual({ url: "test" });
+      expect(config.config).toEqual({ server: { cors: { origin: "test" } } });
+      expect(config.options).toEqual({ mode: "db" });
+      await config.onBuilt?.(null as any);
+      expect(called).toHaveBeenCalled();
    });
 
    adapterTestSuite(bunTestRunner, {

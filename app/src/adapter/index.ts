@@ -13,9 +13,9 @@ import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { Manifest } from "vite";
 
 export type BkndConfig<Args = any> = CreateAppConfig & {
-   app?: CreateAppConfig | ((args: Args) => MaybePromise<CreateAppConfig>);
-   onBuilt?: (app: App) => Promise<void>;
-   beforeBuild?: (app: App, registries?: typeof $registries) => Promise<void>;
+   app?: Omit<BkndConfig, "app"> | ((args: Args) => MaybePromise<Omit<BkndConfig<Args>, "app">>);
+   onBuilt?: (app: App) => MaybePromise<void>;
+   beforeBuild?: (app: App, registries?: typeof $registries) => MaybePromise<void>;
    buildConfig?: Parameters<App["build"]>[0];
 };
 
@@ -34,7 +34,7 @@ export type DefaultArgs = {
 export async function makeConfig<Args = DefaultArgs>(
    config: BkndConfig<Args>,
    args?: Args,
-): Promise<CreateAppConfig> {
+): Promise<Omit<BkndConfig<Args>, "app">> {
    let additionalConfig: CreateAppConfig = {};
    const { app, ...rest } = config;
    if (app) {
