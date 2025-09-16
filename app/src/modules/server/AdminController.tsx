@@ -192,7 +192,7 @@ export class AdminController extends Controller {
 
       const assets = {
          js: "main.js",
-         css: "styles.css",
+         css: ["styles.css"],
       };
 
       if (isProd) {
@@ -213,9 +213,12 @@ export class AdminController extends Controller {
          }
 
          try {
-            // @todo: load all marked as entry (incl. css)
-            assets.js = manifest["src/ui/main.tsx"]?.file!;
-            assets.css = manifest["src/ui/main.tsx"]?.css?.[0] as any;
+            const entry = Object.values(manifest).find((m) => m.isEntry);
+            if (!entry) {
+               throw new Error("No entry found in manifest");
+            }
+            assets.js = entry?.file;
+            assets.css = entry?.css ?? [];
          } catch (e) {
             $console.warn("Couldn't find assets in manifest", e);
          }
@@ -245,7 +248,9 @@ export class AdminController extends Controller {
                   {isProd ? (
                      <Fragment>
                         <script type="module" src={this.options.assetsPath + assets?.js} />
-                        <link rel="stylesheet" href={this.options.assetsPath + assets?.css} />
+                        {assets?.css.map((css, i) => (
+                           <link key={i} rel="stylesheet" href={this.options.assetsPath + css} />
+                        ))}
                      </Fragment>
                   ) : (
                      <Fragment>

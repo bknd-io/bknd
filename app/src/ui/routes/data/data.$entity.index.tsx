@@ -169,8 +169,6 @@ function EntityCreateButton({ entity }: { entity: Entity }) {
          media: b.app.config.media.entity_name,
       };
       if (system.users === entity.name) {
-         if (b.readonly) return null;
-
          return (
             <Button onClick={createUserModal.open} variant="primary">
                New User

@@ -68,11 +68,11 @@ function AuthRolesEditInternal({ params }) {
                   >
                      <IconButton Icon={TbDots} />
                   </Dropdown>
-                  !readonly && (
-                  <Button variant="primary" onClick={handleUpdate}>
-                     Update
-                  </Button>
-                  )
+                  {!readonly && (
+                     <Button variant="primary" onClick={handleUpdate}>
+                        Update
+                     </Button>
+                  )}
                </>
             }
             className="pl-3"

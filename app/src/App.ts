@@ -98,9 +98,6 @@ export type AppOptions = {
    readonly?: boolean;
 };
 export type CreateAppConfig = {
-   /**
-    * bla
-    */
    connection?: Connection | { url: string };
    config?: InitialModuleConfigs;
    options?: AppOptions;
