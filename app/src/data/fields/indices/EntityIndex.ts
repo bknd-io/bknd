@@ -15,17 +15,6 @@ export class EntityIndex {
          throw new Error("All fields must be instances of Field");
       }
 
-      if (unique) {
-         const firstRequired = fields[0]?.isRequired();
-         if (!firstRequired) {
-            throw new Error(
-               `Unique indices must have first field as required: ${fields
-                  .map((f) => f.name)
-                  .join(", ")}`,
-            );
-         }
-      }
-
       if (!name) {
          this.name = [
             unique ? "idx_unique" : "idx",
