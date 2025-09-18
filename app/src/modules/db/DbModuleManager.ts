@@ -157,12 +157,12 @@ export class DbModuleManager extends ModuleManager {
 
       this.logger
          .log("took", performance.now() - startTime, "ms", {
-            version: result.version,
-            id: result.id,
+            version: configs?.version,
+            id: configs?.id,
          })
          .clear();
 
-      return { configs, secrets };
+      return { configs, secrets } as any;
    }
 
    async save() {
@@ -202,6 +202,7 @@ export class DbModuleManager extends ModuleManager {
                   json: configs,
                },
             ];
+
             if (store_secrets) {
                updates.push({
                   version: state.configs.version,
@@ -277,6 +278,15 @@ export class DbModuleManager extends ModuleManager {
                created_at: new Date(),
                updated_at: new Date(),
             });
+            if (store_secrets) {
+               await this.mutator().insertOne({
+                  type: "secrets",
+                  version,
+                  json: secrets,
+                  created_at: new Date(),
+                  updated_at: new Date(),
+               });
+            }
          } else if (e instanceof TransformPersistFailedException) {
             $console.error("ModuleManager: Cannot save invalid config");
             this.revertModules();
@@ -484,8 +494,24 @@ export class DbModuleManager extends ModuleManager {
       this.logger.context("initial").log("start");
       this._version = CURRENT_VERSION;
       await this.syncConfigTable();
+
       const state = await this.buildModules();
-      if (!state.saved) {
+
+      // in case there are secrets provided, we need to extract the keys and merge them with the configs. Then another build is required.
+      if (this.options?.secrets) {
+         const { configs, extractedKeys } = this.extractSecrets();
+         for (const key of extractedKeys) {
+            if (key in this.options.secrets) {
+               setPath(configs, key, this.options.secrets[key]);
+            }
+         }
+         await this.setConfigs(configs);
+         await this.buildModules();
+      }
+
+      // generally only save if not already done
+      // unless secrets are provided, then we need to save again
+      if (!state.saved || this.options?.secrets) {
          await this.save();
       }
 
