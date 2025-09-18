@@ -5,7 +5,7 @@ import { TABLE_NAME } from "modules/db/migrations";
 
 describe("DbModuleManager", () => {
    it("should extract secrets", async () => {
-      const { dummyConnection } = getDummyConnection(false);
+      const { dummyConnection } = getDummyConnection();
       const m = new DbModuleManager(dummyConnection, {
          initial: {
             auth: {
@@ -22,7 +22,7 @@ describe("DbModuleManager", () => {
    });
 
    it("should work with initial secrets", async () => {
-      const { dummyConnection } = getDummyConnection(false);
+      const { dummyConnection } = getDummyConnection();
       const db = dummyConnection.kysely;
       const m = new DbModuleManager(dummyConnection, {
          initial: {
