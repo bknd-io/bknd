@@ -2,7 +2,7 @@ import type { Config } from "@libsql/client/node";
 import { StorageLocalAdapter } from "adapter/node/storage";
 import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
-import { config, type App, type CreateAppConfig } from "bknd";
+import { config, type App, type CreateAppConfig, type MaybePromise } from "bknd";
 import dotenv from "dotenv";
 import { registries } from "modules/registries";
 import c from "picocolors";
@@ -60,7 +60,7 @@ type MakeAppConfig = {
    connection?: CreateAppConfig["connection"];
    server?: { platform?: Platform };
    setAdminHtml?: boolean;
-   onBuilt?: (app: App) => Promise<void>;
+   onBuilt?: (app: App) => MaybePromise<void>;
 };
 
 async function makeApp(config: MakeAppConfig) {

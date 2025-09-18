@@ -16,7 +16,7 @@ import { DbModuleManager } from "modules/db/DbModuleManager";
 import * as SystemPermissions from "modules/permissions";
 import { AdminController, type AdminControllerOptions } from "modules/server/AdminController";
 import { SystemController } from "modules/server/SystemController";
-import type { MaybePromise } from "core/types";
+import type { MaybePromise, PartialRec } from "core/types";
 import type { ServerEnv } from "modules/Controller";
 import type { IEmailDriver, ICacheDriver } from "core/drivers";
 
@@ -99,14 +99,18 @@ export type AppOptions = {
 };
 export type CreateAppConfig = {
    connection?: Connection | { url: string };
-   config?: InitialModuleConfigs;
+   config?: PartialRec<ModuleConfigs>;
    options?: AppOptions;
 };
 
 export type AppConfig = { version: number } & ModuleConfigs;
 export type LocalApiOptions = Request | ApiOptions;
 
-export class App<C extends Connection = Connection, Options extends AppOptions = AppOptions> {
+export class App<
+   C extends Connection = Connection,
+   Config extends PartialRec<ModuleConfigs> = PartialRec<ModuleConfigs>,
+   Options extends AppOptions = AppOptions,
+> {
    static readonly Events = AppEvents;
 
    modules: ModuleManager;
@@ -121,7 +125,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
 
    constructor(
       public connection: C,
-      _config?: InitialModuleConfigs,
+      _config?: Config,
       public options?: Options,
    ) {
       this.drivers = options?.drivers ?? {};
