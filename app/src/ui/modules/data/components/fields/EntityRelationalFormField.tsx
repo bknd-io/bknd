@@ -93,9 +93,11 @@ export function EntityRelationalFormField({
 
    return (
       <Formy.Group>
-         <Formy.Label htmlFor={fieldApi.name}>
-            {field.getLabel({ fallback: false }) ?? entity.label}
-         </Formy.Label>
+         <Formy.FieldLabel
+            htmlFor={fieldApi.name}
+            field={field}
+            label={field.getLabel({ fallback: false }) ?? entity.label}
+         />
          <div
             data-disabled={fetching || disabled ? 1 : undefined}
             className="data-[disabled]:opacity-70 data-[disabled]:pointer-events-none"
