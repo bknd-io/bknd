@@ -23,7 +23,7 @@ interface IconButtonProps extends ComponentPropsWithoutRef<"button"> {
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-   ({ Icon, size, variant = "ghost", onClick, disabled, iconProps, ...rest }, ref) => {
+   ({ Icon, size, variant = "ghost", onClick, disabled, iconProps, tabIndex, ...rest }, ref) => {
       const style = styles[size ?? "md"];
 
       return (
@@ -36,6 +36,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
             className={twMerge(style.className, rest.className)}
             onClick={onClick}
             disabled={disabled}
+            tabIndex={tabIndex}
          />
       );
    },

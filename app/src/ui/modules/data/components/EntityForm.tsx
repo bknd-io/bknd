@@ -270,7 +270,7 @@ function EntityJsonFormField({
 
    return (
       <Formy.Group>
-         <Formy.Label htmlFor={fieldApi.name}>{field.getLabel()}</Formy.Label>
+         <Formy.FieldLabel htmlFor={fieldApi.name} field={field} />
          <Suspense>
             <JsonEditor
                id={fieldApi.name}
@@ -306,7 +306,7 @@ function EntityEnumFormField({
 
    return (
       <Formy.Group>
-         <Formy.Label htmlFor={fieldApi.name}>{field.getLabel()}</Formy.Label>
+         <Formy.FieldLabel htmlFor={fieldApi.name} field={field} />
          <Formy.Select
             name={fieldApi.name}
             id={fieldApi.name}
