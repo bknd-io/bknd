@@ -47,7 +47,7 @@ export function adapterTestSuite<
       );
       expect(app).toBeDefined();
       expect(app.toJSON().server.cors.origin).toEqual("localhost");
-      expect(beforeBuild).toHaveBeenCalledTimes(1);
+      expect(beforeBuild).toHaveBeenCalledTimes(2);
       expect(onBuilt).toHaveBeenCalledTimes(1);
    });
 
