@@ -17,6 +17,7 @@ import { useCreateUserModal } from "ui/modules/auth/hooks/use-create-user-modal"
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
 import { s } from "bknd/utils";
 import { pick } from "core/utils/objects";
+import { useEntityAdminOptions } from "ui/options";
 
 const searchSchema = s.partialObject({
    ...pick(repoQuery.properties, ["select", "where", "sort"]),
@@ -36,6 +37,7 @@ function DataEntityListImpl({ params }) {
    if (!entity) {
       return <Message.NotFound description={`Entity "${params.entity}" doesn't exist.`} />;
    }
+   const options = useEntityAdminOptions(entity, "list");
 
    useBrowserTitle(["Data", entity?.label ?? params.entity]);
    const [navigate] = useNavigate();
@@ -100,6 +102,7 @@ function DataEntityListImpl({ params }) {
                <>
                   <Dropdown
                      items={[
+                        ...(options.actions?.context ?? []),
                         {
                            label: "Settings",
                            onClick: () => navigate(routes.data.schema.entity(entity.name)),
@@ -120,6 +123,10 @@ function DataEntityListImpl({ params }) {
                   >
                      <IconButton Icon={TbDots} />
                   </Dropdown>
+                  {options.actions?.primary?.map(
+                     (button, key) =>
+                        button && <Button variant="primary" {...button} type="button" key={key} />,
+                  )}
                   <EntityCreateButton entity={entity} />
                </>
             }
@@ -127,6 +134,7 @@ function DataEntityListImpl({ params }) {
             <AppShell.SectionHeaderTitle>{entity.label}</AppShell.SectionHeaderTitle>
          </AppShell.SectionHeader>
          <AppShell.Scrollable key={entity.name}>
+            {options.header}
             <div className="flex flex-col flex-grow p-3 gap-3">
                {/*<div className="w-64">
                   <SearchInput placeholder={`Filter ${entity.label}`} />
@@ -134,7 +142,7 @@ function DataEntityListImpl({ params }) {
 
                <div
                   data-updating={isUpdating ? 1 : undefined}
-                  className="data-[updating]:opacity-50 transition-opacity pb-10"
+                  className="data-[updating]:opacity-50 transition-opacity"
                >
                   <EntityTable2
                      data={data ?? null}
@@ -152,6 +160,7 @@ function DataEntityListImpl({ params }) {
                   />
                </div>
             </div>
+            {options.footer}
          </AppShell.Scrollable>
       </Fragment>
    );

@@ -16,7 +16,7 @@ import { useTheme } from "ui/client/use-theme";
 import { Button } from "ui/components/buttons/Button";
 import { IconButton } from "ui/components/buttons/IconButton";
 import { Logo } from "ui/components/display/Logo";
-import { Dropdown, type DropdownItem } from "ui/components/overlay/Dropdown";
+import { Dropdown, type DropdownProps } from "ui/components/overlay/Dropdown";
 import { Link } from "ui/components/wouter/Link";
 import { useEvent } from "ui/hooks/use-event";
 import { useNavigate } from "ui/lib/routes";
@@ -26,6 +26,7 @@ import { autoFormatString } from "core/utils";
 import { appShellStore } from "ui/store";
 import { getVersion } from "core/env";
 import { McpIcon } from "ui/routes/tools/mcp/components/mcp-icon";
+import { useAppShellAdminOptions } from "ui/options";
 
 export function HeaderNavigation() {
    const [location, navigate] = useLocation();
@@ -144,7 +145,9 @@ export function Header({ hasSidebar = true }) {
 }
 
 function UserMenu() {
-   const { config, options } = useBknd();
+   const { config } = useBknd();
+   const uiOptions = useAppShellAdminOptions();
+
    const auth = useAuth();
    const [navigate] = useNavigate();
    const { logout_route } = useBkndWindowContext();
@@ -159,7 +162,8 @@ function UserMenu() {
       navigate("/auth/login");
    }
 
-   const items: DropdownItem[] = [
+   const items: DropdownProps["items"] = [
+      ...(uiOptions.userMenu ?? []),
       { label: "Settings", onClick: () => navigate("/settings"), icon: IconSettings },
       {
          label: "OpenAPI",

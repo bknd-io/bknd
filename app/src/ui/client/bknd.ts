@@ -1,1 +1,1 @@
-export { BkndProvider, type BkndAdminOptions, useBknd, SchemaEditable } from "./BkndProvider";
+export { BkndProvider, type BkndContext, useBknd, SchemaEditable } from "./BkndProvider";
