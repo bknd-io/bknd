@@ -12,16 +12,11 @@ import {
 import { useApi } from "ui/client";
 import { type TSchemaActions, getSchemaActions } from "./schema/actions";
 import { AppReduced } from "./utils/AppReduced";
-import type { AppTheme } from "ui/client/use-theme";
 import { Message } from "ui/components/display/Message";
 import { useNavigate } from "ui/lib/routes";
+import type { BkndAdminProps } from "ui/Admin";
 
-export type BkndAdminOptions = {
-   basepath?: string;
-   logo_return_path?: string;
-   theme?: AppTheme;
-};
-type BkndContext = {
+export type BkndContext = {
    version: number;
    readonly: boolean;
    schema: ModuleSchemas;
@@ -31,7 +26,7 @@ type BkndContext = {
    requireSecrets: () => Promise<void>;
    actions: ReturnType<typeof getSchemaActions>;
    app: AppReduced;
-   options: BkndAdminOptions;
+   options: BkndAdminProps["config"];
    fallback: boolean;
 };
 
@@ -53,7 +48,7 @@ export function BkndProvider({
    includeSecrets?: boolean;
    children: any;
    fallback?: React.ReactNode;
-   options?: BkndAdminOptions;
+   options?: BkndAdminProps["config"];
 }) {
    const [withSecrets, setWithSecrets] = useState<boolean>(includeSecrets);
    const [schema, setSchema] =
@@ -180,7 +175,7 @@ export function useBknd({ withSecrets }: { withSecrets?: boolean } = {}): BkndCo
    return ctx;
 }
 
-export function useBkndOptions(): BkndAdminOptions {
+export function useBkndOptions(): BkndAdminProps["config"] {
    const ctx = useContext(BkndContext);
    return (
       ctx.options ?? {

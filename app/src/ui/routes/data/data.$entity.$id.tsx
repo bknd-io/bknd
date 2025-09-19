@@ -18,6 +18,7 @@ import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
 import { notifications } from "@mantine/notifications";
+import { useEntityAdminOptions } from "ui/options";
 
 export function DataEntityUpdate({ params }) {
    return <DataEntityUpdateImpl params={params} key={params.entity} />;
@@ -53,6 +54,7 @@ function DataEntityUpdateImpl({ params }) {
       },
    );
 
+   const options = useEntityAdminOptions(entity, "update", $q.data);
    const backHref = routes.data.entity.list(entity.name);
    const goBack = () => _goBack({ fallback: backHref });
 
@@ -125,6 +127,7 @@ function DataEntityUpdateImpl({ params }) {
                   <Dropdown
                      position="bottom-end"
                      items={[
+                        ...(options.actions?.context ?? []),
                         {
                            label: "Inspect",
                            onClick: () => {
@@ -156,6 +159,10 @@ function DataEntityUpdateImpl({ params }) {
                   >
                      <IconButton Icon={TbDots} />
                   </Dropdown>
+                  {options.actions?.primary?.map(
+                     (button, key) =>
+                        button && <Button variant="primary" {...button} type="button" key={key} />,
+                  )}
                   <Form.Subscribe
                      selector={(state) => [state.canSubmit, state.isSubmitting]}
                      children={([canSubmit, isSubmitting]) => (
@@ -185,6 +192,7 @@ function DataEntityUpdateImpl({ params }) {
             </div>
          ) : (
             <AppShell.Scrollable>
+               {options.header}
                {error && (
                   <div className="flex flex-row dark:bg-red-950 bg-red-100 p-4">
                      <b className="mr-2">Update failed: </b> {error}
@@ -200,6 +208,8 @@ function DataEntityUpdateImpl({ params }) {
                   action="update"
                   className="flex flex-grow flex-col gap-3 p-3"
                />
+               {options.footer}
+
                {targetRelations.length > 0 ? (
                   <EntityDetailRelations
                      id={entityId}
@@ -247,7 +257,8 @@ function EntityDetailRelations({
                return {
                   as: "button",
                   type: "button",
-                  label: ucFirst(other.entity.label),
+                  //label: ucFirst(other.entity.label),
+                  label: ucFirst(other.reference),
                   onClick: () => handleClick(relation),
                   active: selected?.other(entity).reference === other.reference,
                   badge: relation.type(),

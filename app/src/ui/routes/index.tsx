@@ -20,7 +20,12 @@ const TestRoutes = lazy(() => import("./test"));
 export function Routes({
    BkndWrapper,
    basePath = "",
-}: { BkndWrapper: ComponentType<{ children: ReactNode }>; basePath?: string }) {
+   children,
+}: {
+   BkndWrapper: ComponentType<{ children: ReactNode }>;
+   basePath?: string;
+   children?: ReactNode;
+}) {
    const { theme } = useTheme();
    const ctx = useBkndWindowContext();
    const actualBasePath = basePath || ctx.admin_basepath;
@@ -43,6 +48,8 @@ export function Routes({
                                     <TestRoutes />
                                  </Suspense>
                               </Route>
+
+                              {children}
 
                               <Route path="/" component={RootEmpty} />
                               <Route path="/data" nest>

@@ -16,6 +16,7 @@ import { Alert } from "ui/components/display/Alert";
 import { bkndModals } from "ui/modals";
 import type { EnumField, JsonField, JsonSchemaField } from "data/fields";
 import type { RelationField } from "data/relations";
+import { useEntityAdminOptions } from "ui/options";
 
 // simplify react form types 🤦
 export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any>;
@@ -44,6 +45,7 @@ export function EntityForm({
    action,
 }: EntityFormProps) {
    const fields = entity.getFillableFields(action, true);
+   const options = useEntityAdminOptions(entity, action);
 
    return (
       <form onSubmit={handleSubmit}>
@@ -107,16 +109,29 @@ export function EntityForm({
                   >
                      <Form.Field
                         name={field.name}
-                        children={(props) => (
-                           <EntityFormField
-                              field={field}
-                              fieldApi={props}
-                              disabled={fieldsDisabled}
-                              tabIndex={key + 1}
-                              action={action}
-                              data={data}
-                           />
-                        )}
+                        children={(props) => {
+                           const fieldOptions = options.field(field.name);
+                           if (fieldOptions?.render) {
+                              const custom = fieldOptions.render(action, entity, field, {
+                                 handleChange: props.handleChange,
+                                 value: props.state.value,
+                                 data,
+                              });
+                              if (custom) {
+                                 return custom;
+                              }
+                           }
+                           return (
+                              <EntityFormField
+                                 field={field}
+                                 fieldApi={props}
+                                 disabled={fieldsDisabled}
+                                 tabIndex={key + 1}
+                                 action={action}
+                                 data={data}
+                              />
+                           );
+                        }}
                      />
                   </ErrorBoundary>
                );
