@@ -3,11 +3,14 @@ import { createApp } from "core/test/utils";
 import { AuthController } from "../../src/auth/api/AuthController";
 import { em, entity, make, text } from "data/prototype";
 import { AppAuth, type ModuleBuildContext } from "modules";
-import { disableConsoleLog, enableConsoleLog } from "../helper";
 import { makeCtx, moduleTestSuite } from "./module-test-suite";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("AppAuth", () => {
-   test.only("...", () => {
+   test.skip("...", () => {
       const auth = new AppAuth({});
       console.log(auth.toJSON());
       console.log(auth.config);

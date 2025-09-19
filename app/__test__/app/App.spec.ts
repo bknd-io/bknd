@@ -1,8 +1,12 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import type { ModuleBuildContext } from "../../src";
 import { App, createApp } from "core/test/utils";
 import * as proto from "data/prototype";
 import { DbModuleManager } from "modules/db/DbModuleManager";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("App", () => {
    test("use db mode by default", async () => {

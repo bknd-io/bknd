@@ -1,6 +1,10 @@
-import { describe, it, expect, mock } from "bun:test";
+import { describe, it, expect, mock, beforeAll, afterAll } from "bun:test";
 import { createApp } from "core/test/utils";
 import { syncConfig } from "plugins/dev/sync-config.plugin";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(enableConsoleLog);
 
 describe("syncConfig", () => {
    it("should only sync if enabled", async () => {

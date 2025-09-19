@@ -6,6 +6,8 @@ const _oldConsoles = {
    warn: console.warn,
    error: console.error,
 };
+let _oldStderr: any;
+let _oldStdout: any;
 
 export async function withDisabledConsole<R>(
    fn: () => Promise<R>,
@@ -36,10 +38,17 @@ export function disableConsoleLog(severities: ConsoleSeverity[] = ["log", "warn"
    severities.forEach((severity) => {
       console[severity] = () => null;
    });
+   // Disable stderr
+   _oldStderr = process.stderr.write;
+   _oldStdout = process.stdout.write;
+   process.stderr.write = () => true;
+   process.stdout.write = () => true;
    $console?.setLevel("critical");
 }
 
 export function enableConsoleLog() {
+   process.stderr.write = _oldStderr;
+   process.stdout.write = _oldStdout;
    Object.entries(_oldConsoles).forEach(([severity, fn]) => {
       console[severity as ConsoleSeverity] = fn;
    });

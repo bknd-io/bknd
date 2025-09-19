@@ -4,6 +4,7 @@ import { getPath } from "bknd/utils";
 import * as proto from "data/prototype";
 import { createApp } from "App";
 import type { MaybePromise } from "core/types";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 // @todo: add various datatypes: string, number, boolean, object, array, null, undefined, date, etc.
 // @todo: add toDriver/fromDriver tests on all types and fields
@@ -21,7 +22,9 @@ export function connectionTestSuite(
       rawDialectDetails: string[];
    },
 ) {
-   const { test, expect, describe, beforeEach, afterEach, afterAll } = testRunner;
+   const { test, expect, describe, beforeEach, afterEach, afterAll, beforeAll } = testRunner;
+   beforeAll(() => disableConsoleLog());
+   afterAll(() => enableConsoleLog());
 
    describe("base", () => {
       let ctx: Awaited<ReturnType<typeof makeConnection>>;

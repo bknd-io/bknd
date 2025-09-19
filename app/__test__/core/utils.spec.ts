@@ -248,7 +248,7 @@ describe("Core Utils", async () => {
          expect(utils.getContentName(request)).toBe(name);
       });
 
-      test.only("detectImageDimensions", async () => {
+      test("detectImageDimensions", async () => {
          // wrong
          // @ts-expect-error
          expect(utils.detectImageDimensions(new ArrayBuffer(), "text/plain")).rejects.toThrow();
@@ -267,12 +267,12 @@ describe("Core Utils", async () => {
    });
 
    describe("dates", () => {
-      test.only("formats local time", () => {
+      test("formats local time", () => {
          expect(utils.datetimeStringUTC("2025-02-21T16:48:25.841Z")).toBe("2025-02-21 16:48:25");
-         console.log(utils.datetimeStringUTC(new Date()));
+         /*console.log(utils.datetimeStringUTC(new Date()));
          console.log(utils.datetimeStringUTC());
          console.log(new Date());
-         console.log("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone);
+         console.log("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone); */
       });
    });
 });

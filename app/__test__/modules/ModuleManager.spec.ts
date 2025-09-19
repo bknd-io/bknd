@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { disableConsoleLog, enableConsoleLog } from "core/utils";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 import { Module } from "modules/Module";
 import { getDefaultConfig } from "modules/ModuleManager";
@@ -10,6 +10,9 @@ import { getDummyConnection } from "../helper";
 import { s, stripMark } from "core/utils/schema";
 import { Connection } from "data/connection/Connection";
 import { entity, text } from "data/prototype";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("ModuleManager", async () => {
    test("s1: no config, no build", async () => {
@@ -135,7 +138,7 @@ describe("ModuleManager", async () => {
       const db = c2.dummyConnection.kysely;
 
       const mm2 = new ModuleManager(c2.dummyConnection, {
-         initial: { version: version - 1, ...json },
+         initial: { version: version - 1, ...json } as any,
       });
       await mm2.syncConfigTable();
       await db

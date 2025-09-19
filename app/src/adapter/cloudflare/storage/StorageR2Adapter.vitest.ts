@@ -3,8 +3,12 @@ import { Miniflare } from "miniflare";
 import { StorageR2Adapter } from "./StorageR2Adapter";
 import { adapterTestSuite } from "media/storage/adapters/adapter-test-suite";
 import path from "node:path";
-import { describe, afterAll, test, expect } from "vitest";
+import { describe, afterAll, test, expect, beforeAll } from "vitest";
 import { viTestRunner } from "adapter/node/vitest";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(() => enableConsoleLog());
 
 let mf: Miniflare | undefined;
 describe("StorageR2Adapter", async () => {

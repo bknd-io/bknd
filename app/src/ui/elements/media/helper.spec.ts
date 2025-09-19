@@ -51,13 +51,5 @@ describe("media helper", () => {
             added: 1,
          }),
       ).toEqual({ reject: false, to_drop: 1 });
-      console.log(
-         checkMaxReached({
-            maxItems: 6,
-            current: 0,
-            overwrite: true,
-            added: 1,
-         }),
-      );
    });
 });

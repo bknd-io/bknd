@@ -7,7 +7,7 @@ import { AppMedia } from "../../src/media/AppMedia";
 import { moduleTestSuite } from "./module-test-suite";
 
 describe("AppMedia", () => {
-   test.only("...", () => {
+   test.skip("...", () => {
       const media = new AppMedia();
       console.log(media.toJSON());
    });

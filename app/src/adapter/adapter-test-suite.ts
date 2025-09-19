@@ -1,6 +1,7 @@
 import type { TestRunner } from "core/test";
 import type { BkndConfig, DefaultArgs } from "./index";
 import type { App } from "App";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 export function adapterTestSuite<
    Config extends BkndConfig = BkndConfig,
@@ -21,7 +22,9 @@ export function adapterTestSuite<
       };
    },
 ) {
-   const { test, expect, mock } = testRunner;
+   const { test, expect, mock, beforeAll, afterAll } = testRunner;
+   beforeAll(() => disableConsoleLog());
+   afterAll(() => enableConsoleLog());
 
    test(`creates ${label}`, async () => {
       const beforeBuild = mock(async () => null) as any;

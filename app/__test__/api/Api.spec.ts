@@ -42,7 +42,6 @@ describe("Api", async () => {
       expect(api.isAuthVerified()).toBe(false);
 
       const params = api.getParams();
-      console.log(params);
       expect(params.token).toBe(token);
       expect(params.token_transport).toBe("cookie");
       expect(params.host).toBe("http://example.com");
