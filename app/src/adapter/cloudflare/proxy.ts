@@ -7,6 +7,7 @@ import {
 } from "bknd/adapter/cloudflare";
 import type { GetPlatformProxyOptions, PlatformProxy } from "wrangler";
 import process from "node:process";
+import { $console } from "bknd/utils";
 
 export type WithPlatformProxyOptions = {
    /**
@@ -24,6 +25,8 @@ export function withPlatformProxy<Env extends CloudflareEnv>(
    const use_proxy =
       typeof opts?.useProxy === "boolean" ? opts.useProxy : process.env.PROXY === "1";
    let proxy: PlatformProxy | undefined;
+
+   $console.log("Using cloudflare platform proxy");
 
    async function getEnv(env?: Env): Promise<Env> {
       if (use_proxy) {

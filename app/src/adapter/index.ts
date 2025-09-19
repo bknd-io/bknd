@@ -15,7 +15,7 @@ import type { Manifest } from "vite";
 export type BkndConfig<Args = any> = CreateAppConfig & {
    app?: Omit<BkndConfig, "app"> | ((args: Args) => MaybePromise<Omit<BkndConfig<Args>, "app">>);
    onBuilt?: (app: App) => MaybePromise<void>;
-   beforeBuild?: (app: App, registries?: typeof $registries) => MaybePromise<void>;
+   beforeBuild?: (app?: App, registries?: typeof $registries) => MaybePromise<void>;
    buildConfig?: Parameters<App["build"]>[0];
 };
 
@@ -57,6 +57,8 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
    config: Config = {} as Config,
    args?: Args,
 ): Promise<App> {
+   await config.beforeBuild?.(undefined, $registries);
+
    const appConfig = await makeConfig(config, args);
    if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
       let connection: Connection | undefined;
