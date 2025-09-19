@@ -103,7 +103,7 @@ export class Storage implements EmitsEvents {
                ...dim,
             };
          } catch (e) {
-            $console.warn("Failed to get image dimensions", e);
+            $console.warn("Failed to get image dimensions", e, file);
          }
       }
 

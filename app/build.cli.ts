@@ -4,7 +4,7 @@ import { formatNumber } from "bknd/utils";
 import * as esbuild from "esbuild";
 
 const deps = Object.keys(pkg.dependencies);
-const external = ["jsonv-ts/*", ...deps];
+const external = ["jsonv-ts/*", "wrangler", ...deps];
 
 if (process.env.DEBUG) {
    const result = await esbuild.build({
