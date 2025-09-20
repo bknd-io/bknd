@@ -40,7 +40,9 @@ const subjects = {
 async function action(subject: string) {
    if (subject in subjects) {
       await subjects[subject]();
+      process.exit(0);
    } else {
       console.error("Invalid subject: ", subject);
+      process.exit(1);
    }
 }

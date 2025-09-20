@@ -78,9 +78,11 @@ async function create(app: App, options: any) {
          password: await strategy.hash(password as string),
       });
       $log.success(`Created user: ${c.cyan(created.email)}`);
+      process.exit(0);
    } catch (e) {
       $log.error("Error creating user");
       $console.error(e);
+      process.exit(1);
    }
 }
 
@@ -121,8 +123,10 @@ async function update(app: App, options: any) {
 
    if (await app.module.auth.changePassword(user.id, password)) {
       $log.success(`Updated user: ${c.cyan(user.email)}`);
+      process.exit(0);
    } else {
       $log.error("Error updating user");
+      process.exit(1);
    }
 }
 
@@ -158,4 +162,5 @@ async function token(app: App, options: any) {
    console.log(
       `\n${c.dim("Token:")}\n${c.yellow(await app.module.auth.authenticator.jwt(user))}\n`,
    );
+   process.exit(0);
 }

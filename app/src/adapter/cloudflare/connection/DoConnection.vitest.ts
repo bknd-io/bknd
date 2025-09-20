@@ -1,11 +1,12 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { describe, test, expect } from "vitest";
+import { describe, beforeAll, afterAll } from "vitest";
 
 import { viTestRunner } from "adapter/node/vitest";
 import { connectionTestSuite } from "data/connection/connection-test-suite";
 import { Miniflare } from "miniflare";
 import { doSqlite } from "./DoConnection";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 const script = `
 import { DurableObject } from "cloudflare:workers";
@@ -39,6 +40,9 @@ export default {
    }
 }
 `;
+
+beforeAll(() => disableConsoleLog());
+afterAll(() => enableConsoleLog());
 
 describe("doSqlite", async () => {
    connectionTestSuite(viTestRunner, {

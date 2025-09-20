@@ -1,4 +1,5 @@
 {
   "title": "MCP",
+  "icon": "Mcp",
   "pages": ["overview", "tools-resources"]
 }

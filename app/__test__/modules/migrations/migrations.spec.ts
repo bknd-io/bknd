@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { type InitialModuleConfigs, createApp } from "../../../src";
 
 import { type Kysely, sql } from "kysely";
@@ -6,6 +6,10 @@ import { getDummyConnection } from "../../helper";
 import v7 from "./samples/v7.json";
 import v8 from "./samples/v8.json";
 import v8_2 from "./samples/v8-2.json";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(enableConsoleLog);
 
 // app expects migratable config to be present in database
 async function createVersionedApp(config: InitialModuleConfigs | any) {

@@ -5,8 +5,9 @@ import {
    type CloudflareBkndConfig,
    type CloudflareEnv,
 } from "bknd/adapter/cloudflare";
-import type { PlatformProxy } from "wrangler";
+import type { GetPlatformProxyOptions, PlatformProxy } from "wrangler";
 import process from "node:process";
+import { $console } from "bknd/utils";
 
 export type WithPlatformProxyOptions = {
    /**
@@ -14,22 +15,27 @@ export type WithPlatformProxyOptions = {
     * You can override/force this by setting this option.
     */
    useProxy?: boolean;
+   proxyOptions?: GetPlatformProxyOptions;
 };
 
 export function withPlatformProxy<Env extends CloudflareEnv>(
-   config?: CloudflareBkndConfig<Env>,
+   config: CloudflareBkndConfig<Env> = {},
    opts?: WithPlatformProxyOptions,
 ) {
    const use_proxy =
       typeof opts?.useProxy === "boolean" ? opts.useProxy : process.env.PROXY === "1";
    let proxy: PlatformProxy | undefined;
 
+   $console.log("Using cloudflare platform proxy");
+
    async function getEnv(env?: Env): Promise<Env> {
       if (use_proxy) {
          if (!proxy) {
             const getPlatformProxy = await import("wrangler").then((mod) => mod.getPlatformProxy);
-            proxy = await getPlatformProxy();
-            setTimeout(proxy?.dispose, 1000);
+            proxy = await getPlatformProxy(opts?.proxyOptions);
+            process.on("exit", () => {
+               proxy?.dispose();
+            });
          }
          return proxy.env as unknown as Env;
       }
@@ -50,16 +56,22 @@ export function withPlatformProxy<Env extends CloudflareEnv>(
       // @ts-ignore
       app: async (_env) => {
          const env = await getEnv(_env);
+         const binding = use_proxy ? getBinding(env, "D1Database") : undefined;
 
-         if (config?.app === undefined && use_proxy) {
-            const binding = getBinding(env, "D1Database");
+         if (config?.app === undefined && use_proxy && binding) {
             return {
                connection: d1Sqlite({
                   binding: binding.value,
                }),
             };
          } else if (typeof config?.app === "function") {
-            return config?.app(env);
+            const appConfig = await config?.app(env);
+            if (binding) {
+               appConfig.connection = d1Sqlite({
+                  binding: binding.value,
+               }) as any;
+            }
+            return appConfig;
          }
          return config?.app || {};
       },

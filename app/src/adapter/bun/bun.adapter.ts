@@ -1,7 +1,7 @@
 /// <reference types="bun-types" />
 
 import path from "node:path";
-import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
+import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
 import { registerLocalMediaAdapter } from ".";
 import { config, type App } from "bknd";
 import type { ServeOptions } from "bun";
@@ -13,7 +13,6 @@ export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOpt
 export async function createApp<Env = BunEnv>(
    { distPath, serveStatic: _serveStatic, ...config }: BunBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ) {
    const root = path.resolve(distPath ?? "./node_modules/bknd/dist", "static");
    registerLocalMediaAdapter();
@@ -28,19 +27,17 @@ export async function createApp<Env = BunEnv>(
          ...config,
       },
       args ?? (process.env as Env),
-      opts,
    );
 }
 
 export function createHandler<Env = BunEnv>(
    config: BunBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ) {
    let app: App | undefined;
    return async (req: Request) => {
       if (!app) {
-         app = await createApp(config, args ?? (process.env as Env), opts);
+         app = await createApp(config, args ?? (process.env as Env));
       }
       return app.fetch(req);
    };
@@ -50,7 +47,7 @@ export function serve<Env = BunEnv>(
    {
       distPath,
       connection,
-      initialConfig,
+      config: _config,
       options,
       port = config.server.default_port,
       onBuilt,
@@ -60,7 +57,6 @@ export function serve<Env = BunEnv>(
       ...serveOptions
    }: BunBkndConfig<Env> = {},
    args: Env = {} as Env,
-   opts?: RuntimeOptions,
 ) {
    Bun.serve({
       ...serveOptions,
@@ -68,7 +64,7 @@ export function serve<Env = BunEnv>(
       fetch: createHandler(
          {
             connection,
-            initialConfig,
+            config: _config,
             options,
             onBuilt,
             buildConfig,
@@ -77,7 +73,6 @@ export function serve<Env = BunEnv>(
             serveStatic,
          },
          args,
-         opts,
       ),
    });
 

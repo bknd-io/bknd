@@ -1,12 +1,15 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { Entity, EntityManager } from "data/entities";
 import { ManyToOneRelation } from "data/relations";
 import { TextField } from "data/fields";
 import { JoinBuilder } from "data/entities/query/JoinBuilder";
 import { getDummyConnection } from "../helper";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
-afterAll(afterAllCleanup);
+afterAll(async () => (await afterAllCleanup()) && enableConsoleLog());
 
 describe("[data] JoinBuilder", async () => {
    test("missing relation", async () => {

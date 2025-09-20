@@ -6,17 +6,20 @@ import { createApp } from "core/test/utils";
 import { mergeObject, randomString } from "../../src/core/utils";
 import type { TAppMediaConfig } from "../../src/media/media-schema";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
-import { assetsPath, assetsTmpPath, disableConsoleLog, enableConsoleLog } from "../helper";
+import { assetsPath, assetsTmpPath } from "../helper";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 beforeAll(() => {
+   disableConsoleLog();
    registries.media.register("local", StorageLocalAdapter);
 });
+afterAll(enableConsoleLog);
 
 const path = `${assetsPath}/image.png`;
 
 async function makeApp(mediaOverride: Partial<TAppMediaConfig> = {}) {
    const app = createApp({
-      initialConfig: {
+      config: {
          media: mergeObject(
             {
                enabled: true,
@@ -39,9 +42,6 @@ async function makeApp(mediaOverride: Partial<TAppMediaConfig> = {}) {
 function makeName(ext: string) {
    return randomString(10) + "." + ext;
 }
-
-beforeAll(disableConsoleLog);
-afterAll(enableConsoleLog);
 
 describe("MediaController", () => {
    test("accepts direct", async () => {

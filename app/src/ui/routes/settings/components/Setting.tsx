@@ -54,7 +54,7 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
    properties,
 }: SettingProps<Schema>) {
    const [submitting, setSubmitting] = useState(false);
-   const { actions } = useBknd();
+   const { actions, readonly } = useBknd();
    const formRef = useRef<JsonSchemaFormRef>(null);
    const schemaLocalModalRef = useRef<SettingsSchemaModalRef>(null);
    const schemaModalRef = useRef<SettingsSchemaModalRef>(null);
@@ -107,8 +107,8 @@ export function Setting<Schema extends s.ObjectSchema = s.ObjectSchema>({
       return;
    });
 
-   const deleteAllowed = options?.allowDelete?.(config) ?? true;
-   const editAllowed = options?.allowEdit?.(config) ?? true;
+   const deleteAllowed = (options?.allowDelete?.(config) ?? true) && !readonly;
+   const editAllowed = (options?.allowEdit?.(config) ?? true) && !readonly;
    const showAlert = options?.showAlert?.(config) ?? undefined;
 
    console.log("--setting", { schema, config, prefix, path, exclude });

@@ -38,7 +38,8 @@ export class InvalidSchemaError extends Error {
    ) {
       super(
          `Invalid schema given for ${JSON.stringify(value, null, 2)}\n\n` +
-            `Error: ${JSON.stringify(errors[0], null, 2)}`,
+            `Error: ${JSON.stringify(errors[0], null, 2)}\n\n` +
+            `Schema: ${JSON.stringify(schema.toJSON(), null, 2)}`,
       );
    }
 

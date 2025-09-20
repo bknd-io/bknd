@@ -8,7 +8,7 @@ export const schema: CliCommand = (program) => {
       .option("--pretty", "pretty print")
       .action((options) => {
          const schema = getDefaultSchema();
-         // biome-ignore lint/suspicious/noConsoleLog:
-         console.log(options.pretty ? JSON.stringify(schema, null, 2) : JSON.stringify(schema));
+         console.info(options.pretty ? JSON.stringify(schema, null, 2) : JSON.stringify(schema));
+         process.exit(0);
       });
 };

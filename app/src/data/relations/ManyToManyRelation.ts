@@ -180,8 +180,15 @@ export class ManyToManyRelation extends EntityRelation<typeof ManyToManyRelation
 
    override getName(): string {
       return [
-         super.getName(),
-         [this.connectionEntity.name, this.connectionTableMappedName].filter(Boolean),
+         ...Array.from(
+            new Set(
+               [
+                  this.type().replace(":", ""),
+                  this.connectionEntity.name,
+                  this.connectionTableMappedName,
+               ].filter(Boolean),
+            ),
+         ),
       ].join("_");
    }
 }

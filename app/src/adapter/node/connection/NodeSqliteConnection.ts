@@ -1,19 +1,29 @@
-import { genericSqlite } from "bknd";
+import {
+   genericSqlite,
+   type GenericSqliteConnection,
+   type GenericSqliteConnectionConfig,
+} from "bknd";
 import { DatabaseSync } from "node:sqlite";
+import { omitKeys } from "bknd/utils";
 
-export type NodeSqliteConnectionConfig = {
-   database: DatabaseSync;
-};
+export type NodeSqliteConnection = GenericSqliteConnection<DatabaseSync>;
+export type NodeSqliteConnectionConfig = Omit<
+   GenericSqliteConnectionConfig<DatabaseSync>,
+   "name" | "supports"
+> &
+   ({ database?: DatabaseSync; url?: never } | { url?: string; database?: never });
 
-export function nodeSqlite(config?: NodeSqliteConnectionConfig | { url: string }) {
-   let db: DatabaseSync;
+export function nodeSqlite(config?: NodeSqliteConnectionConfig) {
+   let db: DatabaseSync | undefined;
    if (config) {
-      if ("database" in config) {
+      if ("database" in config && config.database) {
          db = config.database;
-      } else {
+      } else if (config.url) {
          db = new DatabaseSync(config.url);
       }
-   } else {
+   }
+
+   if (!db) {
       db = new DatabaseSync(":memory:");
    }
 
@@ -21,11 +31,7 @@ export function nodeSqlite(config?: NodeSqliteConnectionConfig | { url: string }
       "node-sqlite",
       db,
       (utils) => {
-         const getStmt = (sql: string) => {
-            const stmt = db.prepare(sql);
-            //stmt.setReadBigInts(true);
-            return stmt;
-         };
+         const getStmt = (sql: string) => db.prepare(sql);
 
          return {
             db,
@@ -49,6 +55,7 @@ export function nodeSqlite(config?: NodeSqliteConnectionConfig | { url: string }
          };
       },
       {
+         ...omitKeys(config ?? ({} as any), ["database", "url", "name", "supports"]),
          supports: {
             batching: false,
          },

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { Event, EventManager, InvalidEventReturn, NoParamEvent } from "../../src/core/events";
-import { disableConsoleLog, enableConsoleLog } from "../helper";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);

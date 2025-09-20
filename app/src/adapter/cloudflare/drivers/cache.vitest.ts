@@ -3,6 +3,10 @@ import { cacheWorkersKV } from "./cache";
 import { viTestRunner } from "adapter/node/vitest";
 import { cacheDriverTestSuite } from "core/drivers/cache/cache-driver-test-suite";
 import { Miniflare } from "miniflare";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(() => enableConsoleLog());
 
 describe("cacheWorkersKV", async () => {
    beforeAll(() => {

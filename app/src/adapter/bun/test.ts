@@ -1,4 +1,4 @@
-import { expect, test, mock, describe, beforeEach, afterEach, afterAll } from "bun:test";
+import { expect, test, mock, describe, beforeEach, afterEach, afterAll, beforeAll } from "bun:test";
 
 export const bunTestRunner = {
    describe,
@@ -8,4 +8,5 @@ export const bunTestRunner = {
    beforeEach,
    afterEach,
    afterAll,
+   beforeAll,
 };

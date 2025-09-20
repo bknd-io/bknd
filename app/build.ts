@@ -252,6 +252,8 @@ async function buildAdapters() {
          platform: "neutral",
          entry: ["src/adapter/index.ts"],
          outDir: "dist/adapter",
+         // only way to keep @vite-ignore comments
+         minify: false,
       }),
 
       // specific adatpers

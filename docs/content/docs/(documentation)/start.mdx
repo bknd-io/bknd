@@ -6,29 +6,34 @@ tags: ["documentation"]
 
 import { Icon } from "@iconify/react";
 import { examples } from "@/app/_components/StackBlitz";
+import { SquareMousePointer, Code, Blend } from 'lucide-react';
+
 
 Glad you're here! **bknd** is a lightweight, infrastructure agnostic and feature-rich backend that runs in any JavaScript environment.
 
 - Instant backend with full REST API
 - Built on Web Standards for maximum compatibility
-- Multiple run modes (standalone, runtime, framework)
-- Official API and React SDK with type-safety
-- React elements for auto-configured authentication and media components
+- Multiple ready-made [integrations](/integration/introduction) (standalone, runtime, framework)
+- Official [API SDK](/usage/sdk) and [React SDK](/usage/react) with type-safety
+- [React elements](/usage/elements) for auto-configured authentication and media components
+- Built-in [MCP server](/usage/mcp/overview) for controlling your backend
+- Multiple run [modes](/usage/introduction#modes) (ui-only, code-only, hybrid)
 
 ## Preview
 
 Here is a preview of **bknd** in StackBlitz:
 
-<StackBlitz path="github/bknd-io/bknd-demo" initialPath="/" />
+<Card className="p-0 pb-1">
+  <StackBlitz path="github/bknd-io/bknd-demo" initialPath="/" />
+  <Accordions className="m-1">
+    <Accordion title="What's going on?">
+      The example shown is starting a [node server](/integration/node) using an [in-memory database](/usage/database#sqlite-in-memory). To ensure there are a few entities defined, it is using an [initial structure](/usage/database#initial-structure) using the prototype methods. Furthermore it uses the [seed option](/usage/database#seeding-the-database) to seed some data in the structure created.
 
-<Accordions>
-  <Accordion title="What's going on?">
-    The example shown is starting a [node server](/integration/node) using an [in-memory database](/usage/database#sqlite-in-memory). To ensure there are a few entities defined, it is using an [initial structure](/usage/database#initial-structure) using the prototype methods. Furthermore it uses the [seed option](/usage/database#seeding-the-database) to seed some data in the structure created.
+      To ensure there are users defined on first boot, it hooks into the `App.Events.AppFirstBoot` event to create them (documentation pending).
 
-    To ensure there are users defined on first boot, it hooks into the `App.Events.AppFirstBoot` event to create them (documentation pending).
-
-  </Accordion>
-</Accordions>
+    </Accordion>
+  </Accordions>
+</Card>
 
 ## Quickstart
 
@@ -154,5 +159,21 @@ The following databases are currently supported. Request a new integration if yo
 
   <Card title="Yours missing?" href="https://github.com/bknd-io/bknd/issues/new">
     Create a new issue to request a new database integration.
+  </Card>
+</Cards>
+
+## Choose a mode
+
+**bknd** supports multiple modes to suit your needs.
+
+<Cards className="grid-cols-3">
+  <Card title="UI-only" href="/usage/introduction#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
+     Configure your backend and manage your data visually with the built-in Admin UI.
+  </Card>
+  <Card title="Code-only" href="/usage/introduction#code-only-mode" icon={<Code className="text-fd-primary !size-6" />}>
+    Configure your backend programmatically with a Drizzle-like API, manage your data with the Admin UI.
+  </Card>
+  <Card title="Hybrid" href="/usage/introduction#hybrid-mode" icon={<Blend className="text-fd-primary !size-6" />}>
+    Configure your backend visually while in development, use a read-only configuration in production.
   </Card>
 </Cards>

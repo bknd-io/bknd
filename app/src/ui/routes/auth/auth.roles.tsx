@@ -11,10 +11,12 @@ import { Button } from "../../components/buttons/Button";
 import { CellValue, DataTable } from "../../components/table/DataTable";
 import * as AppShell from "../../layouts/AppShell/AppShell";
 import { routes, useNavigate } from "../../lib/routes";
+import { useBknd } from "ui/client/bknd";
 
 export function AuthRolesList() {
    const [navigate] = useNavigate();
    const { config, actions } = useBkndAuth();
+   const { readonly } = useBknd();
 
    const data = Object.values(
       transformObject(config.roles ?? {}, (role, name) => ({
@@ -30,6 +32,7 @@ export function AuthRolesList() {
    }
 
    function openCreateModal() {
+      if (readonly) return;
       bkndModals.open(
          "form",
          {
@@ -59,9 +62,11 @@ export function AuthRolesList() {
       <>
          <AppShell.SectionHeader
             right={
-               <Button variant="primary" onClick={openCreateModal}>
-                  Create new
-               </Button>
+               !readonly && (
+                  <Button variant="primary" onClick={openCreateModal}>
+                     Create new
+                  </Button>
+               )
             }
          >
             Roles & Permissions

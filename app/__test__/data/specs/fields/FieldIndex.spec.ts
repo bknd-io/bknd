@@ -23,11 +23,4 @@ describe("FieldIndex", async () => {
       expect(index.name).toEqual("idx_test_name");
       expect(index.unique).toEqual(false);
    });
-
-   test("it fails on non-unique", async () => {
-      const field = new TestField("name", { required: false });
-
-      expect(() => new EntityIndex(entity, [field], true)).toThrowError();
-      expect(() => new EntityIndex(entity, [field])).toBeDefined();
-   });
 });

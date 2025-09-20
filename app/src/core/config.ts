@@ -11,10 +11,12 @@ export interface AppEntity<IdType = number | string> {
 
 export interface DB {
    // make sure to make unknown as "any"
-   [key: string]: {
+   /* [key: string]: {
       id: PrimaryFieldType;
       [key: string]: any;
-   };
+   }; */
+   // @todo: that's not good, but required for admin options
+   [key: string]: any;
 }
 
 export const config = {

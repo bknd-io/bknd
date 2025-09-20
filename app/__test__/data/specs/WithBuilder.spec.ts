@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { Entity, EntityManager } from "data/entities";
 import { ManyToManyRelation, ManyToOneRelation, PolymorphicRelation } from "data/relations";
 import { TextField } from "data/fields";
@@ -6,6 +6,10 @@ import * as proto from "data/prototype";
 import { WithBuilder } from "data/entities/query/WithBuilder";
 import { schemaToEm } from "../../helper";
 import { getDummyConnection } from "../helper";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(enableConsoleLog);
 
 const { dummyConnection } = getDummyConnection();
 

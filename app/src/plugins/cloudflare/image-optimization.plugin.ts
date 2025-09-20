@@ -49,6 +49,11 @@ export type CloudflareImageOptimizationOptions = {
     * @default public, max-age=31536000, immutable
     */
    cacheControl?: string;
+   /**
+    * Whether to fallback to the original image if the image optimization fails
+    * @default false
+    */
+   fallbackRedirect?: boolean;
 };
 
 export function cloudflareImageOptimization({
@@ -57,6 +62,7 @@ export function cloudflareImageOptimization({
    explain = false,
    defaultOptions = {},
    fixedOptions = {},
+   fallbackRedirect = false,
 }: CloudflareImageOptimizationOptions = {}): AppPlugin {
    const disallowedAccessUrls = ["/api", "/admin", "/api/plugin"];
    if (disallowedAccessUrls.includes(accessUrl) || accessUrl.length < 2) {
@@ -117,6 +123,12 @@ export function cloudflareImageOptimization({
 
             // Returning fetch() with resizing options will pass through response with the resized image.
             const res = await fetch(imageRequest, { cf: { image: options as any } });
+
+            if (!res.ok && fallbackRedirect) {
+               // add redirect response to the original image
+               return new Response(null, { status: 307, headers: { Location: imageURL } });
+            }
+
             const headers = pickHeaders2(res.headers, [
                "Content-Type",
                "Content-Length",

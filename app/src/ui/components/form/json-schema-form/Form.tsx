@@ -61,6 +61,7 @@ export type FormContext<Data> = {
    options: FormOptions;
    root: string;
    _formStateAtom: PrimitiveAtom<FormState<Data>>;
+   readOnly: boolean;
 };
 
 const FormContext = createContext<FormContext<any>>(undefined!);
@@ -81,18 +82,20 @@ export function Form<
    hiddenSubmit = true,
    ignoreKeys = [],
    options = {},
+   readOnly = false,
    ...props
 }: Omit<ComponentPropsWithoutRef<"form">, "onChange" | "onSubmit"> & {
    schema: Schema;
    validateOn?: "change" | "submit";
    initialOpts?: LibTemplateOptions;
    ignoreKeys?: string[];
-   onChange?: (data: Partial<Data>, name: string, value: any) => void;
+   onChange?: (data: Partial<Data>, name: string, value: any, context: FormContext<Data>) => void;
    onSubmit?: (data: Data) => void | Promise<void>;
    onInvalidSubmit?: (errors: JsonError[], data: Partial<Data>) => void;
    hiddenSubmit?: boolean;
    options?: FormOptions;
    initialValues?: Schema extends JSONSchema ? FromSchema<Schema> : never;
+   readOnly?: boolean;
 }) {
    const [schema, initial] = omitSchema(_schema, ignoreKeys, _initialValues);
    const lib = useMemo(() => new Draft2019(schema), [JSON.stringify(schema)]);
@@ -144,7 +147,7 @@ export function Form<
       setFormState((state) => {
          const prev = state.data;
          const changed = immutable.set(prev, path, value);
-         onChange?.(changed, path, value);
+         onChange?.(changed, path, value, context);
          return { ...state, data: changed };
       });
       check();
@@ -154,7 +157,7 @@ export function Form<
       setFormState((state) => {
          const prev = state.data;
          const changed = immutable.del(prev, path);
-         onChange?.(changed, path, undefined);
+         onChange?.(changed, path, undefined, context);
          return { ...state, data: changed };
       });
       check();
@@ -190,8 +193,9 @@ export function Form<
          options,
          root: "",
          path: "",
+         readOnly,
       }),
-      [schema, initialValues, options],
+      [schema, initialValues, options, readOnly],
    ) as any;
 
    return (
@@ -296,19 +300,20 @@ export function useFormStateSelector<Data = any, Reduced = Data>(
    return useAtom(selected)[0];
 }
 
-type SelectorFn<Ctx = any, Refined = any> = (state: Ctx) => Refined;
+export type SelectorFn<Ctx = any, Refined = any> = (state: Ctx) => Refined;
+export type DeriveFn<Data = any, Reduced = undefined> = SelectorFn<
+   FormContext<Data> & {
+      pointer: string;
+      required: boolean;
+      value: any;
+      path: string;
+   },
+   Reduced
+>;
 
 export function useDerivedFieldContext<Data = any, Reduced = undefined>(
    path,
-   deriveFn?: SelectorFn<
-      FormContext<Data> & {
-         pointer: string;
-         required: boolean;
-         value: any;
-         path: string;
-      },
-      Reduced
-   >,
+   deriveFn?: DeriveFn<Data, Reduced>,
    _schema?: JSONSchema,
 ): FormContext<Data> & {
    value: Reduced;

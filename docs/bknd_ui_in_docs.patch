@@ -1,0 +1,498 @@
+Subject: [PATCH] bknd ui in docs
+---
+Index: docs/package.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/package.json b/docs/package.json
+--- a/docs/package.json	(revision 26d1f2b583b5299f9d6d8ba6ec5a7b74b3297e06)
++++ b/docs/package.json	(date 1758275461936)
+@@ -32,7 +32,8 @@
+     "react": "^19.1.0",
+     "react-dom": "^19.1.0",
+     "tailwind-merge": "^3.3.1",
+-    "twoslash": "^0.3.2"
++    "twoslash": "^0.3.2",
++    "bknd": "file:../app"
+   },
+   "devDependencies": {
+     "@tailwindcss/postcss": "^4.1.11",
+Index: docs/package-lock.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/package-lock.json b/docs/package-lock.json
+--- a/docs/package-lock.json	(revision 26d1f2b583b5299f9d6d8ba6ec5a7b74b3297e06)
++++ b/docs/package-lock.json	(date 1758275464962)
+@@ -10,6 +10,7 @@
+       "dependencies": {
+         "@iconify/react": "^6.0.0",
+         "@orama/orama": "^3.1.10",
++        "bknd": "file:../app",
+         "class-variance-authority": "^0.7.1",
+         "clsx": "^2.1.1",
+         "fumadocs-core": "^15.6.1",
+@@ -44,6 +45,110 @@
+         "wrangler": "^4.25.1"
+       }
+     },
++    "../app": {
++      "name": "bknd",
++      "version": "0.18.0-rc.3",
++      "license": "FSL-1.1-MIT",
++      "dependencies": {
++        "@cfworker/json-schema": "^4.1.1",
++        "@codemirror/lang-html": "^6.4.9",
++        "@codemirror/lang-json": "^6.0.1",
++        "@hello-pangea/dnd": "^18.0.1",
++        "@hono/swagger-ui": "^0.5.1",
++        "@mantine/core": "^7.17.1",
++        "@mantine/hooks": "^7.17.1",
++        "@tanstack/react-form": "^1.0.5",
++        "@uiw/react-codemirror": "^4.23.10",
++        "@xyflow/react": "^12.4.4",
++        "aws4fetch": "^1.0.20",
++        "bcryptjs": "^3.0.2",
++        "dayjs": "^1.11.13",
++        "fast-xml-parser": "^5.0.8",
++        "hono": "4.8.3",
++        "json-schema-library": "10.0.0-rc7",
++        "json-schema-to-ts": "^3.1.1",
++        "jsonv-ts": "0.8.2",
++        "kysely": "0.27.6",
++        "lodash-es": "^4.17.21",
++        "oauth4webapi": "^2.11.1",
++        "object-path-immutable": "^4.1.2",
++        "picocolors": "^1.1.1",
++        "radix-ui": "^1.1.3",
++        "swr": "^2.3.3"
++      },
++      "bin": {
++        "bknd": "dist/cli/index.js"
++      },
++      "devDependencies": {
++        "@aws-sdk/client-s3": "^3.758.0",
++        "@bluwy/giget-core": "^0.1.2",
++        "@clack/prompts": "^0.11.0",
++        "@cloudflare/vitest-pool-workers": "^0.8.38",
++        "@cloudflare/workers-types": "^4.20250606.0",
++        "@dagrejs/dagre": "^1.1.4",
++        "@hono/vite-dev-server": "^0.19.1",
++        "@hookform/resolvers": "^4.1.3",
++        "@libsql/client": "^0.15.9",
++        "@mantine/modals": "^7.17.1",
++        "@mantine/notifications": "^7.17.1",
++        "@playwright/test": "^1.51.1",
++        "@rjsf/core": "5.22.2",
++        "@standard-schema/spec": "^1.0.0",
++        "@tabler/icons-react": "3.18.0",
++        "@tailwindcss/postcss": "^4.0.12",
++        "@tailwindcss/vite": "^4.0.12",
++        "@testing-library/jest-dom": "^6.6.3",
++        "@testing-library/react": "^16.2.0",
++        "@types/node": "^22.13.10",
++        "@types/react": "^19.0.10",
++        "@types/react-dom": "^19.0.4",
++        "@vitejs/plugin-react": "^4.3.4",
++        "@vitest/coverage-v8": "^3.0.9",
++        "autoprefixer": "^10.4.21",
++        "clsx": "^2.1.1",
++        "dotenv": "^16.4.7",
++        "jotai": "^2.12.2",
++        "jsdom": "^26.0.0",
++        "kysely-d1": "^0.3.0",
++        "kysely-generic-sqlite": "^1.2.1",
++        "libsql-stateless-easy": "^1.8.0",
++        "open": "^10.1.0",
++        "openapi-types": "^12.1.3",
++        "postcss": "^8.5.3",
++        "postcss-preset-mantine": "^1.17.0",
++        "postcss-simple-vars": "^7.0.1",
++        "posthog-js-lite": "^3.4.2",
++        "react": "^19.0.0",
++        "react-dom": "^19.0.0",
++        "react-hook-form": "^7.54.2",
++        "react-icons": "5.2.1",
++        "react-json-view-lite": "^2.4.1",
++        "sql-formatter": "^15.4.11",
++        "tailwind-merge": "^3.0.2",
++        "tailwindcss": "^4.0.12",
++        "tailwindcss-animate": "^1.0.7",
++        "tsc-alias": "^1.8.11",
++        "tsup": "^8.4.0",
++        "tsx": "^4.19.3",
++        "uuid": "^11.1.0",
++        "vite": "^6.3.5",
++        "vite-plugin-circular-dependency": "^0.5.0",
++        "vite-tsconfig-paths": "^5.1.4",
++        "vitest": "^3.0.9",
++        "wouter": "^3.6.0",
++        "wrangler": "^4.37.1"
++      },
++      "engines": {
++        "node": ">=22.13"
++      },
++      "optionalDependencies": {
++        "@hono/node-server": "^1.14.3"
++      },
++      "peerDependencies": {
++        "react": ">=19",
++        "react-dom": ">=19"
++      }
++    },
+     "node_modules/@alloc/quick-lru": {
+       "version": "5.2.0",
+       "resolved": "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz",
+@@ -4363,6 +4468,10 @@
+       "dev": true,
+       "license": "MIT"
+     },
++    "node_modules/bknd": {
++      "resolved": "../app",
++      "link": true
++    },
+     "node_modules/blake3-wasm": {
+       "version": "2.1.5",
+       "resolved": "https://registry.npmjs.org/blake3-wasm/-/blake3-wasm-2.1.5.tgz",
+Index: docs/content/docs/(documentation)/meta.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/content/docs/(documentation)/meta.json b/docs/content/docs/(documentation)/meta.json
+--- a/docs/content/docs/(documentation)/meta.json	(revision 26d1f2b583b5299f9d6d8ba6ec5a7b74b3297e06)
++++ b/docs/content/docs/(documentation)/meta.json	(date 1758275212528)
+@@ -20,6 +20,7 @@
+     "./extending/config",
+     "./extending/events",
+     "./extending/plugins",
++    "./extending/admin",
+     "---Integration---",
+     "./integration/introduction",
+     "./integration/(frameworks)/",
+Index: docs/content/docs/(documentation)/extending/admin.mdx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/content/docs/(documentation)/extending/admin.mdx b/docs/content/docs/(documentation)/extending/admin.mdx
+new file mode 100644
+--- /dev/null	(date 1758281513770)
++++ b/docs/content/docs/(documentation)/extending/admin.mdx	(date 1758281513770)
+@@ -0,0 +1,56 @@
++---
++title: Admin UI
++tags: ["documentation"]
++---
++import { TypeTable } from 'fumadocs-ui/components/type-table';
++import { Button } from "bknd-ui"
++import { BkndUi } from "@/app/_components/BkndUi";
++
++Describe how to extend the Admin UI.
++
++<BkndUi code={`import { Button } from "bknd/ui"
++
++function ButtonDemo() {
++    return <div className="flex flex-row gap-4">
++      <Button variant="primary">
++         Primary
++      </Button>
++      <Button variant="outline">
++         Outline
++      </Button>
++      <Button variant="ghost">
++         Ghost
++      </Button>
++      <Button variant="red">
++         Red
++      </Button>
++      <Button variant="subtlered">
++         Subtlered
++      </Button>
++    </div>
++}`}>
++   <div className="flex flex-row gap-4">
++      <Button variant="primary">
++         Primary
++      </Button>
++      <Button variant="outline">
++         Outline
++      </Button>
++      <Button variant="ghost">
++         Ghost
++      </Button>
++      <Button variant="red">
++         Red
++      </Button>
++      <Button variant="subtlered">
++         Subtlered
++      </Button>
++   </div>
++</BkndUi>
++
++<AutoTypeTable path="../app/src/ui/Admin.tsx" name="BkndAdminProps" />
++
++<AutoTypeTable path="../app/src/ui/options/index.ts" name="BkndAdminEntityOptions" />
++<AutoTypeTable path="../app/src/ui/options/index.ts" name="BkndAdminEntityFieldOptions" />
++
++<AutoTypeTable path="../app/src/ui/options/index.ts" name="BkndAdminAppShellOptions" />
+\ No newline at end of file
+Index: docs/tsconfig.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/tsconfig.json b/docs/tsconfig.json
+--- a/docs/tsconfig.json	(revision 26d1f2b583b5299f9d6d8ba6ec5a7b74b3297e06)
++++ b/docs/tsconfig.json	(date 1758275691058)
+@@ -18,6 +18,7 @@
+     "paths": {
+       "@/.source": ["./.source/index.ts"],
+       "@/bknd/*": ["../app/src/"],
++      "bknd-ui": ["../app/dist/ui/index.js"],
+       "@/*": ["./*"]
+     },
+ 
+Index: docs/app/_components/BkndUi.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/app/_components/BkndUi.tsx b/docs/app/_components/BkndUi.tsx
+new file mode 100644
+--- /dev/null	(date 1758280846757)
++++ b/docs/app/_components/BkndUi.tsx	(date 1758280846757)
+@@ -0,0 +1,36 @@
++import { readFileSync } from "node:fs";
++import { join } from "node:path";
++import { BkndUiClient } from "./BkndUiClient";
++
++// Server component that reads CSS from disk
++export function BkndUi({ children, code }: { children: React.ReactNode; code?: string }) {
++   let bkndCss = "";
++
++   try {
++      // Try to read the CSS file from the app directory
++      const cssPath = join(process.cwd(), "node_modules", "bknd", "dist", "ui", "main.css");
++      bkndCss = readFileSync(cssPath, "utf-8");
++   } catch (error) {
++      console.warn("Could not read bknd CSS file:", error);
++      // Fallback CSS
++      bkndCss = `
++         .bknd-admin {
++            --color-primary: #18181b;
++            --color-background: #fafafa;
++            --color-muted: #e4e4e7;
++            color: var(--color-primary);
++            background: var(--color-background);
++            padding: 16px;
++            border: 1px solid var(--color-muted);
++            border-radius: 8px;
++            font-family: system-ui, sans-serif;
++         }
++      `;
++   }
++
++   return (
++      <BkndUiClient bkndCss={bkndCss} code={code}>
++         {children}
++      </BkndUiClient>
++   );
++}
+Index: docs/next.config.mjs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/next.config.mjs b/docs/next.config.mjs
+--- a/docs/next.config.mjs	(revision 26d1f2b583b5299f9d6d8ba6ec5a7b74b3297e06)
++++ b/docs/next.config.mjs	(date 1758281330764)
+@@ -19,6 +19,9 @@
+    webpack(config) {
+       config.resolve.alias["@/bknd"] = path.resolve(__dirname, "../app/src");
+       config.resolve.alias["@"] = path.resolve(__dirname);
++
++      // @todo: this doesn't work with turbo
++      config.resolve.alias["bknd-ui"] = path.resolve(__dirname, "../app/dist/ui/index.js");
+       return config;
+    },
+    eslint: {
+Index: docs/app/_components/BkndUiClient.tsx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/app/_components/BkndUiClient.tsx b/docs/app/_components/BkndUiClient.tsx
+new file mode 100644
+--- /dev/null	(date 1758281176041)
++++ b/docs/app/_components/BkndUiClient.tsx	(date 1758281176041)
+@@ -0,0 +1,62 @@
++"use client";
++
++import { useEffect, useRef, useState } from "react";
++import { createPortal } from "react-dom";
++import { Card } from "fumadocs-ui/components/card";
++import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
++import { useTheme } from "next-themes";
++
++interface BkndUiClientProps {
++   bkndCss: string;
++   children: React.ReactNode;
++   code?: string;
++}
++
++export function BkndUiClient({ bkndCss, children, code }: BkndUiClientProps) {
++   const { theme } = useTheme();
++   const containerRef = useRef<HTMLDivElement>(null);
++   const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
++   const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
++
++   useEffect(() => {
++      if (!containerRef.current || shadowRoot) return;
++
++      // Create shadow root
++      const shadow = containerRef.current.attachShadow({ mode: "open" });
++
++      // Create style element with the CSS passed from server
++      const style = document.createElement("style");
++      style.textContent = `
++         :host {
++            display: block;
++            isolation: isolate;
++         }
++         ${bkndCss}
++      `;
++
++      shadow.appendChild(style);
++
++      // Create mount point for React content
++      const mount = document.createElement("div");
++      mount.className = `bknd-admin ${theme}`;
++      shadow.appendChild(mount);
++
++      setShadowRoot(shadow);
++      setMountPoint(mount);
++   }, [shadowRoot, bkndCss]);
++
++   return (
++      <>
++         {/* @ts-ignore */}
++         <Card className="p-0">
++            <div className="flex flex-col justify-center items-center p-4">
++               <div ref={containerRef} className="bknd-ui-shadow-host">
++                  <div>Loading...</div>
++                  {shadowRoot && mountPoint && createPortal(children, mountPoint)}
++               </div>
++            </div>
++            {code && <DynamicCodeBlock lang="tsx" code={code} />}
++         </Card>
++      </>
++   );
++}
+Index: docs/content/docs/(documentation)/usage/mcp/tools-resources.mdx
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/content/docs/(documentation)/usage/mcp/tools-resources.mdx b/docs/content/docs/(documentation)/usage/mcp/tools-resources.mdx
+--- a/docs/content/docs/(documentation)/usage/mcp/tools-resources.mdx	(revision 26d1f2b583b5299f9d6d8ba6ec5a7b74b3297e06)
++++ b/docs/content/docs/(documentation)/usage/mcp/tools-resources.mdx	(date 1758280630236)
+@@ -1,5 +1,5 @@
+ ---
+-title: "MCP"
++title: "Tools & Resources"
+ description: "Tools & Resources of the built-in full featured MCP server."
+ tags: ["documentation"]
+ ---
+@@ -24,7 +24,7 @@
+ 
+ Create a new user
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","properties":{"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":8},"role":{"type":"string","enum":[]}},"required":["email","password"]}} key={"auth_user_create"} />
++<JsonSchemaTypeTable schema={{"type":"object","properties":{"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":8},"role":{"type":"string"}},"required":["email","password"]}} key={"auth_user_create"} />
+ 
+ ### `auth_user_password_change`
+ 
+@@ -48,61 +48,61 @@
+ 
+ Delete many
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_delete_many"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_delete_many"} />
+ 
+ ### `data_entity_delete_one`
+ 
+ Delete one
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"}}}} key={"data_entity_delete_one"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"}}}} key={"data_entity_delete_one"} />
+ 
+ ### `data_entity_fn_count`
+ 
+ Count entities
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_count"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_count"} />
+ 
+ ### `data_entity_fn_exists`
+ 
+ Check if entity exists
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_exists"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_exists"} />
+ 
+ ### `data_entity_info`
+ 
+ Retrieve entity info
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"}}}} key={"data_entity_info"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"}}}} key={"data_entity_info"} />
+ 
+ ### `data_entity_insert`
+ 
+ Insert one or many
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"anyOf":[{"type":"object","properties":{}},{"type":"array","items":{"type":"object","properties":{}}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_insert"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"anyOf":[{"type":"object","properties":{}},{"type":"array","items":{"type":"object","properties":{}}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_insert"} />
+ 
+ ### `data_entity_read_many`
+ 
+ Query entities
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"limit":{"type":"number","default":10,"$target":"json"},"offset":{"type":"number","default":0,"$target":"json"},"sort":{"type":"string","default":"id","$target":"json"},"where":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"},"select":{"type":"array","$target":"json","items":{"type":"string"}},"join":{"type":"array","$target":"json","items":{"type":"string"}},"with":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_read_many"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"limit":{"type":"number","default":10,"$target":"json"},"offset":{"type":"number","default":0,"$target":"json"},"sort":{"type":"string","default":"id","$target":"json"},"where":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"},"select":{"type":"array","$target":"json","items":{"type":"string"}},"join":{"type":"array","$target":"json","items":{"type":"string"}},"with":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_read_many"} />
+ 
+ ### `data_entity_read_one`
+ 
+ Read one
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"offset":{"type":"number","default":0,"$target":"query"},"sort":{"type":"string","default":"id","$target":"query"},"select":{"type":"array","$target":"query","items":{"type":"string"}}}}} key={"data_entity_read_one"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"offset":{"type":"number","default":0,"$target":"query"},"sort":{"type":"string","default":"id","$target":"query"},"select":{"type":"array","$target":"query","items":{"type":"string"}}}}} key={"data_entity_read_one"} />
+ 
+ ### `data_entity_update_many`
+ 
+ Update many
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","update","where"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"update":{"type":"object","$target":"json","properties":{}},"where":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_update_many"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity","update","where"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"update":{"type":"object","$target":"json","properties":{}},"where":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_update_many"} />
+ 
+ ### `data_entity_update_one`
+ 
+ Update one
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id","json"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_update_one"} />
++<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id","json"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_update_one"} />
+ 
+ ### `data_sync`
+ 
+@@ -306,7 +306,7 @@
+ 
+ Update Server configuration
+ 
+-<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"cors":{"type":"object","additionalProperties":false,"properties":{"origin":{"type":"string","default":"*"},"allow_methods":{"type":"array","default":["GET","POST","PATCH","PUT","DELETE"],"uniqueItems":true,"items":{"type":"string","enum":["GET","POST","PATCH","PUT","DELETE"]}},"allow_headers":{"type":"array","default":["Content-Type","Content-Length","Authorization","Accept"],"items":{"type":"string"}},"allow_credentials":{"type":"boolean","default":true}}},"mcp":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false}}}}}},"required":["value"]}} key={"config_server_update"} />
++<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"cors":{"type":"object","additionalProperties":false,"properties":{"origin":{"type":"string","default":"*"},"allow_methods":{"type":"array","default":["GET","POST","PATCH","PUT","DELETE"],"uniqueItems":true,"items":{"type":"string","enum":["GET","POST","PATCH","PUT","DELETE"]}},"allow_headers":{"type":"array","default":["Content-Type","Content-Length","Authorization","Accept"],"items":{"type":"string"}},"allow_credentials":{"type":"boolean","default":true}}},"mcp":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false},"path":{"type":"string","default":"/api/system/mcp"}}}}}},"required":["value"]}} key={"config_server_update"} />
+    
+ 
+ ## Resources

@@ -31,6 +31,7 @@ import { fieldSpecs } from "ui/modules/data/components/fields-specs";
 import { extractSchema } from "../settings/utils/schema";
 import { EntityFieldsForm, type EntityFieldsFormRef } from "./forms/entity.fields.form";
 import { RoutePathStateProvider } from "ui/hooks/use-route-path-state";
+import { SchemaEditable, useBknd } from "ui/client/bknd";
 
 export function DataSchemaEntity({ params }) {
    const { $data } = useBkndData();
@@ -67,29 +68,31 @@ export function DataSchemaEntity({ params }) {
                   >
                      <IconButton Icon={TbDots} />
                   </Dropdown>
-                  <Dropdown
-                     items={[
-                        {
-                           icon: TbCirclesRelation,
-                           label: "Add relation",
-                           onClick: () => $data.modals.createRelation(entity.name),
-                        },
-                        {
-                           icon: TbPhoto,
-                           label: "Add media",
-                           onClick: () => $data.modals.createMedia(entity.name),
-                        },
-                        () => <div className="h-px my-1 w-full bg-primary/5" />,
-                        {
-                           icon: TbDatabasePlus,
-                           label: "Create Entity",
-                           onClick: () => $data.modals.createEntity(),
-                        },
-                     ]}
-                     position="bottom-end"
-                  >
-                     <Button IconRight={TbPlus}>Add</Button>
-                  </Dropdown>
+                  <SchemaEditable>
+                     <Dropdown
+                        items={[
+                           {
+                              icon: TbCirclesRelation,
+                              label: "Add relation",
+                              onClick: () => $data.modals.createRelation(entity.name),
+                           },
+                           {
+                              icon: TbPhoto,
+                              label: "Add media",
+                              onClick: () => $data.modals.createMedia(entity.name),
+                           },
+                           () => <div className="h-px my-1 w-full bg-primary/5" />,
+                           {
+                              icon: TbDatabasePlus,
+                              label: "Create Entity",
+                              onClick: () => $data.modals.createEntity(),
+                           },
+                        ]}
+                        position="bottom-end"
+                     >
+                        <Button IconRight={TbPlus}>Add</Button>
+                     </Dropdown>
+                  </SchemaEditable>
                </>
             }
             className="pl-3"
@@ -149,6 +152,7 @@ const Fields = ({ entity }: { entity: Entity }) => {
    const [submitting, setSubmitting] = useState(false);
    const [updates, setUpdates] = useState(0);
    const { actions, $data, config } = useBkndData();
+   const { readonly } = useBknd();
    const [res, setRes] = useState<any>();
    const ref = useRef<EntityFieldsFormRef>(null);
    async function handleUpdate() {
@@ -169,7 +173,7 @@ const Fields = ({ entity }: { entity: Entity }) => {
          title="Fields"
          ActiveIcon={IconAlignJustified}
          renderHeaderRight={({ open }) =>
-            open ? (
+            open && !readonly ? (
                <Button variant="primary" disabled={!open} onClick={handleUpdate}>
                   Update
                </Button>
@@ -181,11 +185,12 @@ const Fields = ({ entity }: { entity: Entity }) => {
                <div className="animate-fade-in absolute w-full h-full top-0 bottom-0 left-0 right-0 bg-background/65 z-50" />
             )}
             <EntityFieldsForm
+               readonly={readonly}
                routePattern={`/entity/${entity.name}/fields/:sub?`}
                fields={initialFields}
                ref={ref}
                key={String(updates)}
-               sortable
+               sortable={!readonly}
                additionalFieldTypes={fieldSpecs
                   .filter((f) => ["relation", "media"].includes(f.type))
                   .map((i) => ({
@@ -205,7 +210,7 @@ const Fields = ({ entity }: { entity: Entity }) => {
                isNew={false}
             />
 
-            {isDebug() && (
+            {isDebug() && !readonly && (
                <div>
                   <div className="flex flex-row gap-1 justify-center">
                      <Button size="small" onClick={() => setRes(ref.current?.isValid())}>
@@ -237,6 +242,7 @@ const BasicSettings = ({ entity }: { entity: Entity }) => {
    const d = useBkndData();
    const config = d.entities?.[entity.name]?.config;
    const formRef = useRef<JsonSchemaFormRef>(null);
+   const { readonly } = useBknd();
 
    const schema = cloneDeep(
       // @ts-ignore
@@ -264,7 +270,7 @@ const BasicSettings = ({ entity }: { entity: Entity }) => {
          title="Settings"
          ActiveIcon={IconSettings}
          renderHeaderRight={({ open }) =>
-            open ? (
+            open && !readonly ? (
                <Button variant="primary" disabled={!open} onClick={handleUpdate}>
                   Update
                </Button>
@@ -278,6 +284,7 @@ const BasicSettings = ({ entity }: { entity: Entity }) => {
                formData={_config}
                onSubmit={console.log}
                className="legacy hide-required-mark fieldset-alternative mute-root"
+               readonly={readonly}
             />
          </div>
       </AppShell.RouteAwareSectionHeaderAccordionItem>

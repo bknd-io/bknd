@@ -1,4 +1,5 @@
 import { Suspense, lazy } from "react";
+import { SchemaEditable } from "ui/client/bknd";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 import { Button } from "ui/components/buttons/Button";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
@@ -15,9 +16,11 @@ export function DataSchemaIndex() {
       <>
          <AppShell.SectionHeader
             right={
-               <Button type="button" variant="primary" onClick={$data.modals.createAny}>
-                  Create new
-               </Button>
+               <SchemaEditable>
+                  <Button type="button" variant="primary" onClick={$data.modals.createAny}>
+                     Create new
+                  </Button>
+               </SchemaEditable>
             }
          >
             Schema Overview

@@ -10,6 +10,6 @@ afterAll(enableConsoleLog);
 describe("react-router adapter", () => {
    adapterTestSuite(bunTestRunner, {
       makeApp: rr.getApp,
-      makeHandler: (c, a, o) => (request: Request) => rr.serve(c, a?.env, o)({ request }),
+      makeHandler: (c, a) => (request: Request) => rr.serve(c, a?.env)({ request }),
    });
 });

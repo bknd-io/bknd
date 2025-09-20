@@ -10,6 +10,6 @@ afterAll(enableConsoleLog);
 describe("astro adapter", () => {
    adapterTestSuite(bunTestRunner, {
       makeApp: astro.getApp,
-      makeHandler: (c, a, o) => (request: Request) => astro.serve(c, a, o)({ request }),
+      makeHandler: (c, a) => (request: Request) => astro.serve(c, a)({ request }),
    });
 });

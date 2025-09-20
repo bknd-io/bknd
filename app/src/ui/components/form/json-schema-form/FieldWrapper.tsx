@@ -130,7 +130,7 @@ const FieldDebug = ({
                />
             )}
          >
-            <IconButton Icon={IconBug} size="xs" className="opacity-30" />
+            <IconButton Icon={IconBug} size="xs" className="opacity-30" tabIndex={-1} />
          </Popover>
       </div>
    );

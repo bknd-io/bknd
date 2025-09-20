@@ -29,6 +29,7 @@ export {
    type InitialModuleConfigs,
    ModuleManagerEvents,
 } from "./modules/ModuleManager";
+export type * from "modules/ModuleApi";
 
 export type { ServerEnv } from "modules/Controller";
 export type { BkndConfig } from "bknd/adapter";
@@ -115,6 +116,7 @@ export {
    genericSqlite,
    genericSqliteUtils,
    type GenericSqliteConnection,
+   type GenericSqliteConnectionConfig,
 } from "data/connection/sqlite/GenericSqliteConnection";
 export {
    EntityTypescript,
@@ -128,6 +130,7 @@ export type { EntityRelation } from "data/relations";
 export type * from "data/entities/Entity";
 export type { EntityManager } from "data/entities/EntityManager";
 export type { SchemaManager } from "data/schema/SchemaManager";
+export type * from "data/entities";
 export {
    BaseIntrospector,
    Connection,

@@ -31,6 +31,7 @@ export type TestRunner = {
    beforeEach: (fn: () => MaybePromise<void>) => void;
    afterEach: (fn: () => MaybePromise<void>) => void;
    afterAll: (fn: () => MaybePromise<void>) => void;
+   beforeAll: (fn: () => MaybePromise<void>) => void;
 };
 
 export async function retry<T>(

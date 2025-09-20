@@ -1,6 +1,10 @@
-import { describe, expect, it } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { createApp } from "core/test/utils";
 import { Api } from "../../src/Api";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("integration config", () => {
    it("should create an entity", async () => {

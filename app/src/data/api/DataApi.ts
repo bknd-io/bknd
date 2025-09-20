@@ -42,6 +42,9 @@ export class DataApi extends ModuleApi<DataApiOptions> {
    ) {
       type Data = E extends keyof DB ? Selectable<DB[E]> : EntityData;
       type T = RepositoryResultJSON<Data>;
+
+      // @todo: if none found, still returns meta...
+
       return this.readMany(entity, {
          ...query,
          limit: 1,

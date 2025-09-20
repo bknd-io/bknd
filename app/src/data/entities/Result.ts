@@ -72,12 +72,12 @@ export class Result<T = unknown> {
       return this.first().parameters;
    }
 
-   get data() {
+   get data(): T {
       if (this.options.single) {
          return this.first().data?.[0];
       }
 
-      return this.first().data ?? [];
+      return this.first().data ?? ([] as T);
    }
 
    async execute(qb: Compilable | Compilable[]) {

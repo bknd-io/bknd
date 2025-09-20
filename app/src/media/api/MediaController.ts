@@ -181,16 +181,14 @@ export class MediaController extends Controller {
             "param",
             s.object({
                entity: entitiesEnum,
-               id: s.number(),
+               id: s.anyOf([s.number(), s.string()]),
                field: s.string(),
             }),
          ),
          jsc("query", s.object({ overwrite: s.boolean().optional() })),
          permission([DataPermissions.entityCreate, MediaPermissions.uploadFile]),
          async (c) => {
-            const entity_name = c.req.param("entity");
-            const field_name = c.req.param("field");
-            const entity_id = Number.parseInt(c.req.param("id"));
+            const { entity: entity_name, id: entity_id, field: field_name } = c.req.valid("param");
 
             // check if entity exists
             const entity = this.media.em.entity(entity_name);

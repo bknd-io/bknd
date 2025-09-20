@@ -30,6 +30,7 @@ export default defineConfig({
       devServer({
          ...devServerConfig,
          entry: "./vite.dev.ts",
+         //entry: "./vite.dev.code.ts",
       }),
       tailwindcss(),
    ],

@@ -9,6 +9,6 @@ export const mediaFields = {
    etag: text(),
    modified_at: datetime(),
    reference: text(),
-   entity_id: number(),
+   entity_id: text(),
    metadata: json(),
 };

@@ -14,7 +14,7 @@ describe("mcp system", async () => {
    let server: McpServer;
    beforeAll(async () => {
       app = createApp({
-         initialConfig: {
+         config: {
             server: {
                mcp: {
                   enabled: true,

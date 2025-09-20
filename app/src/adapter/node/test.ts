@@ -1,5 +1,5 @@
 import nodeAssert from "node:assert/strict";
-import { test, describe, beforeEach, afterEach } from "node:test";
+import { test, describe, beforeEach, afterEach, after, before } from "node:test";
 import type { Matcher, Test, TestFn, TestRunner } from "core/test";
 
 // Track mock function calls
@@ -99,5 +99,6 @@ export const nodeTestRunner: TestRunner = {
    }),
    beforeEach: beforeEach,
    afterEach: afterEach,
-   afterAll: () => {},
+   afterAll: after,
+   beforeAll: before,
 };

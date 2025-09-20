@@ -1,14 +1,18 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import { createApp } from "core/test/utils";
 import { registries } from "index";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(enableConsoleLog);
 
 describe("mcp", () => {
    it("should have tools", async () => {
       registries.media.register("local", StorageLocalAdapter);
 
       const app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
             },

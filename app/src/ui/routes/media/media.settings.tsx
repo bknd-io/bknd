@@ -40,6 +40,7 @@ const formConfig = {
 
 function MediaSettingsInternal() {
    const { config, schema: _schema, actions } = useBkndMedia();
+   const { readonly } = useBknd();
    const schema = JSON.parse(JSON.stringify(_schema));
 
    schema.if = { properties: { enabled: { const: true } } };
@@ -53,7 +54,13 @@ function MediaSettingsInternal() {
 
    return (
       <>
-         <Form schema={schema} initialValues={config as any} onSubmit={onSubmit} {...formConfig}>
+         <Form
+            schema={schema}
+            initialValues={config as any}
+            onSubmit={onSubmit}
+            {...formConfig}
+            readOnly={readonly}
+         >
             <Subscribe
                selector={(state) => ({
                   dirty: state.dirty,
@@ -64,13 +71,15 @@ function MediaSettingsInternal() {
                {({ dirty, errors, submitting }) => (
                   <AppShell.SectionHeader
                      right={
-                        <Button
-                           variant="primary"
-                           type="submit"
-                           disabled={!dirty || errors || submitting}
-                        >
-                           Update
-                        </Button>
+                        !readonly && (
+                           <Button
+                              variant="primary"
+                              type="submit"
+                              disabled={!dirty || errors || submitting}
+                           >
+                              Update
+                           </Button>
+                        )
                      }
                   >
                      Settings
@@ -132,6 +141,7 @@ const AdapterIcon = ({ type }: { type: string }) => {
 
 function Adapters() {
    const ctx = AnyOf.useContext();
+   const { readonly } = useBknd();
 
    return (
       <Formy.Group>
@@ -150,6 +160,7 @@ function Adapters() {
                      "flex flex-row items-center justify-center gap-3 border",
                      ctx.selected === i && "border-primary",
                   )}
+                  disabled={readonly}
                >
                   <div>
                      <AdapterIcon type={schema.properties.type.const} />
