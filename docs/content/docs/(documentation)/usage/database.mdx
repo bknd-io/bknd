@@ -63,7 +63,7 @@ import type { BkndConfig } from "bknd";
 
 export default {
   connection: { url: "file:data.db" },
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 ```
 
 Throughout the documentation, it is assumed you use `bknd.config.ts` to define your connection.
@@ -93,17 +93,51 @@ import type { BkndConfig } from "bknd";
 
 // no connection is required, bknd will use a SQLite database in-memory
 // this does not work on edge environments!
-export default {} as const satisfies BkndConfig;
+export default {} satisfies BkndConfig;
 
 // or explicitly in-memory
 export default {
   connection: { url: ":memory:" },
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 
 // or explicitly as a file
 export default {
   connection: { url: "file:<path/to/your/database.db>" },
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
+```
+
+### Node.js SQLite
+
+To use the Node.js SQLite adapter directly, use the `nodeSqlite` function as value for the `connection` property. This lets you customize the database connection, such as enabling WAL mode.
+
+```typescript title="bknd.config.ts"
+import { nodeSqlite, type NodeBkndConfig } from "bknd/adapter/node";
+
+export default {
+  connection: nodeSqlite({
+    url: "file:<path/to/your/database.db>",
+    onCreateConnection: (db) => {
+      db.exec("PRAGMA journal_mode = WAL;");
+    },
+  }),
+} satisfies NodeBkndConfig;
+```
+
+### Bun SQLite
+
+You can explicitly use the Bun SQLite adapter by passing the `bunSqlite` function to the `connection` property. This allows further configuration of the database, e.g. enabling WAL mode.
+
+```typescript title="bknd.config.ts"
+import { bunSqlite, type BunBkndConfig } from "bknd/adapter/bun";
+
+export default {
+  connection: bunSqlite({ 
+    url: "file:<path/to/your/database.db>",
+    onCreateConnection: (db) => {
+      db.run("PRAGMA journal_mode = WAL;");
+    },
+  }),
+} satisfies BunBkndConfig;
 ```
 
 ### LibSQL
@@ -118,7 +152,7 @@ export default {
     url: "libsql://<database>.turso.io",
     authToken: "<auth-token>",
   }),
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 ```
 
 If you wish to use LibSQL as file, in-memory or make use of [Embedded Replicas](https://docs.turso.tech/features/embedded-replicas/introduction), you have to pass in the `Client` from `@libsql/client`:
@@ -134,7 +168,7 @@ const client = createClient({
 
 export default {
   connection: libsql(client),
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 ```
 
 ### Cloudflare D1

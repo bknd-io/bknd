@@ -116,6 +116,7 @@ export {
    genericSqlite,
    genericSqliteUtils,
    type GenericSqliteConnection,
+   type GenericSqliteConnectionConfig,
 } from "data/connection/sqlite/GenericSqliteConnection";
 export {
    EntityTypescript,
