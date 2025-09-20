@@ -18,6 +18,7 @@ export const entityConfigSchema = s
          sort_field: s.string({ default: config.data.default_primary_field }),
          sort_dir: s.string({ enum: ["asc", "desc"], default: "asc" }),
          primary_format: s.string({ enum: primaryFieldTypes }),
+         fields_order: s.array(s.string()).optional(),
       },
       { default: {} },
    )
@@ -137,7 +138,9 @@ export class Entity<
    }
 
    getFillableFields(context?: TActionContext, include_virtual?: boolean): Field[] {
-      return this.getFields(include_virtual).filter((field) => field.isFillable(context));
+      return this.getFields({ virtual: include_virtual }).filter((field) =>
+         field.isFillable(context),
+      );
    }
 
    getRequiredFields(): Field[] {
@@ -189,9 +192,24 @@ export class Entity<
       return this.fields.findIndex((field) => field.name === name) !== -1;
    }
 
-   getFields(include_virtual: boolean = false): Field[] {
-      if (include_virtual) return this.fields;
-      return this.fields.filter((f) => !f.isVirtual());
+   getFields(opts?: { virtual?: boolean; sorted?: boolean }): Field[] {
+      const fields = [...this.fields];
+      const sort = opts?.sorted !== false;
+      const fields_order = this.config.fields_order;
+      if (fields_order && fields_order.length > 0 && sort) {
+         if (fields_order.length !== this.fields.length) {
+            $console.warn("Fields order must contain all fields");
+         } else {
+            // sort fields by order
+            fields.sort((a, b) => {
+               const a_index = fields_order.indexOf(a.name);
+               const b_index = fields_order.indexOf(b.name);
+               return a_index - b_index;
+            });
+         }
+      }
+      if (opts?.virtual) return fields;
+      return fields.filter((f) => !f.isVirtual());
    }
 
    addField(field: Field) {
@@ -275,7 +293,7 @@ export class Entity<
             fields = this.getFillableFields(options.context);
             break;
          default:
-            fields = this.getFields(true);
+            fields = this.getFields({ virtual: true });
       }
 
       const _fields = Object.fromEntries(fields.map((field) => [field.name, field]));
@@ -309,7 +327,12 @@ export class Entity<
    toJSON() {
       return {
          type: this.type,
-         fields: Object.fromEntries(this.fields.map((field) => [field.name, field.toJSON()])),
+         fields: Object.fromEntries(
+            this.getFields({ virtual: true, sorted: true }).map((field) => [
+               field.name,
+               field.toJSON(),
+            ]),
+         ),
          config: this.config,
       };
    }

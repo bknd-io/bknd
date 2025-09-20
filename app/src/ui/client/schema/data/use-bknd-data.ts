@@ -120,17 +120,20 @@ function entityFieldActions(bkndActions: TSchemaActions, entityName: string) {
          return await bkndActions.add("data", `entities.${entityName}.fields.${name}`, validated);
       },
       patch: () => null,
-      set: async (fields: TAppDataEntityFields) => {
+      set: async (fields: TAppDataEntityFields, order?: string[]) => {
          try {
             const validated = parse(entityFields, fields, {
                skipMark: true,
                forceParse: true,
             });
-            const res = await bkndActions.overwrite(
-               "data",
-               `entities.${entityName}.fields`,
-               validated,
-            );
+            await bkndActions.overwrite("data", `entities.${entityName}.fields`, validated);
+            if (order) {
+               await bkndActions.overwrite(
+                  "data",
+                  `entities.${entityName}.config.fields_order`,
+                  order,
+               );
+            }
          } catch (e) {
             console.error("error", e);
             if (e instanceof InvalidSchemaError) {
