@@ -121,6 +121,8 @@ export function EntityForm({
                                  return custom;
                               }
                            }
+                           if (field.isHidden(action)) return;
+
                            return (
                               <EntityFormField
                                  field={field}
