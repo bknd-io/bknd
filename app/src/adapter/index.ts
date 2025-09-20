@@ -52,7 +52,6 @@ export async function makeConfig<Args = DefaultArgs>(
 }
 
 // a map that contains all apps by id
-const apps = new Map<string, App>();
 export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args = DefaultArgs>(
    config: Config = {} as Config,
    args?: Args,

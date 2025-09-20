@@ -571,7 +571,7 @@ export class DbModuleManager extends ModuleManager {
 
                   return result;
                } catch (e) {
-                  $console.error(`[Safe Mutate] failed "${name}":`, String(e));
+                  $console.error(`[Safe Mutate] failed "${name}":`, e);
 
                   // revert to previous config & rebuild using original listener
                   this.revertModules();
