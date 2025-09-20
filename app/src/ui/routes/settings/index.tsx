@@ -13,6 +13,7 @@ import { DataSettings } from "./routes/data.settings";
 import { FlowsSettings } from "./routes/flows.settings";
 import { ServerSettings } from "./routes/server.settings";
 import { IconButton } from "ui/components/buttons/IconButton";
+import { SettingsHistory } from "ui/routes/settings/routes/history";
 
 function SettingsSidebar() {
    const { version, schema, actions, app } = useBknd();
@@ -75,6 +76,7 @@ export default function SettingsRoutes() {
                      />
                   )}
                />
+               <Route path="/history" nest component={SettingsHistory} />
 
                <SettingRoutesRoutes />
 

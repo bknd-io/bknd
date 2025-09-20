@@ -32,6 +32,7 @@ import { getVersion } from "core/env";
 import type { Module } from "modules/Module";
 import { getSystemMcp } from "modules/mcp/system-mcp";
 import type { DbModuleManager } from "modules/db/DbModuleManager";
+import type { Repository } from "data/entities";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -128,6 +129,25 @@ export class SystemController extends Controller {
                return c.json(await this.app.modules.fetch().then((r) => r?.configs));
             },
          );
+
+         hono.get("/history", async (c) => {
+            // @ts-expect-error "repo" is private
+            const repo = manager.repo() as Repository;
+            const { data } = await repo.findMany({
+               where: { type: "diff", version: manager.version() },
+               sort: { by: "id", dir: "desc" },
+            });
+            return c.json(data);
+         });
+
+         hono.get("/history/:id", async (c) => {
+            // @ts-expect-error "repo" is private
+            const repo = manager.repo() as Repository;
+            const { data } = await repo.findId(c.req.param("id"), {
+               where: { type: "diff", version: manager.version() },
+            });
+            return c.json(data);
+         });
 
          async function handleConfigUpdateResponse(
             c: Context<any>,

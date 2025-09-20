@@ -159,7 +159,7 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
                               )}
 
                               {Object.entries(row).map(([key, value], index) => (
-                                 <td key={index} onClick={rowClick}>
+                                 <td key={index} onClick={rowClick} valign="top">
                                     <div className="flex flex-row items-start py-3 px-3.5 font-normal ">
                                        <CellRender property={key} value={value} />
                                     </div>
