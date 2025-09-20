@@ -1,6 +1,7 @@
 ---
 title: "Using the CLI"
 description: "How to start a bknd instance using the CLI."
+icon: Terminal
 tags: ["documentation"]
 ---
 
@@ -204,5 +205,81 @@ import type { DB } from "bknd";
 type Todo = DB["todos"];
 ```
 
-All bknd methods that involve your database schema will be automatically typed.
+All bknd methods that involve your database schema will be automatically typed. You may use the [`syncTypes`](/extending/plugins/#synctypes) plugin to automatically write the types to a file.
+
+## Getting the configuration (`config`)
+
+To see all available `config` options, execute `npx bknd config --help`.
+
+```
+$ npx bknd config --help
+Usage: bknd config [options]
+
+get app config
+
+Options:
+  -c, --config <config>  config file
+  --db-url <db>          database url, can be any valid sqlite url
+  --pretty               pretty print
+  --default              use default config
+  --secrets              include secrets in output
+  --out <file>           output file
+  -h, --help             display help for command
+```
+
+To get the configuration of your app, and to write it to a file, run the following:
+
+```
+npx bknd config --out appconfig.json
+```
+
+To get a template configuration instead, run the following:
+
+```
+npx bknd config --default
+```
+
+To automatically sync your configuration to a file, you may also use the [`syncConfig`](/extending/plugins/#syncconfig) plugin.
+
+## Getting the secrets (`secrets`)
+
+To see all available `secrets` options, execute `npx bknd secrets --help`.
+
+```
+$ npx bknd secrets --help
+Usage: bknd secrets [options]
+
+get app secrets
+
+Options:
+  -c, --config <config>  config file
+  --db-url <db>          database url, can be any valid sqlite url
+  --template             template output without the actual secrets
+  --format <format>      format output (choices: "json", "env", default:
+                         "json")
+  --out <file>           output file
+  -h, --help             display help for command
+```
+
+To automatically sync your secrets to a file, you may also use the [`syncSecrets`](/extending/plugins/#syncsecrets) plugin.
+
+## Syncing the database (`sync`)
+
+Sync your database can be useful when running in [`code`](/usage/introduction/#code-only-mode) mode. When you're ready to deploy, you can point to the production configuration and sync the database. Schema mutations are only applied when running with the `--force` option.
+
+```
+$ npx bknd sync --help
+Usage: bknd sync [options]
+
+sync database
+
+Options:
+  -c, --config <config>  config file
+  --db-url <db>          database url, can be any valid sqlite url
+  --force                perform database syncing operations
+  --drop                 include destructive DDL operations
+  --out <file>           output file
+  --sql                  use sql output
+  -h, --help             display help for command
+```
 

@@ -1,8 +1,12 @@
 ---
 title: "Introduction"
 description: "Setting up bknd"
+icon: Pin
 tags: ["documentation"]
 ---
+
+import { TypeTable } from "fumadocs-ui/components/type-table";
+import { SquareMousePointer, Code, Blend } from 'lucide-react';
 
 There are several methods to get **bknd** up and running. You can choose between these options:
 
@@ -22,12 +26,12 @@ Regardless of the method you choose, at the end all adapters come down to the ac
 instantiation of the `App`, which in raw looks like this:
 
 ```typescript
-import { createApp, type CreateAppConfig } from "bknd";
+import { createApp, type BkndConfig } from "bknd";
 
 // create the app
 const config = {
   /* ... */
-} satisfies CreateAppConfig;
+} satisfies BkndConfig;
 const app = createApp(config);
 
 // build the app
@@ -40,13 +44,153 @@ export default app;
 In Web API compliant environments, all you have to do is to default exporting the app, as it
 implements the `Fetch` API.
 
-## Configuration (`CreateAppConfig`)
+## Modes
 
-The `CreateAppConfig` type is the main configuration object for the `createApp` function. It has
+Main project goal is to provide a backend that can be configured visually with the built-in Admin UI. However, you may instead want to configure your backend programmatically, and define your data structure with a Drizzle-like API:
+
+<Cards className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+  <Card title="UI-only" href="/usage/introduction#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
+     This is the default mode, it allows visual configuration and saves the configuration to the database. Expects you to deploy your backend separately from your frontend.
+  </Card>
+  <Card title="Code-only" href="/usage/introduction#code-only-mode" icon={<Code className="text-fd-primary !size-6" />}>
+    This mode allows you to configure your backend programmatically, and define your data structure with a Drizzle-like API. Visual configuration controls are disabled. 
+  </Card>
+  <Card title={"Hybrid"} href="/usage/introduction#hybrid-mode" icon={<Blend className="text-fd-primary !size-6" />}>
+    This mode allows you to configure your backend visually while in development, and uses the produced configuration in a code-only mode for maximum performance. 
+  </Card>
+</Cards>
+
+In the following sections, we'll cover the different modes in more detail. The configuration properties involved are the following:
+
+```typescript title="bknd.config.ts"
+import type { BkndConfig } from "bknd";
+
+export default {
+  config: { /* ... */ }
+  options: {
+    mode: "db", // or "code"
+    manager: {
+      secrets: { /* ... */ },
+      storeSecrets: true,
+    },
+  }
+} satisfies BkndConfig;
+```
+
+<TypeTable type={{
+  config: {
+    description: "The initial configuration when `mode` is `\"db\"`, and as the produced configuration when `mode` is `\"code\"`.",
+    type: "object",
+    properties: {
+      /* ... */
+    }
+  },
+  ["options.mode"]: {
+    description: "The options for the app.",
+    type: '"db" | "code"',
+    default: '"db"'
+  },
+  ["options.manager.secrets"]: {
+    description: "The app secrets to be provided when using `\"db\"` mode. This is required since secrets are extracted and stored separately to the database.",
+    type: "object",
+    properties: {
+      /* ... */
+    }
+  },
+  ["options.manager.storeSecrets"]: {
+    description: "Whether to store secrets in the database when using `\"db\"` mode.",
+    type: "boolean",
+    default: "true"
+  }
+}} />
+
+### UI-only mode
+
+This mode is the default mode. It allows you to configure your backend visually with the built-in Admin UI. It expects that you deploy your backend separately from your frontend, and make changes there. No configuration is needed, however, if you want to provide an initial configuration, you can do so by passing a `config` object.
+
+```typescript
+import type { BkndConfig } from "bknd";
+
+export default {
+  // this will only be applied if the database is empty
+  config: { /* ... */ },
+} satisfies BkndConfig;
+```
+
+### Code-only mode
+
+This mode allows you to configure your backend programmatically, and define your data structure with a Drizzle-like API. Visual configuration controls are disabled. 
+
+```typescript title="bknd.config.ts"
+import { type BkndConfig, em, entity, text, boolean } from "bknd";
+import { secureRandomString } from "bknd/utils";
+
+const schema = em({
+  todos: entity("todos", {
+    title: text(),
+    done: boolean(),
+  }),
+});
+
+export default {
+  // example configuration
+  config: {
+    data: schema.toJSON(),
+    auth: {
+      enabled: true,
+      jwt: {
+        secret: secureRandomString(64),
+      },
+    }
+  },
+  options: {
+    // this ensures that the provided configuration is always used
+    mode: "code",
+  },
+} satisfies BkndConfig;
+```
+
+### Hybrid mode
+
+This mode allows you to configure your backend visually while in development, and uses the produced configuration in a code-only mode for maximum performance. It gives you the best of both worlds.
+
+While in development, we set the mode to `"db"` where the configuration is stored in the database. When it's time to deploy, we export the configuration, and set the mode to `"code"`. While in `"db"` mode, the `config` property interprets the value as an initial configuration to use when the database is empty.
+
+```typescript title="bknd.config.ts"
+import type { BkndConfig } from "bknd";
+
+// import your produced configuration
+import appConfig from "./appconfig.json" with { type: "json" };
+
+export default {
+  config: appConfig,
+  options: {
+    mode: process.env.NODE_ENV === "development" ? "db" : "code",
+    manager: {
+      secrets: process.env
+    }
+  },
+} satisfies BkndConfig;
+```
+
+To keep your config, secrets and types in sync, you can either use the CLI or the plugins.
+
+
+| Type           | Plugin                                                                 | CLI Command                |
+|----------------|-----------------------------------------------------------------------|----------------------------|
+| Configuration  | [`syncConfig`](/extending/plugins/#syncconfig)                        | [`config`](/usage/cli/#getting-the-configuration-config)   |
+| Secrets        | [`syncSecrets`](/extending/plugins/#syncsecrets)                      | [`secrets`](/usage/cli/#getting-the-secrets-secrets) |
+| Types          | [`syncTypes`](/extending/plugins/#synctypes)                          | [`types`](/usage/cli/#generating-types-types)     |
+
+
+
+## Configuration (`BkndConfig`)
+
+The `BkndConfig` type is the main configuration object for the `createApp` function. It has
 the following properties:
 
 ```typescript
-import type { App, InitialModuleConfigs, ModuleBuildContext, Connection } from "bknd";
+import type { App, InitialModuleConfigs, ModuleBuildContext, Connection, MaybePromise } from "bknd";
 import type { Config } from "@libsql/client";
 
 type AppPlugin = (app: App) => Promise<void> | void;
@@ -57,13 +201,19 @@ type ManagerOptions = {
   seed?: (ctx: ModuleBuildContext) => Promise<void>;
 };
 
-type CreateAppConfig = {
+type BkndConfig<Args = any> = {
   connection?: Connection | Config;
-  initialConfig?: InitialModuleConfigs;
+  config?: InitialModuleConfigs;
   options?: {
     plugins?: AppPlugin[];
     manager?: ManagerOptions;
   };
+  app?: BkndConfig<Args> | ((args: Args) => MaybePromise<BkndConfig<Args>>);
+  onBuilt?: (app: App) => Promise<void>;
+  beforeBuild?: (app?: App) => Promise<void>;
+  buildConfig?: {
+    sync?: boolean;
+  }
 };
 ```
 
@@ -72,18 +222,31 @@ type CreateAppConfig = {
 The `connection` property is the main connection object to the database. It can be either an object with libsql config or the actual `Connection` class.
 
 ```ts
-const connection = {
-  url: "<url>",
-  authToken: "<token>",
-};
+// uses the default SQLite connection depending on the runtime
+const connection = { url: "<url>" };
+
+// the same as above, but more explicit
+import { sqlite } from "bknd/adapter/sqlite";
+const connection = sqlite({ url: "<url>" });
+
+// Node.js SQLite, default on Node.js
+import { nodeSqlite } from "bknd/adapter/node";
+const connection = nodeSqlite({ url: "<url>" });
+
+// Bun SQLite, default on Bun
+import { bunSqlite } from "bknd/adapter/bun";
+const connection = bunSqlite({ url: "<url>" });
+
+// LibSQL, default on Cloudflare
+import { libsql } from "bknd";
+const connection = libsql({ url: "<url>" });
 ```
 
-Alternatively, you can pass an instance of a `Connection` class directly,
-see [Custom Connection](/usage/database#custom-connection) as a reference.
+See a full list of available connections in the [Database](/usage/database) section. Alternatively, you can pass an instance of a `Connection` class directly, see [Custom Connection](/usage/database#custom-connection) as a reference.
 
 If the connection object is omitted, the app will try to use an in-memory database.
 
-### `initialConfig`
+### `config`
 
 As [initial configuration](/usage/database#initial-structure), you can either pass a partial configuration object or a complete one
 with a version number. The version number is used to automatically migrate the configuration up
@@ -157,10 +320,10 @@ to the latest version upon boot. The default configuration looks like this:
 }
 ```
 
-You can use the CLI to get the default configuration:
+You can use the [CLI](/usage/cli/#getting-the-configuration-config) to get the default configuration:
 
 ```sh
-npx bknd config --pretty
+npx bknd config --default --pretty
 ```
 
 To validate your configuration against a JSON schema, you can also dump the schema using the CLI:
@@ -191,6 +354,10 @@ make sure to only run trusted ones.
 
 ### `options.seed`
 
+<Callout type="info">
+  The seed function will only be executed on app's first boot in `"db"` mode. If a configuration already exists in the database, or in `"code"` mode, it will not be executed.
+</Callout>
+
 The `seed` property is a function that is called when the app is booted for the first time. It is used to seed the database with initial data. The function is passed a `ModuleBuildContext` object:
 
 ```ts
@@ -211,18 +378,3 @@ const seed = async (ctx: ModuleBuildContext) => {
 };
 ```
 
-### `options.manager`
-
-This object is passed to the `ModuleManager` which is responsible for:
-
-- validating and maintaining configuration of all modules
-- building all modules (data, auth, media, flows)
-- maintaining the `ModuleBuildContext` used by the modules
-
-The `options.manager` object has the following properties:
-
-- `basePath` (`string`): The base path for the Hono instance. This is used to prefix all routes.
-- `trustFetched` (`boolean`): If set to `true`, the app will not perform any validity checks for
-  the given or fetched configuration.
-- `onFirstBoot` (`() => Promise<void>`): A function that is called when the app is booted for
-  the first time.

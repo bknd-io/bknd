@@ -116,6 +116,36 @@ export default {
 } satisfies BkndConfig;
 ```
 
+### `syncSecrets`
+
+A simple plugin that writes down the app secrets on boot and each build.
+
+```typescript title="bknd.config.ts"
+import { syncSecrets } from "bknd/plugins";
+import { writeFile } from "node:fs/promises";
+
+export default {
+   options: {
+      plugins: [
+         syncSecrets({ 
+            // whether to enable the plugin, make sure to disable in production
+            enabled: true,
+            // your writing function (required)
+            write: async (secrets) => {
+               // apply your writing logic, e.g. writing a template file in an env format
+               await writeFile(
+                  ".env.example",
+                  Object.entries(secrets)
+                     .map(([key]) => `${key}=`)
+                     .join("\n")
+               );
+            },
+         }),
+      ]
+   },
+} satisfies BkndConfig;
+```
+
 ### `showRoutes`
 
 A simple plugin that logs the routes of your app in the console.
