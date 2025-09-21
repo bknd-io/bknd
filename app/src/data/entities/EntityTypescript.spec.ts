@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { EntityTypescript } from "./EntityTypescript";
 import * as proto from "../prototype";
-import { getDummyConnection } from "../../../__test__/data/helper";
+import { DummyConnection } from "../connection/Connection";
 
 describe("EntityTypescript", () => {
    it("should generate correct typescript for system entities", () => {
@@ -18,8 +18,7 @@ describe("EntityTypescript", () => {
             relation(test).manyToOne(users);
          },
       );
-      const { dummyConnection } = getDummyConnection();
-      const et = new EntityTypescript(schema.proto.withConnection(dummyConnection));
+      const et = new EntityTypescript(schema.proto.withConnection(new DummyConnection()));
       expect(et.toString()).toContain('users?: DB["users"];');
    });
 });
