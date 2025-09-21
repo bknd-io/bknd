@@ -17,7 +17,7 @@ export async function serveStatic(server: Platform): Promise<MiddlewareHandler> 
       case "node": {
          const m = await import("@hono/node-server/serve-static");
          const root = getRelativeDistPath() + "/static";
-         $console.log("Serving static files from", root);
+         $console.debug("Serving static files from", root);
          return m.serveStatic({
             // somehow different for node
             root,
@@ -27,7 +27,7 @@ export async function serveStatic(server: Platform): Promise<MiddlewareHandler> 
       case "bun": {
          const m = await import("hono/bun");
          const root = path.resolve(getRelativeDistPath(), "static");
-         $console.log("Serving static files from", root);
+         $console.debug("Serving static files from", root);
          return m.serveStatic({
             root,
             onNotFound,

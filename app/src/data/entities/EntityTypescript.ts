@@ -40,7 +40,7 @@ const systemEntities = {
 
 export class EntityTypescript {
    constructor(
-      protected em: EntityManager,
+      protected em: EntityManager<any>,
       protected _options: EntityTypescriptOptions = {},
    ) {}
 

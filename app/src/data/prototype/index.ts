@@ -210,8 +210,8 @@ type SystemEntities = {
 export function systemEntity<
    E extends keyof SystemEntities,
    Fields extends Record<string, Field<any, any, any>>,
->(name: E, fields: Fields) {
-   return entity<E, SystemEntities[E] & Fields>(name, fields as any);
+>(name: E, fields: Fields, config?: EntityConfig) {
+   return entity<E, SystemEntities[E] & Fields>(name, fields as any, config, "system");
 }
 
 export function relation<Local extends Entity>(local: Local) {
