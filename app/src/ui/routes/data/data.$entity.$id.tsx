@@ -77,6 +77,9 @@ function DataEntityUpdateImpl({ params }) {
             message: `Successfully updated ID ${entityId}`,
             color: "green",
          });
+
+         // make sure form picks up the latest data
+         Form.reset();
       } catch (e) {
          setError(e instanceof Error ? e.message : "Failed to update");
       }
