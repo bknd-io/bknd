@@ -1,4 +1,12 @@
-import { objectEach, transformObject, McpServer, type s, SecretSchema, setPath } from "bknd/utils";
+import {
+   objectEach,
+   transformObject,
+   McpServer,
+   type s,
+   SecretSchema,
+   setPath,
+   mark,
+} from "bknd/utils";
 import { DebugLogger } from "core/utils/DebugLogger";
 import { Guard } from "auth/authorize/Guard";
 import { env } from "core/env";
@@ -65,7 +73,7 @@ export type ModuleManagerOptions = {
    // callback after server was created
    onServerInit?: (server: Hono<ServerEnv>) => void;
    // doesn't perform validity checks for given/fetched config
-   trustFetched?: boolean;
+   skipValidation?: boolean;
    // runs when initial config provided on a fresh database
    seed?: (ctx: ModuleBuildContext) => Promise<void>;
    // called right after modules are built, before finish
@@ -124,7 +132,12 @@ export class ModuleManager {
       this.emgr = new EventManager({ ...ModuleManagerEvents });
       this.logger = new DebugLogger(debug_modules);
 
-      this.createModules(options?.initial ?? {});
+      const config = options?.initial ?? {};
+      if (options?.skipValidation) {
+         mark(config, true);
+      }
+
+      this.createModules(config);
    }
 
    protected onModuleConfigUpdated(key: string, config: any) {}

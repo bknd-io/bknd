@@ -380,8 +380,8 @@ export class DbModuleManager extends ModuleManager {
                }
             }
 
-            if (this.options?.trustFetched === true) {
-               this.logger.log("trusting fetched config (mark)");
+            if (this.options?.skipValidation === true) {
+               this.logger.log("skipping validation (mark)");
                mark(result.configs.json);
             }
 

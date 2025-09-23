@@ -12,6 +12,7 @@ export {
    getMcpServer,
    stdioTransport,
    McpClient,
+   logLevels as mcpLogLevels,
    type McpClientConfig,
    type ToolAnnotation,
    type ToolHandlerCtx,
@@ -21,8 +22,35 @@ export { secret, SecretSchema } from "./secret";
 
 export { s };
 
-export const stripMark = <O extends object>(o: O): O => o;
-export const mark = <O extends object>(o: O): O => o;
+const symbol = Symbol("bknd-validation-mark");
+
+export function stripMark<O = any>(obj: O) {
+   const newObj = structuredClone(obj);
+   mark(newObj, false);
+   return newObj as O;
+}
+
+export function mark(obj: any, validated = true) {
+   try {
+      if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
+         if (validated) {
+            obj[symbol] = true;
+         } else {
+            delete obj[symbol];
+         }
+         for (const key in obj) {
+            if (typeof obj[key] === "object" && obj[key] !== null) {
+               mark(obj[key], validated);
+            }
+         }
+      }
+   } catch (e) {}
+}
+
+export function isMarked(obj: any) {
+   if (typeof obj !== "object" || obj === null) return false;
+   return obj[symbol] === true;
+}
 
 export const stringIdentifier = s.string({
    pattern: "^[a-zA-Z_][a-zA-Z0-9_]*$",
@@ -74,6 +102,10 @@ export function parse<S extends s.Schema, Options extends ParseOptions = ParseOp
    v: unknown,
    opts?: Options,
 ): Options extends { coerce: true } ? s.StaticCoerced<S> : s.Static<S> {
+   if (!opts?.forceParse && !opts?.coerce && isMarked(v)) {
+      return v as any;
+   }
+
    const schema = (opts?.clone ? cloneSchema(_schema as any) : _schema) as s.Schema;
    let value =
       opts?.coerce !== false
