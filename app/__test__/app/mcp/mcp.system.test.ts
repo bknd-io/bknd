@@ -23,6 +23,7 @@ describe("mcp system", async () => {
          },
       });
       await app.build();
+      await app.getMcpClient().ping();
       server = app.mcp!;
    });
 

@@ -6,7 +6,7 @@ import { getVersion } from "core/env";
 export function getSystemMcp(app: App) {
    const middlewareServer = getMcpServer(app.server);
 
-   const appConfig = app.modules.configs();
+   //const appConfig = app.modules.configs();
    const { version, ...appSchema } = app.getSchema();
    const schema = s.strictObject(appSchema);
    const result = [...schema.walk({ maxDepth: 3 })];

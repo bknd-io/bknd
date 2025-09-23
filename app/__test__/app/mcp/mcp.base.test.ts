@@ -34,6 +34,11 @@ describe("mcp", () => {
       });
       await app.build();
 
+      // expect mcp to not be loaded yet
+      expect(app.mcp).toBeNull();
+
+      // after first request, mcp should be loaded
+      await app.getMcpClient().listTools();
       expect(app.mcp?.tools.length).toBeGreaterThan(0);
    });
 });

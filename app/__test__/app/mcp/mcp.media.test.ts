@@ -39,6 +39,7 @@ describe("mcp media", async () => {
          },
       });
       await app.build();
+      await app.getMcpClient().ping();
       server = app.mcp!;
       server.setLogLevel("error");
       server.onNotification((message) => {

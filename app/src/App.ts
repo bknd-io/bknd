@@ -302,13 +302,13 @@ export class App<
    }
 
    getMcpClient() {
-      if (!this.mcp) {
+      const config = this.modules.get("server").config.mcp;
+      if (!config.enabled) {
          throw new Error("MCP is not enabled");
       }
-      const mcpPath = this.modules.get("server").config.mcp.path;
 
       return new McpClient({
-         url: "http://localhost" + mcpPath,
+         url: "http://localhost" + config.path,
          fetch: this.server.request,
       });
    }

@@ -70,33 +70,41 @@ export class SystemController extends Controller {
 
       this.registerMcp();
 
-      this._mcpServer = getSystemMcp(app);
-      this._mcpServer.onNotification((message) => {
-         if (message.method === "notification/message") {
-            const consoleMap = {
-               emergency: "error",
-               alert: "error",
-               critical: "error",
-               error: "error",
-               warning: "warn",
-               notice: "log",
-               info: "info",
-               debug: "debug",
-            };
-
-            const level = consoleMap[message.params.level];
-            if (!level) return;
-
-            $console[level]("MCP notification", message.params.message ?? message.params);
-         }
-      });
-
       app.server.use(
          mcpMiddleware({
-            server: this._mcpServer,
+            setup: async () => {
+               if (!this._mcpServer) {
+                  this._mcpServer = getSystemMcp(app);
+                  this._mcpServer.onNotification((message) => {
+                     if (message.method === "notification/message") {
+                        const consoleMap = {
+                           emergency: "error",
+                           alert: "error",
+                           critical: "error",
+                           error: "error",
+                           warning: "warn",
+                           notice: "log",
+                           info: "info",
+                           debug: "debug",
+                        };
+
+                        const level = consoleMap[message.params.level];
+                        if (!level) return;
+
+                        $console[level](
+                           "MCP notification",
+                           message.params.message ?? message.params,
+                        );
+                     }
+                  });
+               }
+               return {
+                  server: this._mcpServer,
+               };
+            },
             sessionsEnabled: true,
             debug: {
-               logLevel: "debug",
+               logLevel: config.mcp.logLevel as any,
                explainEndpoint: true,
             },
             endpoint: {
