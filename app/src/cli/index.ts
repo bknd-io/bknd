@@ -7,7 +7,7 @@ import { getVersion } from "./utils/sys";
 import { capture, flush, init } from "cli/utils/telemetry";
 const program = new Command();
 
-export async function main() {
+async function main() {
    await init();
    capture("start");
 

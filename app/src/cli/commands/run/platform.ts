@@ -76,6 +76,9 @@ export async function getConfigPath(filePath?: string) {
       const config_path = path.resolve(process.cwd(), filePath);
       if (await fileExists(config_path)) {
          return config_path;
+      } else {
+         $console.error(`Config file could not be resolved: ${config_path}`);
+         process.exit(1);
       }
    }
 

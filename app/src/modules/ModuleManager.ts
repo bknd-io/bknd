@@ -6,6 +6,7 @@ import {
    SecretSchema,
    setPath,
    mark,
+   $console,
 } from "bknd/utils";
 import { DebugLogger } from "core/utils/DebugLogger";
 import { Guard } from "auth/authorize/Guard";
@@ -126,7 +127,7 @@ export class ModuleManager {
 
    constructor(
       protected readonly connection: Connection,
-      protected options?: Partial<ModuleManagerOptions>,
+      public options?: Partial<ModuleManagerOptions>,
    ) {
       this.modules = {} as Modules;
       this.emgr = new EventManager({ ...ModuleManagerEvents });
@@ -330,9 +331,8 @@ export class ModuleManager {
             ctx.flags.sync_required = false;
             this.logger.log("db sync requested");
 
-            // sync db
-            await ctx.em.schema().sync({ force: true, drop: options?.drop });
-            state.synced = true;
+            // sync db hint
+            $console.warn("a database sync is required");
          }
 
          if (ctx.flags.ctx_reload_required) {

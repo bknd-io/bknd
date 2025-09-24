@@ -8,6 +8,7 @@ export const sync: CliCommand = (program) => {
    withConfigOptions(program.command("sync"))
       .description("sync database")
       .option("--force", "perform database syncing operations")
+      .option("--seed", "perform seeding operations")
       .option("--drop", "include destructive DDL operations")
       .option("--out <file>", "output file")
       .option("--sql", "use sql output")
@@ -29,8 +30,22 @@ export const sync: CliCommand = (program) => {
             console.info(c.dim("Executing:") + "\n" + c.cyan(sql));
             await schema.sync({ force: true, drop: options.drop });
 
-            console.info(`\n${c.gray(`Executed ${c.cyan(stmts.length)} statement(s)`)}`);
+            console.info(`\n${c.dim(`Executed ${c.cyan(stmts.length)} statement(s)`)}`);
             console.info(`${c.green("Database synced")}`);
+
+            if (options.seed) {
+               console.info(c.dim("\nExecuting seed..."));
+               const seed = app.options?.seed;
+               if (seed) {
+                  await app.options?.seed?.({
+                     ...app.modules.ctx(),
+                     app: app,
+                  });
+                  console.info(c.green("Seed executed"));
+               } else {
+                  console.info(c.yellow("No seed function provided"));
+               }
+            }
          } else {
             if (options.out) {
                const output = options.sql ? sql : JSON.stringify(stmts, null, 2);
