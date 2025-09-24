@@ -1,0 +1,612 @@
+{
+  "version": 9,
+  "server": {
+    "cors": {
+      "origin": "*",
+      "allow_methods": ["GET", "POST", "PATCH", "PUT", "DELETE"],
+      "allow_headers": [
+        "Content-Type",
+        "Content-Length",
+        "Authorization",
+        "Accept"
+      ],
+      "allow_credentials": true
+    },
+    "mcp": { "enabled": false, "path": "/api/system/mcp" }
+  },
+  "data": {
+    "basepath": "/api/data",
+    "default_primary_format": "integer",
+    "entities": {
+      "media": {
+        "type": "system",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "path": { "type": "text", "config": { "required": true } },
+          "folder": {
+            "type": "boolean",
+            "config": {
+              "default_value": false,
+              "hidden": true,
+              "fillable": ["create"],
+              "required": false
+            }
+          },
+          "mime_type": { "type": "text", "config": { "required": false } },
+          "size": { "type": "number", "config": { "required": false } },
+          "scope": {
+            "type": "text",
+            "config": {
+              "hidden": true,
+              "fillable": ["create"],
+              "required": false
+            }
+          },
+          "etag": { "type": "text", "config": { "required": false } },
+          "modified_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "reference": { "type": "text", "config": { "required": false } },
+          "entity_id": { "type": "number", "config": { "required": false } },
+          "metadata": { "type": "json", "config": { "required": false } }
+        },
+        "config": { "sort_field": "id", "sort_dir": "asc" }
+      },
+      "users": {
+        "type": "system",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "email": { "type": "text", "config": { "required": true } },
+          "strategy": {
+            "type": "enum",
+            "config": {
+              "options": { "type": "strings", "values": ["password"] },
+              "required": true,
+              "hidden": ["update", "form"],
+              "fillable": ["create"]
+            }
+          },
+          "strategy_value": {
+            "type": "text",
+            "config": {
+              "fillable": ["create"],
+              "hidden": ["read", "table", "update", "form"],
+              "required": true
+            }
+          },
+          "role": {
+            "type": "enum",
+            "config": {
+              "options": { "type": "strings", "values": ["admin", "guest"] },
+              "required": false
+            }
+          },
+          "age": {
+            "type": "enum",
+            "config": {
+              "options": {
+                "type": "strings",
+                "values": ["18-24", "25-34", "35-44", "45-64", "65+"]
+              },
+              "required": false
+            }
+          },
+          "height": { "type": "number", "config": { "required": false } },
+          "gender": {
+            "type": "enum",
+            "config": {
+              "options": { "type": "strings", "values": ["male", "female"] },
+              "required": false
+            }
+          }
+        },
+        "config": { "sort_field": "id", "sort_dir": "asc" }
+      },
+      "avatars": {
+        "type": "regular",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "identifier": { "type": "text", "config": { "required": false } },
+          "payload": {
+            "type": "json",
+            "config": { "required": false, "hidden": ["table"] }
+          },
+          "created_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "started_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "completed_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "input": {
+            "type": "media",
+            "config": {
+              "required": false,
+              "fillable": ["update"],
+              "hidden": false,
+              "mime_types": [],
+              "virtual": true,
+              "entity": "avatars"
+            }
+          },
+          "output": {
+            "type": "media",
+            "config": {
+              "required": false,
+              "fillable": ["update"],
+              "hidden": false,
+              "mime_types": [],
+              "virtual": true,
+              "entity": "avatars"
+            }
+          },
+          "users_id": {
+            "type": "relation",
+            "config": {
+              "label": "Users",
+              "required": false,
+              "reference": "users",
+              "target": "users",
+              "target_field": "id",
+              "target_field_type": "integer",
+              "on_delete": "set null"
+            }
+          }
+        },
+        "config": { "sort_field": "id", "sort_dir": "desc" }
+      },
+      "tryons": {
+        "type": "regular",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "created_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "completed_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "avatars_id": {
+            "type": "relation",
+            "config": {
+              "label": "Avatars",
+              "required": false,
+              "reference": "avatars",
+              "target": "avatars",
+              "target_field": "id",
+              "target_field_type": "integer",
+              "on_delete": "set null"
+            }
+          },
+          "users_id": {
+            "type": "relation",
+            "config": {
+              "label": "Users",
+              "required": false,
+              "reference": "users",
+              "target": "users",
+              "target_field": "id",
+              "target_field_type": "integer",
+              "on_delete": "set null"
+            }
+          },
+          "output": {
+            "type": "media",
+            "config": {
+              "required": false,
+              "fillable": ["update"],
+              "hidden": false,
+              "mime_types": [],
+              "virtual": true,
+              "entity": "tryons",
+              "max_items": 1
+            }
+          },
+          "products_id": {
+            "type": "relation",
+            "config": {
+              "label": "Products",
+              "required": false,
+              "reference": "products",
+              "target": "products",
+              "target_field": "id",
+              "target_field_type": "integer",
+              "on_delete": "set null"
+            }
+          },
+          "payload": {
+            "type": "json",
+            "config": { "required": false, "hidden": ["table"] }
+          }
+        },
+        "config": { "sort_field": "id", "sort_dir": "desc" }
+      },
+      "products": {
+        "type": "regular",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "enabled": { "type": "boolean", "config": { "required": false } },
+          "title": { "type": "text", "config": { "required": false } },
+          "url": { "type": "text", "config": { "required": false } },
+          "image": {
+            "type": "media",
+            "config": {
+              "required": false,
+              "fillable": ["update"],
+              "hidden": false,
+              "mime_types": [],
+              "virtual": true,
+              "entity": "products",
+              "max_items": 1
+            }
+          },
+          "created_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "sites_id": {
+            "type": "relation",
+            "config": {
+              "label": "Sites",
+              "required": false,
+              "reference": "sites",
+              "target": "sites",
+              "target_field": "id",
+              "target_field_type": "integer",
+              "on_delete": "set null"
+            }
+          },
+          "garment_type": {
+            "type": "enum",
+            "config": {
+              "options": {
+                "type": "strings",
+                "values": ["auto", "tops", "bottoms", "one-pieces"]
+              },
+              "required": false
+            }
+          }
+        },
+        "config": { "sort_field": "id", "sort_dir": "desc" }
+      },
+      "sites": {
+        "type": "regular",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "origin": {
+            "type": "text",
+            "config": {
+              "pattern": "^(https?):\\/\\/([a-zA-Z0-9.-]+)(:\\d+)?$",
+              "required": true
+            }
+          },
+          "name": { "type": "text", "config": { "required": false } },
+          "active": { "type": "boolean", "config": { "required": false } },
+          "logo": {
+            "type": "media",
+            "config": {
+              "required": false,
+              "fillable": ["update"],
+              "hidden": false,
+              "mime_types": [],
+              "virtual": true,
+              "entity": "sites",
+              "max_items": 1
+            }
+          },
+          "instructions": {
+            "type": "text",
+            "config": {
+              "html_config": {
+                "element": "textarea",
+                "props": { "rows": "2" }
+              },
+              "required": false,
+              "hidden": ["table"]
+            }
+          }
+        },
+        "config": { "sort_field": "id", "sort_dir": "desc" }
+      },
+      "sessions": {
+        "type": "regular",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": { "format": "uuid", "fillable": false, "required": false }
+          },
+          "created_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": true }
+          },
+          "claimed_at": {
+            "type": "date",
+            "config": { "type": "datetime", "required": false }
+          },
+          "url": { "type": "text", "config": { "required": false } },
+          "sites_id": {
+            "type": "relation",
+            "config": {
+              "label": "Sites",
+              "required": false,
+              "reference": "sites",
+              "target": "sites",
+              "target_field": "id",
+              "target_field_type": "integer",
+              "on_delete": "set null"
+            }
+          },
+          "users_id": {
+            "type": "relation",
+            "config": {
+              "label": "Users",
+              "required": false,
+              "reference": "users",
+              "target": "users",
+              "target_field": "id",
+              "target_field_type": "integer",
+              "on_delete": "set null"
+            }
+          }
+        },
+        "config": { "sort_field": "id", "sort_dir": "desc" }
+      }
+    },
+    "relations": {
+      "poly_avatars_media_input": {
+        "type": "poly",
+        "source": "avatars",
+        "target": "media",
+        "config": { "mappedBy": "input" }
+      },
+      "poly_avatars_media_output": {
+        "type": "poly",
+        "source": "avatars",
+        "target": "media",
+        "config": { "mappedBy": "output" }
+      },
+      "n1_avatars_users": {
+        "type": "n:1",
+        "source": "avatars",
+        "target": "users",
+        "config": {
+          "mappedBy": "",
+          "inversedBy": "",
+          "required": false,
+          "with_limit": 5
+        }
+      },
+      "n1_tryons_avatars": {
+        "type": "n:1",
+        "source": "tryons",
+        "target": "avatars",
+        "config": {
+          "mappedBy": "",
+          "inversedBy": "",
+          "required": false,
+          "with_limit": 5
+        }
+      },
+      "n1_tryons_users": {
+        "type": "n:1",
+        "source": "tryons",
+        "target": "users",
+        "config": {
+          "mappedBy": "",
+          "inversedBy": "",
+          "required": false,
+          "with_limit": 5
+        }
+      },
+      "poly_tryons_media_output": {
+        "type": "poly",
+        "source": "tryons",
+        "target": "media",
+        "config": { "mappedBy": "output", "targetCardinality": 1 }
+      },
+      "poly_products_media_image": {
+        "type": "poly",
+        "source": "products",
+        "target": "media",
+        "config": { "mappedBy": "image", "targetCardinality": 1 }
+      },
+      "n1_tryons_products": {
+        "type": "n:1",
+        "source": "tryons",
+        "target": "products",
+        "config": {
+          "mappedBy": "",
+          "inversedBy": "",
+          "required": false,
+          "with_limit": 5
+        }
+      },
+      "poly_sites_media_logo": {
+        "type": "poly",
+        "source": "sites",
+        "target": "media",
+        "config": { "mappedBy": "logo", "targetCardinality": 1 }
+      },
+      "n1_sessions_sites": {
+        "type": "n:1",
+        "source": "sessions",
+        "target": "sites",
+        "config": {
+          "mappedBy": "",
+          "inversedBy": "",
+          "required": false,
+          "with_limit": 5
+        }
+      },
+      "n1_sessions_users": {
+        "type": "n:1",
+        "source": "sessions",
+        "target": "users",
+        "config": {
+          "mappedBy": "",
+          "inversedBy": "",
+          "required": false,
+          "with_limit": 5
+        }
+      },
+      "n1_products_sites": {
+        "type": "n:1",
+        "source": "products",
+        "target": "sites",
+        "config": {
+          "mappedBy": "",
+          "inversedBy": "",
+          "required": false,
+          "with_limit": 5
+        }
+      }
+    },
+    "indices": {
+      "idx_unique_media_path": {
+        "entity": "media",
+        "fields": ["path"],
+        "unique": true
+      },
+      "idx_media_reference": {
+        "entity": "media",
+        "fields": ["reference"],
+        "unique": false
+      },
+      "idx_media_entity_id": {
+        "entity": "media",
+        "fields": ["entity_id"],
+        "unique": false
+      },
+      "idx_unique_users_email": {
+        "entity": "users",
+        "fields": ["email"],
+        "unique": true
+      },
+      "idx_users_strategy": {
+        "entity": "users",
+        "fields": ["strategy"],
+        "unique": false
+      },
+      "idx_users_strategy_value": {
+        "entity": "users",
+        "fields": ["strategy_value"],
+        "unique": false
+      },
+      "idx_sites_origin_active": {
+        "entity": "sites",
+        "fields": ["origin", "active"],
+        "unique": false
+      },
+      "idx_sites_active": {
+        "entity": "sites",
+        "fields": ["active"],
+        "unique": false
+      },
+      "idx_products_url": {
+        "entity": "products",
+        "fields": ["url"],
+        "unique": false
+      }
+    }
+  },
+  "auth": {
+    "enabled": true,
+    "basepath": "/api/auth",
+    "entity_name": "users",
+    "allow_register": true,
+    "jwt": {
+      "secret": "^^jwt.secret^^",
+      "alg": "HS256",
+      "expires": 999999999,
+      "issuer": "issuer",
+      "fields": ["id", "email", "role"]
+    },
+    "cookie": {
+      "path": "/",
+      "sameSite": "none",
+      "secure": true,
+      "httpOnly": true,
+      "expires": 604800,
+      "partitioned": false,
+      "renew": true,
+      "pathSuccess": "/admin",
+      "pathLoggedOut": "/"
+    },
+    "strategies": {
+      "password": {
+        "enabled": true,
+        "type": "password",
+        "config": { "hashing": "sha256" }
+      }
+    },
+    "guard": { "enabled": false },
+    "roles": {
+      "admin": { "implicit_allow": true },
+      "guest": { "is_default": true }
+    }
+  },
+  "media": {
+    "enabled": true,
+    "basepath": "/api/media",
+    "entity_name": "media",
+    "storage": { "body_max_size": 0 },
+    "adapter": {
+      "type": "s3",
+      "config": {
+        "access_key": "^^s3.access_key^^",
+        "secret_access_key": "^^s3.secret_access_key^^",
+        "url": "https://1234.r2.cloudflarestorage.com/bucket-name"
+      }
+    }
+  },
+  "flows": { "basepath": "/api/flows", "flows": {} }
+}

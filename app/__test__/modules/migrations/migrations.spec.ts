@@ -1,18 +1,22 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { type InitialModuleConfigs, createApp } from "../../../src";
+import { App, type InitialModuleConfigs, createApp } from "/";
 
 import { type Kysely, sql } from "kysely";
 import { getDummyConnection } from "../../helper";
 import v7 from "./samples/v7.json";
 import v8 from "./samples/v8.json";
 import v8_2 from "./samples/v8-2.json";
+import v9 from "./samples/v9.json";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 beforeAll(() => disableConsoleLog());
 afterAll(enableConsoleLog);
 
 // app expects migratable config to be present in database
-async function createVersionedApp(config: InitialModuleConfigs | any) {
+async function createVersionedApp(
+   config: InitialModuleConfigs | any,
+   opts?: { beforeCreateApp?: (db: Kysely<any>) => Promise<void> },
+) {
    const { dummyConnection } = getDummyConnection();
 
    if (!("version" in config)) throw new Error("config must have a version");
@@ -38,11 +42,28 @@ async function createVersionedApp(config: InitialModuleConfigs | any) {
       })
       .execute();
 
+   if (opts?.beforeCreateApp) {
+      await opts.beforeCreateApp(db);
+   }
+
    const app = createApp({
       connection: dummyConnection,
    });
    await app.build();
    return app;
+}
+
+async function getRawConfig(
+   app: App,
+   opts?: { version?: number; types?: ("config" | "diff" | "backup" | "secrets")[] },
+) {
+   const db = app.em.connection.kysely;
+   return await db
+      .selectFrom("__bknd")
+      .selectAll()
+      .$if(!!opts?.version, (qb) => qb.where("version", "=", opts?.version))
+      .$if((opts?.types?.length ?? 0) > 0, (qb) => qb.where("type", "in", opts?.types))
+      .execute();
 }
 
 describe("Migrations", () => {
@@ -81,5 +102,31 @@ describe("Migrations", () => {
       expect(app.version()).toBeGreaterThan(8);
       // @ts-expect-error
       expect(app.toJSON(true).server.admin).toBeUndefined();
+   });
+
+   test("migration from 9 to 10", async () => {
+      expect(v9.version).toBe(9);
+
+      const app = await createVersionedApp(v9);
+
+      expect(app.version()).toBeGreaterThan(9);
+      // @ts-expect-error
+      expect(app.toJSON(true).media.adapter.config.secret_access_key).toBe(
+         "^^s3.secret_access_key^^",
+      );
+      const [config, secrets] = (await getRawConfig(app, {
+         version: 10,
+         types: ["config", "secrets"],
+      })) as any;
+
+      expect(config.json.auth.jwt.secret).toBe("");
+      expect(config.json.media.adapter.config.access_key).toBe("");
+      expect(config.json.media.adapter.config.secret_access_key).toBe("");
+
+      expect(secrets.json["auth.jwt.secret"]).toBe("^^jwt.secret^^");
+      expect(secrets.json["media.adapter.config.access_key"]).toBe("^^s3.access_key^^");
+      expect(secrets.json["media.adapter.config.secret_access_key"]).toBe(
+         "^^s3.secret_access_key^^",
+      );
    });
 });

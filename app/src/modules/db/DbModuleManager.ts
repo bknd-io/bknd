@@ -205,7 +205,7 @@ export class DbModuleManager extends ModuleManager {
 
             if (store_secrets) {
                updates.push({
-                  version: state.configs.version,
+                  version: version,
                   type: "secrets",
                   json: secrets as any,
                });
@@ -252,7 +252,7 @@ export class DbModuleManager extends ModuleManager {
             if (store_secrets) {
                if (!state.secrets || state.secrets?.version !== version) {
                   await this.mutator().insertOne({
-                     version: state.configs.version,
+                     version,
                      type: "secrets",
                      json: secrets,
                      created_at: date,
@@ -393,7 +393,7 @@ export class DbModuleManager extends ModuleManager {
 
                const version_before = this.version();
                const [_version, _configs] = await migrate(version_before, result.configs.json, {
-                  db: this.db,
+                  db: this.db
                });
 
                this._version = _version;
