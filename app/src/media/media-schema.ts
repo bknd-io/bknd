@@ -48,7 +48,7 @@ export function buildMediaSchema() {
       {
          default: {},
       },
-   );
+   ).strict();
 }
 
 export const mediaConfigSchema = buildMediaSchema();
