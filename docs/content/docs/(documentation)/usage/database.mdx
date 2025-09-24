@@ -314,15 +314,11 @@ const connection = new CustomConnection();
 const app = createApp({ connection });
 ```
 
-## Initial Structure
+## Data Structure
 
-To provide an initial database structure, you can pass `initialConfig` to the creation of an app. This will only be used if there isn't an existing configuration found in the database given. Here is a quick example:
-
-<Callout type="info">
-  The initial structure is only respected if the database is empty! If you made
-  updates, ensure to delete the database first, or perform updates through the
-  Admin UI.
-</Callout>
+To provide a database structure, you can pass `config` to the creation of an app. In [`db` mode](/usage/introduction#ui-only-mode), the data structure is only respected if the database is empty. If you made updates, ensure to delete the database first, or perform updates through the Admin UI.
+  
+Here is a quick example:
 
 ```typescript
 import { createApp, em, entity, text, number } from "bknd";
@@ -367,10 +363,7 @@ type Database = (typeof schema)["DB"];
 
 // pass the schema to the app
 const app = createApp({
-  connection: {
-    /* ... */
-  },
-  initialConfig: {
+  config: {
     data: schema.toJSON(),
   },
 });
@@ -473,7 +466,7 @@ const schema = em(
 
 To get type completion, there are two options:
 
-1. Use the CLI to [generate the types](/usage/cli#generating-types-types)
+1. Use the CLI to [generate the types](/usage/cli#generating-types-types) (recommended)
 2. If you have an initial structure created with the prototype functions, you can extend the `DB` interface with your own schema.
 
 All entity related functions use the types defined in `DB` from `bknd`. To get type completion, you can extend that interface with your own schema:
@@ -482,18 +475,14 @@ All entity related functions use the types defined in `DB` from `bknd`. To get t
 import { em } from "bknd";
 import { Api } from "bknd/client";
 
-const schema = em({
-  /* ... */
-});
+const schema = em({ /* ... */ });
 
 type Database = (typeof schema)["DB"];
 declare module "bknd" {
   interface DB extends Database {}
 }
 
-const api = new Api({
-  /* ... */
-});
+const api = new Api({ /* ... */ });
 const { data: posts } = await api.data.readMany("posts", {});
 // `posts` is now typed as Database["posts"]
 ```
@@ -505,21 +494,13 @@ The type completion is available for the API as well as all provided [React hook
 To seed your database with initial data, you can pass a `seed` function to the configuration. It
 provides the `ModuleBuildContext` as the first argument.
 
-<Callout type="info">
-  Note that the seed function will only be executed on app's first boot. If a
-  configuration already exists in the database, it will not be executed.
-</Callout>
 
 ```typescript
 import { createApp, type ModuleBuildContext } from "bknd";
 
 const app = createApp({
-  connection: {
-    /* ... */
-  },
-  initialConfig: {
-    /* ... */
-  },
+  connection: { /* ... */ },
+  config: { /* ... */ },
   options: {
     seed: async (ctx: ModuleBuildContext) => {
       await ctx.em.mutator("posts").insertMany([
@@ -530,3 +511,13 @@ const app = createApp({
   },
 });
 ```
+
+Note that in [`db` mode](/usage/introduction#ui-only-mode), the seed function will only be executed on app's first boot. If a configuration already exists in the database, it will not be executed.
+
+In [`code` mode](/usage/introduction#code-only-mode), the seed function will not be automatically executed. You can manually execute it by running the following command:
+
+```bash
+npx bknd sync --seed --force
+```
+
+See the [sync command](/usage/cli#syncing-the-database-sync) documentation for more details.

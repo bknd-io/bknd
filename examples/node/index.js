@@ -9,7 +9,7 @@ const config = {
    connection: {
       url: "file:data.db",
    },
-   initialConfig: {
+   config: {
       media: {
          enabled: true,
          adapter: {
