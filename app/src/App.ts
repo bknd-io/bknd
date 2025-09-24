@@ -244,6 +244,10 @@ export class App<
    }
 
    get fetch(): Hono["fetch"] {
+      if (!this.isBuilt()) {
+         throw new Error("App is not built yet, run build() first");
+      }
+
       return this.server.fetch as any;
    }
 
