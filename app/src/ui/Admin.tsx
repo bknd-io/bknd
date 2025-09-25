@@ -8,7 +8,33 @@ import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { ClientProvider, useBkndWindowContext, type ClientProviderProps } from "./client";
 import { createMantineTheme } from "./lib/mantine/theme";
 import { Routes } from "./routes";
-import type { BkndAdminAppShellOptions, BkndAdminEntitiesOptions } from "ui/options";
+import type { BkndAdminAppShellOptions, BkndAdminEntitiesOptions } from "./options";
+
+export type BkndAdminConfig = {
+   /**
+    * Base path of the Admin UI
+    * @default `/`
+    */
+   basepath?: string;
+   /**
+    * Path to return to when clicking the logo
+    * @default `/`
+    */
+   logo_return_path?: string;
+   /**
+    * Theme of the Admin UI
+    * @default `system`
+    */
+   theme?: AppTheme;
+   /**
+    * Entities configuration like headers, footers, actions, field renders, etc.
+    */
+   entities?: BkndAdminEntitiesOptions;
+   /**
+    * App shell configuration like user menu actions.
+    */
+   appShell?: BkndAdminAppShellOptions;
+};
 
 export type BkndAdminProps = {
    /**
@@ -16,37 +42,13 @@ export type BkndAdminProps = {
     */
    baseUrl?: string;
    /**
-    * Whether to wrap Admin in a <ClientProvider />
+    * Whether to wrap Admin in a `<ClientProvider />`
     */
    withProvider?: boolean | ClientProviderProps;
    /**
     * Admin UI customization options
     */
-   config?: {
-      /**
-       * Base path of the Admin UI
-       * @default `/`
-       */
-      basepath?: string;
-      /**
-       * Path to return to when clicking the logo
-       * @default `/`
-       */
-      logo_return_path?: string;
-      /**
-       * Theme of the Admin UI
-       * @default `system`
-       */
-      theme?: AppTheme;
-      /**
-       * Entities configuration like headers, footers, actions, field renders, etc.
-       */
-      entities?: BkndAdminEntitiesOptions;
-      /**
-       * App shell configuration like user menu actions.
-       */
-      appShell?: BkndAdminAppShellOptions;
-   };
+   config?: BkndAdminConfig;
    children?: ReactNode;
 };
 

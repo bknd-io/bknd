@@ -1,0 +1,201 @@
+---
+title: Admin UI
+tags: ["documentation"]
+---
+
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
+
+bknd features an integrated Admin UI that can be used to:
+- fully manage your backend visually when run in [`db` mode](/usage/introduction/#ui-only-mode)
+- manage your database contents
+- manage your media contents
+
+In case you're using bknd with a [React framework](integration/introduction/#start-with-a-framework) and render the Admin as React component, you can go further and customize the Admin UI to your liking.
+
+<AutoTypeTable path="../app/src/ui/Admin.tsx" name="BkndAdminProps" />
+
+
+## Advanced Example
+
+The following example shows how to customize the Admin UI for each entity.
+
+- adds a custom action item to the user menu (top right)
+- adds a custom action item to the entity list
+- adds a custom action item to the entity create/update form
+- overrides the rendering of the title field
+- renders a custom header for the entity
+- renders a custom footer for the entity
+- adds a custom route
+
+```tsx
+import { Admin } from "bknd/ui";
+import { Route } from "wouter";
+
+export function App() {
+   return (
+      <Admin
+         withProvider
+         config={{
+            appShell: {
+               // add a custom user menu item (top right)
+               userMenu: [
+                  {
+                     label: "Custom",
+                     onClick: () => alert("custom"),
+                  },
+               ],
+            },
+            entities: {
+               // use any entity that is registered
+               tests: {
+                  actions: (context, entity, data) => ({
+                     primary: [
+                        // this action is only rendered in the update context
+                        context === "update" && {
+                           children: "another",
+                           onClick: () => alert("another"),
+                        },
+                     ],
+                     context: [
+                        // this action is always rendered in the dropdown
+                        {
+                           label: "Custom",
+                           onClick: () =>
+                              alert(
+                                 "custom: " +
+                                    JSON.stringify({ context, entity: entity.name, data }),
+                              ),
+                        },
+                     ],
+                  }),
+                  // render a header for the entity
+                  header: (context, entity, data) => <div>test header</div>,
+                  // override the rendering of the title field
+                  fields: {
+                     title: {
+                        render: (context, entity, field, ctx) => {
+                           return (
+                              <input
+                                 type="text"
+                                 value={ctx.value}
+                                 onChange={(e) => ctx.handleChange(e.target.value)}
+                              />
+                           );
+                        },
+                     },
+                  },
+               },
+               // system entities work too
+               users: {
+                  header: () => {
+                     return <div>System entity</div>;
+                  },
+               },
+            },
+         }}
+      >
+         {/* You may also add custom routes, these always have precedence over the Admin routes */}
+         <Route path="/data/custom">
+            <div>custom</div>
+         </Route>
+      </Admin>
+   );
+}
+```
+
+
+## `config`
+
+<AutoTypeTable path="../app/src/ui/Admin.tsx" name="BkndAdminConfig" />
+
+### `entities`
+
+With the `entities` option, you can customize the Admin UI for each entity. You can override the header, footer, add additional actions, and override each field rendering.
+
+```ts
+export type BkndAdminEntityContext = "list" | "create" | "update";
+
+export type BkndAdminEntitiesOptions = {
+   [E in keyof DB]?: BkndAdminEntityOptions<E>;
+};
+
+export type BkndAdminEntityOptions<E extends keyof DB | string> = {
+   /**
+    * Header to be rendered depending on the context
+    */
+   header?: (
+      context: BkndAdminEntityContext,
+      entity: Entity,
+      data?: DB[E],
+   ) => ReactNode | void | undefined;
+   /**
+    * Footer to be rendered depending on the context
+    */
+   footer?: (
+      context: BkndAdminEntityContext,
+      entity: Entity,
+      data?: DB[E],
+   ) => ReactNode | void | undefined;
+   /**
+    * Actions to be rendered depending on the context
+    */
+   actions?: (
+      context: BkndAdminEntityContext,
+      entity: Entity,
+      data?: DB[E],
+   ) => {
+      /**
+       * Primary actions are always visible
+       */
+      primary?: (ButtonProps | undefined | null | false)[];
+      /**
+       * Context actions are rendered in a dropdown
+       */
+      context?: DropdownProps["items"];
+   };
+   /**
+    * Field UI overrides
+    */
+   fields?: {
+      [F in keyof DB[E]]?: BkndAdminEntityFieldOptions<E>;
+   };
+};
+
+export type BkndAdminEntityFieldOptions<E extends keyof DB | string> = {
+   /**
+    * Override the rendering of a certain field
+    */
+   render?: (
+      context: BkndAdminEntityContext,
+      entity: Entity,
+      field: Field,
+      ctx: {
+         data?: DB[E];
+         value?: DB[E][keyof DB[E]];
+         handleChange: (value: any) => void;
+      },
+   ) => ReactNode | void | undefined;
+};
+```
+
+
+### `appShell`
+
+```ts
+export type DropdownItem =
+   | (() => ReactNode)
+   | {
+        label: string | ReactElement;
+        icon?: any;
+        onClick?: () => void;
+        destructive?: boolean;
+        disabled?: boolean;
+        title?: string;
+        [key: string]: any;
+     };
+
+export type BkndAdminAppShellOptions = {
+   userMenu?: (DropdownItem | undefined | boolean)[];
+};
+```

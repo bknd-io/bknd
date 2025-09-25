@@ -1,4 +1,4 @@
-export { default as Admin, type BkndAdminProps } from "./Admin";
+export { default as Admin, type BkndAdminProps, type BkndAdminConfig } from "./Admin";
 export * from "./components/form/json-schema-form";
 export { JsonViewer } from "./components/code/JsonViewer";
 export type * from "./options";
