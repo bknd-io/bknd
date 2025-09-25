@@ -45,6 +45,7 @@ export class StorageS3Adapter extends StorageAdapter {
             accessKeyId: config.access_key,
             secretAccessKey: config.secret_access_key,
             retries: isDebug() ? 0 : 10,
+            service: "s3",
          },
          {
             convertParams: "pascalToKebab",

@@ -22,6 +22,19 @@ afterAll(() => {
    cleanup();
 }); */
 
+describe("StorageS3Adapter", async () => {
+   test("verify client's service is set to s3", async () => {
+      const adapter = new StorageS3Adapter({
+         access_key: "",
+         secret_access_key: "",
+         url: "https://localhost",
+      });
+      // this is important for minio to produce the correct headers
+      // and it won't harm s3 or r2
+      expect(adapter.client.service).toBe("s3");
+   });
+});
+
 describe.skipIf(ALL_TESTS)("StorageS3Adapter", async () => {
    if (ALL_TESTS) return;
 
