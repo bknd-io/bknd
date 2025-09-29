@@ -43,6 +43,10 @@ export class MediaField<
       return this.config.max_items;
    }
 
+   getAllowedMimeTypes(): string[] | undefined {
+      return this.config.mime_types;
+   }
+
    getMinItems(): number | undefined {
       return this.config.min_items;
    }

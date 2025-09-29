@@ -28,7 +28,8 @@ describe("StorageR2Adapter", async () => {
    const buffer = readFileSync(path.join(basePath, "image.png"));
    const file = new File([buffer], "image.png", { type: "image/png" });
 
-   await adapterTestSuite(viTestRunner, adapter, file);
+   // miniflare doesn't support range requests
+   await adapterTestSuite(viTestRunner, adapter, file, { testRange: false });
 });
 
 afterAll(async () => {

@@ -22,7 +22,7 @@ export const DropzoneInner = ({
    inputProps,
    showPlaceholder,
    actions: { uploadFile, deleteFile, openFileInput },
-   dropzoneProps: { placeholder, flow },
+   dropzoneProps: { placeholder, flow, maxItems, allowedMimeTypes },
    onClick,
    footer,
 }: DropzoneRenderProps) => {
@@ -52,7 +52,7 @@ export const DropzoneInner = ({
          )}
       >
          <div className="hidden">
-            <input {...inputProps} />
+            <input {...inputProps} accept={allowedMimeTypes?.join(",")} />
          </div>
          <div className="flex flex-1 flex-col">
             <div className="flex flex-row flex-wrap gap-2 md:gap-3">
@@ -159,9 +159,9 @@ const Preview = memo(
                   <p className="truncate select-text w-[calc(100%-10px)]">{file.name}</p>
                   <StateIndicator file={file} />
                </div>
-               <div className="flex flex-row justify-between text-sm font-mono opacity-50 text-nowrap gap-2">
+               <div className="flex flex-row justify-between text-xs md:text-sm font-mono opacity-50 text-nowrap gap-2">
                   <span className="truncate select-text">{file.type}</span>
-                  <span>{formatNumber.fileSize(file.size)}</span>
+                  <span className="whitespace-nowrap">{formatNumber.fileSize(file.size)}</span>
                </div>
             </div>
          </div>
@@ -272,5 +272,7 @@ const VideoPreview = ({
 };
 
 const FallbackPreview = ({ file }: { file: ReducedFile }) => {
-   return <div className="text-xs text-primary/50 text-center">{file.type}</div>;
+   return (
+      <div className="text-xs text-primary/50 text-center font-mono leading-none">{file.type}</div>
+   );
 };

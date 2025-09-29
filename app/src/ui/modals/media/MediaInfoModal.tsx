@@ -1,5 +1,5 @@
 import type { ContextModalProps } from "@mantine/modals";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useEntityQuery } from "ui/client";
 import { type FileState, Media } from "ui/elements";
 import { autoFormatString, datetimeStringLocal, formatNumber } from "core/utils";
@@ -157,15 +157,85 @@ const Item = ({
 };
 
 const FilePreview = ({ file }: { file: FileState }) => {
+   const objectUrl = typeof file.body === "string" ? file.body : URL.createObjectURL(file.body);
+
    if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
       // @ts-ignore
       return <Media.Preview file={file} className="max-h-[70dvh]" controls muted />;
+   }
+
+   if (file.type === "application/pdf") {
+      // use browser preview
+      return (
+         <iframe
+            title="PDF preview"
+            src={`${objectUrl}#view=fitH&zoom=page-width&toolbar=1`}
+            className="w-250 max-w-[80dvw] h-[80dvh]"
+         />
+      );
+   }
+   if (
+      [
+         "text/plain",
+         "text/markdown",
+         "text/csv",
+         "text/tab-separated-values",
+         "application/json",
+      ].includes(file.type)
+   ) {
+      return <TextPreview file={file} />;
+   }
+
+   if (file.type.startsWith("audio/")) {
+      return (
+         <div className="p-5">
+            <audio src={objectUrl} controls />
+         </div>
+      );
    }
 
    return (
       <div className="min-w-96 min-h-48 flex justify-center items-center h-full max-h-[70dvh]">
          <span className="opacity-50 font-mono">No Preview Available</span>
       </div>
+   );
+};
+
+const TextPreview = ({ file }: { file: FileState }) => {
+   const [text, setText] = useState("");
+   const objectUrl = typeof file.body === "string" ? file.body : URL.createObjectURL(file.body);
+   const maxBytes = 1024 * 256;
+   const useRange = file.size > maxBytes;
+
+   useEffect(() => {
+      let cancelled = false;
+
+      if (file) {
+         fetch(objectUrl, {
+            headers: useRange ? { Range: `bytes=0-${maxBytes - 1}` } : undefined,
+         })
+            .then((r) => r.text())
+            .then((t) => {
+               if (!cancelled) setText(t);
+            });
+      } else {
+         setText("");
+      }
+      return () => {
+         cancelled = true;
+      };
+   }, [file, useRange]);
+
+   return (
+      <pre className="text-sm font-mono whitespace-pre-wrap break-all overflow-y-scroll w-250 md:max-w-[80dvw] h-[60dvh] md:h-[80dvh] py-4 px-6 debug">
+         {text}
+
+         {useRange && (
+            <div className="mt-3 opacity-50 text-xs text-center">
+               Showing first {formatNumber.fileSize(maxBytes)}
+            </div>
+         )}
+      </pre>
    );
 };
 

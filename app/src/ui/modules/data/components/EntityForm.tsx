@@ -240,6 +240,8 @@ function EntityMediaFormField({
    disabled?: boolean;
 }) {
    if (!entityId) return;
+   const maxLimit = 50;
+   const maxItems = field.getMaxItems();
 
    const value = useStore(formApi.store, (state) => {
       const val = state.values[field.name];
@@ -260,8 +262,9 @@ function EntityMediaFormField({
          <FieldLabel field={field} />
          <Media.Dropzone
             key={key}
-            maxItems={field.getMaxItems()}
-            initialItems={value} /* @todo: test if better be omitted, so it fetches */
+            maxItems={maxItems}
+            allowedMimeTypes={field.getAllowedMimeTypes()}
+            /* initialItems={value} @todo: test if better be omitted, so it fetches */
             onClick={onClick}
             entity={{
                name: entity.name,
@@ -270,6 +273,7 @@ function EntityMediaFormField({
             }}
             query={{
                sort: "-id",
+               limit: maxItems && maxItems > maxLimit ? maxLimit : maxItems,
             }}
          />
       </Formy.Group>
