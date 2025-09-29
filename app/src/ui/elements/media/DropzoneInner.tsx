@@ -1,7 +1,22 @@
 import { type ComponentPropsWithoutRef, memo, type ReactNode, useCallback, useMemo } from "react";
 import { twMerge } from "tailwind-merge";
 import { useRenderCount } from "ui/hooks/use-render-count";
-import { TbDots, TbExternalLink, TbTrash, TbUpload } from "react-icons/tb";
+import {
+   TbDots,
+   TbExternalLink,
+   TbFileTypeCsv,
+   TbFileText,
+   TbJson,
+   TbFileTypePdf,
+   TbMarkdown,
+   TbMusic,
+   TbTrash,
+   TbUpload,
+   TbFileTypeTxt,
+   TbFileTypeXml,
+   TbZip,
+   TbFileTypeSql,
+} from "react-icons/tb";
 import { Dropdown, type DropdownItem } from "ui/components/overlay/Dropdown";
 import { IconButton } from "ui/components/buttons/IconButton";
 import { formatNumber } from "core/utils";
@@ -85,7 +100,7 @@ const UploadPlaceholder = ({ onClick, text = "Upload files" }) => {
    );
 };
 
-type ReducedFile = Pick<FileState, "body" | "type" | "path" | "name" | "size">;
+type ReducedFile = Omit<FileState, "state" | "progress">;
 export type PreviewComponentProps = {
    file: ReducedFile;
    fallback?: (props: { file: ReducedFile }) => ReactNode;
@@ -271,8 +286,59 @@ const VideoPreview = ({
    return <video {...props} src={objectUrl} />;
 };
 
+const Previews = [
+   {
+      mime: "text/plain",
+      Icon: TbFileTypeTxt,
+   },
+   {
+      mime: "text/csv",
+      Icon: TbFileTypeCsv,
+   },
+   {
+      mime: "text/xml",
+      Icon: TbFileTypeXml,
+   },
+   {
+      mime: "text/markdown",
+      Icon: TbMarkdown,
+   },
+   {
+      mime: /^text\/.*$/,
+      Icon: TbFileText,
+   },
+   {
+      mime: "application/json",
+      Icon: TbJson,
+   },
+   {
+      mime: "application/pdf",
+      Icon: TbFileTypePdf,
+   },
+   {
+      mime: /^audio\/.*$/,
+      Icon: TbMusic,
+   },
+   {
+      mime: "application/zip",
+      Icon: TbZip,
+   },
+   {
+      mime: "application/sql",
+      Icon: TbFileTypeSql,
+   },
+];
+
 const FallbackPreview = ({ file }: { file: ReducedFile }) => {
+   const previewIcon = Previews.find((p) =>
+      p.mime instanceof RegExp ? p.mime.test(file.type) : p.mime === file.type,
+   );
+   if (previewIcon) {
+      return <previewIcon.Icon className="size-10 text-gray-400" />;
+   }
    return (
-      <div className="text-xs text-primary/50 text-center font-mono leading-none">{file.type}</div>
+      <div className="text-xs text-primary/50 text-center font-mono leading-none max-w-[90%] truncate">
+         {file.type}
+      </div>
    );
 };

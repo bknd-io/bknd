@@ -2,8 +2,8 @@ export const Q = {
    video: ["mp4", "webm"],
    audio: ["ogg"],
    image: ["jpeg", "png", "gif", "webp", "bmp", "tiff", "avif", "heic", "heif"],
-   text: ["html", "css", "mdx", "yaml", "vcard", "csv", "vtt"],
-   application: ["zip", "xml", "toml", "json", "json5", "pdf"],
+   text: ["html", "css", "mdx", "yaml", "vcard", "csv", "vtt", "xml"],
+   application: ["zip", "toml", "json", "json5", "pdf", "sql"],
    font: ["woff", "woff2", "ttf", "otf"],
 } as const;
 

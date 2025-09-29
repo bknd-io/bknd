@@ -156,6 +156,8 @@ const Item = ({
    );
 };
 
+const textFormats = [/^text\/.*$/, /application\/(json|ld\+json|javascript|xml|rtf|sql)/];
+
 const FilePreview = ({ file }: { file: FileState }) => {
    const objectUrl = typeof file.body === "string" ? file.body : URL.createObjectURL(file.body);
 
@@ -174,15 +176,7 @@ const FilePreview = ({ file }: { file: FileState }) => {
          />
       );
    }
-   if (
-      [
-         "text/plain",
-         "text/markdown",
-         "text/csv",
-         "text/tab-separated-values",
-         "application/json",
-      ].includes(file.type)
-   ) {
+   if (textFormats.some((f) => f.test(file.type))) {
       return <TextPreview file={file} />;
    }
 
@@ -227,7 +221,7 @@ const TextPreview = ({ file }: { file: FileState }) => {
    }, [file, useRange]);
 
    return (
-      <pre className="text-sm font-mono whitespace-pre-wrap break-all overflow-y-scroll w-250 md:max-w-[80dvw] h-[60dvh] md:h-[80dvh] py-4 px-6 debug">
+      <pre className="text-sm font-mono whitespace-pre-wrap break-all overflow-y-scroll w-250 md:max-w-[80dvw] h-[60dvh] md:h-[80dvh] py-4 px-6">
          {text}
 
          {useRange && (
