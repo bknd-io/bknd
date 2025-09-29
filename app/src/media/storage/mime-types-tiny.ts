@@ -3,7 +3,7 @@ export const Q = {
    audio: ["ogg"],
    image: ["jpeg", "png", "gif", "webp", "bmp", "tiff", "avif", "heic", "heif"],
    text: ["html", "css", "mdx", "yaml", "vcard", "csv", "vtt"],
-   application: ["zip", "xml", "toml", "json", "json5"],
+   application: ["zip", "xml", "toml", "json", "json5", "pdf"],
    font: ["woff", "woff2", "ttf", "otf"],
 } as const;
 
@@ -19,7 +19,7 @@ const c = {
 export const M = new Map<string, string>([
    ["7z", c.z],
    ["7zip", c.z],
-   ["ai", c.a("pdf")],
+   ["ai", c.a("postscript")],
    ["apk", c.a("vnd.android.package-archive")],
    ["doc", c.a("msword")],
    ["docx", `${c.vnd}.wordprocessingml.document`],
