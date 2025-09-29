@@ -10,7 +10,7 @@ import { assetsPath, assetsTmpPath } from "../helper";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 beforeAll(() => {
-   disableConsoleLog();
+   //disableConsoleLog();
    registries.media.register("local", StorageLocalAdapter);
 });
 afterAll(enableConsoleLog);
@@ -93,5 +93,39 @@ describe("MediaController", () => {
 
       expect(res.status).toBe(413);
       expect(await Bun.file(assetsTmpPath + "/" + name).exists()).toBe(false);
+   });
+
+   test("audio files", async () => {
+      const app = await makeApp();
+      const file = Bun.file(`${assetsPath}/test.mp3`);
+      const name = makeName("mp3");
+      const res = await app.server.request("/api/media/upload/" + name, {
+         method: "POST",
+         body: file,
+      });
+      const result = (await res.json()) as any;
+      expect(result.data.mime_type).toStartWith("audio/mpeg");
+      expect(result.name).toBe(name);
+
+      const destFile = Bun.file(assetsTmpPath + "/" + name);
+      expect(destFile.exists()).resolves.toBe(true);
+      await destFile.delete();
+   });
+
+   test("text files", async () => {
+      const app = await makeApp();
+      const file = Bun.file(`${assetsPath}/test.txt`);
+      const name = makeName("txt");
+      const res = await app.server.request("/api/media/upload/" + name, {
+         method: "POST",
+         body: file,
+      });
+      const result = (await res.json()) as any;
+      expect(result.data.mime_type).toStartWith("text/plain");
+      expect(result.name).toBe(name);
+
+      const destFile = Bun.file(assetsTmpPath + "/" + name);
+      expect(destFile.exists()).resolves.toBe(true);
+      await destFile.delete();
    });
 });

@@ -8,6 +8,7 @@ import { MediaController } from "./api/MediaController";
 import { buildMediaSchema, registry, type TAppMediaConfig } from "./media-schema";
 import { mediaFields } from "./media-entities";
 import * as MediaPermissions from "media/media-permissions";
+import * as DatabaseEvents from "data/events";
 
 export type MediaFields = typeof AppMedia.mediaFields;
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
@@ -138,6 +139,30 @@ export class AppMedia extends Module<Required<TAppMediaConfig>> {
             $console.log("App:storage:file deleted", e.params);
          },
          { mode: "sync", id: "delete-data-media" },
+      );
+
+      emgr.onEvent(
+         DatabaseEvents.MutatorDeleteAfter,
+         async (e) => {
+            const { entity, data } = e.params;
+            const fields = entity.fields.filter((f) => f.type === "media");
+            if (fields.length > 0) {
+               const references = fields.map((f) => `${entity.name}.${f.name}`);
+               $console.log("App:storage:file cleaning up", {
+                  reference: { $in: references },
+                  entity_id: String(data.id),
+               });
+               const { data: deleted } = await em.mutator(media).deleteWhere({
+                  reference: { $in: references },
+                  entity_id: String(data.id),
+               });
+               for (const file of deleted) {
+                  await this.storage.deleteFile(file.path);
+               }
+               $console.log("App:storage:file cleaned up files:", deleted.length);
+            }
+         },
+         { mode: "async", id: "delete-data-media-after" },
       );
    }
 

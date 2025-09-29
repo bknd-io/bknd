@@ -36,6 +36,10 @@ export const createDropzoneStore = () => {
                         : f,
                   ),
                })),
+            overrideFile: (path: string, newState: Partial<FileState>) =>
+               set((state) => ({
+                  files: state.files.map((f) => (f.path === path ? { ...f, ...newState } : f)),
+               })),
          }),
       ),
    );
