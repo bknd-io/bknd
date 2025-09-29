@@ -2,9 +2,8 @@ import type { Config } from "@libsql/client/node";
 import { StorageLocalAdapter } from "adapter/node/storage";
 import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
-import { config, type App, type CreateAppConfig, type MaybePromise } from "bknd";
+import { config, type App, type CreateAppConfig, type MaybePromise, registries } from "bknd";
 import dotenv from "dotenv";
-import { registries } from "modules/registries";
 import c from "picocolors";
 import path from "node:path";
 import {

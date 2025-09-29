@@ -65,6 +65,7 @@ export class SchemaManager {
          if (SchemaManager.EXCLUDE_TABLES.includes(table.name)) {
             continue;
          }
+         if (!table.name) continue;
 
          cleanTables.push({
             ...table,

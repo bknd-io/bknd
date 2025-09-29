@@ -18,6 +18,27 @@ export type WithPlatformProxyOptions = {
    proxyOptions?: GetPlatformProxyOptions;
 };
 
+async function getPlatformProxy(opts?: GetPlatformProxyOptions) {
+   try {
+      const { version } = await import("wrangler/package.json", { with: { type: "json" } });
+      $console.log("Using wrangler version", version);
+      const { getPlatformProxy } = await import("wrangler");
+      return getPlatformProxy(opts);
+   } catch (e) {
+      $console.error("Failed to import wrangler", String(e));
+      const resolved = import.meta.resolve("wrangler");
+      $console.log("Wrangler resolved to", resolved);
+      const file = resolved?.split("/").pop();
+      if (file?.endsWith(".json")) {
+         $console.error(
+            "You have a `wrangler.json` in your current directory. Please change to .jsonc or .toml",
+         );
+      }
+   }
+
+   process.exit(1);
+}
+
 export function withPlatformProxy<Env extends CloudflareEnv>(
    config: CloudflareBkndConfig<Env> = {},
    opts?: WithPlatformProxyOptions,
@@ -31,7 +52,6 @@ export function withPlatformProxy<Env extends CloudflareEnv>(
    async function getEnv(env?: Env): Promise<Env> {
       if (use_proxy) {
          if (!proxy) {
-            const getPlatformProxy = await import("wrangler").then((mod) => mod.getPlatformProxy);
             proxy = await getPlatformProxy(opts?.proxyOptions);
             process.on("exit", () => {
                proxy?.dispose();
