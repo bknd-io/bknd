@@ -331,8 +331,8 @@ export class ModuleManager {
             ctx.flags.sync_required = false;
             this.logger.log("db sync requested");
 
-            // sync db hint
-            $console.warn("a database sync is required");
+            // ignore sync request on code mode since system tables
+            // are probably never fully in provided config
          }
 
          if (ctx.flags.ctx_reload_required) {
