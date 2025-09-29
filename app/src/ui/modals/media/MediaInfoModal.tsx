@@ -43,7 +43,7 @@ export function MediaInfoModal({
 
    return (
       <div className="flex flex-col md:flex-row">
-         <div className="flex w-full md:w-[calc(100%-300px)] justify-center items-center bg-lightest min-w-0">
+         <div className="flex w-full md:w-[calc(100%-300px)] justify-center items-center bg-lightest min-w-50">
             <FilePreview file={file} />
          </div>
          <div className="w-full md:!w-[300px] flex flex-col">
@@ -156,7 +156,7 @@ const Item = ({
    );
 };
 
-const textFormats = [/^text\/.*$/, /application\/(json|ld\+json|javascript|xml|rtf|sql)/];
+const textFormats = [/^text\/.*$/, /application\/(x\-)?(json|json|yaml|javascript|xml|rtf|sql)/];
 
 const FilePreview = ({ file }: { file: FileState }) => {
    const objectUrl = typeof file.body === "string" ? file.body : URL.createObjectURL(file.body);

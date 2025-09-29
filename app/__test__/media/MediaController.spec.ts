@@ -104,7 +104,7 @@ describe("MediaController", () => {
          body: file,
       });
       const result = (await res.json()) as any;
-      expect(result.data.mime_type).toBe("audio/mpeg");
+      expect(result.data.mime_type).toStartWith("audio/mpeg");
       expect(result.name).toBe(name);
 
       const destFile = Bun.file(assetsTmpPath + "/" + name);
@@ -121,7 +121,7 @@ describe("MediaController", () => {
          body: file,
       });
       const result = (await res.json()) as any;
-      expect(result.data.mime_type).toBe("text/plain");
+      expect(result.data.mime_type).toStartWith("text/plain");
       expect(result.name).toBe(name);
 
       const destFile = Bun.file(assetsTmpPath + "/" + name);

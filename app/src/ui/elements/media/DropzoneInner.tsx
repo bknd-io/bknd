@@ -296,7 +296,7 @@ const Previews = [
       Icon: TbFileTypeCsv,
    },
    {
-      mime: "text/xml",
+      mime: /(text|application)\/xml/,
       Icon: TbFileTypeXml,
    },
    {
