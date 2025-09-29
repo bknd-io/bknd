@@ -67,7 +67,7 @@ export const DropzoneInner = ({
          )}
       >
          <div className="hidden">
-            <input {...inputProps} accept={allowedMimeTypes?.join(",")} />
+            <input {...inputProps} />
          </div>
          <div className="flex flex-1 flex-col">
             <div className="flex flex-row flex-wrap gap-2 md:gap-3">

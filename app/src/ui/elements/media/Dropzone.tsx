@@ -173,9 +173,14 @@ export function Dropzone({
 
       return specs.every((spec) => {
          if (spec.kind !== "file") {
+            console.log("not a file", spec.kind);
             return false;
          }
-         return !(allowedMimeTypes && !allowedMimeTypes.includes(spec.type));
+         if (allowedMimeTypes && allowedMimeTypes.length > 0) {
+            console.log("not allowed mimetype", spec.type);
+            return allowedMimeTypes.includes(spec.type);
+         }
+         return true;
       });
    }
 
@@ -432,6 +437,7 @@ export function Dropzone({
             type: "file",
             multiple: !maxItems || maxItems > 1,
             onChange: handleFileInputChange,
+            accept: allowedMimeTypes?.join(","),
          },
          showPlaceholder,
          actions: {
