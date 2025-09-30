@@ -16,7 +16,7 @@ export {
    type GetBindingType,
    type BindingMap,
 } from "./bindings";
-export { constants, type CloudflareContext } from "./config";
+export { constants, makeConfig, type CloudflareContext } from "./config";
 export { StorageR2Adapter, registerMedia } from "./storage/StorageR2Adapter";
 export { registries } from "bknd";
 export { devFsVitePlugin, devFsWrite } from "./vite";
