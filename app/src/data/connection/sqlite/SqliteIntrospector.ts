@@ -55,7 +55,8 @@ export class SqliteIntrospector extends BaseIntrospector {
                      )) FROM pragma_index_info(i.name) ii)
                )) FROM pragma_index_list(m.name) i
                  LEFT JOIN sqlite_master im ON im.name = i.name
-                  AND im.type = 'index'
+                  AND im.type = 'index' 
+                 WHERE i.name not like 'sqlite_%'
             ) AS indices
          FROM sqlite_master m
          WHERE m.type IN ('table', 'view')
