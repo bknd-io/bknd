@@ -102,8 +102,8 @@ export class PolymorphicRelation extends EntityRelation<typeof PolymorphicRelati
       return new TextField("reference", { hidden: true, fillable: ["create"] });
    }
 
-   getEntityIdField(): NumberField {
-      return new NumberField("entity_id", { hidden: true, fillable: ["create"] });
+   getEntityIdField(): TextField {
+      return new TextField("entity_id", { hidden: true, fillable: ["create"] });
    }
 
    initialize(em: EntityManager<any>) {

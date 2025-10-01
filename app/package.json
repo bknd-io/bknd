@@ -40,7 +40,7 @@
     "test:coverage": "ALL_TESTS=1 bun test --bail --coverage",
     "test:vitest:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:adapters": "bun run e2e/adapters.ts",
+    "test:e2e:adapters": "NODE_NO_WARNINGS=1 bun run e2e/adapters.ts",
     "test:e2e:ui": "VITE_DB_URL=:memory: playwright test --ui",
     "test:e2e:debug": "VITE_DB_URL=:memory: playwright test --debug",
     "test:e2e:report": "VITE_DB_URL=:memory: playwright show-report",
