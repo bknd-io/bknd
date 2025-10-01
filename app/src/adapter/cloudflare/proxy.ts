@@ -20,7 +20,9 @@ export type WithPlatformProxyOptions = {
 
 async function getPlatformProxy(opts?: GetPlatformProxyOptions) {
    try {
-      const { version } = await import("wrangler/package.json", { with: { type: "json" } });
+      const { version } = await import("wrangler/package.json", { with: { type: "json" } }).then(
+         (pkg) => pkg.default,
+      );
       $console.log("Using wrangler version", version);
       const { getPlatformProxy } = await import("wrangler");
       return getPlatformProxy(opts);

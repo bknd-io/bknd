@@ -272,6 +272,7 @@ async function buildAdapters() {
       ),
       tsup.build(
          baseConfig("cloudflare/proxy", {
+            target: "esnext",
             entry: ["src/adapter/cloudflare/proxy.ts"],
             outDir: "dist/adapter/cloudflare",
             metafile: false,
