@@ -9,8 +9,8 @@ import {
    useEffect,
    useMemo,
    useRef,
-   useState,
 } from "react";
+import { isFileAccepted } from "bknd/utils";
 import { type FileWithPath, useDropzone } from "./use-dropzone";
 import { checkMaxReached } from "./helper";
 import { DropzoneInner } from "./DropzoneInner";
@@ -173,12 +173,14 @@ export function Dropzone({
 
       return specs.every((spec) => {
          if (spec.kind !== "file") {
-            console.log("not a file", spec.kind);
+            console.warn("file not accepted: not a file", spec.kind);
             return false;
          }
          if (allowedMimeTypes && allowedMimeTypes.length > 0) {
-            console.log("not allowed mimetype", spec.type);
-            return allowedMimeTypes.includes(spec.type);
+            if (!isFileAccepted(i, allowedMimeTypes)) {
+               console.warn("file not accepted: not allowed mimetype", spec.type);
+               return false;
+            }
          }
          return true;
       });

@@ -264,6 +264,35 @@ describe("Core Utils", async () => {
             height: 512,
          });
       });
+
+      test("isFileAccepted", () => {
+         const file = new File([""], "file.txt", {
+            type: "text/plain",
+         });
+         expect(utils.isFileAccepted(file, "text/plain")).toBe(true);
+         expect(utils.isFileAccepted(file, "text/plain,text/html")).toBe(true);
+         expect(utils.isFileAccepted(file, "text/html")).toBe(false);
+
+         {
+            const file = new File([""], "file.jpg", {
+               type: "image/jpeg",
+            });
+            expect(utils.isFileAccepted(file, "image/jpeg")).toBe(true);
+            expect(utils.isFileAccepted(file, "image/jpeg,image/png")).toBe(true);
+            expect(utils.isFileAccepted(file, "image/png")).toBe(false);
+            expect(utils.isFileAccepted(file, "image/*")).toBe(true);
+            expect(utils.isFileAccepted(file, ".jpg")).toBe(true);
+            expect(utils.isFileAccepted(file, ".jpg,.png")).toBe(true);
+            expect(utils.isFileAccepted(file, ".png")).toBe(false);
+         }
+
+         {
+            const file = new File([""], "file.png");
+            expect(utils.isFileAccepted(file, undefined as any)).toBe(true);
+         }
+
+         expect(() => utils.isFileAccepted(null as any, "text/plain")).toThrow();
+      });
    });
 
    describe("dates", () => {
