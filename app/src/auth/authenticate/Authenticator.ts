@@ -278,7 +278,9 @@ export class Authenticator<
          }
 
          return payload as any;
-      } catch (e) {}
+      } catch (e) {
+         $console.debug("Authenticator jwt verify error", String(e));
+      }
 
       return;
    }
@@ -396,8 +398,9 @@ export class Authenticator<
       if (headers.has("Authorization")) {
          const bearerHeader = String(headers.get("Authorization"));
          token = bearerHeader.replace("Bearer ", "");
-      } else if (is_context) {
-         token = await this.getAuthCookie(c as Context);
+      } else {
+         const context = is_context ? (c as Context) : ({ req: { raw: { headers } } } as Context);
+         token = await this.getAuthCookie(context);
       }
 
       if (token) {

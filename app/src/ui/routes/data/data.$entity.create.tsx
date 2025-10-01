@@ -12,6 +12,11 @@ import { routes, useNavigate } from "ui/lib/routes";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
 import { s } from "bknd/utils";
+import { notifications } from "@mantine/notifications";
+import { useEntityAdminOptions } from "ui/options";
+import { Dropdown } from "ui/components/overlay/Dropdown";
+import { TbDots } from "react-icons/tb";
+import { IconButton } from "ui/components/buttons/IconButton";
 
 export function DataEntityCreate({ params }) {
    const { $data } = useBkndData();
@@ -22,6 +27,7 @@ export function DataEntityCreate({ params }) {
    } else if (entity.type === "system") {
       return <Message.NotAllowed description={`Entity "${params.entity}" cannot be created.`} />;
    }
+   const options = useEntityAdminOptions(entity, "create");
 
    const [error, setError] = useState<string | null>(null);
    useBrowserTitle(["Data", entity.label, "Create"]);
@@ -39,10 +45,18 @@ export function DataEntityCreate({ params }) {
       if (!changeSet) return;
 
       try {
-         await $q.create(changeSet);
+         const result = await $q.create(changeSet);
          if (error) setError(null);
-         // @todo: navigate to created?
-         goBack();
+         if (result.id) {
+            notifications.show({
+               title: `Creating ${entity?.label}`,
+               message: `Successfully created with ID ${result.id}`,
+               color: "green",
+            });
+            navigate(routes.data.entity.edit(params.entity, result.id));
+         } else {
+            goBack();
+         }
       } catch (e) {
          setError(e instanceof Error ? e.message : "Failed to create");
       }
@@ -62,7 +76,16 @@ export function DataEntityCreate({ params }) {
          <AppShell.SectionHeader
             right={
                <>
+                  {options.actions?.context && (
+                     <Dropdown position="bottom-end" items={options.actions.context}>
+                        <IconButton Icon={TbDots} />
+                     </Dropdown>
+                  )}
                   <Button onClick={goBack}>Cancel</Button>
+                  {options.actions?.primary?.map(
+                     (button, key) =>
+                        button && <Button {...button} type="button" key={key} variant="primary" />,
+                  )}
                   <Form.Subscribe
                      selector={(state) => [state.canSubmit, state.isSubmitting]}
                      children={([canSubmit, isSubmitting]) => (
@@ -79,10 +102,15 @@ export function DataEntityCreate({ params }) {
                   />
                </>
             }
+            className="pl-3"
          >
-            <Breadcrumbs2 backTo={backHref} path={[{ label: entity.label }, { label: "Create" }]} />
+            <Breadcrumbs2
+               backTo={backHref}
+               path={[{ label: entity.label, href: backHref }, { label: "Create" }]}
+            />
          </AppShell.SectionHeader>
          <AppShell.Scrollable key={entity.name}>
+            {options.header}
             {error && (
                <div className="flex flex-row dark:bg-red-950 bg-red-100 p-4">
                   <b className="mr-2">Create failed: </b> {error}
@@ -97,6 +125,7 @@ export function DataEntityCreate({ params }) {
                action="create"
                className="flex flex-grow flex-col gap-3 p-3"
             />
+            {options.footer}
          </AppShell.Scrollable>
       </>
    );

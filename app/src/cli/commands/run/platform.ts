@@ -9,18 +9,28 @@ export const PLATFORMS = ["node", "bun"] as const;
 export type Platform = (typeof PLATFORMS)[number];
 
 export async function serveStatic(server: Platform): Promise<MiddlewareHandler> {
+   const onNotFound = (path: string) => {
+      $console.debug("Couldn't resolve static file at", path);
+   };
+
    switch (server) {
       case "node": {
          const m = await import("@hono/node-server/serve-static");
+         const root = getRelativeDistPath() + "/static";
+         $console.debug("Serving static files from", root);
          return m.serveStatic({
             // somehow different for node
-            root: getRelativeDistPath() + "/static",
+            root,
+            onNotFound,
          });
       }
       case "bun": {
          const m = await import("hono/bun");
+         const root = path.resolve(getRelativeDistPath(), "static");
+         $console.debug("Serving static files from", root);
          return m.serveStatic({
-            root: path.resolve(getRelativeDistPath(), "static"),
+            root,
+            onNotFound,
          });
       }
    }
@@ -66,6 +76,9 @@ export async function getConfigPath(filePath?: string) {
       const config_path = path.resolve(process.cwd(), filePath);
       if (await fileExists(config_path)) {
          return config_path;
+      } else {
+         $console.error(`Config file could not be resolved: ${config_path}`);
+         process.exit(1);
       }
    }
 

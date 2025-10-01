@@ -35,4 +35,6 @@ async function action({
       await writeFile(outfile, et.toString());
       console.info(`\nTypes written to ${c.cyan(outfile)}`);
    }
+
+   process.exit(0);
 }

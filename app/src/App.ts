@@ -5,17 +5,18 @@ import type { em as prototypeEm } from "data/prototype";
 import { Connection } from "data/connection/Connection";
 import type { Hono } from "hono";
 import {
-   ModuleManager,
    type InitialModuleConfigs,
-   type ModuleBuildContext,
    type ModuleConfigs,
-   type ModuleManagerOptions,
    type Modules,
+   ModuleManager,
+   type ModuleBuildContext,
+   type ModuleManagerOptions,
 } from "modules/ModuleManager";
+import { DbModuleManager } from "modules/db/DbModuleManager";
 import * as SystemPermissions from "modules/permissions";
 import { AdminController, type AdminControllerOptions } from "modules/server/AdminController";
 import { SystemController } from "modules/server/SystemController";
-import type { MaybePromise } from "core/types";
+import type { MaybePromise, PartialRec } from "core/types";
 import type { ServerEnv } from "modules/Controller";
 import type { IEmailDriver, ICacheDriver } from "core/drivers";
 
@@ -93,20 +94,23 @@ export type AppOptions = {
       email?: IEmailDriver;
       cache?: ICacheDriver;
    };
+   mode?: "db" | "code";
+   readonly?: boolean;
 };
 export type CreateAppConfig = {
-   /**
-    * bla
-    */
    connection?: Connection | { url: string };
-   initialConfig?: InitialModuleConfigs;
+   config?: PartialRec<ModuleConfigs>;
    options?: AppOptions;
 };
 
-export type AppConfig = InitialModuleConfigs;
+export type AppConfig = { version: number } & ModuleConfigs;
 export type LocalApiOptions = Request | ApiOptions;
 
-export class App<C extends Connection = Connection, Options extends AppOptions = AppOptions> {
+export class App<
+   C extends Connection = Connection,
+   Config extends PartialRec<ModuleConfigs> = PartialRec<ModuleConfigs>,
+   Options extends AppOptions = AppOptions,
+> {
    static readonly Events = AppEvents;
 
    modules: ModuleManager;
@@ -121,8 +125,8 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
 
    constructor(
       public connection: C,
-      _initialConfig?: InitialModuleConfigs,
-      private options?: Options,
+      _config?: Config,
+      public options?: Options,
    ) {
       this.drivers = options?.drivers ?? {};
 
@@ -134,15 +138,27 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
          this.plugins.set(config.name, config);
       }
       this.runPlugins("onBoot");
-      this.modules = new ModuleManager(connection, {
+
+      // use db manager by default
+      const Manager = this.mode === "db" ? DbModuleManager : ModuleManager;
+
+      this.modules = new Manager(connection, {
          ...(options?.manager ?? {}),
-         initial: _initialConfig,
+         initial: _config,
          onUpdated: this.onUpdated.bind(this),
          onFirstBoot: this.onFirstBoot.bind(this),
          onServerInit: this.onServerInit.bind(this),
          onModulesBuilt: this.onModulesBuilt.bind(this),
       });
       this.modules.ctx().emgr.registerEvents(AppEvents);
+   }
+
+   get mode() {
+      return this.options?.mode ?? "db";
+   }
+
+   isReadOnly() {
+      return Boolean(this.mode === "code" || this.options?.readonly);
    }
 
    get emgr() {
@@ -175,7 +191,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       return results as any;
    }
 
-   async build(options?: { sync?: boolean; fetch?: boolean; forceBuild?: boolean }) {
+   async build(options?: { sync?: boolean; forceBuild?: boolean; [key: string]: any }) {
       // prevent multiple concurrent builds
       if (this._building) {
          while (this._building) {
@@ -188,7 +204,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       this._building = true;
 
       if (options?.sync) this.modules.ctx().flags.sync_required = true;
-      await this.modules.build({ fetch: options?.fetch });
+      await this.modules.build();
 
       const { guard } = this.modules.ctx();
 
@@ -215,10 +231,6 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       this._building = false;
    }
 
-   mutateConfig<Module extends keyof Modules>(module: Module) {
-      return this.modules.mutateConfigSafe(module);
-   }
-
    get server() {
       return this.modules.server;
    }
@@ -232,6 +244,10 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
    }
 
    get fetch(): Hono["fetch"] {
+      if (!this.isBuilt()) {
+         throw new Error("App is not built yet, run build() first");
+      }
+
       return this.server.fetch as any;
    }
 
@@ -290,13 +306,13 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
    }
 
    getMcpClient() {
-      if (!this.mcp) {
+      const config = this.modules.get("server").config.mcp;
+      if (!config.enabled) {
          throw new Error("MCP is not enabled");
       }
-      const mcpPath = this.modules.get("server").config.mcp.path;
 
       return new McpClient({
-         url: "http://localhost" + mcpPath,
+         url: "http://localhost" + config.path,
          fetch: this.server.request,
       });
    }
@@ -377,5 +393,5 @@ export function createApp(config: CreateAppConfig = {}) {
       throw new Error("Invalid connection");
    }
 
-   return new App(config.connection, config.initialConfig, config.options);
+   return new App(config.connection, config.config, config.options);
 }

@@ -252,6 +252,8 @@ async function buildAdapters() {
          platform: "neutral",
          entry: ["src/adapter/index.ts"],
          outDir: "dist/adapter",
+         // only way to keep @vite-ignore comments
+         minify: false,
       }),
 
       // specific adatpers
@@ -270,6 +272,7 @@ async function buildAdapters() {
       ),
       tsup.build(
          baseConfig("cloudflare/proxy", {
+            target: "esnext",
             entry: ["src/adapter/cloudflare/proxy.ts"],
             outDir: "dist/adapter/cloudflare",
             metafile: false,

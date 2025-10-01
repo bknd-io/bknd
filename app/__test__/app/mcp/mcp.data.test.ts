@@ -41,7 +41,7 @@ describe("mcp data", async () => {
    beforeEach(async () => {
       const time = performance.now();
       app = createApp({
-         initialConfig: {
+         config: {
             server: {
                mcp: {
                   enabled: true,
@@ -50,6 +50,7 @@ describe("mcp data", async () => {
          },
       });
       await app.build();
+      await app.getMcpClient().ping();
       server = app.mcp!;
       server.setLogLevel("error");
       server.onNotification((message) => {

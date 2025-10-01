@@ -4,6 +4,7 @@ import { makeAppFromEnv } from "cli/commands/run";
 import { writeFile } from "node:fs/promises";
 import c from "picocolors";
 import { withConfigOptions } from "cli/utils/options";
+import { $console } from "bknd/utils";
 
 export const config: CliCommand = (program) => {
    withConfigOptions(program.command("config"))
@@ -19,7 +20,14 @@ export const config: CliCommand = (program) => {
             config = getDefaultConfig();
          } else {
             const app = await makeAppFromEnv(options);
-            config = app.toJSON(options.secrets);
+            const manager = app.modules;
+
+            if (options.secrets) {
+               $console.warn("Including secrets in output");
+               config = manager.toJSON(true);
+            } else {
+               config = manager.extractSecrets().configs;
+            }
          }
 
          config = options.pretty ? JSON.stringify(config, null, 2) : JSON.stringify(config);
@@ -31,5 +39,7 @@ export const config: CliCommand = (program) => {
          } else {
             console.info(JSON.parse(config));
          }
+
+         process.exit(0);
       });
 };

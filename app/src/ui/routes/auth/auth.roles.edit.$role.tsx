@@ -26,6 +26,7 @@ function AuthRolesEditInternal({ params }) {
    const roleName = params.role;
    const role = config.roles?.[roleName];
    const formRef = useRef<AuthRoleFormRef>(null);
+   const { readonly } = useBknd();
 
    async function handleUpdate() {
       console.log("data", formRef.current?.isValid());
@@ -57,7 +58,7 @@ function AuthRolesEditInternal({ params }) {
                                  absolute: true,
                               }),
                         },
-                        {
+                        !readonly && {
                            label: "Delete",
                            onClick: handleDelete,
                            destructive: true,
@@ -67,9 +68,11 @@ function AuthRolesEditInternal({ params }) {
                   >
                      <IconButton Icon={TbDots} />
                   </Dropdown>
-                  <Button variant="primary" onClick={handleUpdate}>
-                     Update
-                  </Button>
+                  {!readonly && (
+                     <Button variant="primary" onClick={handleUpdate}>
+                        Update
+                     </Button>
+                  )}
                </>
             }
             className="pl-3"

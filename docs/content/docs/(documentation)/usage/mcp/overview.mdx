@@ -28,13 +28,13 @@ Once enabled, you can access the MCP UI at `/mcp`, or choose "MCP" from the top 
 
 ## Enable MCP
 
-If you're using `initialConfig`, you can enable the MCP server by setting the `server.mcp.enabled` property to `true`.
+If you're using a `config`, you can enable the MCP server by setting the `server.mcp.enabled` property to `true`.
 
 ```typescript
 import type { BkndConfig } from "bknd";
 
 export default {
-   initialConfig: {
+   config: {
       server: {
          mcp: {
             enabled: true,

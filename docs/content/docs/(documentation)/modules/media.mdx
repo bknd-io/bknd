@@ -4,6 +4,12 @@ description: "Effortlessly manage and serve all your media files."
 tags: ["documentation"]
 ---
 
+<Callout type="info" title="The documentation is currently a work in progress">
+  Check back soon — or stay updated on our progress on
+  [GitHub](https://github.com/bknd-io/bknd) and join the conversation in
+  [Discord](https://discord.gg/952SFk8Tb8).
+</Callout>
+
 **bknd** provides a flexible and efficient way to handle media files, making it easy to upload, manage, and deliver content across various platforms.
 
 ### **Core Features**
@@ -36,13 +42,13 @@ There are two ways to enable S3 or S3 compatible storage in bknd.
 
 2. Enable programmatically.
 
-   To enable using a code-first approach, create an [Initial Structure](/usage/database#initial-structure) using the `initialConfig` option in your `bknd.config.ts` file.
+   To enable using a code-first approach, create corresponding configuration using the `config` option in your `bknd.config.ts` file.
 
 ```typescript title="bknd.config.ts"
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-  initialConfig: {
+  config: {
     media: {
       enabled: true,
       adapter: {
@@ -70,7 +76,7 @@ import type { BkndConfig } from "bknd/adapter";
 const local = registerLocalMediaAdapter();
 
 export default {
-  initialConfig: {
+  config: {
     media: {
       enabled: true,
       adapter: local({

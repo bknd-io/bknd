@@ -34,4 +34,5 @@ async function action(options: { out?: string; clean?: boolean }) {
 
    // biome-ignore lint/suspicious/noConsoleLog:
    console.log(c.green(`Assets copied to: ${c.bold(out)}`));
+   process.exit(0);
 }

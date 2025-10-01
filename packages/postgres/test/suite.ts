@@ -112,7 +112,7 @@ export function testSuite(config: TestSuiteConfig) {
 
          const app = createApp({
             connection,
-            initialConfig: {
+            config: {
                data: schema.toJSON(),
             },
          });
@@ -198,7 +198,7 @@ export function testSuite(config: TestSuiteConfig) {
 
          const app = createApp({
             connection,
-            initialConfig: {
+            config: {
                data: schema.toJSON(),
             },
          });

@@ -87,7 +87,7 @@ async function setup(opts?: {
    const app = App.create({
       connection,
       // an initial config is only applied if the database is empty
-      initialConfig: {
+      config: {
          data: schema.toJSON(),
       },
       options: {

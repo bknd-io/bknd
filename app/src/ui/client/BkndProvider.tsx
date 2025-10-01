@@ -1,20 +1,24 @@
 import type { ModuleConfigs, ModuleSchemas } from "modules";
 import { getDefaultConfig, getDefaultSchema } from "modules/ModuleManager";
-import { createContext, startTransition, useContext, useEffect, useRef, useState } from "react";
+import {
+   createContext,
+   startTransition,
+   useContext,
+   useEffect,
+   useRef,
+   useState,
+   type ReactNode,
+} from "react";
 import { useApi } from "ui/client";
 import { type TSchemaActions, getSchemaActions } from "./schema/actions";
 import { AppReduced } from "./utils/AppReduced";
-import type { AppTheme } from "ui/client/use-theme";
 import { Message } from "ui/components/display/Message";
 import { useNavigate } from "ui/lib/routes";
+import type { BkndAdminProps } from "ui/Admin";
 
-export type BkndAdminOptions = {
-   basepath?: string;
-   logo_return_path?: string;
-   theme?: AppTheme;
-};
-type BkndContext = {
+export type BkndContext = {
    version: number;
+   readonly: boolean;
    schema: ModuleSchemas;
    config: ModuleConfigs;
    permissions: string[];
@@ -22,7 +26,7 @@ type BkndContext = {
    requireSecrets: () => Promise<void>;
    actions: ReturnType<typeof getSchemaActions>;
    app: AppReduced;
-   options: BkndAdminOptions;
+   options: BkndAdminProps["config"];
    fallback: boolean;
 };
 
@@ -44,11 +48,16 @@ export function BkndProvider({
    includeSecrets?: boolean;
    children: any;
    fallback?: React.ReactNode;
-   options?: BkndAdminOptions;
+   options?: BkndAdminProps["config"];
 }) {
    const [withSecrets, setWithSecrets] = useState<boolean>(includeSecrets);
    const [schema, setSchema] =
-      useState<Pick<BkndContext, "version" | "schema" | "config" | "permissions" | "fallback">>();
+      useState<
+         Pick<
+            BkndContext,
+            "version" | "schema" | "config" | "permissions" | "fallback" | "readonly"
+         >
+      >();
    const [fetched, setFetched] = useState(false);
    const [error, setError] = useState<boolean>();
    const errorShown = useRef<boolean>(false);
@@ -97,6 +106,7 @@ export function BkndProvider({
          ? res.body
          : ({
               version: 0,
+              mode: "db",
               schema: getDefaultSchema(),
               config: getDefaultConfig(),
               permissions: [],
@@ -165,11 +175,16 @@ export function useBknd({ withSecrets }: { withSecrets?: boolean } = {}): BkndCo
    return ctx;
 }
 
-export function useBkndOptions(): BkndAdminOptions {
+export function useBkndOptions(): BkndAdminProps["config"] {
    const ctx = useContext(BkndContext);
    return (
       ctx.options ?? {
          basepath: "/",
       }
    );
+}
+
+export function SchemaEditable({ children }: { children: ReactNode }) {
+   const { readonly } = useBknd();
+   return !readonly ? children : null;
 }

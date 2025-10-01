@@ -1,9 +1,13 @@
-import { describe } from "vitest";
+import { describe, beforeAll, afterAll } from "vitest";
 import { viTestRunner } from "adapter/node/vitest";
 import { StorageLocalAdapter } from "adapter/node";
 import { adapterTestSuite } from "media/storage/adapters/adapter-test-suite";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(() => enableConsoleLog());
 
 describe("StorageLocalAdapter (node)", async () => {
    const basePath = path.resolve(import.meta.dirname, "../../../../__test__/_assets");

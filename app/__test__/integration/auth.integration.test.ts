@@ -1,12 +1,9 @@
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
-import { App, createApp } from "../../src";
-import type { AuthResponse } from "../../src/auth";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { App, createApp, type AuthResponse } from "../../src";
 import { auth } from "../../src/auth/middlewares";
 import { randomString, secureRandomString, withDisabledConsole } from "../../src/core/utils";
-import { disableConsoleLog, enableConsoleLog, getDummyConnection } from "../helper";
-
-const { dummyConnection, afterAllCleanup } = getDummyConnection();
-afterEach(afterAllCleanup);
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+import { getDummyConnection } from "../helper";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
@@ -66,9 +63,10 @@ const configs = {
 };
 
 function createAuthApp() {
+   const { dummyConnection } = getDummyConnection();
    const app = createApp({
       connection: dummyConnection,
-      initialConfig: {
+      config: {
          auth: configs.auth,
       },
    });
@@ -151,8 +149,8 @@ describe("integration auth", () => {
 
       const { data: users } = await app.em.repository("users").findMany();
       expect(users.length).toBe(2);
-      expect(users[0].email).toBe(configs.users.normal.email);
-      expect(users[1].email).toBe(configs.users.admin.email);
+      expect(users[0]?.email).toBe(configs.users.normal.email);
+      expect(users[1]?.email).toBe(configs.users.admin.email);
    });
 
    it("should log you in with API", async () => {
@@ -223,7 +221,7 @@ describe("integration auth", () => {
 
       app.server.get("/get", auth(), async (c) => {
          return c.json({
-            user: c.get("auth").user ?? null,
+            user: c.get("auth")?.user ?? null,
          });
       });
       app.server.get("/wait", auth(), async (c) => {
@@ -242,7 +240,7 @@ describe("integration auth", () => {
       {
          await new Promise((r) => setTimeout(r, 10));
          const res = await app.server.request("/get");
-         const data = await res.json();
+         const data = (await res.json()) as any;
          expect(data.user).toBe(null);
          expect(await $fns.me()).toEqual({ user: null as any });
       }

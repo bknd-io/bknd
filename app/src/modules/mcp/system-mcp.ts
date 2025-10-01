@@ -6,7 +6,7 @@ import { getVersion } from "core/env";
 export function getSystemMcp(app: App) {
    const middlewareServer = getMcpServer(app.server);
 
-   const appConfig = app.modules.configs();
+   //const appConfig = app.modules.configs();
    const { version, ...appSchema } = app.getSchema();
    const schema = s.strictObject(appSchema);
    const result = [...schema.walk({ maxDepth: 3 })];
@@ -19,9 +19,11 @@ export function getSystemMcp(app: App) {
    ].sort((a, b) => a.name.localeCompare(b.name));
 
    // tools from app schema
-   tools.push(
-      ...nodes.flatMap((n) => n.schema.getTools(n)).sort((a, b) => a.name.localeCompare(b.name)),
-   );
+   if (!app.isReadOnly()) {
+      tools.push(
+         ...nodes.flatMap((n) => n.schema.getTools(n)).sort((a, b) => a.name.localeCompare(b.name)),
+      );
+   }
 
    const resources = [...middlewareServer.resources, ...app.modules.ctx().mcp.resources];
 

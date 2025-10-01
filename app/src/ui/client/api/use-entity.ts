@@ -156,6 +156,7 @@ export const useEntityQuery = <
 
          // mutate all keys of entity by default
          if (options?.revalidateOnMutate !== false) {
+            // don't use the id, to also update lists
             await mutateFn();
          }
          return res;

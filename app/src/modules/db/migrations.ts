@@ -99,6 +99,14 @@ export const migrations: Migration[] = [
          };
       },
    },
+   {
+      // remove secrets, automatic
+      // change media table `entity_id` from integer to text
+      version: 10,
+      up: async (config) => {
+         return config;
+      },
+   },
 ];
 
 export const CURRENT_VERSION = migrations[migrations.length - 1]?.version ?? 0;

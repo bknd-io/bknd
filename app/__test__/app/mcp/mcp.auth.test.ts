@@ -29,7 +29,7 @@ describe("mcp auth", async () => {
    let server: McpServer;
    beforeEach(async () => {
       app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
                jwt: {
@@ -44,6 +44,7 @@ describe("mcp auth", async () => {
          },
       });
       await app.build();
+      await app.getMcpClient().ping();
       server = app.mcp!;
       server.setLogLevel("error");
       server.onNotification((message) => {

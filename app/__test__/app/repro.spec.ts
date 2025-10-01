@@ -1,8 +1,12 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { registries } from "../../src";
 import { createApp } from "core/test/utils";
 import * as proto from "../../src/data/prototype";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(enableConsoleLog);
 
 describe("repros", async () => {
    /**
@@ -88,7 +92,7 @@ describe("repros", async () => {
             fns.relation(schema.product_likes).manyToOne(schema.users);
          },
       );
-      const app = createApp({ initialConfig: { data: schema.toJSON() } });
+      const app = createApp({ config: { data: schema.toJSON() } });
       await app.build();
 
       const info = (await (await app.server.request("/api/data/info/products")).json()) as any;

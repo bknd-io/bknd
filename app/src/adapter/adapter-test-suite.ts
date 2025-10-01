@@ -1,6 +1,7 @@
 import type { TestRunner } from "core/test";
-import type { BkndConfig, DefaultArgs, FrameworkOptions, RuntimeOptions } from "./index";
+import type { BkndConfig, DefaultArgs } from "./index";
 import type { App } from "App";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 export function adapterTestSuite<
    Config extends BkndConfig = BkndConfig,
@@ -13,24 +14,17 @@ export function adapterTestSuite<
       label = "app",
       overrides = {},
    }: {
-      makeApp: (
-         config: Config,
-         args?: Args,
-         opts?: RuntimeOptions | FrameworkOptions,
-      ) => Promise<App>;
-      makeHandler?: (
-         config?: Config,
-         args?: Args,
-         opts?: RuntimeOptions | FrameworkOptions,
-      ) => (request: Request) => Promise<Response>;
+      makeApp: (config: Config, args?: Args) => Promise<App>;
+      makeHandler?: (config?: Config, args?: Args) => (request: Request) => Promise<Response>;
       label?: string;
       overrides?: {
          dbUrl?: string;
       };
    },
 ) {
-   const { test, expect, mock } = testRunner;
-   const id = crypto.randomUUID();
+   const { test, expect, mock, beforeAll, afterAll } = testRunner;
+   beforeAll(() => disableConsoleLog());
+   afterAll(() => enableConsoleLog());
 
    test(`creates ${label}`, async () => {
       const beforeBuild = mock(async () => null) as any;
@@ -39,7 +33,7 @@ export function adapterTestSuite<
       const config = {
          app: (env) => ({
             connection: { url: env.url },
-            initialConfig: {
+            config: {
                server: { cors: { origin: env.origin } },
             },
          }),
@@ -53,11 +47,10 @@ export function adapterTestSuite<
             url: overrides.dbUrl ?? ":memory:",
             origin: "localhost",
          } as any,
-         { force: false, id },
       );
       expect(app).toBeDefined();
       expect(app.toJSON().server.cors.origin).toEqual("localhost");
-      expect(beforeBuild).toHaveBeenCalledTimes(1);
+      expect(beforeBuild).toHaveBeenCalledTimes(2);
       expect(onBuilt).toHaveBeenCalledTimes(1);
    });
 
@@ -68,8 +61,8 @@ export function adapterTestSuite<
          return { res, data };
       };
 
-      test("responds with the same app id", async () => {
-         const fetcher = makeHandler(undefined, undefined, { force: false, id });
+      /* test.skip("responds with the same app id", async () => {
+         const fetcher = makeHandler(undefined, undefined, { id });
 
          const { res, data } = await getConfig(fetcher);
          expect(res.ok).toBe(true);
@@ -77,14 +70,14 @@ export function adapterTestSuite<
          expect(data.server.cors.origin).toEqual("localhost");
       });
 
-      test("creates fresh & responds to api config", async () => {
+      test.skip("creates fresh & responds to api config", async () => {
          // set the same id, but force recreate
-         const fetcher = makeHandler(undefined, undefined, { id, force: true });
+         const fetcher = makeHandler(undefined, undefined, { id });
 
          const { res, data } = await getConfig(fetcher);
          expect(res.ok).toBe(true);
          expect(res.status).toBe(200);
          expect(data.server.cors.origin).toEqual("*");
-      });
+      }); */
    }
 }

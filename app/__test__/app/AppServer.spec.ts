@@ -16,6 +16,7 @@ describe("AppServer", () => {
             mcp: {
                enabled: false,
                path: "/api/system/mcp",
+               logLevel: "warning",
             },
          });
       }
@@ -38,6 +39,7 @@ describe("AppServer", () => {
             mcp: {
                enabled: false,
                path: "/api/system/mcp",
+               logLevel: "warning",
             },
          });
       }

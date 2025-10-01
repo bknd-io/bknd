@@ -40,7 +40,7 @@ const systemEntities = {
 
 export class EntityTypescript {
    constructor(
-      protected em: EntityManager,
+      protected em: EntityManager<any>,
       protected _options: EntityTypescriptOptions = {},
    ) {}
 
@@ -50,7 +50,7 @@ export class EntityTypescript {
          indentWidth: 2,
          indentChar: " ",
          entityCommentMultiline: true,
-         fieldCommentMultiline: false,
+         fieldCommentMultiline: true,
       };
    }
 
@@ -82,7 +82,7 @@ export class EntityTypescript {
    }
 
    typeName(name: string) {
-      return autoFormatString(name);
+      return autoFormatString(name).replace(/ /g, "");
    }
 
    fieldTypesToString(type: TEntityTSType, opts?: { ignore_fields?: string[]; indent?: number }) {

@@ -5,7 +5,8 @@ import { parse } from "core/utils/schema";
 
 import { DataController } from "../../src/data/api/DataController";
 import { dataConfigSchema } from "../../src/data/data-schema";
-import { disableConsoleLog, enableConsoleLog, getDummyConnection } from "../helper";
+import { getDummyConnection } from "../helper";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 import type { RepositoryResultJSON } from "data/entities/query/RepositoryResult";
 import type { MutatorResultJSON } from "data/entities/mutation/MutatorResult";
 import { Entity, EntityManager, type EntityData } from "data/entities";
@@ -13,7 +14,7 @@ import { TextField } from "data/fields";
 import { ManyToOneRelation } from "data/relations";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
-beforeAll(() => disableConsoleLog(["log", "warn"]));
+beforeAll(() => disableConsoleLog());
 afterAll(async () => (await afterAllCleanup()) && enableConsoleLog());
 
 const dataConfig = parse(dataConfigSchema, {});

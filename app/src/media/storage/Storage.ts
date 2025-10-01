@@ -71,22 +71,29 @@ export class Storage implements EmitsEvents {
 
       let info: FileUploadPayload = {
          name,
-         meta: {
-            size: 0,
-            type: "application/octet-stream",
-         },
+         meta: isFile(file)
+            ? {
+                 size: file.size,
+                 type: file.type,
+              }
+            : {
+                 size: 0,
+                 type: "application/octet-stream",
+              },
          etag: typeof result === "string" ? result : "",
       };
 
+      // normally only etag is returned
       if (typeof result === "object") {
          info = result;
-      } else if (isFile(file)) {
-         info.meta.size = file.size;
-         info.meta.type = file.type;
       }
 
       // try to get better meta info
-      if (!isMimeType(info.meta.type, ["application/octet-stream", "application/json"])) {
+      if (
+         !info.meta.type ||
+         ["application/octet-stream", "application/json"].includes(info.meta.type) ||
+         !info.meta.size
+      ) {
          const meta = await this.#adapter.getObjectMeta(name);
          if (!meta) {
             throw new Error("Failed to get object meta");
@@ -103,7 +110,7 @@ export class Storage implements EmitsEvents {
                ...dim,
             };
          } catch (e) {
-            $console.warn("Failed to get image dimensions", e);
+            $console.warn("Failed to get image dimensions", e, file);
          }
       }
 

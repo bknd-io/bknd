@@ -1,6 +1,6 @@
 import { Exception } from "core/errors";
 import { isDebug } from "core/env";
-import { $console, s } from "bknd/utils";
+import { $console, mcpLogLevels, s } from "bknd/utils";
 import { $object } from "modules/mcp";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
@@ -25,12 +25,16 @@ export const serverConfigSchema = $object(
       mcp: s.strictObject({
          enabled: s.boolean({ default: false }),
          path: s.string({ default: "/api/system/mcp" }),
+         logLevel: s.string({
+            enum: mcpLogLevels,
+            default: "warning",
+         }),
       }),
    },
    {
       description: "Server configuration",
    },
-);
+).strict();
 
 export type AppServerConfig = s.Static<typeof serverConfigSchema>;
 

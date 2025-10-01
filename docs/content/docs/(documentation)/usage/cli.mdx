@@ -1,22 +1,21 @@
 ---
 title: "Using the CLI"
 description: "How to start a bknd instance using the CLI."
+icon: Terminal
 tags: ["documentation"]
 ---
 
 The bknd package includes a command-line interface (CLI) that allows you to run a bknd instance and perform various tasks.
 
-```
+```sh
 npx bknd
 ```
 
 Here is the output:
 
-```
+```sh
 $ npx bknd
 Usage: bknd [options] [command]
-
-⚡ bknd cli v0.17.0
 
 Options:
   -V, --version          output the version number
@@ -40,7 +39,7 @@ Commands:
 
 To see all available `run` options, execute `npx bknd run --help`.
 
-```
+```sh
 $ npx bknd run --help
 Usage: bknd run [options]
 
@@ -98,7 +97,7 @@ The `app` function is useful if you need a cross-platform way to access the envi
 
 If you're using `npx bknd run`, make sure to create a file in a file format that `node` can load, otherwise you may run into an error that the file couldn't be found:
 
-```sh
+```
 [INF] 2025-03-28 18:02:21 Using config from bknd.config.ts
 [ERR] 2025-03-28 18:02:21 Failed to load config: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'bknd.config.ts' imported from [...]
     at packageResolve (node:internal/modules/esm/resolve:857:9)
@@ -123,7 +122,7 @@ npx tsx node_modules/.bin/bknd run
 
 To start an instance with a Turso/LibSQL database, run the following:
 
-```
+```sh
 npx bknd run --db-url libsql://your-db.turso.io --db-token <your-token>
 ```
 
@@ -133,7 +132,7 @@ The `--db-token` option is optional and only required if the database is protect
 
 To start an instance with an ephemeral in-memory database, run the following:
 
-```
+```sh
 npx bknd run --memory
 ```
 
@@ -143,7 +142,7 @@ Keep in mind that the database is not persisted and will be lost when the proces
 
 To see all available `types` options, execute `npx bknd types --help`.
 
-```
+```sh
 $ npx bknd types --help
 Usage: bknd types [options]
 
@@ -157,13 +156,13 @@ Options:
 
 To generate types for the database, run the following:
 
-```
+```sh
 npx bknd types
 ```
 
 This will generate types for your database schema in `bknd-types.d.ts`. The generated file could look like this:
 
-```typescript bknd-types.d.ts
+```typescript title="bknd-types.d.ts"
 import type { DB } from "bknd";
 import type { Insertable, Selectable, Updateable, Generated } from "kysely";
 
@@ -190,7 +189,7 @@ declare module "bknd" {
 
 Make sure to add the generated file in your `tsconfig.json` file:
 
-```json tsconfig.json
+```json title="tsconfig.json"
 {
   "include": ["bknd-types.d.ts"]
 }
@@ -204,5 +203,82 @@ import type { DB } from "bknd";
 type Todo = DB["todos"];
 ```
 
-All bknd methods that involve your database schema will be automatically typed.
+All bknd methods that involve your database schema will be automatically typed. You may use the [`syncTypes`](/extending/plugins/#synctypes) plugin to automatically write the types to a file.
+
+## Getting the configuration (`config`)
+
+To see all available `config` options, execute `npx bknd config --help`.
+
+```sh
+$ npx bknd config --help
+Usage: bknd config [options]
+
+get app config
+
+Options:
+  -c, --config <config>  config file
+  --db-url <db>          database url, can be any valid sqlite url
+  --pretty               pretty print
+  --default              use default config
+  --secrets              include secrets in output
+  --out <file>           output file
+  -h, --help             display help for command
+```
+
+To get the configuration of your app, and to write it to a file, run the following:
+
+```sh
+npx bknd config --out appconfig.json
+```
+
+To get a template configuration instead, run the following:
+
+```sh
+npx bknd config --default
+```
+
+To automatically sync your configuration to a file, you may also use the [`syncConfig`](/extending/plugins/#syncconfig) plugin.
+
+## Getting the secrets (`secrets`)
+
+To see all available `secrets` options, execute `npx bknd secrets --help`.
+
+```sh
+$ npx bknd secrets --help
+Usage: bknd secrets [options]
+
+get app secrets
+
+Options:
+  -c, --config <config>  config file
+  --db-url <db>          database url, can be any valid sqlite url
+  --template             template output without the actual secrets
+  --format <format>      format output (choices: "json", "env", default:
+                         "json")
+  --out <file>           output file
+  -h, --help             display help for command
+```
+
+To automatically sync your secrets to a file, you may also use the [`syncSecrets`](/extending/plugins/#syncsecrets) plugin.
+
+## Syncing the database (`sync`)
+
+Sync your database can be useful when running in [`code`](/usage/introduction/#code-only-mode) mode. When you're ready to deploy, you can point to the production configuration and sync the database. Schema mutations are only applied when running with the `--force` option.
+
+```bash
+$ npx bknd sync --help
+Usage: bknd sync [options]
+
+sync database
+
+Options:
+  -c, --config <config>  config file
+  --db-url <db>          database url, can be any valid sqlite url
+  --seed                 perform seeding operations
+  --force                perform database syncing operations
+  --drop                 include destructive DDL operations
+  --out <file>           output file
+  --sql                  use sql output
+  -h, --help             display help for command
+```
 

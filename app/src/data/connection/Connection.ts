@@ -230,3 +230,15 @@ export function customIntrospector<T extends Constructor<Dialect>>(
       },
    };
 }
+
+export class DummyConnection extends Connection {
+   override name = "dummy";
+
+   constructor() {
+      super(undefined as any);
+   }
+
+   override getFieldSchema(): SchemaResponse {
+      throw new Error("Method not implemented.");
+   }
+}

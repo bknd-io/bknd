@@ -1,6 +1,10 @@
-import { describe, test, expect, beforeAll, mock, beforeEach, afterAll } from "bun:test";
+import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { type App, createApp, createMcpToolCaller } from "core/test/utils";
 import type { McpServer } from "bknd/utils";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
+afterAll(enableConsoleLog);
 
 /**
  * - [x] config_server_get
@@ -11,7 +15,7 @@ describe("mcp system", async () => {
    let server: McpServer;
    beforeAll(async () => {
       app = createApp({
-         initialConfig: {
+         config: {
             server: {
                mcp: {
                   enabled: true,
@@ -20,6 +24,7 @@ describe("mcp system", async () => {
          },
       });
       await app.build();
+      await app.getMcpClient().ping();
       server = app.mcp!;
    });
 

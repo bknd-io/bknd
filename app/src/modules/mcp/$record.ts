@@ -129,13 +129,14 @@ export class RecordToolSchema<
             const configs = ctx.context.app.toJSON(true);
             const config = getPath(configs, node.instancePath);
             const [module_name, ...rest] = node.instancePath;
+            const manager = this.mcp.getManager(ctx);
 
             if (params.key in config) {
                throw new Error(`Key "${params.key}" already exists in config`);
             }
 
-            await ctx.context.app
-               .mutateConfig(module_name as any)
+            await manager
+               .mutateConfigSafe(module_name as any)
                .patch([...rest, params.key], params.value);
 
             const newConfig = getPath(ctx.context.app.toJSON(), node.instancePath);
@@ -175,13 +176,14 @@ export class RecordToolSchema<
             const configs = ctx.context.app.toJSON(true);
             const config = getPath(configs, node.instancePath);
             const [module_name, ...rest] = node.instancePath;
+            const manager = this.mcp.getManager(ctx);
 
             if (!(params.key in config)) {
                throw new Error(`Key "${params.key}" not found in config`);
             }
 
-            await ctx.context.app
-               .mutateConfig(module_name as any)
+            await manager
+               .mutateConfigSafe(module_name as any)
                .patch([...rest, params.key], params.value);
 
             const newConfig = getPath(ctx.context.app.toJSON(), node.instancePath);
@@ -220,13 +222,14 @@ export class RecordToolSchema<
             const configs = ctx.context.app.toJSON(true);
             const config = getPath(configs, node.instancePath);
             const [module_name, ...rest] = node.instancePath;
+            const manager = this.mcp.getManager(ctx);
 
             if (!(params.key in config)) {
                throw new Error(`Key "${params.key}" not found in config`);
             }
 
-            await ctx.context.app
-               .mutateConfig(module_name as any)
+            await manager
+               .mutateConfigSafe(module_name as any)
                .remove([...rest, params.key].join("."));
 
             const newConfig = getPath(ctx.context.app.toJSON(), node.instancePath);
