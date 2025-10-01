@@ -22,6 +22,9 @@ declare module "bknd" {
 // @todo: current workaround to make it all required
 export class AppMedia extends Module<Required<TAppMediaConfig>> {
    private _storage?: Storage;
+   options = {
+      body_max_size: null as number | null,
+   };
 
    override async build() {
       if (!this.config.enabled) {

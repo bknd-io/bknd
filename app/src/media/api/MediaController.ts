@@ -93,7 +93,10 @@ export class MediaController extends Controller {
          },
       );
 
-      const maxSize = this.getStorage().getConfig().body_max_size ?? Number.POSITIVE_INFINITY;
+      const maxSize =
+         this.media.options.body_max_size ??
+         this.getStorage().getConfig().body_max_size ??
+         Number.POSITIVE_INFINITY;
 
       if (isDebug()) {
          hono.post(
