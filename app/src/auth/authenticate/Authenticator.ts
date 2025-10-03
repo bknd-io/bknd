@@ -327,6 +327,31 @@ export class Authenticator<
       await setSignedCookie(c, "auth", token, secret, this.cookieOptions);
    }
 
+   async getAuthCookieHeader(token: string, headers = new Headers()) {
+      const c = {
+         header: (key: string, value: string) => {
+            headers.set(key, value);
+         },
+      };
+      await this.setAuthCookie(c as any, token);
+      return headers;
+   }
+
+   async removeAuthCookieHeader(headers = new Headers()) {
+      const c = {
+         header: (key: string, value: string) => {
+            headers.set(key, value);
+         },
+         req: {
+            raw: {
+               headers,
+            },
+         },
+      };
+      this.deleteAuthCookie(c as any);
+      return headers;
+   }
+
    async unsafeGetAuthCookie(token: string): Promise<string | undefined> {
       // this works for as long as cookieOptions.prefix is not set
       return serializeSigned("auth", token, this.config.jwt.secret, this.cookieOptions);
