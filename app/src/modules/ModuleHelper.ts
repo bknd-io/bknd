@@ -115,7 +115,7 @@ export class ModuleHelper {
    }
 
    async throwUnlessGranted(
-      permission: Permission | string,
+      permission: Permission,
       c: { context: ModuleBuildContextMcpContext; raw?: unknown },
    ) {
       invariant(c.context.app, "app is not available in mcp context");

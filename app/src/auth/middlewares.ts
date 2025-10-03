@@ -1,8 +1,9 @@
 import type { Permission } from "core/security/Permission";
-import { $console, patternMatch } from "bknd/utils";
+import { $console, patternMatch, type s } from "bknd/utils";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import type { ServerEnv } from "modules/Controller";
+import type { MaybePromise } from "core/types";
 
 function getPath(reqOrCtx: Request | Context) {
    const req = reqOrCtx instanceof Request ? reqOrCtx : reqOrCtx.req.raw;
@@ -49,7 +50,7 @@ export const auth = (options?: {
       // make sure to only register once
       if (authCtx.registered) {
          skipped = true;
-         $console.warn(`auth middleware already registered for ${getPath(c)}`);
+         $console.debug(`auth middleware already registered for ${getPath(c)}`);
       } else {
          authCtx.registered = true;
 
@@ -68,11 +69,12 @@ export const auth = (options?: {
       authCtx.user = undefined;
    });
 
-export const permission = (
-   permission: Permission | Permission[],
+export const permission = <P extends Permission>(
+   permission: P,
    options?: {
-      onGranted?: (c: Context<ServerEnv>) => Promise<Response | void | undefined>;
-      onDenied?: (c: Context<ServerEnv>) => Promise<Response | void | undefined>;
+      onGranted?: (c: Context<ServerEnv>) => MaybePromise<Response | void | undefined>;
+      onDenied?: (c: Context<ServerEnv>) => MaybePromise<Response | void | undefined>;
+      context?: (c: Context<ServerEnv>) => MaybePromise<s.Static<P["context"]>>;
    },
 ) =>
    // @ts-ignore
@@ -93,11 +95,11 @@ export const permission = (
          }
       } else if (!authCtx.skip) {
          const guard = app.modules.ctx().guard;
-         const permissions = Array.isArray(permission) ? permission : [permission];
+         const context = (await options?.context?.(c)) ?? ({} as any);
 
          if (options?.onGranted || options?.onDenied) {
             let returned: undefined | void | Response;
-            if (permissions.every((p) => guard.granted(p, c))) {
+            if (guard.granted(permission, c, context)) {
                returned = await options?.onGranted?.(c);
             } else {
                returned = await options?.onDenied?.(c);
@@ -106,7 +108,7 @@ export const permission = (
                return returned;
             }
          } else {
-            permissions.some((p) => guard.throwUnlessGranted(p, c));
+            guard.throwUnlessGranted(permission, c, context);
          }
       }
 

@@ -1,7 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { Guard } from "../../../src/auth/authorize/Guard";
+import { Guard } from "auth/authorize/Guard";
+import { Permission } from "core/security/Permission";
 
 describe("authorize", () => {
+   const read = new Permission("read");
+   const write = new Permission("write");
+
    test("basic", async () => {
       const guard = Guard.create(
          ["read", "write"],
@@ -16,10 +20,10 @@ describe("authorize", () => {
          role: "admin",
       };
 
-      expect(guard.granted("read", user)).toBe(true);
-      expect(guard.granted("write", user)).toBe(true);
+      expect(guard.granted(read, user)).toBe(true);
+      expect(guard.granted(write, user)).toBe(true);
 
-      expect(() => guard.granted("something")).toThrow();
+      expect(() => guard.granted(new Permission("something"))).toThrow();
    });
 
    test("with default", async () => {
@@ -37,22 +41,22 @@ describe("authorize", () => {
          { enabled: true },
       );
 
-      expect(guard.granted("read")).toBe(true);
-      expect(guard.granted("write")).toBe(false);
+      expect(guard.granted(read)).toBe(true);
+      expect(guard.granted(write)).toBe(false);
 
       const user = {
          role: "admin",
       };
 
-      expect(guard.granted("read", user)).toBe(true);
-      expect(guard.granted("write", user)).toBe(true);
+      expect(guard.granted(read, user)).toBe(true);
+      expect(guard.granted(write, user)).toBe(true);
    });
 
    test("guard implicit allow", async () => {
       const guard = Guard.create([], {}, { enabled: false });
 
-      expect(guard.granted("read")).toBe(true);
-      expect(guard.granted("write")).toBe(true);
+      expect(guard.granted(read)).toBe(true);
+      expect(guard.granted(write)).toBe(true);
    });
 
    test("role implicit allow", async () => {
@@ -66,8 +70,8 @@ describe("authorize", () => {
          role: "admin",
       };
 
-      expect(guard.granted("read", user)).toBe(true);
-      expect(guard.granted("write", user)).toBe(true);
+      expect(guard.granted(read, user)).toBe(true);
+      expect(guard.granted(write, user)).toBe(true);
    });
 
    test("guard with guest role implicit allow", async () => {
@@ -79,7 +83,7 @@ describe("authorize", () => {
       });
 
       expect(guard.getUserRole()?.name).toBe("guest");
-      expect(guard.granted("read")).toBe(true);
-      expect(guard.granted("write")).toBe(true);
+      expect(guard.granted(read)).toBe(true);
+      expect(guard.granted(write)).toBe(true);
    });
 });

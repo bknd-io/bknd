@@ -1,5 +1,5 @@
 import { Exception } from "core/errors";
-import { $console, objectTransform } from "bknd/utils";
+import { $console, objectTransform, type s } from "bknd/utils";
 import { Permission } from "core/security/Permission";
 import type { Context } from "hono";
 import type { ServerEnv } from "modules/Controller";
@@ -12,6 +12,7 @@ export type GuardUserContext = {
 
 export type GuardConfig = {
    enabled?: boolean;
+   context?: string;
 };
 export type GuardContext = Context<ServerEnv> | GuardUserContext;
 
@@ -26,6 +27,9 @@ export class Guard {
       this.config = config;
    }
 
+   /**
+    * @deprecated
+    */
    static create(
       permissionNames: string[],
       roles?: Record<
@@ -156,12 +160,25 @@ export class Guard {
       return !!rolePermission;
    }
 
-   granted(permission: Permission | string, c?: GuardContext): boolean {
+   granted<P extends Permission>(
+      permission: P,
+      c?: GuardContext,
+      context: s.Static<P["context"]> = {} as s.Static<P["context"]>,
+   ): boolean {
       const user = c && "get" in c ? c.get("auth")?.user : c;
-      return this.hasPermission(permission as any, user);
+      const ctx = {
+         ...context,
+         user,
+         context: this.config?.context,
+      };
+      return this.hasPermission(permission, user);
    }
 
-   throwUnlessGranted(permission: Permission | string, c: GuardContext) {
+   throwUnlessGranted<P extends Permission>(
+      permission: P,
+      c: GuardContext,
+      context: s.Static<P["context"]>,
+   ) {
       if (!this.granted(permission, c)) {
          throw new Exception(
             `Permission "${typeof permission === "string" ? permission : permission.name}" not granted`,

@@ -139,17 +139,18 @@ export class AdminController extends Controller {
       }
 
       if (auth_enabled) {
+         const options = {
+            onGranted: async (c) => {
+               // @todo: add strict test to permissions middleware?
+               if (c.get("auth")?.user) {
+                  $console.log("redirecting to success");
+                  return c.redirect(authRoutes.success);
+               }
+            },
+         };
          const redirectRouteParams = [
-            permission([SystemPermissions.accessAdmin, SystemPermissions.schemaRead], {
-               // @ts-ignore
-               onGranted: async (c) => {
-                  // @todo: add strict test to permissions middleware?
-                  if (c.get("auth")?.user) {
-                     $console.log("redirecting to success");
-                     return c.redirect(authRoutes.success);
-                  }
-               },
-            }),
+            permission(SystemPermissions.accessAdmin, options),
+            permission(SystemPermissions.schemaRead, options),
             async (c) => {
                return c.html(c.get("html")!);
             },

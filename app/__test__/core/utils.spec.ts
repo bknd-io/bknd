@@ -194,6 +194,116 @@ describe("Core Utils", async () => {
             expect(result).toEqual(expected);
          }
       });
+
+      test("recursivelyReplacePlaceholders", () => {
+         // test basic replacement with simple pattern
+         const obj1 = { a: "Hello, {$name}!", b: { c: "Hello, {$name}!" } };
+         const variables1 = { name: "John" };
+         const result1 = utils.recursivelyReplacePlaceholders(obj1, /\{\$(\w+)\}/g, variables1);
+         expect(result1).toEqual({ a: "Hello, John!", b: { c: "Hello, John!" } });
+
+         // test the specific example from the user request
+         const obj2 = { some: "value", here: "@auth.user" };
+         const variables2 = { auth: { user: "what" } };
+         const result2 = utils.recursivelyReplacePlaceholders(obj2, /^@([a-z\.]+)$/, variables2);
+         expect(result2).toEqual({ some: "value", here: "what" });
+
+         // test with arrays
+         const obj3 = { items: ["@config.name", "static", "@config.version"] };
+         const variables3 = { config: { name: "MyApp", version: "1.0.0" } };
+         const result3 = utils.recursivelyReplacePlaceholders(obj3, /^@([a-z\.]+)$/, variables3);
+         expect(result3).toEqual({ items: ["MyApp", "static", "1.0.0"] });
+
+         // test with nested objects and deep paths
+         const obj4 = {
+            user: "@auth.user.name",
+            settings: {
+               theme: "@ui.theme",
+               nested: {
+                  value: "@deep.nested.value",
+               },
+            },
+         };
+         const variables4 = {
+            auth: { user: { name: "Alice" } },
+            ui: { theme: "dark" },
+            deep: { nested: { value: "found" } },
+         };
+         const result4 = utils.recursivelyReplacePlaceholders(obj4, /^@([a-z\.]+)$/, variables4);
+         expect(result4).toEqual({
+            user: "Alice",
+            settings: {
+               theme: "dark",
+               nested: {
+                  value: "found",
+               },
+            },
+         });
+
+         // test with missing paths (should return original match)
+         const obj5 = { value: "@missing.path" };
+         const variables5 = { existing: "value" };
+         const result5 = utils.recursivelyReplacePlaceholders(obj5, /^@([a-z\.]+)$/, variables5);
+         expect(result5).toEqual({ value: "@missing.path" });
+
+         // test with non-matching strings (should remain unchanged)
+         const obj6 = { value: "normal string", other: "not@matching" };
+         const variables6 = { some: "value" };
+         const result6 = utils.recursivelyReplacePlaceholders(obj6, /^@([a-z\.]+)$/, variables6);
+         expect(result6).toEqual({ value: "normal string", other: "not@matching" });
+
+         // test with primitive values (should handle gracefully)
+         expect(
+            utils.recursivelyReplacePlaceholders("@test.value", /^@([a-z\.]+)$/, {
+               test: { value: "replaced" },
+            }),
+         ).toBe("replaced");
+         expect(utils.recursivelyReplacePlaceholders(123, /^@([a-z\.]+)$/, {})).toBe(123);
+         expect(utils.recursivelyReplacePlaceholders(null, /^@([a-z\.]+)$/, {})).toBe(null);
+
+         // test type preservation for full string matches
+         const variables7 = { test: { value: 123, flag: true, data: null, arr: [1, 2, 3] } };
+         const result7 = utils.recursivelyReplacePlaceholders(
+            {
+               number: "@test.value",
+               boolean: "@test.flag",
+               nullValue: "@test.data",
+               array: "@test.arr",
+            },
+            /^@([a-z\.]+)$/,
+            variables7,
+         );
+         expect(result7).toEqual({
+            number: 123,
+            boolean: true,
+            nullValue: null,
+            array: [1, 2, 3],
+         });
+
+         // test partial string replacement (should convert to string)
+         const result8 = utils.recursivelyReplacePlaceholders(
+            { message: "The value is @test.value!" },
+            /@([a-z\.]+)/g,
+            variables7,
+         );
+         expect(result8).toEqual({ message: "The value is 123!" });
+
+         // test mixed scenarios
+         const result9 = utils.recursivelyReplacePlaceholders(
+            {
+               fullMatch: "@test.value", // should preserve number type
+               partialMatch: "Value: @test.value", // should convert to string
+               noMatch: "static text",
+            },
+            /^@([a-z\.]+)$/,
+            variables7,
+         );
+         expect(result9).toEqual({
+            fullMatch: 123, // number preserved
+            partialMatch: "Value: @test.value", // no replacement (pattern requires full match)
+            noMatch: "static text",
+         });
+      });
    });
 
    describe("file", async () => {

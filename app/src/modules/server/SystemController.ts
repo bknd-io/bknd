@@ -130,7 +130,7 @@ export class SystemController extends Controller {
                summary: "Get the raw config",
                tags: ["system"],
             }),
-            permission([SystemPermissions.configReadSecrets]),
+            permission(SystemPermissions.configReadSecrets),
             async (c) => {
                // @ts-expect-error "fetch" is private
                return c.json(await this.app.modules.fetch().then((r) => r?.configs));
@@ -295,7 +295,11 @@ export class SystemController extends Controller {
             const { secrets } = c.req.valid("query");
             const { module } = c.req.valid("param");
 
-            secrets && this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c);
+            if (secrets) {
+               this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c, {
+                  module,
+               });
+            }
 
             const config = this.app.toJSON(secrets);
 
@@ -342,8 +346,16 @@ export class SystemController extends Controller {
             const { config, secrets, fresh } = c.req.valid("query");
             const readonly = this.app.isReadOnly();
 
-            config && this.ctx.guard.throwUnlessGranted(SystemPermissions.configRead, c);
-            secrets && this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c);
+            if (config) {
+               this.ctx.guard.throwUnlessGranted(SystemPermissions.configRead, c, {
+                  module,
+               });
+            }
+            if (secrets) {
+               this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c, {
+                  module,
+               });
+            }
 
             const { version, ...schema } = this.app.getSchema();
 
@@ -383,7 +395,7 @@ export class SystemController extends Controller {
          jsc("query", s.object({ sync: s.boolean().optional(), fetch: s.boolean().optional() })),
          async (c) => {
             const options = c.req.valid("query") as Record<string, boolean>;
-            this.ctx.guard.throwUnlessGranted(SystemPermissions.build, c);
+            this.ctx.guard.throwUnlessGranted(SystemPermissions.build, c, {});
 
             await this.app.build(options);
             return c.json({

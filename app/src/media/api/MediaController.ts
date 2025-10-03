@@ -186,7 +186,8 @@ export class MediaController extends Controller {
             }),
          ),
          jsc("query", s.object({ overwrite: s.boolean().optional() })),
-         permission([DataPermissions.entityCreate, MediaPermissions.uploadFile]),
+         permission(DataPermissions.entityCreate),
+         permission(MediaPermissions.uploadFile),
          async (c) => {
             const { entity: entity_name, id: entity_id, field: field_name } = c.req.valid("param");
 

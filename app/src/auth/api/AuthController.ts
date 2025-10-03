@@ -60,7 +60,8 @@ export class AuthController extends Controller {
       if (create) {
          hono.post(
             "/create",
-            permission([AuthPermissions.createUser, DataPermissions.entityCreate]),
+            permission(AuthPermissions.createUser),
+            permission(DataPermissions.entityCreate),
             describeRoute({
                summary: "Create a new user",
                tags: ["auth"],

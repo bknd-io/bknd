@@ -512,3 +512,38 @@ export function convertNumberedObjectToArray(obj: object): any[] | object {
    }
    return obj;
 }
+
+export function recursivelyReplacePlaceholders(
+   obj: any,
+   pattern: RegExp,
+   variables: Record<string, any>,
+) {
+   if (typeof obj === "string") {
+      // check if the entire string matches the pattern
+      const match = obj.match(pattern);
+      if (match && match[0] === obj && match[1]) {
+         // full string match - replace with the actual value (preserving type)
+         const key = match[1];
+         const value = getPath(variables, key);
+         return value !== undefined ? value : obj;
+      }
+      // partial match - use string replacement
+      if (pattern.test(obj)) {
+         return obj.replace(pattern, (match, key) => {
+            const value = getPath(variables, key);
+            // convert to string for partial replacements
+            return value !== undefined ? String(value) : match;
+         });
+      }
+   }
+   if (Array.isArray(obj)) {
+      return obj.map((item) => recursivelyReplacePlaceholders(item, pattern, variables));
+   }
+   if (obj && typeof obj === "object") {
+      return Object.entries(obj).reduce((acc, [key, value]) => {
+         acc[key] = recursivelyReplacePlaceholders(value, pattern, variables);
+         return acc;
+      }, {} as object);
+   }
+   return obj;
+}

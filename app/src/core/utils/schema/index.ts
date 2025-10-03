@@ -59,6 +59,8 @@ export const stringIdentifier = s.string({
 });
 
 export class InvalidSchemaError extends Error {
+   override name = "InvalidSchemaError";
+
    constructor(
       public schema: s.Schema,
       public value: unknown,
