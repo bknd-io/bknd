@@ -5,7 +5,7 @@ WORKDIR /app
 
 # define bknd version to be used as:
 # `docker build --build-arg VERSION=<version> -t bknd .`
-ARG VERSION=0.17.1
+ARG VERSION=0.18.0
 
 # Install & copy required cli
 RUN npm install --omit=dev bknd@${VERSION}
