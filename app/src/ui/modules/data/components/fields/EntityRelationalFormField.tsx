@@ -44,7 +44,7 @@ export function EntityRelationalFormField({
    const ref = useRef<any>(null);
    const $q = useEntityQuery(field.target(), undefined, {
       select: query.select,
-      limit: query.limit,
+      limit: query.limit + 1 /* overfetch for softscan=false */,
       offset: (query.page - 1) * query.limit,
    });
    const [_value, _setValue] = useState<{ id: number | undefined; [key: string]: any }>();
