@@ -36,7 +36,7 @@ export class MediaController extends Controller {
             summary: "Get the list of files",
             tags: ["media"],
          }),
-         permission(MediaPermissions.listFiles),
+         permission(MediaPermissions.listFiles, {}),
          async (c) => {
             const files = await this.getStorageAdapter().listObjects();
             return c.json(files);
@@ -51,7 +51,7 @@ export class MediaController extends Controller {
             summary: "Get a file by name",
             tags: ["media"],
          }),
-         permission(MediaPermissions.readFile),
+         permission(MediaPermissions.readFile, {}),
          async (c) => {
             const { filename } = c.req.param();
             if (!filename) {
@@ -81,7 +81,7 @@ export class MediaController extends Controller {
             summary: "Delete a file by name",
             tags: ["media"],
          }),
-         permission(MediaPermissions.deleteFile),
+         permission(MediaPermissions.deleteFile, {}),
          async (c) => {
             const { filename } = c.req.param();
             if (!filename) {
@@ -149,7 +149,7 @@ export class MediaController extends Controller {
             requestBody,
          }),
          jsc("param", s.object({ filename: s.string().optional() })),
-         permission(MediaPermissions.uploadFile),
+         permission(MediaPermissions.uploadFile, {}),
          async (c) => {
             const reqname = c.req.param("filename");
 
@@ -189,8 +189,8 @@ export class MediaController extends Controller {
             }),
          ),
          jsc("query", s.object({ overwrite: s.boolean().optional() })),
-         permission(DataPermissions.entityCreate),
-         permission(MediaPermissions.uploadFile),
+         permission(DataPermissions.entityCreate, {}),
+         permission(MediaPermissions.uploadFile, {}),
          async (c) => {
             const { entity: entity_name, id: entity_id, field: field_name } = c.req.valid("param");
 

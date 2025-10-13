@@ -42,7 +42,7 @@ export class DataController extends Controller {
 
    override getController() {
       const { permission, auth } = this.middlewares;
-      const hono = this.create().use(auth(), permission(SystemPermissions.accessApi));
+      const hono = this.create().use(auth(), permission(SystemPermissions.accessApi, {}));
       const entitiesEnum = this.getEntitiesEnum(this.em);
 
       // info
@@ -58,7 +58,7 @@ export class DataController extends Controller {
       // sync endpoint
       hono.get(
          "/sync",
-         permission(DataPermissions.databaseSync),
+         permission(DataPermissions.databaseSync, {}),
          mcpTool("data_sync", {
             // @todo: should be removed if readonly
             annotations: {
@@ -95,7 +95,7 @@ export class DataController extends Controller {
       // read entity schema
       hono.get(
          "/schema.json",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          describeRoute({
             summary: "Retrieve data schema",
             tags: ["data"],
@@ -121,7 +121,7 @@ export class DataController extends Controller {
       // read schema
       hono.get(
          "/schemas/:entity/:context?",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          describeRoute({
             summary: "Retrieve entity schema",
             tags: ["data"],
@@ -161,7 +161,7 @@ export class DataController extends Controller {
        */
       hono.get(
          "/info/:entity",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          describeRoute({
             summary: "Retrieve entity info",
             tags: ["data"],
@@ -213,7 +213,7 @@ export class DataController extends Controller {
       // fn: count
       hono.post(
          "/:entity/fn/count",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          describeRoute({
             summary: "Count entities",
             tags: ["data"],
@@ -236,7 +236,7 @@ export class DataController extends Controller {
       // fn: exists
       hono.post(
          "/:entity/fn/exists",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          describeRoute({
             summary: "Check if entity exists",
             tags: ["data"],
@@ -285,7 +285,7 @@ export class DataController extends Controller {
             parameters: saveRepoQueryParams(["limit", "offset", "sort", "select", "join"]),
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("query", repoQuery, { skipOpenAPI: true }),
          async (c) => {
@@ -308,7 +308,7 @@ export class DataController extends Controller {
             parameters: saveRepoQueryParams(["offset", "sort", "select"]),
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          mcpTool("data_entity_read_one", {
             inputSchema: {
                param: s.object({ entity: entitiesEnum, id: idType }),
@@ -344,7 +344,7 @@ export class DataController extends Controller {
             parameters: saveRepoQueryParams(),
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          jsc(
             "param",
             s.object({
@@ -390,7 +390,7 @@ export class DataController extends Controller {
             },
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {}),
          mcpTool("data_entity_read_many", {
             inputSchema: {
                param: s.object({ entity: entitiesEnum }),
@@ -421,7 +421,7 @@ export class DataController extends Controller {
             summary: "Insert one or many",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityCreate),
+         permission(DataPermissions.entityCreate, {}),
          mcpTool("data_entity_insert"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", s.anyOf([s.object({}), s.array(s.object({}))])),
@@ -455,7 +455,7 @@ export class DataController extends Controller {
             summary: "Update many",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityUpdate),
+         permission(DataPermissions.entityUpdate, {}),
          mcpTool("data_entity_update_many", {
             inputSchema: {
                param: s.object({ entity: entitiesEnum }),
@@ -495,7 +495,7 @@ export class DataController extends Controller {
             summary: "Update one",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityUpdate),
+         permission(DataPermissions.entityUpdate, {}),
          mcpTool("data_entity_update_one"),
          jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          jsc("json", s.object({})),
@@ -518,7 +518,7 @@ export class DataController extends Controller {
             summary: "Delete one",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityDelete),
+         permission(DataPermissions.entityDelete, {}),
          mcpTool("data_entity_delete_one"),
          jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          async (c) => {
@@ -539,7 +539,7 @@ export class DataController extends Controller {
             summary: "Delete many",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityDelete),
+         permission(DataPermissions.entityDelete, {}),
          mcpTool("data_entity_delete_many", {
             inputSchema: {
                param: s.object({ entity: entitiesEnum }),

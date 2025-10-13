@@ -116,6 +116,7 @@ export class AdminController extends Controller {
                onDenied: async (c) => {
                   addFlashMessage(c, "You not allowed to read the schema", "warning");
                },
+               context: (c) => ({}),
             }),
             async (c) => {
                const obj: AdminBkndWindowContext = {
@@ -147,9 +148,10 @@ export class AdminController extends Controller {
                   return c.redirect(authRoutes.success);
                }
             },
+            context: (c) => ({}),
          };
          const redirectRouteParams = [
-            permission(SystemPermissions.accessAdmin, options),
+            permission(SystemPermissions.accessAdmin, options as any),
             permission(SystemPermissions.schemaRead, options),
             async (c) => {
                return c.html(c.get("html")!);

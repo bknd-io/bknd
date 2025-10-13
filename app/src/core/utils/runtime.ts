@@ -61,3 +61,12 @@ export function invariant(condition: boolean | any, message: string) {
       throw new Error(message);
    }
 }
+
+export function threw(fn: () => any) {
+   try {
+      fn();
+      return false;
+   } catch (e) {
+      return true;
+   }
+}

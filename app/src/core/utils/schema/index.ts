@@ -1,3 +1,5 @@
+import { Exception } from "core/errors";
+import { HttpStatus } from "bknd/utils";
 import * as s from "jsonv-ts";
 
 export { validator as jsc, type Options } from "jsonv-ts/hono";
@@ -58,8 +60,9 @@ export const stringIdentifier = s.string({
    maxLength: 150,
 });
 
-export class InvalidSchemaError extends Error {
+export class InvalidSchemaError extends Exception {
    override name = "InvalidSchemaError";
+   override code = HttpStatus.UNPROCESSABLE_ENTITY;
 
    constructor(
       public schema: s.Schema,

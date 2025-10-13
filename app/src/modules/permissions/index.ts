@@ -1,4 +1,4 @@
-import { Permission } from "core/security/Permission";
+import { Permission } from "auth/authorize/Permission";
 import { s } from "bknd/utils";
 
 export const accessAdmin = new Permission("system.access.admin");
@@ -24,6 +24,12 @@ export const configWrite = new Permission(
       module: s.string().optional(),
    }),
 );
-export const schemaRead = new Permission("system.schema.read");
+export const schemaRead = new Permission(
+   "system.schema.read",
+   {},
+   s.object({
+      module: s.string().optional(),
+   }),
+);
 export const build = new Permission("system.build");
 export const mcp = new Permission("system.mcp");

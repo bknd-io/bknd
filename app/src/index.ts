@@ -45,7 +45,7 @@ export type { MaybePromise } from "core/types";
 export { Exception, BkndError } from "core/errors";
 export { isDebug, env } from "core/env";
 export { type PrimaryFieldType, config, type DB, type AppEntity } from "core/config";
-export { Permission } from "core/security/Permission";
+export { Permission } from "auth/authorize/Permission";
 export { getFlashMessage } from "core/server/flash";
 export * from "core/drivers";
 export { Event, InvalidEventReturn } from "core/events/Event";

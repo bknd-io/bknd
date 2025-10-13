@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { App, createApp, type AuthResponse } from "../../src";
-import { auth } from "../../src/auth/middlewares";
+import { auth } from "../../src/modules/middlewares";
 import { randomString, secureRandomString, withDisabledConsole } from "../../src/core/utils";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 import { getDummyConnection } from "../helper";

@@ -1,6 +1,13 @@
 import { describe, it, expect } from "bun:test";
 import { s } from "bknd/utils";
-import { Permission, Policy } from "core/security/Permission";
+import { Permission } from "auth/authorize/Permission";
+import { Policy } from "auth/authorize/Policy";
+import { Hono } from "hono";
+import { permission } from "auth/middlewares/permission.middleware";
+import { auth } from "auth/middlewares/auth.middleware";
+import { Guard, type GuardConfig } from "auth/authorize/Guard";
+import { Role, RolePermission } from "auth/authorize/Role";
+import { Exception } from "bknd";
 
 describe("Permission", () => {
    it("works with minimal schema", () => {
@@ -89,5 +96,333 @@ describe("Policy", () => {
       expect(p.meetsFilter({ a: "test" }, vars)).toBe(true);
       expect(p.meetsFilter({ a: "test2" }, vars)).toBe(false);
       expect(p.meetsFilter({ a: "test2" })).toBe(false);
+   });
+});
+
+describe("Guard", () => {
+   it("collects filters", () => {
+      const p = new Permission(
+         "test",
+         {
+            filterable: true,
+         },
+         s.object({
+            a: s.number(),
+         }),
+      );
+      const r = new Role("test", [
+         new RolePermission(p, [
+            new Policy({
+               filter: { a: { $eq: 1 } },
+               effect: "filter",
+            }),
+         ]),
+      ]);
+      const guard = new Guard([p], [r], {
+         enabled: true,
+      });
+      expect(
+         guard.getPolicyFilter(
+            p,
+            {
+               role: r.name,
+            },
+            { a: 1 },
+         ),
+      ).toEqual({ a: { $eq: 1 } });
+      expect(
+         guard.getPolicyFilter(
+            p,
+            {
+               role: r.name,
+            },
+            { a: 2 },
+         ),
+      ).toBeUndefined();
+      // if no user context given, filter cannot be applied
+      expect(guard.getPolicyFilter(p, {}, { a: 1 })).toBeUndefined();
+   });
+
+   it("collects filters for default role", () => {
+      const p = new Permission(
+         "test",
+         {
+            filterable: true,
+         },
+         s.object({
+            a: s.number(),
+         }),
+      );
+      const r = new Role(
+         "test",
+         [
+            new RolePermission(p, [
+               new Policy({
+                  filter: { a: { $eq: 1 } },
+                  effect: "filter",
+               }),
+            ]),
+         ],
+         true,
+      );
+      const guard = new Guard([p], [r], {
+         enabled: true,
+      });
+
+      expect(
+         guard.getPolicyFilter(
+            p,
+            {
+               role: r.name,
+            },
+            { a: 1 },
+         ),
+      ).toEqual({ a: { $eq: 1 } });
+      expect(
+         guard.getPolicyFilter(
+            p,
+            {
+               role: r.name,
+            },
+            { a: 2 },
+         ),
+      ).toBeUndefined();
+      // if no user context given, the default role is applied
+      // hence it can be found
+      expect(guard.getPolicyFilter(p, {}, { a: 1 })).toEqual({ a: { $eq: 1 } });
+   });
+});
+
+describe("permission middleware", () => {
+   const makeApp = (
+      permissions: Permission<any, any, any, any>[],
+      roles: Role[] = [],
+      config: Partial<GuardConfig> = {},
+   ) => {
+      const app = {
+         module: {
+            auth: {
+               enabled: true,
+            },
+         },
+         modules: {
+            ctx: () => ({
+               guard: new Guard(permissions, roles, {
+                  enabled: true,
+                  ...config,
+               }),
+            }),
+         },
+      };
+      return new Hono()
+         .use(async (c, next) => {
+            // @ts-expect-error
+            c.set("app", app);
+            await next();
+         })
+         .use(auth())
+         .onError((err, c) => {
+            if (err instanceof Exception) {
+               return c.json(err.toJSON(), err.code as any);
+            }
+            return c.json({ error: err.message }, "code" in err ? (err.code as any) : 500);
+         });
+   };
+
+   it("allows if guard is disabled", async () => {
+      const p = new Permission("test");
+      const hono = makeApp([p], [], { enabled: false }).get("/test", permission(p, {}), async (c) =>
+         c.text("test"),
+      );
+
+      const res = await hono.request("/test");
+      expect(res.status).toBe(200);
+      expect(await res.text()).toBe("test");
+   });
+
+   it("denies if guard is enabled", async () => {
+      const p = new Permission("test");
+      const hono = makeApp([p]).get("/test", permission(p, {}), async (c) => c.text("test"));
+
+      const res = await hono.request("/test");
+      expect(res.status).toBe(403);
+   });
+
+   it("allows if user has (plain) role", async () => {
+      const p = new Permission("test");
+      const r = Role.create({ name: "test", permissions: [p.name] });
+      const hono = makeApp([p], [r])
+         .use(async (c, next) => {
+            // @ts-expect-error
+            c.set("auth", { registered: true, user: { id: 0, role: r.name } });
+            await next();
+         })
+         .get("/test", permission(p, {}), async (c) => c.text("test"));
+
+      const res = await hono.request("/test");
+      expect(res.status).toBe(200);
+   });
+
+   it("allows if user has role with policy", async () => {
+      const p = new Permission("test");
+      const r = new Role("test", [
+         new RolePermission(p, [
+            new Policy({
+               condition: {
+                  a: { $gte: 1 },
+               },
+            }),
+         ]),
+      ]);
+      const hono = makeApp([p], [r], {
+         context: {
+            a: 1,
+         },
+      })
+         .use(async (c, next) => {
+            // @ts-expect-error
+            c.set("auth", { registered: true, user: { id: 0, role: r.name } });
+            await next();
+         })
+         .get("/test", permission(p, {}), async (c) => c.text("test"));
+
+      const res = await hono.request("/test");
+      expect(res.status).toBe(200);
+   });
+
+   it("denies if user with role doesn't meet condition", async () => {
+      const p = new Permission("test");
+      const r = new Role("test", [
+         new RolePermission(p, [
+            new Policy({
+               condition: {
+                  a: { $lt: 1 },
+               },
+            }),
+         ]),
+      ]);
+      const hono = makeApp([p], [r], {
+         context: {
+            a: 1,
+         },
+      })
+         .use(async (c, next) => {
+            // @ts-expect-error
+            c.set("auth", { registered: true, user: { id: 0, role: r.name } });
+            await next();
+         })
+         .get("/test", permission(p, {}), async (c) => c.text("test"));
+
+      const res = await hono.request("/test");
+      expect(res.status).toBe(403);
+   });
+
+   it("allows if user with role doesn't meet condition (from middleware)", async () => {
+      const p = new Permission(
+         "test",
+         {},
+         s.object({
+            a: s.number(),
+         }),
+      );
+      const r = new Role("test", [
+         new RolePermission(p, [
+            new Policy({
+               condition: {
+                  a: { $eq: 1 },
+               },
+            }),
+         ]),
+      ]);
+      const hono = makeApp([p], [r])
+         .use(async (c, next) => {
+            // @ts-expect-error
+            c.set("auth", { registered: true, user: { id: 0, role: r.name } });
+            await next();
+         })
+         .get(
+            "/test",
+            permission(p, {
+               context: (c) => ({
+                  a: 1,
+               }),
+            }),
+            async (c) => c.text("test"),
+         );
+
+      const res = await hono.request("/test");
+      expect(res.status).toBe(200);
+   });
+
+   it("throws if permission context is invalid", async () => {
+      const p = new Permission(
+         "test",
+         {},
+         s.object({
+            a: s.number({ minimum: 2 }),
+         }),
+      );
+      const r = new Role("test", [
+         new RolePermission(p, [
+            new Policy({
+               condition: {
+                  a: { $eq: 1 },
+               },
+            }),
+         ]),
+      ]);
+      const hono = makeApp([p], [r])
+         .use(async (c, next) => {
+            // @ts-expect-error
+            c.set("auth", { registered: true, user: { id: 0, role: r.name } });
+            await next();
+         })
+         .get(
+            "/test",
+            permission(p, {
+               context: (c) => ({
+                  a: 1,
+               }),
+            }),
+            async (c) => c.text("test"),
+         );
+
+      const res = await hono.request("/test");
+      // expecting 500 because bknd should have handled it correctly
+      expect(res.status).toBe(500);
+   });
+});
+
+describe("Role", () => {
+   it("serializes and deserializes", () => {
+      const p = new Permission(
+         "test",
+         {
+            filterable: true,
+         },
+         s.object({
+            a: s.number({ minimum: 2 }),
+         }),
+      );
+      const r = new Role(
+         "test",
+         [
+            new RolePermission(p, [
+               new Policy({
+                  condition: {
+                     a: { $eq: 1 },
+                  },
+                  effect: "deny",
+                  filter: {
+                     b: { $lt: 1 },
+                  },
+               }),
+            ]),
+         ],
+         true,
+      );
+      const json = JSON.parse(JSON.stringify(r.toJSON()));
+      const r2 = Role.create(json);
+      expect(r2.toJSON()).toEqual(r.toJSON());
    });
 });
