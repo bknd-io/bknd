@@ -62,11 +62,18 @@ export function invariant(condition: boolean | any, message: string) {
    }
 }
 
-export function threw(fn: () => any) {
+export function threw(fn: () => any, instance?: new (...args: any[]) => Error) {
    try {
       fn();
       return false;
    } catch (e) {
+      if (instance) {
+         if (e instanceof instance) {
+            return true;
+         }
+         // if instance given but not what expected, throw
+         throw e;
+      }
       return true;
    }
 }

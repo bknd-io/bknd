@@ -5,6 +5,7 @@ export const policySchema = s
    .strictObject({
       description: s.string(),
       condition: s.object({}).optional() as s.Schema<{}, query.ObjectQuery | undefined>,
+      // @todo: potentially remove this, and invert from rolePermission.effect
       effect: s.string({ enum: ["allow", "deny", "filter"], default: "allow" }),
       filter: s.object({}).optional() as s.Schema<{}, query.ObjectQuery | undefined>,
    })
@@ -25,10 +26,12 @@ export class Policy<Schema extends PolicySchema = PolicySchema> {
    }
 
    meetsCondition(context: object, vars?: Record<string, any>) {
+      if (!this.content.condition) return true;
       return query.validate(this.replace(this.content.condition!, vars), context);
    }
 
    meetsFilter(subject: object, vars?: Record<string, any>) {
+      if (!this.content.filter) return true;
       return query.validate(this.replace(this.content.filter!, vars), subject);
    }
 

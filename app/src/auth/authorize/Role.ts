@@ -1,9 +1,13 @@
-import { parse, s } from "bknd/utils";
+import { s } from "bknd/utils";
 import { Permission } from "./Permission";
 import { Policy, policySchema } from "./Policy";
 
+// default effect is allow for backward compatibility
+const defaultEffect = "allow";
+
 export const rolePermissionSchema = s.strictObject({
    permission: s.string(),
+   effect: s.string({ enum: ["allow", "deny"], default: defaultEffect }).optional(),
    policies: s.array(policySchema).optional(),
 });
 export type RolePermissionSchema = s.Static<typeof rolePermissionSchema>;
@@ -20,12 +24,14 @@ export class RolePermission {
    constructor(
       public permission: Permission<any, any, any, any>,
       public policies: Policy[] = [],
+      public effect: "allow" | "deny" = defaultEffect,
    ) {}
 
    toJSON() {
       return {
          permission: this.permission.name,
          policies: this.policies.map((p) => p.toJSON()),
+         effect: this.effect,
       };
    }
 }
@@ -45,7 +51,7 @@ export class Role {
                return new RolePermission(new Permission(p), []);
             }
             const policies = p.policies?.map((policy) => new Policy(policy));
-            return new RolePermission(new Permission(p.permission), policies);
+            return new RolePermission(new Permission(p.permission), policies, p.effect);
          }) ?? [];
       return new Role(config.name, permissions, config.is_default, config.implicit_allow);
    }

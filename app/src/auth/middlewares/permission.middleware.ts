@@ -5,6 +5,7 @@ import type { RouterRoute } from "hono/types";
 import { createMiddleware } from "hono/factory";
 import type { ServerEnv } from "modules/Controller";
 import type { MaybePromise } from "core/types";
+import { GuardPermissionsException } from "auth/authorize/Guard";
 
 function getPath(reqOrCtx: Request | Context) {
    const req = reqOrCtx instanceof Request ? reqOrCtx : reqOrCtx.req.raw;
@@ -54,7 +55,7 @@ export function permission<P extends Permission<any, any, any, any>>(
 
          if (options?.onGranted || options?.onDenied) {
             let returned: undefined | void | Response;
-            if (threw(() => guard.granted(permission, c, context))) {
+            if (threw(() => guard.granted(permission, c, context), GuardPermissionsException)) {
                returned = await options?.onDenied?.(c);
             } else {
                returned = await options?.onGranted?.(c);

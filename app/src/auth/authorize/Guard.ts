@@ -160,7 +160,13 @@ export class Guard {
       if (!this.isEnabled()) {
          return;
       }
-      const { ctx, user, exists, role, rolePermission } = this.collect(permission, c, context);
+      const { ctx: _ctx, exists, role, rolePermission } = this.collect(permission, c, context);
+
+      // validate context
+      let ctx = Object.assign({}, _ctx);
+      if (permission.context) {
+         ctx = permission.parseContext(ctx);
+      }
 
       $console.debug("guard: checking permission", {
          name: permission.name,
@@ -187,31 +193,36 @@ export class Guard {
          throw new GuardPermissionsException(
             permission,
             undefined,
-            "Role does not have required permission",
+            `Role "${role.name}" does not have required permission`,
          );
-      }
-
-      // validate context
-      let ctx2 = Object.assign({}, ctx);
-      if (permission.context) {
-         ctx2 = permission.parseContext(ctx2);
       }
 
       if (rolePermission?.policies.length > 0) {
          $console.debug("guard: rolePermission has policies, checking");
+
+         // set the default effect of the role permission
+         let allowed = rolePermission.effect === "allow";
          for (const policy of rolePermission.policies) {
             // skip filter policies
             if (policy.content.effect === "filter") continue;
 
-            // if condition unmet or effect is deny, throw
-            const meets = policy.meetsCondition(ctx2);
-            if (!meets || (meets && policy.content.effect === "deny")) {
-               throw new GuardPermissionsException(
-                  permission,
-                  policy,
-                  "Policy does not meet condition",
-               );
+            // if condition is met, check the effect
+            const meets = policy.meetsCondition(ctx);
+            if (meets) {
+               // if deny, then break early
+               if (policy.content.effect === "deny") {
+                  allowed = false;
+                  break;
+
+                  // if allow, set allow but continue checking
+               } else if (policy.content.effect === "allow") {
+                  allowed = true;
+               }
             }
+         }
+
+         if (!allowed) {
+            throw new GuardPermissionsException(permission, undefined, "Policy condition unmet");
          }
       }
 
@@ -235,20 +246,24 @@ export class Guard {
       c: GuardContext,
       context?: PermissionContext<P>,
    ): PolicySchema["filter"] | undefined {
-      if (!permission.isFilterable()) return;
+      if (!permission.isFilterable()) {
+         $console.debug("getPolicyFilter: permission is not filterable, returning undefined");
+         return;
+      }
 
-      const { ctx, exists, role, rolePermission } = this.collect(permission, c, context);
+      const { ctx: _ctx, exists, role, rolePermission } = this.collect(permission, c, context);
 
       // validate context
-      let ctx2 = Object.assign({}, ctx);
+      let ctx = Object.assign({}, _ctx);
       if (permission.context) {
-         ctx2 = permission.parseContext(ctx2);
+         ctx = permission.parseContext(ctx);
       }
 
       if (exists && role && rolePermission && rolePermission.policies.length > 0) {
          for (const policy of rolePermission.policies) {
             if (policy.content.effect === "filter") {
-               return policy.meetsFilter(ctx2) ? policy.content.filter : undefined;
+               const meets = policy.meetsCondition(ctx);
+               return meets ? policy.content.filter : undefined;
             }
          }
       }

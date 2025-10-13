@@ -3,7 +3,7 @@ import { s } from "bknd/utils";
 import { Permission } from "auth/authorize/Permission";
 import { Policy } from "auth/authorize/Policy";
 import { Hono } from "hono";
-import { permission } from "auth/middlewares/permission.middleware";
+import { getPermissionRoutes, permission } from "auth/middlewares/permission.middleware";
 import { auth } from "auth/middlewares/auth.middleware";
 import { Guard, type GuardConfig } from "auth/authorize/Guard";
 import { Role, RolePermission } from "auth/authorize/Role";
@@ -113,7 +113,8 @@ describe("Guard", () => {
       const r = new Role("test", [
          new RolePermission(p, [
             new Policy({
-               filter: { a: { $eq: 1 } },
+               condition: { a: { $eq: 1 } },
+               filter: { foo: "bar" },
                effect: "filter",
             }),
          ]),
@@ -129,7 +130,7 @@ describe("Guard", () => {
             },
             { a: 1 },
          ),
-      ).toEqual({ a: { $eq: 1 } });
+      ).toEqual({ foo: "bar" });
       expect(
          guard.getPolicyFilter(
             p,
@@ -158,7 +159,8 @@ describe("Guard", () => {
          [
             new RolePermission(p, [
                new Policy({
-                  filter: { a: { $eq: 1 } },
+                  condition: { a: { $eq: 1 } },
+                  filter: { foo: "bar" },
                   effect: "filter",
                }),
             ]),
@@ -177,7 +179,7 @@ describe("Guard", () => {
             },
             { a: 1 },
          ),
-      ).toEqual({ a: { $eq: 1 } });
+      ).toEqual({ foo: "bar" });
       expect(
          guard.getPolicyFilter(
             p,
@@ -189,7 +191,7 @@ describe("Guard", () => {
       ).toBeUndefined();
       // if no user context given, the default role is applied
       // hence it can be found
-      expect(guard.getPolicyFilter(p, {}, { a: 1 })).toEqual({ a: { $eq: 1 } });
+      expect(guard.getPolicyFilter(p, {}, { a: 1 })).toEqual({ foo: "bar" });
    });
 });
 
@@ -293,13 +295,19 @@ describe("permission middleware", () => {
    it("denies if user with role doesn't meet condition", async () => {
       const p = new Permission("test");
       const r = new Role("test", [
-         new RolePermission(p, [
-            new Policy({
-               condition: {
-                  a: { $lt: 1 },
-               },
-            }),
-         ]),
+         new RolePermission(
+            p,
+            [
+               new Policy({
+                  condition: {
+                     a: { $lt: 1 },
+                  },
+                  // default effect is allow
+               }),
+            ],
+            // change default effect to deny if no condition is met
+            "deny",
+         ),
       ]);
       const hono = makeApp([p], [r], {
          context: {
@@ -390,6 +398,88 @@ describe("permission middleware", () => {
       const res = await hono.request("/test");
       // expecting 500 because bknd should have handled it correctly
       expect(res.status).toBe(500);
+   });
+
+   it("checks context on routes with permissions", async () => {
+      const make = (user: any) => {
+         const p = new Permission(
+            "test",
+            {},
+            s.object({
+               a: s.number(),
+            }),
+         );
+         const r = new Role("test", [
+            new RolePermission(p, [
+               new Policy({
+                  condition: {
+                     a: { $eq: 1 },
+                  },
+               }),
+            ]),
+         ]);
+         return makeApp([p], [r])
+            .use(async (c, next) => {
+               // @ts-expect-error
+               c.set("auth", { registered: true, user });
+               await next();
+            })
+            .get(
+               "/valid",
+               permission(p, {
+                  context: (c) => ({
+                     a: 1,
+                  }),
+               }),
+               async (c) => c.text("test"),
+            )
+            .get(
+               "/invalid",
+               permission(p, {
+                  // @ts-expect-error
+                  context: (c) => ({
+                     b: "1",
+                  }),
+               }),
+               async (c) => c.text("test"),
+            )
+            .get(
+               "/invalid2",
+               permission(p, {
+                  // @ts-expect-error
+                  context: (c) => ({}),
+               }),
+               async (c) => c.text("test"),
+            )
+            .get(
+               "/invalid3",
+               // @ts-expect-error
+               permission(p),
+               async (c) => c.text("test"),
+            );
+      };
+
+      const hono = make({ id: 0, role: "test" });
+      const valid = await hono.request("/valid");
+      expect(valid.status).toBe(200);
+      const invalid = await hono.request("/invalid");
+      expect(invalid.status).toBe(500);
+      const invalid2 = await hono.request("/invalid2");
+      expect(invalid2.status).toBe(500);
+      const invalid3 = await hono.request("/invalid3");
+      expect(invalid3.status).toBe(500);
+
+      {
+         const hono = make(null);
+         const valid = await hono.request("/valid");
+         expect(valid.status).toBe(403);
+         const invalid = await hono.request("/invalid");
+         expect(invalid.status).toBe(500);
+         const invalid2 = await hono.request("/invalid2");
+         expect(invalid2.status).toBe(500);
+         const invalid3 = await hono.request("/invalid3");
+         expect(invalid3.status).toBe(500);
+      }
    });
 });
 
