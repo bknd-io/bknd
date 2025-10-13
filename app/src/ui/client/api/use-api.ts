@@ -54,7 +54,7 @@ export const useApiInfiniteQuery = <
          return promise(index).request.url;
       },
       (url: string) => {
-         return new FetchPromise(new Request(url), { fetcher: api.fetcher }).execute();
+         return new FetchPromise(new Request(url), { fetcher: api.fetcher }, refine).execute();
       },
       {
          revalidateFirstPage: false,
