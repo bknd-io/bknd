@@ -77,7 +77,9 @@ export function DropzoneContainer({
            });
 
    const $q = infinite
-      ? useApiInfiniteQuery(selectApi, {})
+      ? useApiInfiniteQuery(selectApi, {
+           pageSize,
+        })
       : useApiQuery(selectApi, {
            enabled: initialItems !== false && !initialItems,
            revalidateOnFocus: false,
@@ -108,31 +110,48 @@ export function DropzoneContainer({
       []) as MediaFieldSchema[];
    const _initialItems = mediaItemsToFileStates(actualItems, { baseUrl });
 
-   const key = id + JSON.stringify(_initialItems);
+   const key = id + JSON.stringify(initialItems);
+
+   // check if endpoint reeturns a total, then reaching end is easy
+   const total = "_data" in $q ? $q._data?.[0]?.body.meta.count : undefined;
+   let placeholderLength = 0;
+   if (infinite && "setSize" in $q) {
+      placeholderLength =
+         typeof total === "number"
+            ? total
+            : $q.endReached
+              ? _initialItems.length
+              : _initialItems.length + pageSize;
+
+      // in case there is no total, we overfetch but SWR don't reflect an empty result
+      // therefore we check if it stopped loading, but has a bigger page size than the total.
+      // if that's the case, we assume we reached the end.
+      if (!total && !$q.isValidating && pageSize * $q.size >= placeholderLength) {
+         placeholderLength = _initialItems.length;
+      }
+   }
+
    return (
-      <Dropzone
-         key={id + key}
-         getUploadInfo={getUploadInfo}
-         handleDelete={handleDelete}
-         /* onUploaded={refresh}
-         onDeleted={refresh} */
-         autoUpload
-         initialItems={_initialItems}
-         footer={
-            infinite &&
-            "setSize" in $q && (
-               <Footer
-                  items={_initialItems.length}
-                  length={Math.min(
-                     $q._data?.[0]?.body.meta.count ?? 0,
-                     _initialItems.length + pageSize,
-                  )}
-                  onFirstVisible={() => $q.setSize($q.size + 1)}
-               />
-            )
-         }
-         {...props}
-      />
+      <>
+         <Dropzone
+            key={key}
+            getUploadInfo={getUploadInfo}
+            handleDelete={handleDelete}
+            autoUpload
+            initialItems={_initialItems}
+            footer={
+               infinite &&
+               "setSize" in $q && (
+                  <Footer
+                     items={_initialItems.length}
+                     length={placeholderLength}
+                     onFirstVisible={() => $q.setSize($q.size + 1)}
+                  />
+               )
+            }
+            {...props}
+         />
+      </>
    );
 }
 

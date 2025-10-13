@@ -35,7 +35,7 @@ export const useApiInfiniteQuery = <
    RefineFn extends (data: ResponseObject<Data>) => unknown = (data: ResponseObject<Data>) => Data,
 >(
    fn: (api: Api, page: number) => FetchPromise<Data>,
-   options?: SWRConfiguration & { refine?: RefineFn },
+   options?: SWRConfiguration & { refine?: RefineFn; pageSize?: number },
 ) => {
    const [endReached, setEndReached] = useState(false);
    const api = useApi();
@@ -47,7 +47,7 @@ export const useApiInfiniteQuery = <
    // @ts-ignore
    const swr = useSWRInfinite<RefinedData>(
       (index, previousPageData: any) => {
-         if (previousPageData && !previousPageData.length) {
+         if (index > 0 && previousPageData && previousPageData.length < (options?.pageSize ?? 0)) {
             setEndReached(true);
             return null; // reached the end
          }

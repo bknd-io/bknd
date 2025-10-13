@@ -1,11 +1,14 @@
 import type { FileListObject } from "media/storage/Storage";
 import {
    type BaseModuleApiOptions,
+   type FetchPromise,
+   type ResponseObject,
    ModuleApi,
    type PrimaryFieldType,
    type TInput,
 } from "modules/ModuleApi";
 import type { ApiFetcher } from "Api";
+import type { DB, FileUploadedEventData } from "bknd";
 
 export type MediaApiOptions = BaseModuleApiOptions & {
    upload_fetcher: ApiFetcher;
@@ -67,14 +70,14 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
       return new Headers();
    }
 
-   protected uploadFile(
+   protected uploadFile<T extends FileUploadedEventData>(
       body: File | Blob | ReadableStream | Buffer<ArrayBufferLike>,
       opts?: {
          filename?: string;
          path?: TInput;
          _init?: Omit<RequestInit, "body">;
       },
-   ) {
+   ): FetchPromise<ResponseObject<T>> {
       const headers = {
          "Content-Type": "application/octet-stream",
          ...(opts?._init?.headers || {}),
@@ -106,10 +109,10 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          throw new Error("Invalid filename");
       }
 
-      return this.post(opts?.path ?? ["upload", name], body, init);
+      return this.post<T>(opts?.path ?? ["upload", name], body, init);
    }
 
-   async upload(
+   async upload<T extends FileUploadedEventData>(
       item: Request | Response | string | File | Blob | ReadableStream | Buffer<ArrayBufferLike>,
       opts: {
          filename?: string;
@@ -124,12 +127,12 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          if (!res.ok || !res.body) {
             throw new Error("Failed to fetch file");
          }
-         return this.uploadFile(res.body, opts);
+         return this.uploadFile<T>(res.body, opts);
       } else if (item instanceof Response) {
          if (!item.body) {
             throw new Error("Invalid response");
          }
-         return this.uploadFile(item.body, {
+         return this.uploadFile<T>(item.body, {
             ...(opts ?? {}),
             _init: {
                ...(opts._init ?? {}),
@@ -141,7 +144,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          });
       }
 
-      return this.uploadFile(item, opts);
+      return this.uploadFile<T>(item, opts);
    }
 
    async uploadToEntity(
@@ -153,7 +156,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          _init?: Omit<RequestInit, "body">;
          fetcher?: typeof fetch;
       },
-   ) {
+   ): Promise<ResponseObject<FileUploadedEventData & { result: DB["media"] }>> {
       return this.upload(item, {
          ...opts,
          path: ["entity", entity, id, field],

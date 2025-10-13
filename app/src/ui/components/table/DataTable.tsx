@@ -53,7 +53,7 @@ export type DataTableProps<Data> = {
 };
 
 export function DataTable<Data extends Record<string, any> = Record<string, any>>({
-   data = [],
+   data: _data = [],
    columns,
    checkable,
    onClickRow,
@@ -71,11 +71,14 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
    renderValue,
    onClickNew,
 }: DataTableProps<Data>) {
+   const hasTotal = !!total;
+   const data = Array.isArray(_data) ? _data.slice(0, perPage) : _data;
    total = total || data?.length || 0;
    page = page || 1;
 
    const select = columns && columns.length > 0 ? columns : Object.keys(data?.[0] || {});
    const pages = Math.max(Math.ceil(total / perPage), 1);
+   const hasNext = hasTotal ? pages > page : (_data?.length || 0) > perPage;
    const CellRender = renderValue || CellValue;
 
    return (
@@ -202,7 +205,7 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
                   perPage={perPage}
                   page={page}
                   items={data?.length || 0}
-                  total={total}
+                  total={hasTotal ? total : undefined}
                />
             </div>
             <div className="flex flex-row gap-2 md:gap-10 items-center">
@@ -222,11 +225,17 @@ export function DataTable<Data extends Record<string, any> = Record<string, any>
                   </div>
                )}
                <div className="text-primary/40">
-                  Page {page} of {pages}
+                  Page {page}
+                  {hasTotal ? <> of {pages}</> : ""}
                </div>
                {onClickPage && (
                   <div className="flex flex-row gap-1.5">
-                     <TableNav current={page} total={pages} onClick={onClickPage} />
+                     <TableNav
+                        current={page}
+                        total={hasTotal ? pages : page + (hasNext ? 1 : 0)}
+                        onClick={onClickPage}
+                        hasLast={hasTotal}
+                     />
                   </div>
                )}
             </div>
@@ -268,17 +277,23 @@ const SortIndicator = ({
 };
 
 const TableDisplay = ({ perPage, page, items, total }) => {
-   if (total === 0) {
+   if (items === 0 && page === 1) {
       return <>No rows to show</>;
    }
 
-   if (total === 1) {
-      return <>Showing 1 row</>;
+   const start = Math.max(perPage * (page - 1), 1);
+
+   if (!total) {
+      return (
+         <>
+            Showing {start}-{perPage * (page - 1) + items}
+         </>
+      );
    }
 
    return (
       <>
-         Showing {perPage * (page - 1) + 1}-{perPage * (page - 1) + items} of {total} rows
+         Showing {start}-{perPage * (page - 1) + items} of {total} rows
       </>
    );
 };
@@ -287,30 +302,44 @@ type TableNavProps = {
    current: number;
    total: number;
    onClick?: (page: number) => void;
+   hasLast?: boolean;
 };
 
-const TableNav: React.FC<TableNavProps> = ({ current, total, onClick }: TableNavProps) => {
+const TableNav: React.FC<TableNavProps> = ({
+   current,
+   total,
+   onClick,
+   hasLast = true,
+}: TableNavProps) => {
    const navMap = [
-      { value: 1, Icon: TbChevronsLeft, disabled: current === 1 },
-      { value: current - 1, Icon: TbChevronLeft, disabled: current === 1 },
-      { value: current + 1, Icon: TbChevronRight, disabled: current === total },
-      { value: total, Icon: TbChevronsRight, disabled: current === total },
+      { enabled: true, value: 1, Icon: TbChevronsLeft, disabled: current === 1 },
+      { enabled: true, value: current - 1, Icon: TbChevronLeft, disabled: current === 1 },
+      {
+         enabled: true,
+         value: current + 1,
+         Icon: TbChevronRight,
+         disabled: current === total,
+      },
+      { enabled: hasLast, value: total, Icon: TbChevronsRight, disabled: current === total },
    ] as const;
 
-   return navMap.map((nav, key) => (
-      <button
-         role="button"
-         type="button"
-         key={key}
-         disabled={nav.disabled}
-         className="px-2 py-2 border-muted border rounded-md enabled:link text-lg enabled:hover:bg-primary/5 text-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-         onClick={() => {
-            const page = nav.value;
-            const safePage = page < 1 ? 1 : page > total ? total : page;
-            onClick?.(safePage);
-         }}
-      >
-         <nav.Icon />
-      </button>
-   ));
+   return navMap.map(
+      (nav, key) =>
+         nav.enabled && (
+            <button
+               role="button"
+               type="button"
+               key={key}
+               disabled={nav.disabled}
+               className="px-2 py-2 border-muted border rounded-md enabled:link text-lg enabled:hover:bg-primary/5 text-primary/90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+               onClick={() => {
+                  const page = nav.value;
+                  const safePage = page < 1 ? 1 : page > total ? total : page;
+                  onClick?.(safePage);
+               }}
+            >
+               <nav.Icon />
+            </button>
+         ),
+   );
 };
