@@ -167,6 +167,10 @@ export default {
 
 ### `cloudflareImageOptimization`
 
+<Callout type="info">
+  This plugin doesn't work on the development server, or on workers deployed with a `workers.dev` subdomain. It requires [Cloudflare Image transformations to be enabled](https://developers.cloudflare.com/images/get-started/#enable-transformations-on-your-zone) on your zone.
+</Callout>
+
 A plugin that add Cloudflare Image Optimization to your app's media storage.
 
 ```typescript title="bknd.config.ts"

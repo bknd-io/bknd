@@ -14,10 +14,6 @@ export function useSearch<Schema extends s.Schema = s.Schema>(
 ) {
    const searchString = useWouterSearch();
    const [location, navigate] = useLocation();
-   const [value, setValue] = useState<s.StaticCoerced<Schema>>(
-      options?.defaultValue ?? ({} as any),
-   );
-
    const defaults = useMemo(() => {
       return mergeObject(
          // @ts-ignore
@@ -25,6 +21,7 @@ export function useSearch<Schema extends s.Schema = s.Schema>(
          options?.defaultValue ?? {},
       );
    }, [JSON.stringify({ schema, dflt: options?.defaultValue })]);
+   const [value, setValue] = useState<s.StaticCoerced<Schema>>(defaults);
 
    useEffect(() => {
       const initial =
