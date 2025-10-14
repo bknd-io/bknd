@@ -11,7 +11,7 @@ function createGuard(
 ) {
    const _roles = roles
       ? objectTransform(roles, ({ permissions = [], is_default, implicit_allow }, name) => {
-           return Role.create({ name, permissions, is_default, implicit_allow });
+           return Role.create(name, { permissions, is_default, implicit_allow });
         })
       : {};
    const _permissions = permissionNames.map((name) => new Permission(name));

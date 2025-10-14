@@ -2,7 +2,7 @@ import type { DB, PrimaryFieldType } from "bknd";
 import * as AuthPermissions from "auth/auth-permissions";
 import type { AuthStrategy } from "auth/authenticate/strategies/Strategy";
 import type { PasswordStrategy } from "auth/authenticate/strategies/PasswordStrategy";
-import { $console, secureRandomString, transformObject } from "bknd/utils";
+import { $console, secureRandomString, transformObject, pick } from "bknd/utils";
 import type { Entity, EntityManager } from "data/entities";
 import { em, entity, enumm, type FieldSchema } from "data/prototype";
 import { Module } from "modules/Module";
@@ -211,12 +211,11 @@ export class AppAuth extends Module<AppAuthSchema> {
 
       const strategies = this.authenticator.getStrategies();
       const roles = Object.fromEntries(this.ctx.guard.getRoles().map((r) => [r.name, r.toJSON()]));
-      console.log("roles", roles);
 
       return {
          ...this.config,
          ...this.authenticator.toJSON(secrets),
-         roles: secrets ? roles : undefined,
+         roles,
          strategies: transformObject(strategies, (strategy) => ({
             enabled: this.isStrategyEnabled(strategy),
             ...strategy.toJSON(secrets),

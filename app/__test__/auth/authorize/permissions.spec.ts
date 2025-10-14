@@ -252,7 +252,7 @@ describe("permission middleware", () => {
 
    it("allows if user has (plain) role", async () => {
       const p = new Permission("test");
-      const r = Role.create({ name: "test", permissions: [p.name] });
+      const r = Role.create("test", { permissions: [p.name] });
       const hono = makeApp([p], [r])
          .use(async (c, next) => {
             // @ts-expect-error
@@ -512,7 +512,7 @@ describe("Role", () => {
          true,
       );
       const json = JSON.parse(JSON.stringify(r.toJSON()));
-      const r2 = Role.create(json);
+      const r2 = Role.create(p.name, json);
       expect(r2.toJSON()).toEqual(r.toJSON());
    });
 });
