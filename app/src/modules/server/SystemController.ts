@@ -32,6 +32,7 @@ import { getVersion } from "core/env";
 import type { Module } from "modules/Module";
 import { getSystemMcp } from "modules/mcp/system-mcp";
 import type { DbModuleManager } from "modules/db/DbModuleManager";
+import type { TPermission } from "auth/authorize/Permission";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -46,7 +47,8 @@ export type SchemaResponse = {
    schema: ModuleSchemas;
    readonly: boolean;
    config: ModuleConfigs;
-   permissions: string[];
+   //permissions: string[];
+   permissions: TPermission[];
 };
 
 export class SystemController extends Controller {
@@ -412,8 +414,21 @@ export class SystemController extends Controller {
                readonly,
                schema,
                config: config ? this.app.toJSON(secrets) : undefined,
-               permissions: this.app.modules.ctx().guard.getPermissionNames(),
+               permissions: this.app.modules.ctx().guard.getPermissions(),
+               //permissions: this.app.modules.ctx().guard.getPermissionNames(),
             });
+         },
+      );
+
+      hono.get(
+         "/permissions",
+         describeRoute({
+            summary: "Get the permissions",
+            tags: ["system"],
+         }),
+         (c) => {
+            const permissions = this.app.modules.ctx().guard.getPermissions();
+            return c.json({ permissions });
          },
       );
 

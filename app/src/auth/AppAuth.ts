@@ -61,7 +61,7 @@ export class AppAuth extends Module<AppAuthSchema> {
 
       // register roles
       const roles = transformObject(this.config.roles ?? {}, (role, name) => {
-         return Role.create({ name, ...role });
+         return Role.create(name, role);
       });
       this.ctx.guard.setRoles(Object.values(roles));
       this.ctx.guard.setConfig(this.config.guard ?? {});
@@ -210,10 +210,13 @@ export class AppAuth extends Module<AppAuthSchema> {
       }
 
       const strategies = this.authenticator.getStrategies();
+      const roles = Object.fromEntries(this.ctx.guard.getRoles().map((r) => [r.name, r.toJSON()]));
+      console.log("roles", roles);
 
       return {
          ...this.config,
          ...this.authenticator.toJSON(secrets),
+         roles: secrets ? roles : undefined,
          strategies: transformObject(strategies, (strategy) => ({
             enabled: this.isStrategyEnabled(strategy),
             ...strategy.toJSON(secrets),

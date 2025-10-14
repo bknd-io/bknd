@@ -2,7 +2,8 @@ import { isTypeSchema } from "ui/components/form/json-schema-form/utils";
 import { AnyOfField } from "./AnyOfField";
 import { Field } from "./Field";
 import { FieldWrapper, type FieldwrapperProps } from "./FieldWrapper";
-import { type JSONSchema, useDerivedFieldContext } from "./Form";
+import { type JSONSchema, useDerivedFieldContext, useFormValue } from "./Form";
+import { JsonEditor } from "ui/components/code/JsonEditor";
 
 export type ObjectFieldProps = {
    path?: string;

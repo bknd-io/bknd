@@ -1,6 +1,7 @@
 import { cookieConfig, jwtConfig } from "auth/authenticate/Authenticator";
 import { CustomOAuthStrategy, OAuthStrategy, PasswordStrategy } from "auth/authenticate/strategies";
-import { objectTransform, s } from "bknd/utils";
+import { roleSchema } from "auth/authorize/Role";
+import { objectTransform, omitKeys, pick, s } from "bknd/utils";
 import { $object, $record } from "modules/mcp";
 
 export const Strategies = {
@@ -40,11 +41,8 @@ export type AppAuthCustomOAuthStrategy = s.Static<typeof STRATEGIES.custom_oauth
 const guardConfigSchema = s.object({
    enabled: s.boolean({ default: false }).optional(),
 });
-export const guardRoleSchema = s.strictObject({
-   permissions: s.array(s.string()).optional(),
-   is_default: s.boolean().optional(),
-   implicit_allow: s.boolean().optional(),
-});
+
+export const guardRoleSchema = roleSchema;
 
 export const authConfigSchema = $object(
    "config_auth",

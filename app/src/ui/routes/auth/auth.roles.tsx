@@ -12,8 +12,21 @@ import { CellValue, DataTable } from "../../components/table/DataTable";
 import * as AppShell from "../../layouts/AppShell/AppShell";
 import { routes, useNavigate } from "../../lib/routes";
 import { useBknd } from "ui/client/bknd";
+import { useBrowserTitle } from "ui/hooks/use-browser-title";
+import { Message } from "ui/components/display/Message";
 
-export function AuthRolesList() {
+export function AuthRolesList(props) {
+   useBrowserTitle(["Auth", "Roles"]);
+
+   const { hasSecrets } = useBknd({ withSecrets: true });
+   if (!hasSecrets) {
+      return <Message.MissingPermission what="Auth Roles" />;
+   }
+
+   return <AuthRolesListInternal {...props} />;
+}
+
+function AuthRolesListInternal() {
    const [navigate] = useNavigate();
    const { config, actions } = useBkndAuth();
    const { readonly } = useBknd();
@@ -21,7 +34,7 @@ export function AuthRolesList() {
    const data = Object.values(
       transformObject(config.roles ?? {}, (role, name) => ({
          role: name,
-         permissions: role.permissions,
+         permissions: role.permissions?.map((p) => p.permission) as string[],
          is_default: role.is_default ?? false,
          implicit_allow: role.implicit_allow ?? false,
       })),

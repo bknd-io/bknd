@@ -7,6 +7,13 @@ export const permissionOptionsSchema = s
    })
    .partial();
 
+export type TPermission = {
+   name: string;
+   description?: string;
+   filterable?: boolean;
+   context?: any;
+};
+
 export type PermissionOptions = s.Static<typeof permissionOptionsSchema>;
 export type PermissionContext<P extends Permission<any, any, any, any>> = P extends Permission<
    any,
