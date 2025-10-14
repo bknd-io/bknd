@@ -11,7 +11,7 @@ export type ObjectFieldProps = {
 };
 
 export const ObjectField = ({ path = "", label: _label, wrapperProps = {} }: ObjectFieldProps) => {
-   const { schema, ...ctx } = useDerivedFieldContext(path);
+   const { schema } = useDerivedFieldContext(path);
    if (!isTypeSchema(schema)) return `ObjectField "${path}": no schema`;
    const properties = Object.entries(schema.properties ?? {}) as [string, JSONSchema][];
 
@@ -24,7 +24,7 @@ export const ObjectField = ({ path = "", label: _label, wrapperProps = {} }: Obj
          {...wrapperProps}
       >
          {properties.length === 0 ? (
-            <i className="opacity-50">No properties</i>
+            <ObjectJsonField path={path} />
          ) : (
             properties.map(([prop, schema]) => {
                const name = [path, prop].filter(Boolean).join(".");
@@ -39,4 +39,10 @@ export const ObjectField = ({ path = "", label: _label, wrapperProps = {} }: Obj
          )}
       </FieldWrapper>
    );
+};
+
+export const ObjectJsonField = ({ path }: { path: string }) => {
+   const { value } = useFormValue(path);
+   const { setValue, path: absolutePath } = useDerivedFieldContext(path);
+   return <JsonEditor value={value} onChange={(value) => setValue(absolutePath, value)} />;
 };

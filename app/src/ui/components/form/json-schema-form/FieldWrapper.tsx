@@ -11,6 +11,7 @@ import {
 } from "ui/components/form/json-schema-form/Form";
 import { Popover } from "ui/components/overlay/Popover";
 import { getLabel } from "./utils";
+import { twMerge } from "tailwind-merge";
 
 export type FieldwrapperProps = {
    name: string;
@@ -25,6 +26,7 @@ export type FieldwrapperProps = {
    description?: string;
    descriptionPlacement?: "top" | "bottom";
    fieldId?: string;
+   className?: string;
 };
 
 export function FieldWrapper({
@@ -38,6 +40,7 @@ export function FieldWrapper({
    descriptionPlacement = "bottom",
    children,
    fieldId,
+   className,
    ...props
 }: FieldwrapperProps) {
    const errors = useFormError(name, { strict: true });
@@ -60,7 +63,7 @@ export function FieldWrapper({
       <Formy.Group
          error={errors.length > 0}
          as={wrapper === "fieldset" ? "fieldset" : "div"}
-         className={hidden ? "hidden" : "relative"}
+         className={twMerge(hidden ? "hidden" : "relative", className)}
       >
          {errorPlacement === "top" && Errors}
          <FieldDebug name={name} schema={schema} required={required} />
@@ -76,7 +79,7 @@ export function FieldWrapper({
          )}
          {descriptionPlacement === "top" && Description}
 
-         <div className="flex flex-row gap-2">
+         <div className="flex flex-row flex-grow gap-2">
             <div className="flex flex-1 flex-col gap-3">
                {Children.count(children) === 1 && isValidElement(children)
                   ? cloneElement(children, {

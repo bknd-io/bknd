@@ -72,7 +72,7 @@ const FieldImpl = ({
       );
 
    if (isType(schema.type, "object")) {
-      return <ObjectField path={name} />;
+      return <ObjectField path={name} wrapperProps={props} />;
    }
 
    if (isType(schema.type, "array")) {
