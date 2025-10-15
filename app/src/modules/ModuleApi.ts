@@ -8,6 +8,7 @@ export type BaseModuleApiOptions = {
    host: string;
    basepath?: string;
    token?: string;
+   credentials?: RequestCredentials;
    headers?: Headers;
    token_transport?: "header" | "cookie" | "none";
    verbose?: boolean;
@@ -106,6 +107,7 @@ export abstract class ModuleApi<Options extends BaseModuleApiOptions = BaseModul
 
       const request = new Request(url, {
          ..._init,
+         credentials: this.options.credentials,
          method,
          body,
          headers,

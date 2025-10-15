@@ -4,7 +4,7 @@ import type { AuthResponse, SafeUser, AuthStrategy } from "bknd";
 import { type BaseModuleApiOptions, ModuleApi } from "modules/ModuleApi";
 
 export type AuthApiOptions = BaseModuleApiOptions & {
-   onTokenUpdate?: (token?: string) => void | Promise<void>;
+   onTokenUpdate?: (token?: string, verified?: boolean) => void | Promise<void>;
    credentials?: "include" | "same-origin" | "omit";
 };
 
@@ -17,23 +17,19 @@ export class AuthApi extends ModuleApi<AuthApiOptions> {
    }
 
    async login(strategy: string, input: any) {
-      const res = await this.post<AuthResponse>([strategy, "login"], input, {
-         credentials: this.options.credentials,
-      });
+      const res = await this.post<AuthResponse>([strategy, "login"], input);
 
       if (res.ok && res.body.token) {
-         await this.options.onTokenUpdate?.(res.body.token);
+         await this.options.onTokenUpdate?.(res.body.token, true);
       }
       return res;
    }
 
    async register(strategy: string, input: any) {
-      const res = await this.post<AuthResponse>([strategy, "register"], input, {
-         credentials: this.options.credentials,
-      });
+      const res = await this.post<AuthResponse>([strategy, "register"], input);
 
       if (res.ok && res.body.token) {
-         await this.options.onTokenUpdate?.(res.body.token);
+         await this.options.onTokenUpdate?.(res.body.token, true);
       }
       return res;
    }
@@ -71,6 +67,11 @@ export class AuthApi extends ModuleApi<AuthApiOptions> {
    }
 
    async logout() {
-      await this.options.onTokenUpdate?.(undefined);
+      return this.get(["logout"], undefined, {
+         headers: {
+            // this way bknd detects a json request and doesn't redirect back
+            Accept: "application/json",
+         },
+      }).then(() => this.options.onTokenUpdate?.(undefined, true));
    }
 }
