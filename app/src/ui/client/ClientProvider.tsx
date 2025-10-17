@@ -44,10 +44,9 @@ export const ClientProvider = ({
             ...apiProps,
             verbose: isDebug(),
             onAuthStateChange: (state) => {
-               const { token, ...rest } = state;
                props.onAuthStateChange?.(state);
-               if (!authState?.token || token !== authState?.token) {
-                  setAuthState(rest);
+               if (!authState?.token || state.token !== authState?.token) {
+                  setAuthState(state);
                }
             },
          }),
