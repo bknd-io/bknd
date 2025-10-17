@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it, expectTypeOf } from "bun:test";
 import { Guard } from "../../src/auth/authorize/Guard";
 import { DataApi } from "../../src/data/api/DataApi";
 import { DataController } from "../../src/data/api/DataController";
@@ -7,6 +7,7 @@ import * as proto from "../../src/data/prototype";
 import { schemaToEm } from "../helper";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 import { parse } from "core/utils/schema";
+import type { Generated } from "kysely";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
@@ -218,5 +219,148 @@ describe("DataApi", () => {
          // create with empty
          expect(() => api.createMany("posts", [])).toThrow();
       }
+   });
+
+   describe("types", async () => {
+      const schema = proto.em(
+         {
+            posts: proto.entity("posts", { title: proto.text(), count: proto.number() }),
+            comments: proto.entity("comments", { text: proto.text() }),
+         },
+         (fn, s) => {
+            fn.relation(s.comments).manyToOne(s.posts);
+         },
+      );
+      const em = schemaToEm(schema);
+      await em.schema().sync({ force: true });
+
+      const data = {
+         posts: [
+            { title: "foo", count: 0 },
+            { title: "bar", count: 0 },
+            { title: "baz", count: 0 },
+            { title: "bla", count: 2 },
+         ],
+         comments: [
+            { text: "comment1", posts_id: 1 },
+            { text: "comment2", posts_id: 1 },
+            { text: "comment3", posts_id: 2 },
+         ],
+      };
+
+      const ctx: any = { em, guard: new Guard() };
+      const controller = new DataController(ctx, dataConfig);
+      const app = controller.getController();
+
+      type Posts = {
+         id: Generated<number>;
+         title?: string;
+         count?: number;
+         comments?: Comments[];
+      };
+      type Comments = {
+         id: Generated<number>;
+         text?: string;
+         posts_id?: number;
+         posts?: Posts;
+      };
+      type DB = {
+         posts: Posts;
+         comments: Comments;
+      };
+
+      const api = new DataApi<DB>({ basepath: "/" }, app.request);
+      for (const [entity, payload] of Object.entries(data)) {
+         await api.createMany(entity as any, payload);
+      }
+
+      it("readOne", async () => {
+         const result = await api.readOne("posts", 1);
+         const expected = { id: 1, title: "foo", count: 0 } as any;
+         expect(result.res).toBeInstanceOf(Response);
+         expect(result.data).toEqual(expected);
+         expect(result.body.meta.items).toEqual(1);
+
+         expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Posts | null>();
+
+         {
+            // not found
+            const result = await api.readOne("posts", 0);
+            expect(result.res.status).toEqual(404);
+            expect(result.data).toBeNull();
+            expect(result.body.meta.items).toEqual(0);
+            expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Posts | null>();
+         }
+      });
+
+      it("readOneBy", async () => {
+         const result = await api.readOneBy("posts", { where: { title: "foo" } });
+         const expected = { id: 1, title: "foo", count: 0 } as any;
+         expect(result.res.status).toEqual(200);
+         expect(result.data).toEqual(expected);
+         // @ts-expect-error body data is typed same as data...
+         expect(result.body.data).toEqual([expected]); // should be array
+         expect(result.body.meta.items).toEqual(1);
+         expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Posts | null>();
+
+         {
+            // not found
+            const result = await api.readOneBy("posts", { where: { title: "not found" } });
+            // since we're filtering, the result is okay, but empty
+            expect(result.res.status).toEqual(200);
+            expect(result.data).toBeNull();
+            // @ts-expect-error body data is typed same as data...
+            expect(result.body.data).toEqual([]);
+            expect(result.body.meta.items).toEqual(0);
+            expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Posts | null>();
+         }
+      });
+
+      it("readMany", async () => {
+         const result = await api.readMany("posts", { where: { title: "foo" } });
+         const expected = [{ id: 1, title: "foo", count: 0 }] as any;
+         expect(result.res.status).toEqual(200);
+         expect(result.data).toEqual(expected);
+         expect(result.body.data).toEqual(expected);
+         expect(result.body.meta.items).toEqual(1);
+         expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Posts[]>();
+
+         {
+            // not found
+            const result = await api.readMany("posts", { where: { title: "not found" } });
+            expect(result.res.status).toEqual(200);
+            expect(result.data).toEqual([]);
+            expect(result.body.meta.items).toEqual(0);
+            expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Posts[]>();
+         }
+      });
+
+      it("readManyByReference", async () => {
+         const result = await api.readManyByReference("posts", 1, "comments");
+         const expected = [
+            { id: 1, text: "comment1", posts_id: 1 },
+            { id: 2, text: "comment2", posts_id: 1 },
+         ] as any;
+         expect(result.res.status).toEqual(200);
+         expect(result.data).toEqual(expected);
+         expect(result.body.meta.items).toEqual(2);
+         expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Comments[]>();
+
+         {
+            // empty
+            const result = await api.readManyByReference("posts", 3, "comments");
+            expect(result.res.status).toEqual(200);
+            expect(result.data).toEqual([]);
+            expect(result.body.meta.items).toEqual(0);
+            expectTypeOf<(typeof result)["data"]>().toEqualTypeOf<Comments[]>();
+         }
+
+         {
+            // non existing (expected, since only 1 query is performed)
+            const result = await api.readManyByReference("posts", 100, "comments");
+            expect(result.res.status).toEqual(200);
+            expect(result.data).toEqual([]);
+         }
+      });
    });
 });

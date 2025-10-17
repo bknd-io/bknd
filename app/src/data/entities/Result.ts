@@ -119,7 +119,7 @@ export class Result<T = unknown> {
       const keys = isDebug() ? ["items", "time", "sql", "parameters"] : ["items", "time"];
       const meta = pick(metaRaw, [...keys, ...this.additionalMetaKeys()] as any);
       return {
-         data: this.data,
+         data: this.data ? this.data : ((this.options.single ? null : []) as T),
          meta,
       };
    }

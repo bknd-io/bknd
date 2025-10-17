@@ -5,7 +5,7 @@ import { getChangeSet, getDefaultValues } from "data/helper";
 type EntityFormProps = {
    action: "create" | "update";
    entity: Entity;
-   initialData?: EntityData | null;
+   initialData?: EntityData | object | null;
    onSubmitted?: (changeSet?: EntityData) => Promise<void>;
 };
 
@@ -20,7 +20,7 @@ export function useEntityForm({
    const fields = entity.getFillableFields(action, true);
 
    // filter defaultValues to only contain fillable fields
-   const defaultValues = getDefaultValues(fields, data);
+   const defaultValues = getDefaultValues(fields, data as any);
    //console.log("useEntityForm", { data, defaultValues });
 
    const Form = useForm({

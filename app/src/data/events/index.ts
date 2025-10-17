@@ -4,6 +4,8 @@ import { Event, InvalidEventReturn } from "core/events";
 import type { Entity, EntityData } from "../entities";
 import type { RepoQuery } from "data/server/query";
 
+type PartialEntityData = Omit<EntityData, "id">;
+
 export class MutatorInsertBefore extends Event<{ entity: Entity; data: EntityData }, EntityData> {
    static override slug = "mutator-insert-before";
 
@@ -26,7 +28,7 @@ export class MutatorInsertBefore extends Event<{ entity: Entity; data: EntityDat
 export class MutatorInsertAfter extends Event<{
    entity: Entity;
    data: EntityData;
-   changed: EntityData;
+   changed: PartialEntityData;
 }> {
    static override slug = "mutator-insert-after";
 }
@@ -34,7 +36,7 @@ export class MutatorUpdateBefore extends Event<
    {
       entity: Entity;
       entityId: PrimaryFieldType;
-      data: EntityData;
+      data: PartialEntityData;
    },
    EntityData
 > {
@@ -61,8 +63,8 @@ export class MutatorUpdateBefore extends Event<
 export class MutatorUpdateAfter extends Event<{
    entity: Entity;
    entityId: PrimaryFieldType;
-   data: EntityData;
-   changed: EntityData;
+   data: PartialEntityData;
+   changed: PartialEntityData;
 }> {
    static override slug = "mutator-update-after";
 }
@@ -104,7 +106,7 @@ export class RepositoryFindManyBefore extends Event<{ entity: Entity; options: R
 export class RepositoryFindManyAfter extends Event<{
    entity: Entity;
    options: RepoQuery;
-   data: EntityData;
+   data: EntityData[];
 }> {
    static override slug = "repository-find-many-after";
 }

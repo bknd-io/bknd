@@ -1,4 +1,4 @@
-import { config } from "core/config";
+import { config, type PrimaryFieldType } from "core/config";
 import { snakeToPascalWithSpaces, transformObject, $console, s, parse } from "bknd/utils";
 import {
    type Field,
@@ -25,7 +25,10 @@ export const entityConfigSchema = s
 
 export type EntityConfig = s.Static<typeof entityConfigSchema>;
 
-export type EntityData = Record<string, any>;
+export type EntityData = {
+   id: PrimaryFieldType;
+   [key: string]: any;
+};
 export type EntityJSON = ReturnType<Entity["toJSON"]>;
 
 /**

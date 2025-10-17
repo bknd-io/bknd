@@ -3,13 +3,12 @@ import type {
    PrimaryFieldType,
    EntityData,
    RepoQueryIn,
-   RepositoryResult,
    ResponseObject,
    ModuleApi,
 } from "bknd";
 import { objectTransform, encodeSearch } from "bknd/utils";
-import type { Insertable, Selectable, Updateable } from "kysely";
-import useSWR, { type SWRConfiguration, type SWRResponse, mutate } from "swr";
+import type { Insertable, Updateable } from "kysely";
+import useSWR, { type SWRConfiguration, type SWRResponse, mutate, type KeyedMutator } from "swr";
 import { type Api, useApi } from "ui/client";
 
 export class UseEntityApiError<Payload = any> extends Error {
@@ -33,18 +32,16 @@ interface UseEntityReturn<
    Entity extends keyof DB | string,
    Id extends PrimaryFieldType | undefined,
    Data = Entity extends keyof DB ? DB[Entity] : EntityData,
-   Response = ResponseObject<RepositoryResult<Selectable<Data>>>,
+   Response = ResponseObject<Data>,
 > {
    create: (input: Insertable<Data>) => Promise<Response>;
-   read: (
-      query?: RepoQueryIn,
-   ) => Promise<
-      ResponseObject<RepositoryResult<Id extends undefined ? Selectable<Data>[] : Selectable<Data>>>
-   >;
+   read: (query?: RepoQueryIn) => Promise<ResponseObject<Id extends undefined ? Data[] : Data>>;
    update: Id extends undefined
-      ? (input: Updateable<Data>, id: Id) => Promise<Response>
+      ? (input: Updateable<Data>, id: PrimaryFieldType) => Promise<Response>
       : (input: Updateable<Data>) => Promise<Response>;
-   _delete: Id extends undefined ? (id: Id) => Promise<Response> : () => Promise<Response>;
+   _delete: Id extends undefined
+      ? (id: PrimaryFieldType) => Promise<Response>
+      : () => Promise<Response>;
 }
 
 export const useEntity = <
@@ -60,14 +57,14 @@ export const useEntity = <
    return {
       create: async (input: Insertable<Data>) => {
          const res = await api.createOne(entity, input as any);
-         if (!res.ok) {
+         if (!res.res.ok) {
             throw new UseEntityApiError(res, `Failed to create entity "${entity}"`);
          }
          return res as any;
       },
       read: async (query?: RepoQueryIn) => {
          const res = id ? await api.readOne(entity, id!, query) : await api.readMany(entity, query);
-         if (!res.ok) {
+         if (!res.res.ok) {
             throw new UseEntityApiError(res as any, `Failed to read entity "${entity}"`);
          }
          return res as any;
@@ -78,7 +75,7 @@ export const useEntity = <
             throw new Error("id is required");
          }
          const res = await api.updateOne(entity, _id, input);
-         if (!res.ok) {
+         if (!res.res.ok) {
             throw new UseEntityApiError(res, `Failed to update entity "${entity}"`);
          }
          return res as any;
@@ -90,7 +87,7 @@ export const useEntity = <
          }
 
          const res = await api.deleteOne(entity, _id);
-         if (!res.ok) {
+         if (!res.res.ok) {
             throw new UseEntityApiError(res, `Failed to delete entity "${entity}"`);
          }
          return res as any;
@@ -117,12 +114,12 @@ export function makeKey(
 export interface UseEntityQueryReturn<
    Entity extends keyof DB | string,
    Id extends PrimaryFieldType | undefined = undefined,
-   Data = Entity extends keyof DB ? Selectable<DB[Entity]> : EntityData,
-   Return = Id extends undefined ? ResponseObject<Data[]> : ResponseObject<Data>,
+   Data = DB[Entity],
+   Return = Id extends undefined ? Data[] : Data,
 > extends Omit<SWRResponse<Return>, "mutate">,
       Omit<ReturnType<typeof useEntity<Entity, Id>>, "read"> {
    mutate: (id?: PrimaryFieldType) => Promise<any>;
-   mutateRaw: SWRResponse<Return>["mutate"];
+   mutateRaw: KeyedMutator<Data | Data[]>;
    api: Api["data"];
    key: string;
 }
@@ -169,21 +166,23 @@ export const useEntityQuery = <
       };
    }) as Omit<ReturnType<typeof useEntity<Entity, Id>>, "read">;
 
+   const data = swr.data ? swr.data.data : id ? null : [];
+
    return {
       ...swr,
       ...mapped,
+      data,
       mutate: mutateFn,
-      // @ts-ignore
       mutateRaw: swr.mutate,
       api,
       key,
-   };
+   } as any;
 };
 
 export async function mutateEntityCache<
    Entity extends keyof DB | string,
    Data = Entity extends keyof DB ? DB[Entity] : EntityData,
->(api: Api["data"], entity: Entity, id: PrimaryFieldType, partialData: Partial<Selectable<Data>>) {
+>(api: Api["data"], entity: Entity, id: PrimaryFieldType, partialData: Partial<Data>) {
    function update(prev: any, partialNext: any) {
       if (
          typeof prev !== "undefined" &&
@@ -220,8 +219,8 @@ interface UseEntityMutateReturn<
    Data = Entity extends keyof DB ? DB[Entity] : EntityData,
 > extends Omit<ReturnType<typeof useEntityQuery<Entity, Id>>, "mutate"> {
    mutate: Id extends undefined
-      ? (id: PrimaryFieldType, data: Partial<Selectable<Data>>) => Promise<void>
-      : (data: Partial<Selectable<Data>>) => Promise<void>;
+      ? (id: PrimaryFieldType, data: Partial<Data>) => Promise<void>
+      : (data: Partial<Data>) => Promise<void>;
 }
 
 export const useEntityMutate = <
@@ -239,9 +238,8 @@ export const useEntityMutate = <
    });
 
    const _mutate = id
-      ? (data: Partial<Selectable<Data>>) => mutateEntityCache($q.api, entity, id, data)
-      : (id: PrimaryFieldType, data: Partial<Selectable<Data>>) =>
-           mutateEntityCache($q.api, entity, id, data);
+      ? (data: Partial<Data>) => mutateEntityCache($q.api, entity, id, data)
+      : (id: PrimaryFieldType, data: Partial<Data>) => mutateEntityCache($q.api, entity, id, data);
 
    return {
       ...$q,

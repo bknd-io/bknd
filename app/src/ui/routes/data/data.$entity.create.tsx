@@ -120,7 +120,7 @@ export function DataEntityCreate({ params }) {
                entity={entity}
                handleSubmit={handleSubmit}
                fieldsDisabled={fieldsDisabled}
-               data={search.value}
+               data={search.value as any}
                Form={Form}
                action="create"
                className="flex flex-grow flex-col gap-3 p-3"

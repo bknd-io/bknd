@@ -1,6 +1,7 @@
 /**
  * These are package global defaults.
  */
+import type { EntityData } from "data/entities";
 import type { Generated } from "kysely";
 
 export type PrimaryFieldType<IdType = number | string> = IdType | Generated<IdType>;
@@ -16,7 +17,7 @@ export interface DB {
       [key: string]: any;
    }; */
    // @todo: that's not good, but required for admin options
-   [key: string]: any;
+   [key: string]: EntityData;
 }
 
 export const config = {

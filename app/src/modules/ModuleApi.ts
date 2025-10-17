@@ -167,7 +167,6 @@ export type ResponseObject<Body = any, Data = Body extends { data: infer R } ? R
    data: Data;
    body: Body;
    ok: boolean;
-   status: number;
    toJSON(): Data;
 };
 
@@ -177,10 +176,10 @@ export function createResponseProxy<Body = any, Data = any>(
    data?: Data,
 ): ResponseObject<Body, Data> {
    let actualData: any = typeof data !== "undefined" ? data : body;
-   const _props = ["raw", "body", "ok", "status", "res", "data", "toJSON"];
+   const _props = ["raw", "body", "ok", "res", "data", "toJSON"];
 
    // that's okay, since you have to check res.ok anyway
-   if (typeof actualData !== "object") {
+   if (typeof actualData !== "object" || actualData === null) {
       actualData = {};
    }
 
@@ -190,7 +189,6 @@ export function createResponseProxy<Body = any, Data = any>(
          if (prop === "body") return body;
          if (prop === "data") return data;
          if (prop === "ok") return raw.ok;
-         if (prop === "status") return raw.status;
          if (prop === "toJSON") {
             return () => target;
          }

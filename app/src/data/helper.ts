@@ -16,7 +16,7 @@ export function getDefaultValues(fields: Field[], data: EntityData): EntityData 
 export function getChangeSet(
    action: string,
    formData: EntityData,
-   data: EntityData,
+   data: EntityData | object,
    fields: Field[],
 ): EntityData {
    return transform(

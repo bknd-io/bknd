@@ -180,15 +180,23 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
    private async triggerFindAfter(
       entity: Entity,
       options: RepoQuery,
-      data: EntityData[],
+      data: EntityData | EntityData[],
    ): Promise<void> {
       if (options.limit === 1) {
          await this.emgr.emit(
-            new Repository.Events.RepositoryFindOneAfter({ entity, options, data }),
+            new Repository.Events.RepositoryFindOneAfter({
+               entity,
+               options,
+               data: data as EntityData,
+            }),
          );
       } else {
          await this.emgr.emit(
-            new Repository.Events.RepositoryFindManyAfter({ entity, options, data }),
+            new Repository.Events.RepositoryFindManyAfter({
+               entity,
+               options,
+               data: data as EntityData[],
+            }),
          );
       }
    }

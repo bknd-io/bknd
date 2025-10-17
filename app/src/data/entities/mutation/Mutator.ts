@@ -54,7 +54,7 @@ export class Mutator<
       }
 
       const keys = Object.keys(data as any);
-      const validatedData: EntityData = {};
+      const validatedData: Partial<EntityData> = {};
 
       // get relational references/keys
       const relationMutator = new RelationMutator(entity, this.em);
@@ -101,10 +101,10 @@ export class Mutator<
       return validatedData as Given;
    }
 
-   protected async performQuery<T = EntityData[]>(
+   protected async performQuery<O extends MutatorResultOptions>(
       qb: MutatorQB,
-      opts?: MutatorResultOptions,
-   ): Promise<MutatorResult<T>> {
+      opts?: O,
+   ): Promise<MutatorResult<O extends { single: true } ? EntityData : EntityData[]>> {
       const result = new MutatorResult(this.em, this.entity, {
          silent: false,
          ...opts,
@@ -282,7 +282,7 @@ export class Mutator<
          entity.getSelect(),
       );
 
-      return await this.performQuery(qb);
+      return (await this.performQuery(qb)) as any;
    }
 
    async updateWhere(
@@ -301,7 +301,7 @@ export class Mutator<
          .set(validatedData as any)
          .returning(entity.getSelect());
 
-      return await this.performQuery(query);
+      return (await this.performQuery(query)) as any;
    }
 
    async insertMany(data: Input[]): Promise<MutatorResult<Output[]>> {
@@ -336,6 +336,6 @@ export class Mutator<
          .values(validated)
          .returning(entity.getSelect());
 
-      return await this.performQuery(query);
+      return (await this.performQuery(query)) as any;
    }
 }
