@@ -6,18 +6,23 @@ import {
    guessMimeType,
    type MaybePromise,
    registries as $registries,
+   type Merge,
 } from "bknd";
 import { $console } from "bknd/utils";
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { Manifest } from "vite";
 
-export type BkndConfig<Args = any> = CreateAppConfig & {
-   app?: Omit<BkndConfig, "app"> | ((args: Args) => MaybePromise<Omit<BkndConfig<Args>, "app">>);
-   onBuilt?: (app: App) => MaybePromise<void>;
-   beforeBuild?: (app?: App, registries?: typeof $registries) => MaybePromise<void>;
-   buildConfig?: Parameters<App["build"]>[0];
-};
+export type BkndConfig<Args = any, Additional = {}> = Merge<
+   CreateAppConfig & {
+      app?:
+         | Merge<Omit<BkndConfig, "app"> & Additional>
+         | ((args: Args) => MaybePromise<Merge<Omit<BkndConfig<Args>, "app"> & Additional>>);
+      onBuilt?: (app: App) => MaybePromise<void>;
+      beforeBuild?: (app?: App, registries?: typeof $registries) => MaybePromise<void>;
+      buildConfig?: Parameters<App["build"]>[0];
+   } & Additional
+>;
 
 export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;
 
@@ -51,11 +56,10 @@ export async function makeConfig<Args = DefaultArgs>(
    return { ...rest, ...additionalConfig };
 }
 
-// a map that contains all apps by id
 export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args = DefaultArgs>(
    config: Config = {} as Config,
    args?: Args,
-): Promise<App> {
+): Promise<{ app: App; config: BkndConfig<Args> }> {
    await config.beforeBuild?.(undefined, $registries);
 
    const appConfig = await makeConfig(config, args);
@@ -65,34 +69,37 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
          connection = config.connection;
       } else {
          const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
-         const conf = appConfig.connection ?? { url: ":memory:" };
+         const conf = appConfig.connection ?? { url: "file:data.db" };
          connection = sqlite(conf) as any;
          $console.info(`Using ${connection!.name} connection`, conf.url);
       }
       appConfig.connection = connection;
    }
 
-   return App.create(appConfig);
+   return {
+      app: App.create(appConfig),
+      config: appConfig,
+   };
 }
 
 export async function createFrameworkApp<Args = DefaultArgs>(
    config: FrameworkBkndConfig = {},
    args?: Args,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args);
+   const { app, config: appConfig } = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       if (config.onBuilt) {
          app.emgr.onEvent(
             App.Events.AppBuiltEvent,
             async () => {
-               await config.onBuilt?.(app);
+               await appConfig.onBuilt?.(app);
             },
             "sync",
          );
       }
 
-      await config.beforeBuild?.(app, $registries);
+      await appConfig.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }
 
@@ -103,7 +110,7 @@ export async function createRuntimeApp<Args = DefaultArgs>(
    { serveStatic, adminOptions, ...config }: RuntimeBkndConfig<Args> = {},
    args?: Args,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args);
+   const { app, config: appConfig } = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       app.emgr.onEvent(
@@ -116,7 +123,7 @@ export async function createRuntimeApp<Args = DefaultArgs>(
                app.modules.server.get(path, handler);
             }
 
-            await config.onBuilt?.(app);
+            await appConfig.onBuilt?.(app);
             if (adminOptions !== false) {
                app.registerAdminController(adminOptions);
             }
@@ -124,7 +131,7 @@ export async function createRuntimeApp<Args = DefaultArgs>(
          "sync",
       );
 
-      await config.beforeBuild?.(app, $registries);
+      await appConfig.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }
 
