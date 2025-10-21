@@ -372,7 +372,7 @@ export function isEqual(value1: any, value2: any): boolean {
 export function getPath(
    object: object,
    _path: string | (string | number)[],
-   defaultValue = undefined,
+   defaultValue: any = undefined,
 ): any {
    const path = typeof _path === "string" ? _path.split(/[.\[\]\"]+/).filter((x) => x) : _path;
 
@@ -517,6 +517,7 @@ export function recursivelyReplacePlaceholders(
    obj: any,
    pattern: RegExp,
    variables: Record<string, any>,
+   fallback?: any,
 ) {
    if (typeof obj === "string") {
       // check if the entire string matches the pattern
@@ -524,24 +525,28 @@ export function recursivelyReplacePlaceholders(
       if (match && match[0] === obj && match[1]) {
          // full string match - replace with the actual value (preserving type)
          const key = match[1];
-         const value = getPath(variables, key);
-         return value !== undefined ? value : obj;
+         const value = getPath(variables, key, null);
+         return value !== null ? value : fallback !== undefined ? fallback : obj;
       }
       // partial match - use string replacement
       if (pattern.test(obj)) {
          return obj.replace(pattern, (match, key) => {
-            const value = getPath(variables, key);
+            const value = getPath(variables, key, null);
             // convert to string for partial replacements
-            return value !== undefined ? String(value) : match;
+            return value !== null
+               ? String(value)
+               : fallback !== undefined
+                 ? String(fallback)
+                 : match;
          });
       }
    }
    if (Array.isArray(obj)) {
-      return obj.map((item) => recursivelyReplacePlaceholders(item, pattern, variables));
+      return obj.map((item) => recursivelyReplacePlaceholders(item, pattern, variables, fallback));
    }
    if (obj && typeof obj === "object") {
       return Object.entries(obj).reduce((acc, [key, value]) => {
-         acc[key] = recursivelyReplacePlaceholders(value, pattern, variables);
+         acc[key] = recursivelyReplacePlaceholders(value, pattern, variables, fallback);
          return acc;
       }, {} as object);
    }

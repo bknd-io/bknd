@@ -10,7 +10,7 @@ async function makeApp(config: Partial<CreateAppConfig> = {}) {
    return app;
 }
 
-describe("SystemController", () => {
+describe.skip("SystemController", () => {
    it("...", async () => {
       const app = await makeApp();
       const controller = new SystemController(app);

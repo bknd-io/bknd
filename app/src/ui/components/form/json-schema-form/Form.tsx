@@ -80,6 +80,7 @@ export function Form<
    onInvalidSubmit,
    validateOn = "submit",
    hiddenSubmit = true,
+   beforeSubmit,
    ignoreKeys = [],
    options = {},
    readOnly = false,
@@ -90,6 +91,7 @@ export function Form<
    initialOpts?: LibTemplateOptions;
    ignoreKeys?: string[];
    onChange?: (data: Partial<Data>, name: string, value: any, context: FormContext<Data>) => void;
+   beforeSubmit?: (data: Data) => Data;
    onSubmit?: (data: Data) => void | Promise<void>;
    onInvalidSubmit?: (errors: JsonError[], data: Partial<Data>) => void;
    hiddenSubmit?: boolean;
@@ -177,7 +179,8 @@ export function Form<
    });
 
    const validate = useEvent((_data?: Partial<Data>) => {
-      const actual = _data ?? getCurrentState()?.data;
+      const before = beforeSubmit ?? ((a: any) => a);
+      const actual = before((_data as any) ?? getCurrentState()?.data);
       const errors = lib.validate(actual, schema);
       setFormState((prev) => ({ ...prev, errors }));
       return { data: actual, errors };
@@ -378,5 +381,5 @@ export function FormDebug({ force = false }: { force?: boolean }) {
    if (options?.debug !== true && force !== true) return null;
    const ctx = useFormStateSelector((s) => s);
 
-   return <JsonViewer json={ctx} expand={99} />;
+   return <JsonViewer json={ctx} expand={99} showCopy />;
 }

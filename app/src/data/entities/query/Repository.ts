@@ -1,4 +1,4 @@
-import type { DB as DefaultDB, PrimaryFieldType } from "bknd";
+import type { DB as DefaultDB, EntityRelation, PrimaryFieldType } from "bknd";
 import { $console } from "bknd/utils";
 import { type EmitsEvents, EventManager } from "core/events";
 import { type SelectQueryBuilder, sql } from "kysely";
@@ -280,16 +280,11 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       id: PrimaryFieldType,
       _options?: Partial<Omit<RepoQuery, "where" | "limit" | "offset">>,
    ): Promise<RepositoryResult<TBD[TB] | undefined>> {
-      const { qb, options } = this.buildQuery(
-         {
-            ..._options,
-            where: { [this.entity.getPrimaryField().name]: id },
-            limit: 1,
-         },
-         ["offset", "sort"],
-      );
+      if (typeof id === "undefined" || id === null) {
+         throw new InvalidSearchParamsException("id is required");
+      }
 
-      return this.single(qb, options) as any;
+      return this.findOne({ [this.entity.getPrimaryField().name]: id }, _options);
    }
 
    async findOne(
@@ -315,23 +310,27 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
       return res as any;
    }
 
+   getEntityByReference(reference: string): { entity: Entity; relation: EntityRelation } {
+      const listable_relations = this.em.relations.listableRelationsOf(this.entity);
+      const relation = listable_relations.find((r) => r.ref(reference).reference === reference);
+      if (!relation) {
+         throw new Error(
+            `Relation "${reference}" not found or not listable on entity "${this.entity.name}"`,
+         );
+      }
+      return {
+         entity: relation.other(this.entity).entity,
+         relation,
+      };
+   }
+
    // @todo: add unit tests, specially for many to many
    async findManyByReference(
       id: PrimaryFieldType,
       reference: string,
       _options?: Partial<Omit<RepoQuery, "limit" | "offset">>,
    ): Promise<RepositoryResult<EntityData>> {
-      const entity = this.entity;
-      const listable_relations = this.em.relations.listableRelationsOf(entity);
-      const relation = listable_relations.find((r) => r.ref(reference).reference === reference);
-
-      if (!relation) {
-         throw new Error(
-            `Relation "${reference}" not found or not listable on entity "${entity.name}"`,
-         );
-      }
-
-      const newEntity = relation.other(entity).entity;
+      const { entity: newEntity, relation } = this.getEntityByReference(reference);
       const refQueryOptions = relation.getReferenceQuery(newEntity, id as number, reference);
       if (!("where" in refQueryOptions) || Object.keys(refQueryOptions.where as any).length === 0) {
          throw new Error(

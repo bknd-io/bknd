@@ -54,6 +54,8 @@ export class Permission<
    }
 
    parseContext(ctx: ContextValue, opts?: ParseOptions) {
+      // @todo: allow additional properties
+      if (!this.context) return ctx;
       try {
          return this.context ? parse(this.context!, ctx, opts) : undefined;
       } catch (e) {

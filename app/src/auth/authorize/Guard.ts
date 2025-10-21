@@ -1,5 +1,5 @@
 import { Exception } from "core/errors";
-import { $console, type s } from "bknd/utils";
+import { $console, mergeObject, type s } from "bknd/utils";
 import type { Permission, PermissionContext } from "auth/authorize/Permission";
 import type { Context } from "hono";
 import type { ServerEnv } from "modules/Controller";
@@ -232,41 +232,85 @@ export class Guard {
       });
    }
 
-   getPolicyFilter<P extends Permission<any, any, any, any>>(
+   filters<P extends Permission<any, any, any, any>>(
       permission: P,
       c: GuardContext,
       context: PermissionContext<P>,
-   ): PolicySchema["filter"] | undefined;
-   getPolicyFilter<P extends Permission<any, any, undefined, any>>(
-      permission: P,
-      c: GuardContext,
-   ): PolicySchema["filter"] | undefined;
-   getPolicyFilter<P extends Permission<any, any, any, any>>(
+   );
+   filters<P extends Permission<any, any, undefined, any>>(permission: P, c: GuardContext);
+   filters<P extends Permission<any, any, any, any>>(
       permission: P,
       c: GuardContext,
       context?: PermissionContext<P>,
-   ): PolicySchema["filter"] | undefined {
+   ) {
       if (!permission.isFilterable()) {
-         $console.debug("getPolicyFilter: permission is not filterable, returning undefined");
-         return;
+         throw new GuardPermissionsException(permission, undefined, "Permission is not filterable");
       }
 
-      const { ctx: _ctx, exists, role, rolePermission } = this.collect(permission, c, context);
+      const {
+         ctx: _ctx,
+         exists,
+         role,
+         user,
+         rolePermission,
+      } = this.collect(permission, c, context);
 
       // validate context
-      let ctx = Object.assign({}, _ctx);
+      let ctx = Object.assign(
+         {
+            user,
+         },
+         _ctx,
+      );
+
       if (permission.context) {
-         ctx = permission.parseContext(ctx);
+         ctx = permission.parseContext(ctx, {
+            coerceDropUnknown: false,
+         });
       }
 
+      const filters: PolicySchema["filter"][] = [];
+      const policies: Policy[] = [];
       if (exists && role && rolePermission && rolePermission.policies.length > 0) {
          for (const policy of rolePermission.policies) {
             if (policy.content.effect === "filter") {
                const meets = policy.meetsCondition(ctx);
-               return meets ? policy.content.filter : undefined;
+               if (meets) {
+                  policies.push(policy);
+                  filters.push(policy.getReplacedFilter(ctx));
+               }
             }
          }
       }
-      return;
+
+      const filter = filters.length > 0 ? mergeObject({}, ...filters) : undefined;
+      return {
+         filters,
+         filter,
+         policies,
+         merge: (givenFilter: object | undefined) => {
+            return mergeObject(givenFilter ?? {}, filter ?? {});
+         },
+         matches: (subject: object | object[], opts?: { throwOnError?: boolean }) => {
+            const subjects = Array.isArray(subject) ? subject : [subject];
+            if (policies.length > 0) {
+               for (const policy of policies) {
+                  for (const subject of subjects) {
+                     if (!policy.meetsFilter(subject, ctx)) {
+                        if (opts?.throwOnError) {
+                           throw new GuardPermissionsException(
+                              permission,
+                              policy,
+                              "Policy filter not met",
+                           );
+                        }
+                        return false;
+                     }
+                  }
+               }
+            }
+            return true;
+         },
+      };
    }
 }

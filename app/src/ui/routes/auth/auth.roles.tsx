@@ -35,6 +35,9 @@ function AuthRolesListInternal() {
       transformObject(config.roles ?? {}, (role, name) => ({
          role: name,
          permissions: role.permissions?.map((p) => p.permission) as string[],
+         policies: role.permissions
+            ?.flatMap((p) => p.policies?.length ?? 0)
+            .reduce((acc, curr) => acc + curr, 0),
          is_default: role.is_default ?? false,
          implicit_allow: role.implicit_allow ?? false,
       })),
@@ -106,6 +109,9 @@ function AuthRolesListInternal() {
 const renderValue = ({ value, property }) => {
    if (["is_default", "implicit_allow"].includes(property)) {
       return value ? <span>Yes</span> : <span className="opacity-50">No</span>;
+   }
+   if (property === "policies") {
+      return value ? <span>{value}</span> : <span className="opacity-50">0</span>;
    }
 
    if (property === "permissions") {

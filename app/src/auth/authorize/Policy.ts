@@ -21,8 +21,15 @@ export class Policy<Schema extends PolicySchema = PolicySchema> {
       }) as Schema;
    }
 
-   replace(context: object, vars?: Record<string, any>) {
-      return vars ? recursivelyReplacePlaceholders(context, /^@([a-zA-Z_\.]+)$/, vars) : context;
+   replace(context: object, vars?: Record<string, any>, fallback?: any) {
+      return vars
+         ? recursivelyReplacePlaceholders(context, /^@([a-zA-Z_\.]+)$/, vars, fallback)
+         : context;
+   }
+
+   getReplacedFilter(context: object, fallback?: any) {
+      if (!this.content.filter) return context;
+      return this.replace(this.content.filter!, context, fallback);
    }
 
    meetsCondition(context: object, vars?: Record<string, any>) {

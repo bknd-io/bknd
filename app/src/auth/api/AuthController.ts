@@ -61,7 +61,9 @@ export class AuthController extends Controller {
          hono.post(
             "/create",
             permission(AuthPermissions.createUser, {}),
-            permission(DataPermissions.entityCreate, {}),
+            permission(DataPermissions.entityCreate, {
+               context: (c) => ({ entity: this.auth.config.entity_name }),
+            }),
             describeRoute({
                summary: "Create a new user",
                tags: ["auth"],
@@ -224,7 +226,6 @@ export class AuthController extends Controller {
 
       const roles = Object.keys(this.auth.config.roles ?? {});
       mcp.tool(
-         // @todo: needs permission
          "auth_user_create",
          {
             description: "Create a new user",
@@ -246,7 +247,6 @@ export class AuthController extends Controller {
       );
 
       mcp.tool(
-         // @todo: needs permission
          "auth_user_token",
          {
             description: "Get a user token",
@@ -264,7 +264,6 @@ export class AuthController extends Controller {
       );
 
       mcp.tool(
-         // @todo: needs permission
          "auth_user_password_change",
          {
             description: "Change a user's password",
@@ -286,7 +285,6 @@ export class AuthController extends Controller {
       );
 
       mcp.tool(
-         // @todo: needs permission
          "auth_user_password_test",
          {
             description: "Test a user's password",

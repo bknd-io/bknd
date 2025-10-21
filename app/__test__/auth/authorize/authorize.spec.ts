@@ -152,12 +152,12 @@ describe("authorize", () => {
          expect(() => guard.granted(read, { role: "member", enabled: false })).toThrow();
 
          // get the filter for member role
-         expect(guard.getPolicyFilter(read, { role: "member" })).toEqual({
+         expect(guard.filters(read, { role: "member" }).filter).toEqual({
             type: "member",
          });
 
          // get filter for guest
-         expect(guard.getPolicyFilter(read, {})).toBeUndefined();
+         expect(guard.filters(read, {}).filter).toBeUndefined();
       });
 
       test("guest should only read posts that are public", () => {
@@ -226,7 +226,7 @@ describe("authorize", () => {
          expect(() => guard.granted(read, {}, { entity: "users" })).toThrow();
 
          // and guests can only read public posts
-         expect(guard.getPolicyFilter(read, {}, { entity: "posts" })).toEqual({
+         expect(guard.filters(read, {}, { entity: "posts" }).filter).toEqual({
             public: true,
          });
 
@@ -236,7 +236,7 @@ describe("authorize", () => {
 
          // member should not have a filter
          expect(
-            guard.getPolicyFilter(read, { role: "member" }, { entity: "posts" }),
+            guard.filters(read, { role: "member" }, { entity: "posts" }).filter,
          ).toBeUndefined();
       });
    });

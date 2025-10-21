@@ -122,26 +122,10 @@ describe("Guard", () => {
       const guard = new Guard([p], [r], {
          enabled: true,
       });
-      expect(
-         guard.getPolicyFilter(
-            p,
-            {
-               role: r.name,
-            },
-            { a: 1 },
-         ),
-      ).toEqual({ foo: "bar" });
-      expect(
-         guard.getPolicyFilter(
-            p,
-            {
-               role: r.name,
-            },
-            { a: 2 },
-         ),
-      ).toBeUndefined();
+      expect(guard.filters(p, { role: r.name }, { a: 1 }).filter).toEqual({ foo: "bar" });
+      expect(guard.filters(p, { role: r.name }, { a: 2 }).filter).toBeUndefined();
       // if no user context given, filter cannot be applied
-      expect(guard.getPolicyFilter(p, {}, { a: 1 })).toBeUndefined();
+      expect(guard.filters(p, {}, { a: 1 }).filter).toBeUndefined();
    });
 
    it("collects filters for default role", () => {
@@ -172,26 +156,26 @@ describe("Guard", () => {
       });
 
       expect(
-         guard.getPolicyFilter(
+         guard.filters(
             p,
             {
                role: r.name,
             },
             { a: 1 },
-         ),
+         ).filter,
       ).toEqual({ foo: "bar" });
       expect(
-         guard.getPolicyFilter(
+         guard.filters(
             p,
             {
                role: r.name,
             },
             { a: 2 },
-         ),
+         ).filter,
       ).toBeUndefined();
       // if no user context given, the default role is applied
       // hence it can be found
-      expect(guard.getPolicyFilter(p, {}, { a: 1 })).toEqual({ foo: "bar" });
+      expect(guard.filters(p, {}, { a: 1 }).filter).toEqual({ foo: "bar" });
    });
 });
 

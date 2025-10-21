@@ -2,12 +2,12 @@ import { useBknd } from "ui/client/bknd";
 import { Message } from "ui/components/display/Message";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "ui/lib/routes";
 import { isDebug } from "core/env";
 import { Dropdown } from "ui/components/overlay/Dropdown";
 import { IconButton } from "ui/components/buttons/IconButton";
-import { TbAdjustments, TbDots, TbLock, TbLockOpen, TbLockOpen2 } from "react-icons/tb";
+import { TbAdjustments, TbDots, TbFilter, TbTrash } from "react-icons/tb";
 import { Button } from "ui/components/buttons/Button";
 import { Breadcrumbs2 } from "ui/layouts/AppShell/Breadcrumbs2";
 import { routes } from "ui/lib/routes";
@@ -18,17 +18,23 @@ import { ucFirst, type s } from "bknd/utils";
 import type { ModuleSchemas } from "bknd";
 import {
    ArrayField,
+   CustomField,
    Field,
+   FieldWrapper,
    Form,
+   FormContextOverride,
    FormDebug,
+   ObjectField,
    Subscribe,
+   useDerivedFieldContext,
    useFormContext,
    useFormValue,
 } from "ui/components/form/json-schema-form";
 import type { TPermission } from "auth/authorize/Permission";
 import type { RoleSchema } from "auth/authorize/Role";
-import { SegmentedControl, Tooltip } from "@mantine/core";
+import { Indicator, SegmentedControl, Tooltip } from "@mantine/core";
 import { cn } from "ui/lib/utils";
+import type { PolicySchema } from "auth/authorize/Policy";
 
 export function AuthRolesEdit(props) {
    useBrowserTitle(["Auth", "Roles", props.params.role]);
@@ -66,21 +72,39 @@ function AuthRolesEditInternal({ params }) {
    const { config, schema: authSchema, actions } = useBkndAuth();
    const roleName = params.role;
    const role = config.roles?.[roleName];
-   const { readonly } = useBknd();
+   const { readonly, permissions } = useBknd();
    const schema = getSchema(authSchema);
+   const data = {
+      ...role,
+      // this is to maintain array structure
+      permissions: permissions.map((p) => {
+         return role?.permissions?.find((v: any) => v.permission === p.name);
+      }),
+   };
 
-   async function handleDelete() {}
-   async function handleUpdate(data: any) {
-      console.log("data", data);
-      const success = await actions.roles.patch(roleName, data);
-      console.log("success", success);
-      /* if (success) {
+   async function handleDelete() {
+      const success = await actions.roles.delete(roleName);
+      if (success) {
          navigate(routes.auth.roles.list());
-      } */
+      }
+   }
+   async function handleUpdate(data: any) {
+      await actions.roles.patch(roleName, data);
    }
 
    return (
-      <Form schema={schema as any} initialValues={role} {...formConfig} onSubmit={handleUpdate}>
+      <Form
+         schema={schema as any}
+         initialValues={data}
+         {...formConfig}
+         beforeSubmit={(data) => {
+            return {
+               ...data,
+               permissions: [...Object.values(data.permissions)],
+            };
+         }}
+         onSubmit={handleUpdate}
+      >
          <AppShell.SectionHeader
             right={
                <>
@@ -196,14 +220,21 @@ const Permissions = () => {
 
 const Permission = ({ permission, index }: { permission: TPermission; index?: number }) => {
    const path = `permissions.${index}`;
-   const { value } = useFormValue(path);
+   const { value } = useDerivedFieldContext("permissions", (ctx) => {
+      const v = ctx.value;
+      if (!Array.isArray(v)) return undefined;
+      return v.find((v) => v && v.permission === permission.name);
+   });
    const { setValue, deleteValue } = useFormContext();
    const [open, setOpen] = useState(false);
    const data = value as PermissionData | undefined;
+   const policiesCount = data?.policies?.length ?? 0;
+   const hasContext = !!permission.context;
 
    async function handleSwitch() {
       if (data) {
-         deleteValue(path);
+         setValue(path, undefined);
+         setOpen(false);
       } else {
          setValue(path, {
             permission: permission.name,
@@ -220,34 +251,125 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
             className={cn("flex flex-col border border-muted", open && "border-primary/20")}
          >
             <div className={cn("flex flex-row gap-2 justify-between", open && "bg-primary/5")}>
-               <div className="py-4 px-4 font-mono leading-none">{permission.name}</div>
+               <div className="py-4 px-4 font-mono leading-none flex flex-row gap-2 items-center">
+                  {permission.name}
+                  {permission.filterable && (
+                     <Tooltip label="Permission supports filtering">
+                        <TbFilter className="opacity-50" />
+                     </Tooltip>
+                  )}
+               </div>
+               <div className="flex flex-grow" />
                <div className="flex flex-row gap-1 items-center px-2">
-                  <Formy.Switch size="sm" checked={!!data} onChange={handleSwitch} />
-                  <Tooltip label="Customize" disabled>
+                  <div className="relative flex flex-row gap-1 items-center">
+                     {policiesCount > 0 && (
+                        <div className="bg-primary/80 text-background rounded-full size-5 flex items-center justify-center text-sm font-bold pointer-events-none">
+                           {policiesCount}
+                        </div>
+                     )}
                      <IconButton
                         size="md"
                         variant="ghost"
-                        disabled={!data}
+                        disabled={!data || !hasContext}
                         Icon={TbAdjustments}
-                        className="disabled:opacity-20"
+                        className={cn("disabled:opacity-20", !hasContext && "!opacity-0")}
                         onClick={() => setOpen((o) => !o)}
                      />
-                  </Tooltip>
+                  </div>
+                  <Formy.Switch size="sm" checked={!!data} onChange={handleSwitch} />
                </div>
             </div>
             {open && (
                <div className="px-3.5 py-3.5">
-                  <ArrayField
+                  <Policies path={`permissions.${index}.policies`} permission={permission} />
+                  {/* <ArrayField
                      path={`permissions.${index}.policies`}
                      labelAdd="Add Policy"
                      wrapperProps={{
                         label: false,
                         wrapper: "group",
                      }}
-                  />
+                  /> */}
                </div>
             )}
          </div>
       </>
+   );
+};
+
+const Policies = ({ path, permission }: { path: string; permission: TPermission }) => {
+   const { value: _value } = useFormValue(path);
+   const { setValue, schema: policySchema, lib, deleteValue } = useDerivedFieldContext(path);
+   const value = _value ?? [];
+
+   function handleAdd() {
+      setValue(
+         `${path}.${value.length}`,
+         lib.getTemplate(undefined, policySchema!.items, {
+            addOptionalProps: true,
+         }),
+      );
+   }
+
+   function handleDelete(index: number) {
+      deleteValue(`${path}.${index}`);
+   }
+
+   return (
+      <div className={cn("flex flex-col", value.length > 0 && "gap-8")}>
+         <div className="flex flex-col gap-5">
+            {value.map((policy, i) => (
+               <FormContextOverride key={i} prefix={`${path}.${i}`} schema={policySchema.items!}>
+                  {i > 0 && <div className="h-px bg-muted" />}
+                  <div className="flex flex-row gap-2 items-start">
+                     <div className="flex flex-col flex-grow w-full">
+                        <Policy permission={permission} />
+                     </div>
+                     <IconButton Icon={TbTrash} onClick={() => handleDelete(i)} size="sm" />
+                  </div>
+               </FormContextOverride>
+            ))}
+         </div>
+         <div className="flex flex-row justify-center">
+            <Button onClick={handleAdd}>Add Policy</Button>
+         </div>
+      </div>
+   );
+};
+
+const Policy = ({
+   permission,
+}: {
+   permission: TPermission;
+}) => {
+   const { value } = useFormValue("");
+   return (
+      <div className="flex flex-col gap-2">
+         <Field name="description" />
+         <ObjectField path="condition" wrapperProps={{ wrapper: "group" }} />
+         <CustomField path="effect">
+            {({ value, setValue }) => (
+               <FieldWrapper name="effect" label="Effect">
+                  <SegmentedControl
+                     className="border border-muted"
+                     defaultValue={value}
+                     onChange={(value) => setValue(value)}
+                     data={
+                        ["allow", "deny", permission.filterable ? "filter" : undefined]
+                           .filter(Boolean)
+                           .map((effect) => ({
+                              label: ucFirst(effect ?? ""),
+                              value: effect,
+                           })) as any
+                     }
+                  />
+               </FieldWrapper>
+            )}
+         </CustomField>
+
+         {value?.effect === "filter" && (
+            <ObjectField path="filter" wrapperProps={{ wrapper: "group" }} />
+         )}
+      </div>
    );
 };

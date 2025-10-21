@@ -272,6 +272,7 @@ describe("Core Utils", async () => {
             },
             /^@([a-z\.]+)$/,
             variables7,
+            null,
          );
          expect(result7).toEqual({
             number: 123,
@@ -288,20 +289,85 @@ describe("Core Utils", async () => {
          );
          expect(result8).toEqual({ message: "The value is 123!" });
 
-         // test mixed scenarios
+         // test with fallback parameter
+         const obj9 = { user: "@user.id", config: "@config.theme" };
+         const variables9 = {}; // empty context
          const result9 = utils.recursivelyReplacePlaceholders(
-            {
-               fullMatch: "@test.value", // should preserve number type
-               partialMatch: "Value: @test.value", // should convert to string
-               noMatch: "static text",
-            },
+            obj9,
             /^@([a-z\.]+)$/,
-            variables7,
+            variables9,
+            null,
          );
-         expect(result9).toEqual({
-            fullMatch: 123, // number preserved
-            partialMatch: "Value: @test.value", // no replacement (pattern requires full match)
-            noMatch: "static text",
+         expect(result9).toEqual({ user: null, config: null });
+
+         // test with fallback for partial matches
+         const obj10 = { message: "Hello @user.name, welcome!" };
+         const variables10 = {}; // empty context
+         const result10 = utils.recursivelyReplacePlaceholders(
+            obj10,
+            /@([a-z\.]+)/g,
+            variables10,
+            "Guest",
+         );
+         expect(result10).toEqual({ message: "Hello Guest, welcome!" });
+
+         // test with different fallback types
+         const obj11 = {
+            stringFallback: "@missing.string",
+            numberFallback: "@missing.number",
+            booleanFallback: "@missing.boolean",
+            objectFallback: "@missing.object",
+         };
+         const variables11 = {};
+         const result11 = utils.recursivelyReplacePlaceholders(
+            obj11,
+            /^@([a-z\.]+)$/,
+            variables11,
+            "default",
+         );
+         expect(result11).toEqual({
+            stringFallback: "default",
+            numberFallback: "default",
+            booleanFallback: "default",
+            objectFallback: "default",
+         });
+
+         // test fallback with arrays
+         const obj12 = { items: ["@item1", "@item2", "static"] };
+         const variables12 = { item1: "found" }; // item2 is missing
+         const result12 = utils.recursivelyReplacePlaceholders(
+            obj12,
+            /^@([a-zA-Z0-9\.]+)$/,
+            variables12,
+            "missing",
+         );
+         expect(result12).toEqual({ items: ["found", "missing", "static"] });
+
+         // test fallback with nested objects
+         const obj13 = {
+            user: "@user.id",
+            settings: {
+               theme: "@theme.name",
+               nested: {
+                  value: "@deep.value",
+               },
+            },
+         };
+         const variables13 = {}; // empty context
+         const result13 = utils.recursivelyReplacePlaceholders(
+            obj13,
+            /^@([a-z\.]+)$/,
+            variables13,
+            null,
+         );
+         expect(result13).toEqual({
+            user: null,
+            settings: {
+               theme: null,
+               nested: {
+                  value: null,
+               },
+            },
          });
       });
    });
