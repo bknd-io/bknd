@@ -28,8 +28,9 @@ export const Group = <E extends ElementType = "div">({
    return (
       <Tag
          {...props}
+         data-role="group"
          className={twMerge(
-            "flex flex-col gap-1.5",
+            "flex flex-col gap-1.5 w-full",
             as === "fieldset" && "border border-primary/10 p-3 rounded-md",
             as === "fieldset" && error && "border-red-500",
             error && "text-red-500",

@@ -12,8 +12,21 @@ import { CellValue, DataTable } from "../../components/table/DataTable";
 import * as AppShell from "../../layouts/AppShell/AppShell";
 import { routes, useNavigate } from "../../lib/routes";
 import { useBknd } from "ui/client/bknd";
+import { useBrowserTitle } from "ui/hooks/use-browser-title";
+import { Message } from "ui/components/display/Message";
 
-export function AuthRolesList() {
+export function AuthRolesList(props) {
+   useBrowserTitle(["Auth", "Roles"]);
+
+   const { hasSecrets } = useBknd({ withSecrets: true });
+   if (!hasSecrets) {
+      return <Message.MissingPermission what="Auth Roles" />;
+   }
+
+   return <AuthRolesListInternal {...props} />;
+}
+
+function AuthRolesListInternal() {
    const [navigate] = useNavigate();
    const { config, actions } = useBkndAuth();
    const { readonly } = useBknd();
@@ -21,7 +34,10 @@ export function AuthRolesList() {
    const data = Object.values(
       transformObject(config.roles ?? {}, (role, name) => ({
          role: name,
-         permissions: role.permissions,
+         permissions: role.permissions?.map((p) => p.permission) as string[],
+         policies: role.permissions
+            ?.flatMap((p) => p.policies?.length ?? 0)
+            .reduce((acc, curr) => acc + curr, 0),
          is_default: role.is_default ?? false,
          implicit_allow: role.implicit_allow ?? false,
       })),
@@ -93,6 +109,9 @@ export function AuthRolesList() {
 const renderValue = ({ value, property }) => {
    if (["is_default", "implicit_allow"].includes(property)) {
       return value ? <span>Yes</span> : <span className="opacity-50">No</span>;
+   }
+   if (property === "policies") {
+      return value ? <span>{value}</span> : <span className="opacity-50">0</span>;
    }
 
    if (property === "permissions") {

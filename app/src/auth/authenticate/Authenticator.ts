@@ -6,10 +6,8 @@ import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
 import { type CookieOptions, serializeSigned } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
-import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
-import { s, parse, secret, runtimeSupports, truncate, $console } from "bknd/utils";
-import { $object } from "modules/mcp";
+import { s, parse, secret, runtimeSupports, truncate, $console, pickKeys } from "bknd/utils";
 import type { AuthStrategy } from "./strategies/Strategy";
 
 type Input = any; // workaround
@@ -230,7 +228,7 @@ export class Authenticator<
 
    // @todo: add jwt tests
    async jwt(_user: SafeUser | ProfileExchange): Promise<string> {
-      const user = pick(_user, this.config.jwt.fields);
+      const user = pickKeys(_user, this.config.jwt.fields as any);
 
       const payload: JWTPayload = {
          ...user,
@@ -256,7 +254,7 @@ export class Authenticator<
    }
 
    async safeAuthResponse(_user: User): Promise<AuthResponse> {
-      const user = pick(_user, this.config.jwt.fields) as SafeUser;
+      const user = pickKeys(_user, this.config.jwt.fields as any) as SafeUser;
       return {
          user,
          token: await this.jwt(user),

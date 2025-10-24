@@ -92,6 +92,10 @@ export class AppServer extends Module<AppServerConfig> {
          }
 
          if (err instanceof AuthException) {
+            if (isDebug()) {
+               return c.json(err.toJSON(), err.code);
+            }
+
             return c.json(err.toJSON(), err.getSafeErrorAndCode().code);
          }
 

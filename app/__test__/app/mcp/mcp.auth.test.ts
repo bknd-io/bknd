@@ -201,7 +201,10 @@ describe("mcp auth", async () => {
          },
          return_config: true,
       });
-      expect(addGuestRole.config.guest.permissions).toEqual(["read", "write"]);
+      expect(addGuestRole.config.guest.permissions.map((p) => p.permission)).toEqual([
+         "read",
+         "write",
+      ]);
 
       // update role
       await tool(server, "config_auth_roles_update", {
@@ -210,13 +213,15 @@ describe("mcp auth", async () => {
             permissions: ["read"],
          },
       });
-      expect(app.toJSON().auth.roles?.guest?.permissions).toEqual(["read"]);
+      expect(app.toJSON().auth.roles?.guest?.permissions?.map((p) => p.permission)).toEqual([
+         "read",
+      ]);
 
       // get role
       const getGuestRole = await tool(server, "config_auth_roles_get", {
          key: "guest",
       });
-      expect(getGuestRole.value.permissions).toEqual(["read"]);
+      expect(getGuestRole.value.permissions.map((p) => p.permission)).toEqual(["read"]);
 
       // remove role
       await tool(server, "config_auth_roles_remove", {

@@ -60,7 +60,10 @@ export class AuthController extends Controller {
       if (create) {
          hono.post(
             "/create",
-            permission([AuthPermissions.createUser, DataPermissions.entityCreate]),
+            permission(AuthPermissions.createUser, {}),
+            permission(DataPermissions.entityCreate, {
+               context: (c) => ({ entity: this.auth.config.entity_name }),
+            }),
             describeRoute({
                summary: "Create a new user",
                tags: ["auth"],
@@ -223,7 +226,6 @@ export class AuthController extends Controller {
 
       const roles = Object.keys(this.auth.config.roles ?? {});
       mcp.tool(
-         // @todo: needs permission
          "auth_user_create",
          {
             description: "Create a new user",
@@ -238,14 +240,13 @@ export class AuthController extends Controller {
             }),
          },
          async (params, c) => {
-            await c.context.ctx().helper.throwUnlessGranted(AuthPermissions.createUser, c);
+            await c.context.ctx().helper.granted(c, AuthPermissions.createUser);
 
             return c.json(await this.auth.createUser(params));
          },
       );
 
       mcp.tool(
-         // @todo: needs permission
          "auth_user_token",
          {
             description: "Get a user token",
@@ -255,7 +256,7 @@ export class AuthController extends Controller {
             }),
          },
          async (params, c) => {
-            await c.context.ctx().helper.throwUnlessGranted(AuthPermissions.createToken, c);
+            await c.context.ctx().helper.granted(c, AuthPermissions.createToken);
 
             const user = await getUser(params);
             return c.json({ user, token: await this.auth.authenticator.jwt(user) });
@@ -263,7 +264,6 @@ export class AuthController extends Controller {
       );
 
       mcp.tool(
-         // @todo: needs permission
          "auth_user_password_change",
          {
             description: "Change a user's password",
@@ -274,7 +274,7 @@ export class AuthController extends Controller {
             }),
          },
          async (params, c) => {
-            await c.context.ctx().helper.throwUnlessGranted(AuthPermissions.changePassword, c);
+            await c.context.ctx().helper.granted(c, AuthPermissions.changePassword);
 
             const user = await getUser(params);
             if (!(await this.auth.changePassword(user.id, params.password))) {
@@ -285,7 +285,6 @@ export class AuthController extends Controller {
       );
 
       mcp.tool(
-         // @todo: needs permission
          "auth_user_password_test",
          {
             description: "Test a user's password",
@@ -295,7 +294,7 @@ export class AuthController extends Controller {
             }),
          },
          async (params, c) => {
-            await c.context.ctx().helper.throwUnlessGranted(AuthPermissions.testPassword, c);
+            await c.context.ctx().helper.granted(c, AuthPermissions.testPassword);
 
             const pw = this.auth.authenticator.strategy("password") as PasswordStrategy;
             const controller = pw.getController(this.auth.authenticator);

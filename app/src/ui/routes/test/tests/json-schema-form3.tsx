@@ -56,6 +56,14 @@ const authSchema = {
    },
 } as const satisfies JSONSchema;
 
+const objectCodeSchema = {
+   type: "object",
+   properties: {
+      name: { type: "string" },
+      config: { type: "object", properties: {} },
+   },
+};
+
 const formOptions = {
    debug: true,
 };
@@ -77,6 +85,45 @@ export default function JsonSchemaForm3() {
             {/* <Form schema={_schema.auth.toJSON()} options={formOptions} /> */}
 
             <Form
+               schema={objectCodeSchema as any}
+               options={formOptions}
+               initialValues={{
+                  name: "Peter",
+                  config: {
+                     foo: "bar",
+                  },
+               }}
+            />
+            <Form
+               schema={s
+                  .object({
+                     name: s.string(),
+                     props: s.array(
+                        s.object({
+                           age: s.number(),
+                           config: s.object({}),
+                        }),
+                     ),
+                  })
+                  .toJSON()}
+               options={formOptions}
+               initialValues={{
+                  name: "Peter",
+                  props: [{ age: 20, config: { foo: "bar" } }],
+               }}
+            />
+
+            <Form
+               schema={s
+                  .object({
+                     name: s.string(),
+                     props: s.array(s.anyOf([s.string(), s.number()])),
+                  })
+                  .toJSON()}
+               options={formOptions}
+            />
+
+            {/* <Form
                options={{
                   anyOfNoneSelectedMode: "first",
                   debug: true,
@@ -98,7 +145,7 @@ export default function JsonSchemaForm3() {
                         .optional(),
                   })
                   .toJSON()}
-            />
+            /> */}
 
             {/*<Form
                onChange={(data) => console.log("change", data)}

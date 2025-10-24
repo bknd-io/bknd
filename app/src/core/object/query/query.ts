@@ -1,4 +1,5 @@
 import type { PrimaryFieldType } from "core/config";
+import { getPath, invariant } from "bknd/utils";
 
 export type Primitive = PrimaryFieldType | string | number | boolean;
 export function isPrimitive(value: any): value is Primitive {
@@ -67,8 +68,9 @@ function _convert<Exps extends Expressions>(
    expressions: Exps,
    path: string[] = [],
 ): FilterQuery<Exps> {
+   invariant(typeof $query === "object", "$query must be an object");
    const ExpressionConditionKeys = expressions.map((e) => e.key);
-   const keys = Object.keys($query);
+   const keys = Object.keys($query ?? {});
    const operands = [OperandOr] as const;
    const newQuery: FilterQuery<Exps> = {};
 
@@ -157,7 +159,7 @@ function _build<Exps extends Expressions>(
    // check $and
    for (const [key, value] of Object.entries($and)) {
       for (const [$op, $v] of Object.entries(value)) {
-         const objValue = options.value_is_kv ? key : options.object[key];
+         const objValue = options.value_is_kv ? key : getPath(options.object, key);
          result.$and.push(__validate($op, $v, objValue, [key]));
          result.keys.add(key);
       }
@@ -165,7 +167,7 @@ function _build<Exps extends Expressions>(
 
    // check $or
    for (const [key, value] of Object.entries($or ?? {})) {
-      const objValue = options.value_is_kv ? key : options.object[key];
+      const objValue = options.value_is_kv ? key : getPath(options.object, key);
 
       for (const [$op, $v] of Object.entries(value)) {
          result.$or.push(__validate($op, $v, objValue, [key]));

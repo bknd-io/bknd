@@ -49,7 +49,7 @@ export function useBkndAuth() {
          has_admin: Object.entries(config.auth.roles ?? {}).some(
             ([name, role]) =>
                role.implicit_allow ||
-               minimum_permissions.every((p) => role.permissions?.includes(p)),
+               minimum_permissions.every((p) => role.permissions?.some((p) => p.permission === p)),
          ),
       },
       routes: {

@@ -34,7 +34,11 @@ export const AuthRoleForm = forwardRef<
       getValues,
    } = useForm({
       resolver: standardSchemaResolver(schema),
-      defaultValues: role,
+      defaultValues: {
+         ...role,
+         // compat
+         permissions: role?.permissions?.map((p) => p.permission),
+      },
    });
 
    useImperativeHandle(ref, () => ({
@@ -47,7 +51,7 @@ export const AuthRoleForm = forwardRef<
       <div className="flex flex-col flex-grow px-5 py-5 gap-8">
          <div className="flex flex-col gap-2">
             {/*<h3 className="font-semibold">Role Permissions</h3>*/}
-            <Permissions control={control} permissions={permissions} />
+            <Permissions control={control} permissions={permissions.map((p) => p.name)} />
          </div>
          <div className="flex flex-col gap-4">
             <Input.Wrapper
@@ -111,8 +115,6 @@ const Permissions = ({
       {} as Record<string, string[]>,
    );
 
-   console.log("grouped", grouped);
-   //console.log("fieldState", fieldState, value);
    return (
       <div className="flex flex-col gap-10">
          {Object.entries(grouped).map(([group, permissions]) => {
@@ -121,7 +123,7 @@ const Permissions = ({
                   <h3 className="font-semibold">{ucFirst(group)} Permissions</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
                      {permissions.map((permission) => {
-                        const selected = data.includes(permission);
+                        const selected = data.includes(permission as any);
                         return (
                            <div key={permission} className="flex flex-col border border-muted">
                               <div className="flex flex-row gap-2 justify-between">

@@ -1,6 +1,7 @@
 import type { ConfigUpdateResponse } from "modules/server/SystemController";
 import { ModuleApi } from "./ModuleApi";
 import type { ModuleConfigs, ModuleKey, ModuleSchemas } from "./ModuleManager";
+import type { TPermission } from "auth/authorize/Permission";
 
 export type ApiSchemaResponse = {
    version: number;
@@ -53,5 +54,9 @@ export class SystemApi extends ModuleApi<any> {
 
    removeConfig<Module extends ModuleKey>(module: Module, path: string) {
       return this.delete<ConfigUpdateResponse>(["config", "remove", module, path]);
+   }
+
+   permissions() {
+      return this.get<{ permissions: TPermission[]; context: object }>("permissions");
    }
 }
