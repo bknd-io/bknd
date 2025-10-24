@@ -114,7 +114,7 @@ export class AdminController extends Controller {
             }),
             permission(SystemPermissions.schemaRead, {
                onDenied: async (c) => {
-                  addFlashMessage(c, "You not allowed to read the schema", "warning");
+                  addFlashMessage(c, "You are not allowed to read the schema", "warning");
                },
                context: (c) => ({}),
             }),
