@@ -13,7 +13,7 @@ import { Breadcrumbs2 } from "ui/layouts/AppShell/Breadcrumbs2";
 import { routes } from "ui/lib/routes";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import * as Formy from "ui/components/form/Formy";
-import { ucFirst, s, transformObject, isObject } from "bknd/utils";
+import { ucFirst, s, transformObject, isObject, autoFormatString } from "bknd/utils";
 import type { ModuleSchemas } from "bknd";
 import {
    CustomField,
@@ -357,8 +357,7 @@ const Policies = ({ path, permission }: { path: string; permission: TPermission 
 };
 
 const mergeSchemas = (...schemas: object[]) => {
-   const schema = s.allOf(schemas.filter(Boolean).map(s.fromSchema));
-   return s.toTypes(schema, "Context");
+   return s.allOf(schemas.filter(Boolean).map(s.fromSchema));
 };
 
 function replaceEntitiesEnum(schema: Record<string, any>, entities: string[]) {
@@ -407,7 +406,12 @@ const Policy = ({
             name="condition"
             label="Condition"
             description="The condition that must be met for the policy to be applied."
-            schema={ctx}
+            schema={
+               ctx && {
+                  name: "Context",
+                  content: s.toTypes(ctx, "Context"),
+               }
+            }
          >
             <ObjectJsonField path="condition" />
          </CustomFieldWrapper>
@@ -442,7 +446,12 @@ const Policy = ({
                name="filter"
                label="Filter"
                description="Filter to apply to all queries on met condition."
-               schema={ctx}
+               schema={
+                  ctx && {
+                     name: "Variables",
+                     content: s.toTypes(ctx, "Variables"),
+                  }
+               }
             >
                <ObjectJsonField path="filter" />
             </CustomFieldWrapper>
@@ -451,7 +460,22 @@ const Policy = ({
    );
 };
 
-const CustomFieldWrapper = ({ children, name, label, description, schema }: any) => {
+const CustomFieldWrapper = ({
+   children,
+   name,
+   label,
+   description,
+   schema,
+}: {
+   children: React.ReactNode;
+   name: string;
+   label: string;
+   description: string;
+   schema?: {
+      name: string;
+      content: string | object;
+   };
+}) => {
    const errors = useFormError(name, { strict: true });
    const Errors = errors.length > 0 && (
       <Formy.ErrorMessage>{errors.map((e) => e.message).join(", ")}</Formy.ErrorMessage>
@@ -480,15 +504,16 @@ const CustomFieldWrapper = ({ children, name, label, description, schema }: any)
                      }}
                      position="bottom-end"
                      target={() =>
-                        typeof schema === "object" ? (
+                        typeof schema.content === "object" ? (
                            <JsonViewer
                               className="w-auto max-w-120 bg-background pr-3 text-sm"
-                              json={schema}
+                              json={schema.content}
+                              title={schema.name}
                               expand={5}
                            />
                         ) : (
                            <CodePreview
-                              code={schema}
+                              code={schema.content}
                               lang="typescript"
                               className="w-auto max-w-120 bg-background p-3 text-sm"
                            />
@@ -496,7 +521,7 @@ const CustomFieldWrapper = ({ children, name, label, description, schema }: any)
                      }
                   >
                      <Button variant="ghost" size="smaller" IconLeft={TbCodeDots}>
-                        Context
+                        {autoFormatString(schema.name)}
                      </Button>
                   </Popover>
                </div>
