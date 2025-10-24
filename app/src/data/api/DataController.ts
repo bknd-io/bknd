@@ -15,6 +15,7 @@ import type { AppDataConfig } from "../data-schema";
 import type { EntityManager, EntityData } from "data/entities";
 import * as DataPermissions from "data/permissions";
 import { repoQuery, type RepoQuery } from "data/server/query";
+import { EntityTypescript } from "data/entities/EntityTypescript";
 
 export class DataController extends Controller {
    constructor(
@@ -150,6 +151,20 @@ export class DataController extends Controller {
                $comment: _entity.config.description,
                ...schema,
             });
+         },
+      );
+
+      hono.get(
+         "/types",
+         permission(DataPermissions.entityRead),
+         describeRoute({
+            summary: "Retrieve data typescript definitions",
+            tags: ["data"],
+         }),
+         mcpTool("data_types"),
+         async (c) => {
+            const et = new EntityTypescript(this.em);
+            return c.text(et.toString());
          },
       );
 
