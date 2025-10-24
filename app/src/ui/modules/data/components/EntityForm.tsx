@@ -44,7 +44,7 @@ export function EntityForm({
    className,
    action,
 }: EntityFormProps) {
-   const fields = entity.getFields({ virtual: true, primary: false });
+   const fields = entity.getFillableFields(action, true);
    const options = useEntityAdminOptions(entity, action);
 
    return (
@@ -92,6 +92,10 @@ export function EntityForm({
                   );
                }
 
+               if (!field.isFillable(action)) {
+                  return;
+               }
+
                const _key = `${entity.name}-${field.name}-${key}`;
 
                return (
@@ -123,7 +127,7 @@ export function EntityForm({
                               <EntityFormField
                                  field={field}
                                  fieldApi={props}
-                                 disabled={fieldsDisabled || !field.isFillable(action)}
+                                 disabled={fieldsDisabled}
                                  tabIndex={key + 1}
                                  action={action}
                                  data={data}

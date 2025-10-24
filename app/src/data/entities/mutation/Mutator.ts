@@ -83,10 +83,8 @@ export class Mutator<
          }
 
          // we should never get here, but just to be sure (why?)
-         if (!field.isFillable(context as any)) {
-            throw new Error(
-               `Field "${key}" of entity "${entity.name}" is not fillable on context "${context}"`,
-            );
+         if (!field.isFillable(context)) {
+            throw new Error(`Field "${key}" is not fillable on entity "${entity.name}"`);
          }
 
          // transform from field

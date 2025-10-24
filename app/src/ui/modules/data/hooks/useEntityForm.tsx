@@ -17,7 +17,7 @@ export function useEntityForm({
 }: EntityFormProps) {
    const data = initialData ?? {};
    // @todo: check if virtual must be filtered
-   const fields = entity.getFields({ virtual: true, primary: false });
+   const fields = entity.getFillableFields(action, true);
 
    // filter defaultValues to only contain fillable fields
    const defaultValues = getDefaultValues(fields, data);

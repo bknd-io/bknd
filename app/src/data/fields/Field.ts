@@ -26,19 +26,11 @@ export const baseFieldConfigSchema = s
    .strictObject({
       label: s.string(),
       description: s.string(),
-      required: s.boolean({ default: DEFAULT_REQUIRED }),
-      fillable: s.anyOf(
-         [
-            s.boolean({ title: "Boolean" }),
-            s.array(s.string({ enum: ["create", "update"] }), {
-               title: "Context",
-               uniqueItems: true,
-            }),
-         ],
-         {
-            default: DEFAULT_FILLABLE,
-         },
-      ),
+      required: s.boolean({ default: false }),
+      fillable: s.anyOf([
+         s.boolean({ title: "Boolean" }),
+         s.array(s.string({ enum: ActionContext }), { title: "Context", uniqueItems: true }),
+      ]),
       hidden: s.anyOf([
          s.boolean({ title: "Boolean" }),
          // @todo: tmp workaround
@@ -111,7 +103,7 @@ export abstract class Field<
       return this.config?.default_value;
    }
 
-   isFillable(context?: "create" | "update"): boolean {
+   isFillable(context?: TActionContext): boolean {
       if (Array.isArray(this.config.fillable)) {
          return context ? this.config.fillable.includes(context) : DEFAULT_FILLABLE;
       }
@@ -173,7 +165,7 @@ export abstract class Field<
    // @todo: add field level validation
    isValid(value: any, context: TActionContext): boolean {
       if (typeof value !== "undefined") {
-         return this.isFillable(context as any);
+         return this.isFillable(context);
       } else if (context === "create") {
          return !this.isRequired();
       }
