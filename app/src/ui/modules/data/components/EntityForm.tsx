@@ -301,19 +301,9 @@ function EntityJsonFormField({
                onChange={handleUpdate}
                onBlur={fieldApi.handleBlur}
                minHeight="100"
-               /*required={field.isRequired()}*/
                {...props}
             />
          </Suspense>
-         {/*<Formy.Textarea
-            name={fieldApi.name}
-            id={fieldApi.name}
-            value={fieldApi.state.value}
-            onBlur={fieldApi.handleBlur}
-            onChange={handleUpdate}
-            required={field.isRequired()}
-            {...props}
-         />*/}
       </Formy.Group>
    );
 }
@@ -340,8 +330,8 @@ function EntityEnumFormField({
             {...props}
          >
             {!field.isRequired() && <option value="">- Select -</option>}
-            {field.getOptions().map((option) => (
-               <option key={option.value} value={option.value}>
+            {field.getOptions().map((option, i) => (
+               <option key={`${option.value}-${i}`} value={option.value}>
                   {option.label}
                </option>
             ))}

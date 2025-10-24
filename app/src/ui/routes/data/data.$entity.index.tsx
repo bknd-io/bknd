@@ -61,7 +61,7 @@ function DataEntityListImpl({ params }) {
       (api) =>
          api.data.readMany(entity?.name as any, {
             select: search.value.select,
-            limit: search.value.perPage,
+            limit: search.value.perPage + 1 /* overfetch for softscan=false */,
             offset: (search.value.page - 1) * search.value.perPage,
             sort: `${search.value.sort.dir === "asc" ? "" : "-"}${search.value.sort.by}`,
          }),

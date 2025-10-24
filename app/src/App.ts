@@ -385,6 +385,7 @@ export class App<
             }
          }
       }
+      await this.options?.manager?.onModulesBuilt?.(ctx);
    }
 }
 
