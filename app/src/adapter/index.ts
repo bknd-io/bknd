@@ -154,23 +154,32 @@ export async function createRuntimeApp<Args = DefaultArgs>(
  * });
  * ```
  */
-export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
+export function serveStaticViaImport(opts?: {
+   manifest?: Manifest;
+   appendRaw?: boolean;
+   package?: string;
+}) {
    let files: string[] | undefined;
+   const pkg = opts?.package ?? "bknd";
 
    // @ts-ignore
    return async (c: Context, next: Next) => {
       if (!files) {
          const manifest =
             opts?.manifest ||
-            ((await import("bknd/dist/manifest.json", { with: { type: "json" } }))
-               .default as Manifest);
+            ((
+               await import(/* @vite-ignore */ `${pkg}/dist/manifest.json`, {
+                  with: { type: "json" },
+               })
+            ).default as Manifest);
          files = Object.values(manifest).flatMap((asset) => [asset.file, ...(asset.css || [])]);
       }
 
       const path = c.req.path.substring(1);
       if (files.includes(path)) {
          try {
-            const content = await import(/* @vite-ignore */ `bknd/static/${path}?raw`, {
+            const url = `${pkg}/static/${path}${opts?.appendRaw ? "?raw" : ""}`;
+            const content = await import(/* @vite-ignore */ url, {
                with: { type: "text" },
             }).then((m) => m.default);
 
@@ -183,7 +192,7 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
                });
             }
          } catch (e) {
-            console.error("Error serving static file:", e);
+            console.error(`Error serving static file "${path}":`, String(e));
             return c.text("File not found", 404);
          }
       }

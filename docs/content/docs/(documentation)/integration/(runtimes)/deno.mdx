@@ -1,0 +1,105 @@
+---
+title: "Deno"
+description: "Run bknd inside Deno"
+tags: ["documentation"]
+---
+
+Deno is fully supported as a runtime for bknd. If you plan to solely use the API, the setup is pretty straightforward.
+
+```ts title="main.ts"
+import { createAdapterApp } from "npm:bknd/adapter";
+
+const app = await createAdapterApp({
+   connection: {
+      url: "file:data.db",
+   },
+});
+
+export default {
+   fetch: app.fetch,
+};
+```
+
+## Serve the Admin UI
+
+In order to also serve the static assets of the admin UI, you have 3 choices:
+
+1. Use the `serveStaticViaImport` function to serve the static assets from the `bknd` package directly (requires unstable `raw-imports`).
+2. Copy the static assets to your local project and use Hono's `serveStatic` middleware.
+3. Use the `adminOptions.assetsPath` property to point to a remote address with the static assets.
+
+### `serveStaticViaImport`
+
+The `serveStaticViaImport` function is a middleware that serves the static assets from the `bknd` package directly using dynamic raw imports. It requires the unstable `raw-imports` feature to be enabled. You can enable it by adding the following to your `deno.json`:
+
+```json title="deno.json"
+{
+   "unstable": ["raw-imports"]
+}
+```
+
+Or by using the `--unstable-raw-imports` flag when running your script. Now create a `main.ts` file to serve the API and static assets:
+
+```ts title="main.ts"
+import { createRuntimeApp, serveStaticViaImport } from "bknd/adapter";
+
+const app = await createRuntimeApp({
+   connection: {
+      url: "file:data.db",
+   },
+   serveStatic: serveStaticViaImport()
+});
+
+export default {
+   fetch: app.fetch,
+};
+```
+
+### `serveStatic` from local files
+
+You can also serve the static assets from your local project by using Hono's `serveStatic` middleware. You can do so by copying the static assets to your local project and using the `serveStatic` middleware. First, you have to copy the static assets, by running the following command:
+
+```bash
+deno run npm:bknd copy-assets --out public
+```
+
+This will copy the static assets to the `public` directory and then serve them from there:
+
+```ts title="main.ts"
+import { createRuntimeApp, serveStatic } from "bknd/adapter";
+import { serveStatic } from "npm:hono/deno";
+
+const app = await createRuntimeApp({
+   connection: {
+      url: "file:data.db",
+   },
+   serveStatic: serveStatic({
+      root: "./public",
+   }),
+});
+
+export default {
+   fetch: app.fetch,
+};
+```
+
+### `adminOptions.assetsPath`
+
+You can also use the `adminOptions.assetsPath` property to point to a remote address with the static assets. This is useful in case none of the other methods work for you.
+
+```ts title="main.ts"
+import { createRuntimeApp } from "bknd/adapter";
+
+const app = await createRuntimeApp({
+   connection: {
+      url: "file:data.db",
+   },
+   adminOptions: {
+      assetsPath: "https://...",
+   },
+});
+
+export default {
+   fetch: app.fetch,
+};
+```
