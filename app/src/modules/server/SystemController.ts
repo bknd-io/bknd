@@ -17,6 +17,7 @@ import {
    mcp as mcpMiddleware,
    isNode,
    type McpServer,
+   threw,
 } from "bknd/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
@@ -380,7 +381,11 @@ export class SystemController extends Controller {
          async (c) => {
             const module = c.req.param("module") as ModuleKey | undefined;
             const { config, secrets, fresh } = c.req.valid("query");
-            const readonly = this.app.isReadOnly();
+            const readonly =
+               // either if app is read only in general
+               this.app.isReadOnly() ||
+               // or if user is not allowed to modify the config
+               threw(() => this.ctx.guard.granted(SystemPermissions.configWrite, c, { module }));
 
             if (config) {
                this.ctx.guard.granted(SystemPermissions.configRead, c, {
