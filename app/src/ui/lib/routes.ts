@@ -95,7 +95,7 @@ export function useNavigate() {
                   window.location.href = url;
                   return;
                } else if ("target" in options) {
-                  const _url = window.location.origin + basepath + router.base + url;
+                  const _url = window.location.origin + router.base + url;
                   window.open(_url, options.target);
                   return;
                }

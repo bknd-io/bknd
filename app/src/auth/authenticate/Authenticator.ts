@@ -44,6 +44,7 @@ export interface UserPool {
 const defaultCookieExpires = 60 * 60 * 24 * 7; // 1 week in seconds
 export const cookieConfig = s
    .strictObject({
+      domain: s.string().optional(),
       path: s.string({ default: "/" }),
       sameSite: s.string({ enum: ["strict", "lax", "none"], default: "lax" }),
       secure: s.boolean({ default: true }),
@@ -290,6 +291,7 @@ export class Authenticator<
 
       return {
          ...cookieConfig,
+         domain: cookieConfig.domain ?? undefined,
          expires: new Date(Date.now() + expires * 1000),
       };
    }
@@ -379,7 +381,10 @@ export class Authenticator<
 
    // @todo: move this to a server helper
    isJsonRequest(c: Context): boolean {
-      return c.req.header("Content-Type") === "application/json";
+      return (
+         c.req.header("Content-Type") === "application/json" ||
+         c.req.header("Accept") === "application/json"
+      );
    }
 
    async getBody(c: Context) {

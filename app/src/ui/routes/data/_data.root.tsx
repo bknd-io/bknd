@@ -215,7 +215,9 @@ const EntityContextMenu = ({
             href && {
                icon: IconExternalLink,
                label: "Open in tab",
-               onClick: () => navigate(href, { target: "_blank" }),
+               onClick: () => {
+                  navigate(href, { target: "_blank", absolute: true });
+               },
             },
             separator,
             !$data.system(entity.name).any && {
