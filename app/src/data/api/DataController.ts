@@ -161,7 +161,9 @@ export class DataController extends Controller {
 
       hono.get(
          "/types",
-         permission(DataPermissions.entityRead),
+         permission(SystemPermissions.schemaRead, {
+            context: (c) => ({ module: "data" }),
+         }),
          describeRoute({
             summary: "Retrieve data typescript definitions",
             tags: ["data"],
