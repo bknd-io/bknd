@@ -233,15 +233,19 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
    const { value } = useDerivedFieldContext("permissions", (ctx) => {
       const v = ctx.value;
       if (!Array.isArray(v)) return undefined;
-      return v.find((v) => v && v.permission === permission.name);
+      const v2 = v.find((v) => v && v.permission === permission.name);
+      return {
+         set: !!v2,
+         policies: (v2?.policies?.length ?? 0) as number,
+      };
    });
    const { setValue } = useFormContext();
    const [open, setOpen] = useState(false);
-   const data = value as PermissionData | undefined;
-   const policiesCount = data?.policies?.length ?? 0;
+   const policiesCount = value?.policies ?? 0;
+   const isSet = value?.set ?? false;
 
    async function handleSwitch() {
-      if (data) {
+      if (isSet) {
          setValue(path, undefined);
          setOpen(false);
       } else {
@@ -251,6 +255,10 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
             effect: "allow",
          });
       }
+   }
+
+   function toggleOpen() {
+      setOpen((o) => !o);
    }
 
    return (
@@ -279,13 +287,13 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
                      <IconButton
                         size="md"
                         variant="ghost"
-                        disabled={!data}
+                        disabled={!isSet}
                         Icon={TbAdjustments}
                         className={cn("disabled:opacity-20")}
-                        onClick={() => setOpen((o) => !o)}
+                        onClick={toggleOpen}
                      />
                   </div>
-                  <Formy.Switch size="sm" checked={!!data} onChange={handleSwitch} />
+                  <Formy.Switch size="sm" checked={isSet} onChange={handleSwitch} />
                </div>
             </div>
             {open && (
@@ -299,13 +307,22 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
 };
 
 const Policies = ({ path, permission }: { path: string; permission: TPermission }) => {
-   const { value: _value } = useFormValue(path);
-   const { setValue, schema: policySchema, lib, deleteValue } = useDerivedFieldContext(path);
-   const value = _value ?? [];
+   const {
+      setValue,
+      schema: policySchema,
+      lib,
+      deleteValue,
+      value,
+   } = useDerivedFieldContext(path, ({ value }) => {
+      return {
+         policies: (value?.length ?? 0) as number,
+      };
+   });
+   const policiesCount = value?.policies ?? 0;
 
    function handleAdd() {
       setValue(
-         `${path}.${value.length}`,
+         `${path}.${policiesCount}`,
          lib.getTemplate(undefined, policySchema!.items, {
             addOptionalProps: true,
          }),
@@ -317,19 +334,20 @@ const Policies = ({ path, permission }: { path: string; permission: TPermission 
    }
 
    return (
-      <div className={cn("flex flex-col", value.length > 0 && "gap-8")}>
+      <div className={cn("flex flex-col", policiesCount > 0 && "gap-8")}>
          <div className="flex flex-col gap-5">
-            {value.map((policy, i) => (
-               <FormContextOverride key={i} prefix={`${path}.${i}`} schema={policySchema.items!}>
-                  {i > 0 && <div className="h-px bg-muted" />}
-                  <div className="flex flex-row gap-2 items-start">
-                     <div className="flex flex-col flex-grow w-full">
-                        <Policy permission={permission} />
+            {policiesCount > 0 &&
+               Array.from({ length: policiesCount }).map((_, i) => (
+                  <FormContextOverride key={i} prefix={`${path}.${i}`} schema={policySchema.items!}>
+                     {i > 0 && <div className="h-px bg-muted" />}
+                     <div className="flex flex-row gap-2 items-start">
+                        <div className="flex flex-col flex-grow w-full">
+                           <Policy permission={permission} />
+                        </div>
+                        <IconButton Icon={TbTrash} onClick={() => handleDelete(i)} size="sm" />
                      </div>
-                     <IconButton Icon={TbTrash} onClick={() => handleDelete(i)} size="sm" />
-                  </div>
-               </FormContextOverride>
-            ))}
+                  </FormContextOverride>
+               ))}
          </div>
          <div className="flex flex-row justify-center">
             <Button onClick={handleAdd}>Add Policy</Button>
@@ -366,7 +384,9 @@ const Policy = ({
 }: {
    permission: TPermission;
 }) => {
-   const { value } = useFormValue("");
+   const { value } = useDerivedFieldContext("", ({ value }) => ({
+      effect: (value?.effect ?? "allow") as "allow" | "deny" | "filter",
+   }));
    const $bknd = useBknd();
    const $permissions = useApiQuery((api) => api.system.permissions(), {
       use: [mountOnce],

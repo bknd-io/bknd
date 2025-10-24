@@ -1,6 +1,7 @@
 import { Suspense, lazy, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import type { CodeEditorProps } from "./CodeEditor";
+import { useDebouncedCallback } from "@mantine/hooks";
 const CodeEditor = lazy(() => import("./CodeEditor"));
 
 export type JsonEditorProps = Omit<CodeEditorProps, "value" | "onChange"> & {
@@ -21,13 +22,13 @@ export function JsonEditor({
    const [editorValue, setEditorValue] = useState<string | null | undefined>(
       JSON.stringify(value, null, 2),
    );
-   const handleChange = (given: string) => {
+   const handleChange = useDebouncedCallback((given: string) => {
       const value = given === "" ? (emptyAs === "null" ? null : undefined) : given;
       try {
          setEditorValue(value);
          onChange?.(value ? JSON.parse(value) : value);
       } catch (e) {}
-   };
+   }, 500);
    const handleBlur = (e) => {
       setEditorValue(JSON.stringify(value, null, 2));
       onBlur?.(e);
