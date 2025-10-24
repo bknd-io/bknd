@@ -1,4 +1,4 @@
-import { IconBug } from "@tabler/icons-react";
+import { IconBug, IconInfoCircle } from "@tabler/icons-react";
 import type { JsonSchema } from "json-schema-library";
 import { Children, type ReactElement, type ReactNode, cloneElement, isValidElement } from "react";
 import { IconButton } from "ui/components/buttons/IconButton";
@@ -12,6 +12,7 @@ import {
 import { Popover } from "ui/components/overlay/Popover";
 import { getLabel } from "./utils";
 import { twMerge } from "tailwind-merge";
+import { Tooltip } from "@mantine/core";
 
 export type FieldwrapperProps = {
    name: string;
@@ -24,7 +25,7 @@ export type FieldwrapperProps = {
    children: ReactElement | ReactNode;
    errorPlacement?: "top" | "bottom";
    description?: string;
-   descriptionPlacement?: "top" | "bottom";
+   descriptionPlacement?: "top" | "bottom" | "label";
    fieldId?: string;
    className?: string;
 };
@@ -53,11 +54,17 @@ export function FieldWrapper({
       <Formy.ErrorMessage>{errors.map((e) => e.message).join(", ")}</Formy.ErrorMessage>
    );
 
-   const Description = description && (
-      <Formy.Help className={descriptionPlacement === "top" ? "-mt-1 mb-1" : "mb-2"}>
-         {description}
-      </Formy.Help>
-   );
+   const Description = description ? (
+      ["top", "bottom"].includes(descriptionPlacement) ? (
+         <Formy.Help className={descriptionPlacement === "top" ? "-mt-1 mb-1" : "mb-2"}>
+            {description}
+         </Formy.Help>
+      ) : (
+         <Tooltip label={description}>
+            <IconInfoCircle className="size-4 opacity-50" />
+         </Tooltip>
+      )
+   ) : null;
 
    return (
       <Formy.Group
@@ -72,9 +79,10 @@ export function FieldWrapper({
             <Formy.Label
                as={wrapper === "fieldset" ? "legend" : "label"}
                htmlFor={fieldId}
-               className="self-start"
+               className="self-start flex flex-row gap-1 items-center"
             >
                {label} {required && <span className="font-medium opacity-30">*</span>}
+               {descriptionPlacement === "label" && Description}
             </Formy.Label>
          )}
          {descriptionPlacement === "top" && Description}

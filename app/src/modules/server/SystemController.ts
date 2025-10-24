@@ -69,10 +69,13 @@ export class SystemController extends Controller {
       if (!config.mcp.enabled) {
          return;
       }
+      const { permission } = this.middlewares;
 
       this.registerMcp();
 
-      app.server.use(
+      app.server.all(
+         config.mcp.path,
+         permission(SystemPermissions.mcp, {}),
          mcpMiddleware({
             setup: async () => {
                if (!this._mcpServer) {
@@ -110,7 +113,6 @@ export class SystemController extends Controller {
                explainEndpoint: true,
             },
             endpoint: {
-               path: config.mcp.path as any,
                // @ts-ignore
                _init: isNode() ? { duplex: "half" } : {},
             },
@@ -415,7 +417,6 @@ export class SystemController extends Controller {
                schema,
                config: config ? this.app.toJSON(secrets) : undefined,
                permissions: this.app.modules.ctx().guard.getPermissions(),
-               //permissions: this.app.modules.ctx().guard.getPermissionNames(),
             });
          },
       );
@@ -428,7 +429,7 @@ export class SystemController extends Controller {
          }),
          (c) => {
             const permissions = this.app.modules.ctx().guard.getPermissions();
-            return c.json({ permissions });
+            return c.json({ permissions, context: this.app.module.auth.getGuardContextSchema() });
          },
       );
 

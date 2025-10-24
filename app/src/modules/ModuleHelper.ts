@@ -137,6 +137,6 @@ export class ModuleHelper {
       }
 
       const user = await auth.authenticator?.resolveAuthFromRequest(c.raw as any);
-      this.ctx.guard.granted(permission, { user }, context as any);
+      this.ctx.guard.granted(permission, user as any, context as any);
    }
 }

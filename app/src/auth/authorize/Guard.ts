@@ -125,7 +125,7 @@ export class Guard {
       return this.config?.enabled === true;
    }
 
-   private collect(permission: Permission, c: GuardContext, context: any) {
+   private collect(permission: Permission, c: GuardContext | undefined, context: any) {
       const user = c && "get" in c ? c.get("auth")?.user : c;
       const ctx = {
          ...((context ?? {}) as any),
@@ -181,15 +181,15 @@ export class Guard {
       }
 
       if (!role) {
-         $console.debug("guard: user has no role, denying");
          throw new GuardPermissionsException(permission, undefined, "User has no role");
-      } else if (role.implicit_allow === true) {
-         $console.debug(`guard: role "${role.name}" has implicit allow, allowing`);
-         return;
       }
 
       if (!rolePermission) {
-         $console.debug("guard: rolePermission not found, denying");
+         if (role.implicit_allow === true) {
+            $console.debug(`guard: role "${role.name}" has implicit allow, allowing`);
+            return;
+         }
+
          throw new GuardPermissionsException(
             permission,
             undefined,

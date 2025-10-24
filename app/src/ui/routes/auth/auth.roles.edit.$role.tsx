@@ -7,34 +7,36 @@ import { useNavigate } from "ui/lib/routes";
 import { isDebug } from "core/env";
 import { Dropdown } from "ui/components/overlay/Dropdown";
 import { IconButton } from "ui/components/buttons/IconButton";
-import { TbAdjustments, TbDots, TbFilter, TbTrash } from "react-icons/tb";
+import { TbAdjustments, TbDots, TbFilter, TbTrash, TbInfoCircle, TbCodeDots } from "react-icons/tb";
 import { Button } from "ui/components/buttons/Button";
 import { Breadcrumbs2 } from "ui/layouts/AppShell/Breadcrumbs2";
 import { routes } from "ui/lib/routes";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import * as Formy from "ui/components/form/Formy";
-
-import { ucFirst, type s } from "bknd/utils";
+import { ucFirst, s, transformObject, isObject } from "bknd/utils";
 import type { ModuleSchemas } from "bknd";
 import {
-   ArrayField,
    CustomField,
    Field,
    FieldWrapper,
    Form,
    FormContextOverride,
    FormDebug,
-   ObjectField,
+   ObjectJsonField,
    Subscribe,
    useDerivedFieldContext,
    useFormContext,
+   useFormError,
    useFormValue,
 } from "ui/components/form/json-schema-form";
 import type { TPermission } from "auth/authorize/Permission";
 import type { RoleSchema } from "auth/authorize/Role";
-import { Indicator, SegmentedControl, Tooltip } from "@mantine/core";
+import { SegmentedControl, Tooltip } from "@mantine/core";
+import { Popover } from "ui/components/overlay/Popover";
 import { cn } from "ui/lib/utils";
-import type { PolicySchema } from "auth/authorize/Policy";
+import { JsonViewer } from "ui/components/code/JsonViewer";
+import { mountOnce, useApiQuery } from "ui/client";
+import { CodePreview } from "ui/components/code/CodePreview";
 
 export function AuthRolesEdit(props) {
    useBrowserTitle(["Auth", "Roles", props.params.role]);
@@ -67,7 +69,7 @@ const formConfig = {
    },
 };
 
-function AuthRolesEditInternal({ params }) {
+function AuthRolesEditInternal({ params }: { params: { role: string } }) {
    const [navigate] = useNavigate();
    const { config, schema: authSchema, actions } = useBkndAuth();
    const roleName = params.role;
@@ -225,11 +227,10 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
       if (!Array.isArray(v)) return undefined;
       return v.find((v) => v && v.permission === permission.name);
    });
-   const { setValue, deleteValue } = useFormContext();
+   const { setValue } = useFormContext();
    const [open, setOpen] = useState(false);
    const data = value as PermissionData | undefined;
    const policiesCount = data?.policies?.length ?? 0;
-   const hasContext = !!permission.context;
 
    async function handleSwitch() {
       if (data) {
@@ -270,9 +271,9 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
                      <IconButton
                         size="md"
                         variant="ghost"
-                        disabled={!data || !hasContext}
+                        disabled={!data}
                         Icon={TbAdjustments}
-                        className={cn("disabled:opacity-20", !hasContext && "!opacity-0")}
+                        className={cn("disabled:opacity-20")}
                         onClick={() => setOpen((o) => !o)}
                      />
                   </div>
@@ -282,14 +283,6 @@ const Permission = ({ permission, index }: { permission: TPermission; index?: nu
             {open && (
                <div className="px-3.5 py-3.5">
                   <Policies path={`permissions.${index}.policies`} permission={permission} />
-                  {/* <ArrayField
-                     path={`permissions.${index}.policies`}
-                     labelAdd="Add Policy"
-                     wrapperProps={{
-                        label: false,
-                        wrapper: "group",
-                     }}
-                  /> */}
                </div>
             )}
          </div>
@@ -337,19 +330,68 @@ const Policies = ({ path, permission }: { path: string; permission: TPermission 
    );
 };
 
+const mergeSchemas = (...schemas: object[]) => {
+   const schema = s.allOf(schemas.filter(Boolean).map(s.fromSchema));
+   return s.toTypes(schema, "Context");
+};
+
+function replaceEntitiesEnum(schema: Record<string, any>, entities: string[]) {
+   if (!isObject(schema) || !Array.isArray(entities) || entities.length === 0) return schema;
+   return transformObject(schema, (sub, name) => {
+      if (name === "properties") {
+         return transformObject(sub as Record<string, any>, (propConfig, propKey) => {
+            if (propKey === "entity" && propConfig.type === "string") {
+               return {
+                  ...propConfig,
+                  enum: entities,
+               };
+            }
+            return propConfig;
+         });
+      }
+      return sub;
+   });
+}
+
 const Policy = ({
    permission,
 }: {
    permission: TPermission;
 }) => {
    const { value } = useFormValue("");
+   const $bknd = useBknd();
+   const $permissions = useApiQuery((api) => api.system.permissions(), {
+      use: [mountOnce],
+   });
+   const entities = Object.keys($bknd.config.data.entities ?? {});
+   const ctx = $permissions.data
+      ? mergeSchemas(
+           $permissions.data.context,
+           replaceEntitiesEnum(permission.context ?? null, entities),
+        )
+      : undefined;
+
    return (
       <div className="flex flex-col gap-2">
          <Field name="description" />
-         <ObjectField path="condition" wrapperProps={{ wrapper: "group" }} />
+
+         <CustomFieldWrapper
+            name="condition"
+            label="Condition"
+            description="The condition that must be met for the policy to be applied."
+            schema={ctx}
+         >
+            <ObjectJsonField path="condition" />
+         </CustomFieldWrapper>
+
          <CustomField path="effect">
             {({ value, setValue }) => (
-               <FieldWrapper name="effect" label="Effect">
+               <FieldWrapper
+                  name="effect"
+                  label="Effect"
+                  descriptionPlacement="label"
+                  description="The effect of the policy to take effect on met condition."
+               >
                   <SegmentedControl
                      className="border border-muted"
                      defaultValue={value}
@@ -368,8 +410,72 @@ const Policy = ({
          </CustomField>
 
          {value?.effect === "filter" && (
-            <ObjectField path="filter" wrapperProps={{ wrapper: "group" }} />
+            <CustomFieldWrapper
+               name="filter"
+               label="Filter"
+               description="Filter to apply to all queries on met condition."
+               schema={ctx}
+            >
+               <ObjectJsonField path="filter" />
+            </CustomFieldWrapper>
          )}
       </div>
+   );
+};
+
+const CustomFieldWrapper = ({ children, name, label, description, schema }: any) => {
+   const errors = useFormError(name, { strict: true });
+   const Errors = errors.length > 0 && (
+      <Formy.ErrorMessage>{errors.map((e) => e.message).join(", ")}</Formy.ErrorMessage>
+   );
+
+   return (
+      <Formy.Group as="div">
+         <Formy.Label
+            as="label"
+            htmlFor={name}
+            className="flex flex-row gap-1 justify-between items-center"
+         >
+            <div className="flex flex-row gap-1 items-center">
+               {label}
+               {description && (
+                  <Tooltip label={description}>
+                     <TbInfoCircle className="size-4 opacity-50" />
+                  </Tooltip>
+               )}
+            </div>
+            {schema && (
+               <div>
+                  <Popover
+                     overlayProps={{
+                        className: "max-w-none",
+                     }}
+                     position="bottom-end"
+                     target={() =>
+                        typeof schema === "object" ? (
+                           <JsonViewer
+                              className="w-auto max-w-120 bg-background pr-3 text-sm"
+                              json={schema}
+                              expand={5}
+                           />
+                        ) : (
+                           <CodePreview
+                              code={schema}
+                              lang="typescript"
+                              className="w-auto max-w-120 bg-background p-3 text-sm"
+                           />
+                        )
+                     }
+                  >
+                     <Button variant="ghost" size="smaller" IconLeft={TbCodeDots}>
+                        Context
+                     </Button>
+                  </Popover>
+               </div>
+            )}
+         </Formy.Label>
+         {children}
+         {Errors}
+      </Formy.Group>
    );
 };
