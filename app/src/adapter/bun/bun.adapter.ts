@@ -12,7 +12,7 @@ export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOpt
 
 export async function createApp<Env = BunEnv>(
    { distPath, serveStatic: _serveStatic, ...config }: BunBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = Bun.env as Env,
 ) {
    const root = path.resolve(distPath ?? "./node_modules/bknd/dist", "static");
    registerLocalMediaAdapter();
@@ -26,18 +26,18 @@ export async function createApp<Env = BunEnv>(
             }),
          ...config,
       },
-      args ?? (process.env as Env),
+      args,
    );
 }
 
 export function createHandler<Env = BunEnv>(
    config: BunBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = Bun.env as Env,
 ) {
    let app: App | undefined;
    return async (req: Request) => {
       if (!app) {
-         app = await createApp(config, args ?? (process.env as Env));
+         app = await createApp(config, args);
       }
       return app.fetch(req);
    };
@@ -54,9 +54,10 @@ export function serve<Env = BunEnv>(
       buildConfig,
       adminOptions,
       serveStatic,
+      beforeBuild,
       ...serveOptions
    }: BunBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = Bun.env as Env,
 ) {
    Bun.serve({
       ...serveOptions,
@@ -71,6 +72,7 @@ export function serve<Env = BunEnv>(
             adminOptions,
             distPath,
             serveStatic,
+            beforeBuild,
          },
          args,
       ),

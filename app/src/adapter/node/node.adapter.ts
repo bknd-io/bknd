@@ -17,7 +17,7 @@ export type NodeBkndConfig<Env = NodeEnv> = RuntimeBkndConfig<Env> & {
 
 export async function createApp<Env = NodeEnv>(
    { distPath, relativeDistPath, ...config }: NodeBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = process.env as Env,
 ) {
    const root = path.relative(
       process.cwd(),
@@ -33,19 +33,18 @@ export async function createApp<Env = NodeEnv>(
          serveStatic: serveStatic({ root }),
          ...config,
       },
-      // @ts-ignore
-      args ?? { env: process.env },
+      args,
    );
 }
 
 export function createHandler<Env = NodeEnv>(
    config: NodeBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = process.env as Env,
 ) {
    let app: App | undefined;
    return async (req: Request) => {
       if (!app) {
-         app = await createApp(config, args ?? (process.env as Env));
+         app = await createApp(config, args);
       }
       return app.fetch(req);
    };
@@ -53,7 +52,7 @@ export function createHandler<Env = NodeEnv>(
 
 export function serve<Env = NodeEnv>(
    { port = $config.server.default_port, hostname, listener, ...config }: NodeBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = process.env as Env,
 ) {
    honoServe(
       {

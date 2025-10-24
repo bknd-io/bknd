@@ -70,6 +70,9 @@ export class DbModuleManager extends ModuleManager {
    private readonly _booted_with?: "provided" | "partial";
    private _stable_configs: ModuleConfigs | undefined;
 
+   // config used when syncing database
+   public buildSyncConfig: { force?: boolean; drop?: boolean } = { force: true };
+
    constructor(connection: Connection, options?: Partial<ModuleManagerOptions>) {
       let initial = {} as InitialModuleConfigs;
       let booted_with = "partial" as any;
@@ -393,7 +396,7 @@ export class DbModuleManager extends ModuleManager {
 
                const version_before = this.version();
                const [_version, _configs] = await migrate(version_before, result.configs.json, {
-                  db: this.db
+                  db: this.db,
                });
 
                this._version = _version;
@@ -463,7 +466,7 @@ export class DbModuleManager extends ModuleManager {
             this.logger.log("db sync requested");
 
             // sync db
-            await ctx.em.schema().sync({ force: true });
+            await ctx.em.schema().sync(this.buildSyncConfig);
             state.synced = true;
 
             // save
