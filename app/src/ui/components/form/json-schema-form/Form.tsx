@@ -130,7 +130,7 @@ export function Form<
             if (errors.length === 0) {
                await onSubmit(data as Data);
             } else {
-               console.log("invalid", errors);
+               console.error("form: invalid", { data, errors });
                onInvalidSubmit?.(errors, data);
             }
          } catch (e) {

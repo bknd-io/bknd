@@ -203,14 +203,17 @@ export class Guard {
          // set the default effect of the role permission
          let allowed = rolePermission.effect === "allow";
          for (const policy of rolePermission.policies) {
+            $console.debug("guard: checking policy", { policy: policy.toJSON(), ctx });
             // skip filter policies
             if (policy.content.effect === "filter") continue;
 
             // if condition is met, check the effect
             const meets = policy.meetsCondition(ctx);
             if (meets) {
+               $console.debug("guard: policy meets condition");
                // if deny, then break early
                if (policy.content.effect === "deny") {
+                  $console.debug("guard: policy is deny, setting allowed to false");
                   allowed = false;
                   break;
 
@@ -218,6 +221,8 @@ export class Guard {
                } else if (policy.content.effect === "allow") {
                   allowed = true;
                }
+            } else {
+               $console.debug("guard: policy does not meet condition");
             }
          }
 

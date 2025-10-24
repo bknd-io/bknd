@@ -37,6 +37,8 @@ import { cn } from "ui/lib/utils";
 import { JsonViewer } from "ui/components/code/JsonViewer";
 import { mountOnce, useApiQuery } from "ui/client";
 import { CodePreview } from "ui/components/code/CodePreview";
+import type { JsonError } from "json-schema-library";
+import { Alert } from "ui/components/display/Alert";
 
 export function AuthRolesEdit(props) {
    useBrowserTitle(["Auth", "Roles", props.params.role]);
@@ -72,6 +74,7 @@ const formConfig = {
 function AuthRolesEditInternal({ params }: { params: { role: string } }) {
    const [navigate] = useNavigate();
    const { config, schema: authSchema, actions } = useBkndAuth();
+   const [error, setError] = useState<JsonError[]>();
    const roleName = params.role;
    const role = config.roles?.[roleName];
    const { readonly, permissions } = useBknd();
@@ -91,6 +94,7 @@ function AuthRolesEditInternal({ params }: { params: { role: string } }) {
       }
    }
    async function handleUpdate(data: any) {
+      setError(undefined);
       await actions.roles.patch(roleName, data);
    }
 
@@ -102,10 +106,13 @@ function AuthRolesEditInternal({ params }: { params: { role: string } }) {
          beforeSubmit={(data) => {
             return {
                ...data,
-               permissions: [...Object.values(data.permissions)],
+               permissions: [...Object.values(data.permissions).filter(Boolean)],
             };
          }}
          onSubmit={handleUpdate}
+         onInvalidSubmit={(errors) => {
+            setError(errors);
+         }}
       >
          <AppShell.SectionHeader
             right={
@@ -160,6 +167,7 @@ function AuthRolesEditInternal({ params }: { params: { role: string } }) {
             />
          </AppShell.SectionHeader>
          <AppShell.Scrollable>
+            {error && <Alert.Exception message={"Invalid form data"} />}
             <div className="flex flex-col flex-grow px-5 py-5 gap-8">
                <div className="flex flex-col gap-2">
                   <Permissions />
