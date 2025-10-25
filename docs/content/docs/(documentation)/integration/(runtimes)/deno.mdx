@@ -4,6 +4,20 @@ description: "Run bknd inside Deno"
 tags: ["documentation"]
 ---
 
+## Installation
+
+To get started with Deno and bknd you can either install the package manually, and follow the descriptions below, or use the CLI starter:
+
+### CLI Starter
+
+Create a new Deno CLI starter project by running the following command:
+
+```sh
+deno run npm:bknd create -i deno
+```
+
+### Manual
+
 Deno is fully supported as a runtime for bknd. If you plan to solely use the API, the setup is pretty straightforward.
 
 ```ts title="main.ts"
@@ -24,7 +38,7 @@ export default {
 
 In order to also serve the static assets of the admin UI, you have 3 choices:
 
-1. Use the `serveStaticViaImport` function to serve the static assets from the `bknd` package directly (requires unstable `raw-imports`).
+1. Use the `serveStaticViaImport` function to serve the static assets from the `bknd` package directly. Requires unstable `raw-imports`, but it's the easiest way to serve the static assets.
 2. Copy the static assets to your local project and use Hono's `serveStatic` middleware.
 3. Use the `adminOptions.assetsPath` property to point to a remote address with the static assets.
 
@@ -54,6 +68,28 @@ export default {
    fetch: app.fetch,
 };
 ```
+
+In case you don't want to point your bknd dependency to the latest version, either add an `imports` section to your `deno.json` file:
+
+```json title="deno.json"
+{
+   "imports": {
+      "bknd": "npm:bknd@<VERSION>" // [!code highlight]
+   }
+}
+```
+
+Or specify the package with the version specified to the `serveStaticViaImport` function:
+
+```ts
+const app = await createRuntimeApp({
+   serveStatic: serveStaticViaImport({
+      package: "bknd@<VERSION>", // [!code highlight]
+   }),
+});
+```
+
+Replace `<VERSION>` with the version you want to use.
 
 ### `serveStatic` from local files
 
