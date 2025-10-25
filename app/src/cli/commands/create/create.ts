@@ -10,6 +10,7 @@ import color from "picocolors";
 import { overridePackageJson, updateBkndPackages } from "./npm";
 import { type Template, templates, type TemplateSetupCtx } from "./templates";
 import { createScoped, flush } from "cli/utils/telemetry";
+import path from "node:path";
 
 const config = {
    types: {
@@ -260,15 +261,17 @@ async function action(options: {
       }
    }
 
-   // update package name
-   await overridePackageJson(
-      (pkg) => ({
-         ...pkg,
-         name: ctx.name,
-      }),
-      { dir: ctx.dir },
-   );
-   $p.log.success(`Updated package name to ${color.cyan(ctx.name)}`);
+   // update package name if there is a package.json
+   if (fs.existsSync(path.resolve(ctx.dir, "package.json"))) {
+      await overridePackageJson(
+         (pkg) => ({
+            ...pkg,
+            name: ctx.name,
+         }),
+         { dir: ctx.dir },
+      );
+      $p.log.success(`Updated package name to ${color.cyan(ctx.name)}`);
+   }
 
    if (template.installDeps !== false) {
       const install =
