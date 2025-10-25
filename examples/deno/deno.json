@@ -1,0 +1,8 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "bknd": "npm:bknd@0.19.0-rc.1"
+  },
+  "links": ["../../app/"],
+  "unstable": ["raw-imports"]
+}

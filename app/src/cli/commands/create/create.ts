@@ -20,6 +20,7 @@ const config = {
       node: "Node.js",
       bun: "Bun",
       cloudflare: "Cloudflare",
+      deno: "Deno",
       aws: "AWS Lambda",
    },
    framework: {
@@ -269,7 +270,7 @@ async function action(options: {
    );
    $p.log.success(`Updated package name to ${color.cyan(ctx.name)}`);
 
-   {
+   if (template.installDeps !== false) {
       const install =
          options.yes ??
          (await $p.confirm({
