@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { makeValidator, exp, Expression, isPrimitive, type Primitive } from "./query";
+import {
+   makeValidator,
+   exp,
+   Expression,
+   isPrimitive,
+   type Primitive,
+} from "../../../src/core/object/query/query";
 
 describe("query", () => {
    test("isPrimitive", () => {
