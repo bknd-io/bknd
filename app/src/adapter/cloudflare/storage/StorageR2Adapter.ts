@@ -177,7 +177,10 @@ export class StorageR2Adapter extends StorageAdapter {
    }
 
    protected getKey(key: string) {
-      return `${this.keyPrefix}/${key}`.replace(/^\/\//, "/");
+      if (this.keyPrefix.length > 0) {
+         return `${this.keyPrefix}/${key}`.replace(/^\/\//, "/");
+      }
+      return key;
    }
 
    toJSON(secrets?: boolean) {
