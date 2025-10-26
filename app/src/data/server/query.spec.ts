@@ -1,6 +1,8 @@
 import { test, describe, expect } from "bun:test";
 import * as q from "./query";
 import { parse as $parse, type ParseOptions } from "bknd/utils";
+import type { PrimaryFieldType } from "modules";
+import type { Generated } from "kysely";
 
 const parse = (v: unknown, o: ParseOptions = {}) =>
    $parse(q.repoQuery, v, {
@@ -185,5 +187,36 @@ describe("server/query", () => {
          decode({ with: '["images", "comments"]' }, output);
          decode({ with: { images: {}, comments: {} } }, output);
       }
+   });
+
+   test("types", () => {
+      const id = 1 as PrimaryFieldType;
+      const id2 = "1" as unknown as Generated<string>;
+
+      const c: q.RepoQueryIn = {
+         where: {
+            // @ts-expect-error only primitives are allowed for $eq
+            something: [],
+            // this gets ignored
+            another: undefined,
+            // @ts-expect-error null is not a valid value
+            null_is_okay: null,
+            some_id: id,
+            another_id: id2,
+         },
+      };
+
+      const d: q.RepoQuery = {
+         where: {
+            // @ts-expect-error only primitives are allowed for $eq
+            something: [],
+            // this gets ignored
+            another: undefined,
+            // @ts-expect-error null is not a valid value
+            null_is_okay: null,
+            some_id: id,
+            another_id: id2,
+         },
+      };
    });
 });

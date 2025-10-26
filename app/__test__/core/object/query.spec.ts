@@ -110,6 +110,9 @@ describe("query", () => {
       // @ts-expect-error only strings are allowed for $like
       expect(() => validator.convert({ foo: { $like: 1 } })).toThrow();
 
+      // undefined values are ignored
+      expect(validator.convert({ foo: undefined })).toEqual({});
+
       expect(validator.convert({ foo: "bar" })).toEqual({ foo: { $eq: "bar" } });
       expect(validator.convert({ foo: { $eq: "bar" } })).toEqual({ foo: { $eq: "bar" } });
       expect(validator.convert({ foo: { $like: "bar" } })).toEqual({ foo: { $like: "bar" } });

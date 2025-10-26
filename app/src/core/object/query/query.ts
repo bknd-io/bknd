@@ -55,7 +55,7 @@ function getExpression<Exps extends Expressions>(
 }
 
 type LiteralExpressionCondition<Exps extends Expressions> = {
-   [key: string]: Primitive | ExpressionCondition<Exps>;
+   [key: string]: undefined | Primitive | ExpressionCondition<Exps>;
 };
 
 const OperandOr = "$or" as const;
@@ -96,6 +96,11 @@ function _convert<Exps extends Expressions>(
    }
 
    for (const [key, value] of Object.entries($query)) {
+      // skip undefined values
+      if (value === undefined) {
+         continue;
+      }
+
       // if $or, convert each value
       if (key === "$or") {
          invariant(isPlainObject(value), "$or must be an object");
@@ -171,6 +176,8 @@ function _build<Exps extends Expressions>(
 
    // check $and
    for (const [key, value] of Object.entries($and)) {
+      if (value === undefined) continue;
+
       for (const [$op, $v] of Object.entries(value)) {
          const objValue = options.value_is_kv ? key : getPath(options.object, key);
          result.$and.push(__validate($op, $v, objValue, [key]));
