@@ -5,9 +5,10 @@ import { Policy } from "auth/authorize/Policy";
 import { Hono } from "hono";
 import { getPermissionRoutes, permission } from "auth/middlewares/permission.middleware";
 import { auth } from "auth/middlewares/auth.middleware";
-import { Guard, type GuardConfig } from "auth/authorize/Guard";
+import { Guard, mergeFilters, type GuardConfig } from "auth/authorize/Guard";
 import { Role, RolePermission } from "auth/authorize/Role";
 import { Exception } from "bknd";
+import { convert } from "core/object/query/object-query";
 
 describe("Permission", () => {
    it("works with minimal schema", () => {
@@ -176,6 +177,46 @@ describe("Guard", () => {
       // if no user context given, the default role is applied
       // hence it can be found
       expect(guard.filters(p, {}, { a: 1 }).filter).toEqual({ foo: "bar" });
+   });
+
+   it("merges filters correctly", () => {
+      expect(mergeFilters({ foo: "bar" }, { baz: "qux" })).toEqual({
+         foo: { $eq: "bar" },
+         baz: { $eq: "qux" },
+      });
+      expect(mergeFilters({ foo: "bar" }, { baz: { $eq: "qux" } })).toEqual({
+         foo: { $eq: "bar" },
+         baz: { $eq: "qux" },
+      });
+      expect(mergeFilters({ foo: "bar" }, { foo: "baz" })).toEqual({ foo: { $eq: "baz" } });
+
+      expect(mergeFilters({ foo: "bar" }, { foo: { $lt: 1 } })).toEqual({
+         foo: { $eq: "bar", $lt: 1 },
+      });
+
+      // overwrite base $or with priority
+      expect(mergeFilters({ $or: { foo: "one" } }, { foo: "bar" })).toEqual({
+         $or: {
+            foo: {
+               $eq: "bar",
+            },
+         },
+         foo: {
+            $eq: "bar",
+         },
+      });
+
+      // ignore base $or if priority has different key
+      expect(mergeFilters({ $or: { other: "one" } }, { foo: "bar" })).toEqual({
+         $or: {
+            other: {
+               $eq: "one",
+            },
+         },
+         foo: {
+            $eq: "bar",
+         },
+      });
    });
 });
 

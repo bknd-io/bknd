@@ -1,5 +1,5 @@
 import type { PrimaryFieldType } from "core/config";
-import { getPath, invariant } from "bknd/utils";
+import { getPath, invariant, isPlainObject } from "bknd/utils";
 
 export type Primitive = PrimaryFieldType | string | number | boolean;
 export function isPrimitive(value: any): value is Primitive {
@@ -26,6 +26,10 @@ export function exp<const Key, const Expect, CTX = any>(
    valid: (v: Expect) => boolean,
    validate: (e: Expect, a: unknown, ctx: CTX) => any,
 ): Expression<Key, Expect, CTX> {
+   invariant(typeof key === "string", "key must be a string");
+   invariant(key[0] === "$", "key must start with '$'");
+   invariant(typeof valid === "function", "valid must be a function");
+   invariant(typeof validate === "function", "validate must be a function");
    return new Expression(key, valid, validate);
 }
 
@@ -85,13 +89,16 @@ function _convert<Exps extends Expressions>(
    function validate(key: string, value: any, path: string[] = []) {
       const exp = getExpression(expressions, key as any);
       if (exp.valid(value) === false) {
-         throw new Error(`Invalid value at "${[...path, key].join(".")}": ${value}`);
+         throw new Error(
+            `Given value at "${[...path, key].join(".")}" is invalid, got "${JSON.stringify(value)}"`,
+         );
       }
    }
 
    for (const [key, value] of Object.entries($query)) {
       // if $or, convert each value
       if (key === "$or") {
+         invariant(isPlainObject(value), "$or must be an object");
          newQuery.$or = _convert(value, expressions, [...path, key]);
 
          // if primitive, assume $eq
@@ -100,7 +107,7 @@ function _convert<Exps extends Expressions>(
          newQuery[key] = { $eq: value };
 
          // if object, check for expressions
-      } else if (typeof value === "object") {
+      } else if (isPlainObject(value)) {
          // when object is given, check if all keys are expressions
          const invalid = Object.keys(value).filter(
             (f) => !ExpressionConditionKeys.includes(f as any),
@@ -114,9 +121,13 @@ function _convert<Exps extends Expressions>(
             }
          } else {
             throw new Error(
-               `Invalid key(s) at "${key}": ${invalid.join(", ")}. Expected expressions.`,
+               `Invalid key(s) at "${key}": ${invalid.join(", ")}. Expected expression key: ${ExpressionConditionKeys.join(", ")}.`,
             );
          }
+      } else {
+         throw new Error(
+            `Invalid value at "${[...path, key].join(".")}", got "${JSON.stringify(value)}"`,
+         );
       }
    }
 
@@ -151,7 +162,9 @@ function _build<Exps extends Expressions>(
          throw new Error(`Expression does not exist: "${$op}"`);
       }
       if (!exp.valid(expected)) {
-         throw new Error(`Invalid expected value at "${[...path, $op].join(".")}": ${expected}`);
+         throw new Error(
+            `Invalid value at "${[...path, $op].join(".")}", got "${JSON.stringify(expected)}"`,
+         );
       }
       return exp.validate(expected, actual, options.exp_ctx);
    }
@@ -191,6 +204,10 @@ function _validate(results: ValidationResults): boolean {
 }
 
 export function makeValidator<Exps extends Expressions>(expressions: Exps) {
+   if (!expressions.some((e) => e.key === "$eq")) {
+      throw new Error("'$eq' expression is required");
+   }
+
    return {
       convert: (query: FilterQuery<Exps>) => _convert(query, expressions),
       build: (query: FilterQuery<Exps>, options: BuildOptions) =>

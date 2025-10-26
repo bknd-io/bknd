@@ -6,6 +6,7 @@ import type { ServerEnv } from "modules/Controller";
 import type { Role } from "./Role";
 import { HttpStatus } from "bknd/utils";
 import type { Policy, PolicySchema } from "./Policy";
+import { convert, type ObjectQuery } from "core/object/query/object-query";
 
 export type GuardUserContext = {
    role?: string | null;
@@ -294,7 +295,7 @@ export class Guard {
          filter,
          policies,
          merge: (givenFilter: object | undefined) => {
-            return mergeObject(givenFilter ?? {}, filter ?? {});
+            return mergeFilters(givenFilter ?? {}, filter ?? {});
          },
          matches: (subject: object | object[], opts?: { throwOnError?: boolean }) => {
             const subjects = Array.isArray(subject) ? subject : [subject];
@@ -318,4 +319,23 @@ export class Guard {
          },
       };
    }
+}
+
+export function mergeFilters(base: ObjectQuery, priority: ObjectQuery) {
+   const base_converted = convert(base);
+   const priority_converted = convert(priority);
+   const merged = mergeObject(base_converted, priority_converted);
+
+   // in case priority filter is also contained in base's $and, merge priority in
+   if ("$or" in base_converted && base_converted.$or) {
+      const $ors = base_converted.$or as ObjectQuery;
+      const priority_keys = Object.keys(priority_converted);
+      for (const key of priority_keys) {
+         if (key in $ors) {
+            merged.$or[key] = mergeObject($ors[key], priority_converted[key]);
+         }
+      }
+   }
+
+   return merged;
 }
