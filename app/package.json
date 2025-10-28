@@ -180,6 +180,11 @@
       "import": "./dist/plugins/index.js",
       "require": "./dist/plugins/index.js"
     },
+    "./modes": {
+      "types": "./dist/types/modes/index.d.ts",
+      "import": "./dist/modes/index.js",
+      "require": "./dist/modes/index.js"
+    },
     "./adapter/sqlite": {
       "types": "./dist/types/adapter/sqlite/edge.d.ts",
       "import": {

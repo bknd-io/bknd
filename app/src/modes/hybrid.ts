@@ -68,6 +68,7 @@ export function hybrid<Args>({
                   const mm = app.modules as DbModuleManager;
                   mm.buildSyncConfig = syncSchemaOptions;
                }
+               await appConfig.beforeBuild?.(app);
             },
             config: fileConfig,
             options: {

@@ -9,7 +9,6 @@ import {
    pickKeys,
    mcpTool,
    convertNumberedObjectToArray,
-   mergeObject,
 } from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";

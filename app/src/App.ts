@@ -295,6 +295,7 @@ export class App<
       return this.module.auth.createUser(p);
    }
 
+   // @todo: potentially add option to clone the app, so that when used in listeners, it won't trigger listeners
    getApi(options?: LocalApiOptions) {
       const fetcher = this.server.request as typeof fetch;
       if (options && options instanceof Request) {

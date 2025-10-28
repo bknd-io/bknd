@@ -59,8 +59,8 @@ export type BkndModeConfig<Args = any, Additional = {}> = BkndConfig<
 export async function makeModeConfig<
    Args = any,
    Config extends BkndModeConfig<Args> = BkndModeConfig<Args>,
->(_config: Config, args: Args) {
-   const appConfig = typeof _config.app === "function" ? await _config.app(args) : _config.app;
+>({ app, ..._config }: Config, args: Args) {
+   const appConfig = typeof app === "function" ? await app(args) : app;
 
    const config = {
       ..._config,

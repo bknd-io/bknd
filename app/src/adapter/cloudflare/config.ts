@@ -158,6 +158,7 @@ export async function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
                         sessionHelper.set(c, session);
                         await next();
                      });
+                     appConfig.options?.manager?.onServerInit?.(server);
                   },
                },
             };

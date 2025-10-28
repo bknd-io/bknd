@@ -50,6 +50,7 @@ export { getFlashMessage } from "core/server/flash";
 export * from "core/drivers";
 export { Event, InvalidEventReturn } from "core/events/Event";
 export type {
+   EventListener,
    ListenerMode,
    ListenerHandler,
 } from "core/events/EventListener";
