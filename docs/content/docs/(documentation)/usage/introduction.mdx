@@ -41,15 +41,23 @@ await app.build();
 export default app;
 ```
 
-In Web API compliant environments, all you have to do is to default exporting the app, as it
-implements the `Fetch` API.
+In Web API compliant environments, all you have to do is to default exporting the app, as it implements the `Fetch` API. In case an explicit `fetch` export is needed, you can use the `app.fetch` property.
+
+```typescript
+const app = /* ... */;
+export default {
+  fetch: app.fetch,
+}
+```
+
+Check the integration details for your specific runtime or framework in the [integration](/integration/introduction) section.
 
 ## Modes
 
 Main project goal is to provide a backend that can be configured visually with the built-in Admin UI. However, you may instead want to configure your backend programmatically, and define your data structure with a Drizzle-like API:
 
 <Cards className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-  <Card title="UI-only" href="/usage/introduction#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
+  <Card title="UI-only (default)" href="/usage/introduction#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
      This is the default mode, it allows visual configuration and saves the configuration to the database. Expects you to deploy your backend separately from your frontend.
   </Card>
   <Card title="Code-only" href="/usage/introduction#code-only-mode" icon={<Code className="text-fd-primary !size-6" />}>
@@ -117,6 +125,11 @@ export default {
 } satisfies BkndConfig;
 ```
 
+<Callout type="info">
+  Note that when using the default UI-mode, the initial configuration using the `config` property will only be applied if the database is empty.
+</Callout>
+
+
 ### Code-only mode
 
 This mode allows you to configure your backend programmatically, and define your data structure with a Drizzle-like API. Visual configuration controls are disabled. 
@@ -149,6 +162,8 @@ export default {
   },
 } satisfies BkndConfig;
 ```
+
+Unlike the UI-only mode, the configuration passed to `config` is always applied. In case you make data structure changes, you may need to sync the schema to the database manually, e.g. using the [sync command](/usage/cli#syncing-the-database-sync).
 
 ### Hybrid mode
 
@@ -183,5 +198,71 @@ To keep your config, secrets and types in sync, you can either use the CLI or th
 | Types          | [`syncTypes`](/extending/plugins/#synctypes)                          | [`types`](/usage/cli/#generating-types-types)     |
 
 
+## Mode helpers
 
+To make the setup using your preferred mode easier, there are mode helpers for [`code`](/usage/introduction#code-only-mode) and [`hybrid`](/usage/introduction#hybrid-mode) modes. 
 
+* built-in syncing of config, types and secrets
+* let bknd automatically sync the data schema in development
+* automatically switch modes in hybrid (from db to code) in production
+* automatically skip config validation in production to boost performance
+
+To use it, you have to wrap your configuration in a mode helper, e.g. for `code` mode using the Bun adapter:
+
+```typescript title="bknd.config.ts"
+import { code, type CodeMode } from "bknd/modes";
+import { type BunBkndConfig, writer } from "bknd/adapter/bun";
+
+const config = {
+   // some normal bun bknd config
+   connection: { url: "file:test.db" },
+   // ...
+   // a writer is required, to sync the types
+   writer,
+   // (optional) mode specific config
+   isProduction: Bun.env.NODE_ENV === "production",
+   typesFilePath: "bknd-types.d.ts",
+   // (optional) e.g. have the schema synced if !isProduction
+   syncSchema: {
+      force: true,
+      drop: true,
+   }
+} satisfies CodeMode<BunBkndConfig>;
+
+export default code(config);
+```
+
+Similarily, for `hybrid` mode:
+
+```typescript title="bknd.config.ts"
+import { hybrid, type HybridMode } from "bknd/modes";
+import { type BunBkndConfig, writer, reader } from "bknd/adapter/bun";
+
+const config = {
+   // some normal bun bknd config
+   connection: { url: "file:test.db" },
+   // ...
+   // reader/writer are required, to sync the types and config
+   writer,
+   reader,
+   // supply secrets
+   secrets: await Bun.file(".env.local").json(),
+   // (optional) mode specific config
+   isProduction: Bun.env.NODE_ENV === "production",
+   typesFilePath: "bknd-types.d.ts",
+   configFilePath: "bknd-config.json",
+   // (optional) and have them automatically written if !isProduction
+   syncSecrets: {
+      outFile: ".env.local",
+      format: "env",
+      includeSecrets: true,
+   },
+   // (optional) also have the schema synced if !isProduction
+   syncSchema: {
+      force: true,
+      drop: true,
+   },
+} satisfies HybridMode<BunBkndConfig>;
+
+export default hybrid(config);
+```

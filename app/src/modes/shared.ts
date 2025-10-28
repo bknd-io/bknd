@@ -129,7 +129,7 @@ export async function makeModeConfig<
          );
       }
 
-      if (syncSecretsOptions?.enabled) {
+      if (syncSecretsOptions && syncSecretsOptions.enabled !== false) {
          if (plugins.some((p) => p.name === "bknd-sync-secrets")) {
             throw new Error("You have to unregister the `syncSecrets` plugin");
          }
