@@ -3,11 +3,14 @@ import { createApp } from "bknd/adapter/bun";
 async function generate() {
    console.info("Generating MCP documentation...");
    const app = await createApp({
+      connection: {
+         url: ":memory:",
+      },
       config: {
          server: {
             mcp: {
                enabled: true,
-               path: "/mcp",
+               path: "/mcp2",
             },
          },
          auth: {
@@ -25,9 +28,9 @@ async function generate() {
       },
    });
    await app.build();
+   await app.getMcpClient().ping();
 
-   const res = await app.server.request("/mcp?explain=1");
-   const { tools, resources } = await res.json();
+   const { tools, resources } = app.mcp!.toJSON();
    await Bun.write("../docs/mcp.json", JSON.stringify({ tools, resources }, null, 2));
 
    console.info("MCP documentation generated.");

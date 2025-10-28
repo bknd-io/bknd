@@ -311,8 +311,9 @@ export class App<
          throw new Error("MCP is not enabled");
       }
 
+      const url = new URL(config.path, "http://localhost").toString();
       return new McpClient({
-         url: "http://localhost" + config.path,
+         url,
          fetch: this.server.request,
       });
    }

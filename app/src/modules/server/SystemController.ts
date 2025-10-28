@@ -70,12 +70,13 @@ export class SystemController extends Controller {
       if (!config.mcp.enabled) {
          return;
       }
-      const { permission } = this.middlewares;
+      const { permission, auth } = this.middlewares;
 
       this.registerMcp();
 
       app.server.all(
          config.mcp.path,
+         auth(),
          permission(SystemPermissions.mcp, {}),
          mcpMiddleware({
             setup: async () => {
