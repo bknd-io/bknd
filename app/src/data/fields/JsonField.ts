@@ -64,17 +64,20 @@ export class JsonField<Required extends true | false = false, TypeOverride = obj
       return false;
    }
 
+   override isValid(value: any): boolean {
+      return this.isSerializable(value);
+   }
+
    override getValue(value: any, context: TRenderContext): any {
       switch (context) {
-         case "form":
-            if (value === null) return "";
-            return JSON.stringify(value, null, 2);
          case "table":
             if (value === null) return null;
             return JSON.stringify(value);
          case "submit":
-            if (typeof value === "string" && value.length === 0) {
+            if (!value || (typeof value === "string" && value.length === 0)) {
                return null;
+            } else if (typeof value === "object") {
+               return value;
             }
 
             return JSON.parse(value);
