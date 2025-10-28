@@ -239,7 +239,25 @@ Now you can add query parameters for the transformations, e.g. `?width=1000&heig
   }}
 />
 
+### `timestamps`
 
+A plugin that adds `created_at` and `updated_at` fields to the specified entities.
 
+```typescript title="bknd.config.ts"
+import { timestamps } from "bknd/plugins";
+
+export default {
+   options: {
+      plugins: [
+         timestamps({ 
+            // the entities to add timestamps to
+            entities: ["pages"],
+            // whether to set the `updated_at` field on create, defaults to true
+            setUpdatedOnCreate: true,
+         })
+      ],
+   },
+} satisfies BkndConfig;
+```
 
 
