@@ -80,7 +80,11 @@ export class JsonField<Required extends true | false = false, TypeOverride = obj
                return value;
             }
 
-            return JSON.parse(value);
+            try {
+               return JSON.parse(value);
+            } catch (e) {
+               return value;
+            }
       }
 
       return value;
