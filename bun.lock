@@ -15,7 +15,7 @@
     },
     "app": {
       "name": "bknd",
-      "version": "0.18.1",
+      "version": "0.19.0",
       "bin": "./dist/cli/index.js",
       "dependencies": {
         "@cfworker/json-schema": "^4.1.1",
@@ -74,8 +74,8 @@
         "dotenv": "^16.4.7",
         "jotai": "^2.12.2",
         "jsdom": "^26.0.0",
-        "kysely-d1": "^0.3.0",
         "kysely-generic-sqlite": "^1.2.1",
+        "kysely-postgres-js": "^2.0.0",
         "libsql-stateless-easy": "^1.8.0",
         "miniflare": "^4.20250913.0",
         "open": "^10.1.0",
@@ -108,9 +108,15 @@
         "@hono/node-server": "^1.14.3",
       },
       "peerDependencies": {
+        "pg": "*",
+        "postgres": "*",
         "react": ">=19",
         "react-dom": ">=19",
       },
+      "optionalPeers": [
+        "pg",
+        "postgres",
+      ],
     },
     "packages/cli": {
       "name": "bknd-cli",
@@ -2548,8 +2554,6 @@
     "kleur": ["kleur@4.1.5", "", {}, "sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ=="],
 
     "kysely": ["kysely@0.27.6", "", {}, "sha512-FIyV/64EkKhJmjgC0g2hygpBv5RNWVPyNCqSAD7eTCv6eFWNIi4PN1UvdSJGicN/o35bnevgis4Y0UDC0qi8jQ=="],
-
-    "kysely-d1": ["kysely-d1@0.3.0", "", { "peerDependencies": { "kysely": "*" } }, "sha512-9wTbE6ooLiYtBa4wPg9e4fjfcmvRtgE/2j9pAjYrIq+iz+EsH/Hj9YbtxpEXA6JoRgfulVQ1EtGj6aycGGRpYw=="],
 
     "kysely-generic-sqlite": ["kysely-generic-sqlite@1.2.1", "", { "peerDependencies": { "kysely": ">=0.26" } }, "sha512-/Bs3/Uktn04nQ9g/4oSphLMEtSHkS5+j5hbKjK5gMqXQfqr/v3V3FKtoN4pLTmo2W35hNdrIpQnBukGL1zZc6g=="],
 

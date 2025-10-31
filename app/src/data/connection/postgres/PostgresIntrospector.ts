@@ -102,26 +102,27 @@ export class PostgresIntrospector extends BaseIntrospector {
       return tables.map((table) => ({
          name: table.name,
          isView: table.type === "VIEW",
-         columns: table.columns.map((col) => {
-            return {
-               name: col.name,
-               dataType: col.type,
-               isNullable: !col.notnull,
-               // @todo: check default value on 'nextval' see https://www.postgresql.org/docs/17/datatype-numeric.html#DATATYPE-SERIAL
-               isAutoIncrementing: true, // just for now
-               hasDefaultValue: col.dflt != null,
-               comment: undefined,
-            };
-         }),
-         indices: table.indices.map((index) => ({
-            name: index.name,
-            table: table.name,
-            isUnique: index.sql?.match(/unique/i) != null,
-            columns: index.columns.map((col) => ({
-               name: col.name,
-               order: col.seqno,
-            })),
+         columns: table.columns.map((col) => ({
+            name: col.name,
+            dataType: col.type,
+            isNullable: !col.notnull,
+            isAutoIncrementing: col.dflt?.toLowerCase().includes("nextval") ?? false,
+            hasDefaultValue: col.dflt != null,
+            comment: undefined,
          })),
+         indices: table.indices
+            // filter out db-managed primary key index
+            .filter((index) => index.name !== `${table.name}_pkey`)
+            .map((index) => ({
+               name: index.name,
+               table: table.name,
+               isUnique: index.sql?.match(/unique/i) != null,
+               columns: index.columns.map((col) => ({
+                  name: col.name,
+                  // seqno starts at 1
+                  order: col.seqno - 1,
+               })),
+            })),
       }));
    }
 }

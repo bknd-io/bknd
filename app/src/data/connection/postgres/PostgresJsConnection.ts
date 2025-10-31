@@ -7,12 +7,10 @@ import $postgresJs, { type Sql, type Options, type PostgresType } from "postgres
 
 export type PostgresJsConfig = Options<Record<string, PostgresType>>;
 
-export class PostgresJsConnection extends PostgresConnection {
+export class PostgresJsConnection extends PostgresConnection<$postgresJs.Sql> {
    override name = "postgres-js";
 
-   private postgres: Sql;
-
-   constructor(opts: { postgres: Sql }) {
+   constructor(opts: { postgres: $postgresJs.Sql }) {
       const kysely = new Kysely({
          dialect: customIntrospector(PostgresJSDialect, PostgresIntrospector, {
             excludeTables: [],
@@ -21,11 +19,11 @@ export class PostgresJsConnection extends PostgresConnection {
       });
 
       super(kysely);
-      this.postgres = opts.postgres;
+      this.client = opts.postgres;
    }
 
    override async close(): Promise<void> {
-      await this.postgres.end();
+      await this.client.end();
    }
 }
 

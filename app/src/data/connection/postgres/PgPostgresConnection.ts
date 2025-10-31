@@ -6,9 +6,8 @@ import $pg from "pg";
 
 export type PgPostgresConnectionConfig = $pg.PoolConfig;
 
-export class PgPostgresConnection extends PostgresConnection {
+export class PgPostgresConnection extends PostgresConnection<$pg.Pool> {
    override name = "pg";
-   private pool: $pg.Pool;
 
    constructor(config: PgPostgresConnectionConfig) {
       const pool = new $pg.Pool(config);
@@ -20,11 +19,11 @@ export class PgPostgresConnection extends PostgresConnection {
       });
 
       super(kysely);
-      this.pool = pool;
+      this.client = pool;
    }
 
    override async close(): Promise<void> {
-      await this.pool.end();
+      await this.client.end();
    }
 }
 

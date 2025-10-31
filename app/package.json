@@ -13,7 +13,7 @@
   "bugs": {
     "url": "https://github.com/bknd-io/bknd/issues"
   },
-  "packageManager": "bun@1.2.22",
+  "packageManager": "bun@1.3.1",
   "engines": {
     "node": ">=22.13"
   },
@@ -104,8 +104,8 @@
     "dotenv": "^16.4.7",
     "jotai": "^2.12.2",
     "jsdom": "^26.0.0",
-    "kysely-d1": "^0.3.0",
     "kysely-generic-sqlite": "^1.2.1",
+    "kysely-postgres-js": "^2.0.0",
     "libsql-stateless-easy": "^1.8.0",
     "open": "^10.1.0",
     "openapi-types": "^12.1.3",
@@ -139,7 +139,17 @@
   },
   "peerDependencies": {
     "react": ">=19",
-    "react-dom": ">=19"
+    "react-dom": ">=19",
+    "pg": "*",
+    "postgres": "*"
+  },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    },
+    "postgres": {
+      "optional": true
+    }
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

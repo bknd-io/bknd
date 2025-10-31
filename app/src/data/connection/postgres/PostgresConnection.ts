@@ -20,7 +20,7 @@ export type QB = SelectQueryBuilder<any, any, any>;
 
 export const plugins = [new ParseJSONResultsPlugin()];
 
-export abstract class PostgresConnection extends Connection {
+export abstract class PostgresConnection<Client = unknown> extends Connection<Client> {
    protected override readonly supported = {
       batching: true,
       softscans: true,
@@ -68,7 +68,7 @@ export abstract class PostgresConnection extends Connection {
          type,
          (col: ColumnDefinitionBuilder) => {
             if (spec.primary) {
-               return col.primaryKey();
+               return col.primaryKey().notNull();
             }
             if (spec.references) {
                return col
@@ -76,7 +76,7 @@ export abstract class PostgresConnection extends Connection {
                   .onDelete(spec.onDelete ?? "set null")
                   .onUpdate(spec.onUpdate ?? "no action");
             }
-            return spec.nullable ? col : col.notNull();
+            return col;
          },
       ];
    }

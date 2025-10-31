@@ -1,3 +1,4 @@
+import type { MaybePromise } from "core/types";
 import { getRuntimeKey as honoGetRuntimeKey } from "hono/adapter";
 
 /**
@@ -76,4 +77,22 @@ export function threw(fn: () => any, instance?: new (...args: any[]) => Error) {
       }
       return true;
    }
+}
+
+export async function $waitUntil(
+   message: string,
+   condition: () => MaybePromise<boolean>,
+   delay = 100,
+   maxAttempts = 10,
+) {
+   let attempts = 0;
+   while (attempts < maxAttempts) {
+      if (await condition()) {
+         return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      attempts++;
+   }
+
+   throw new Error(`$waitUntil: "${message}" failed after ${maxAttempts} attempts`);
 }
