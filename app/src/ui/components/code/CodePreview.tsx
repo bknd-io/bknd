@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "ui/client/use-theme";
-import { cn } from "ui/lib/utils";
+import { cn, importDynamicBrowserModule } from "ui/lib/utils";
 
 export type CodePreviewProps = {
    code: string;
@@ -30,8 +30,10 @@ export const CodePreview = ({
       async function highlightCode() {
          try {
             // Dynamically import Shiki from CDN
-            // @ts-expect-error - Dynamic CDN import
-            const { codeToHtml } = await import("https://esm.sh/shiki@3.13.0");
+            const { codeToHtml } = await importDynamicBrowserModule(
+               "shiki",
+               "https://esm.sh/shiki@3.13.0",
+            );
 
             if (cancelled) return;
 
