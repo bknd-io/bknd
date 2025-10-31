@@ -15,7 +15,7 @@ const mockedBackend = new Hono()
    .get("/file/:name", async (c) => {
       const { name } = c.req.param();
       const file = Bun.file(`${assetsPath}/${name}`);
-      return new Response(file, {
+      return new Response(new File([await file.bytes()], name, { type: file.type }), {
          headers: {
             "Content-Type": file.type,
             "Content-Length": file.size.toString(),
