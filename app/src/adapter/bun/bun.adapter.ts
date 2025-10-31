@@ -4,11 +4,11 @@ import path from "node:path";
 import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
 import { registerLocalMediaAdapter } from ".";
 import { config, type App } from "bknd";
-import type { ServeOptions } from "bun";
 import { serveStatic } from "hono/bun";
 
 type BunEnv = Bun.Env;
-export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOptions, "fetch">;
+export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> &
+   Omit<Bun.Serve.Options<undefined, string>, "fetch">;
 
 export async function createApp<Env = BunEnv>(
    { distPath, serveStatic: _serveStatic, ...config }: BunBkndConfig<Env> = {},
@@ -60,7 +60,7 @@ export function serve<Env = BunEnv>(
    args: Env = Bun.env as Env,
 ) {
    Bun.serve({
-      ...serveOptions,
+      ...(serveOptions as any),
       port,
       fetch: createHandler(
          {
