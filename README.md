@@ -8,13 +8,17 @@
 </a>
 </p>
 
-bknd simplifies app development by providing a fully functional backend for database management, authentication, media and workflows. Being lightweight and built on Web Standards, it can be deployed nearly anywhere, including running inside your framework of choice. No more deploying multiple separate services!
+bknd simplifies app development by providing a fully functional visual backend for database management, authentication, media and workflows. Being lightweight and built on Web Standards, it can be deployed nearly anywhere, including running inside your framework of choice. No more deploying multiple separate services!
+
+It's designed to avoid vendor lock-in and architectural limitations. Built exclusively on [WinterTC Minimum Common Web Platform API](https://min-common-api.proposal.wintertc.org/) for universal compatibility, all functionality (data, auth, media, flows) is modular and opt-in, and infrastructure access is adapter-based with direct access to underlying drivers giving you full control without abstractions getting in your way.
+
 * **Runtimes**: Node.js 22+, Bun 1.0+, Deno, Browser, Cloudflare Workers/Pages, Vercel, Netlify, AWS Lambda, etc.
 * **Databases**:
   * SQLite: LibSQL, Node SQLite, Bun SQLite, Cloudflare D1, Cloudflare Durable Objects SQLite, SQLocal
   * Postgres: Vanilla Postgres, Supabase, Neon, Xata
 * **Frameworks**: React, Next.js, React Router, Astro, Vite, Waku
 * **Storage**: AWS S3, S3-compatible (Tigris, R2, Minio, etc.), Cloudflare R2 (binding), Cloudinary, Filesystem
+* **Deployment**: Standalone, Docker, Cloudflare Workers, Vercel, Netlify, Deno Deploy, AWS Lambda, Valtown etc.
 
 **For documentation and examples, please visit https://docs.bknd.io.**
 
@@ -23,6 +27,18 @@ bknd simplifies app development by providing a fully functional backend for data
 >
 > Please keep in mind that **bknd** is still under active development
 > and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
+
+## Use Cases
+
+bknd is a general purpose backend system that implements the primitives almost any backend needs. This way, you can use it for any backend use case, including but not limited to:
+
+- **Content Management System (CMS)** as Wordpress alternative, hosted separately or embedded in your frontend
+- **AI Agent Backends** for managing agent state with built-in data persistence, regardless where it is hosted. Optionally communicate over the integrated MCP server.
+- **SaaS Products** with multi-tenant data isolation (RLS) and user management, with freedom to choose your own database and storage provider
+- **Prototypes & MVPs** to validate ideas quickly without infrastructure overhead
+- **API-First Applications** where you need a reliable, type-safe backend without vendor lock-in either with the integrated TypeScript SDK or REST API using OpenAPI
+- **IoT & Embedded Devices** where minimal footprint matters
+
 
 ## Size
 ![gzipped size of bknd](https://img.shields.io/bundlejs/size/bknd?label=bknd)
@@ -46,13 +62,13 @@ Creating digital products always requires developing both the backend (the logic
   * **Media**: Effortlessly manage and serve all your media files.
   * **Flows**: Design and run workflows with seamless automation. (UI integration coming soon!)
 * 🌐 Built on Web Standards for maximum compatibility
+* 🛠️ MCP server, client and UI built-in to control your backend
 * 🏃‍♂️ Multiple run modes
   * standalone using the CLI
   * using a JavaScript runtime (Node, Bun, workerd)
   * using a React framework (Next.js, React Router, Astro)
 * 📦 Official API and React SDK with type-safety
 * ⚛️ React elements for auto-configured authentication and media components
-* 🛠️ MCP server, client and UI built-in to control your backend
 
 ## Structure
 The package is mainly split into 4 parts, each serving a specific purpose:

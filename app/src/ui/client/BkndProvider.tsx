@@ -123,11 +123,14 @@ export function BkndProvider({
             fetching.current = Fetching.None;
          };
 
-         if ("startViewTransition" in document) {
+         // disable view transitions for now
+         // because it causes browser crash on heavy pages (e.g. schema)
+         commit();
+         /* if ("startViewTransition" in document) {
             document.startViewTransition(commit);
          } else {
             commit();
-         }
+         } */
       });
    }
 

@@ -110,7 +110,10 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
       // try to use an in-memory connection
    } else if (options.memory) {
       console.info("Using", c.cyan("in-memory"), "connection");
-      app = await makeApp({ server: { platform: options.server } });
+      app = await makeApp({
+         server: { platform: options.server },
+         connection: { url: ":memory:" },
+      });
 
       // finally try to use env variables
    } else {
