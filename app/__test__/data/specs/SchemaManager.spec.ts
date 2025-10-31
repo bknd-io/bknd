@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import { randomString } from "core/utils";
 import { Entity, EntityManager } from "data/entities";
 import { TextField, EntityIndex } from "data/fields";
@@ -267,5 +267,40 @@ describe("SchemaManager tests", async () => {
 
       const diffAfter = await em.schema().getDiff();
       expect(diffAfter.length).toBe(0);
+   });
+
+   test("returns statements", async () => {
+      const amount = 5;
+      const entities = new Array(amount)
+         .fill(0)
+         .map(() => new Entity(randomString(16), [new TextField("text")]));
+      const em = new EntityManager(entities, dummyConnection);
+      const statements = await em.schema().sync({ force: true });
+      expect(statements.length).toBe(amount);
+      expect(statements.every((stmt) => Object.keys(stmt).join(",") === "sql,parameters")).toBe(
+         true,
+      );
+   });
+
+   test("batches statements", async () => {
+      const { dummyConnection } = getDummyConnection();
+      const entities = new Array(20)
+         .fill(0)
+         .map(() => new Entity(randomString(16), [new TextField("text")]));
+      const em = new EntityManager(entities, dummyConnection);
+      const spy = spyOn(em.connection, "executeQueries");
+      const statements = await em.schema().sync();
+      expect(statements.length).toBe(entities.length);
+      expect(statements.every((stmt) => Object.keys(stmt).join(",") === "sql,parameters")).toBe(
+         true,
+      );
+      await em.schema().sync({ force: true });
+      expect(spy).toHaveBeenCalledTimes(1);
+      const tables = await em.connection.kysely
+         .selectFrom("sqlite_master")
+         .where("type", "=", "table")
+         .selectAll()
+         .execute();
+      expect(tables.length).toBe(entities.length + 1); /* 1+ for sqlite_sequence */
    });
 });

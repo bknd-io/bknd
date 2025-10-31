@@ -84,8 +84,6 @@ const where = s.anyOf([s.string(), s.object({})], {
       return WhereBuilder.convert(q);
    },
 });
-//type WhereSchemaIn = s.Static<typeof where>;
-//type WhereSchema = s.StaticCoerced<typeof where>;
 
 // ------
 // with
@@ -128,7 +126,7 @@ const withSchema = <Type = unknown>(self: s.Schema): s.Schema<{}, Type, Type> =>
             }
          }
 
-         return value as unknown as any;
+         return value as any;
       },
    }) as any;
 
@@ -167,15 +165,3 @@ export type RepoQueryIn = {
 export type RepoQuery = s.StaticCoerced<typeof repoQuery> & {
    sort: SortSchema;
 };
-
-//export type RepoQuery = s.StaticCoerced<typeof repoQuery>;
-// @todo: CURRENT WORKAROUND
-/* export type RepoQuery = {
-   limit?: number;
-   offset?: number;
-   sort?: { by: string; dir: "asc" | "desc" };
-   select?: string[];
-   with?: Record<string, RepoQuery>;
-   join?: string[];
-   where?: WhereQuery;
-}; */

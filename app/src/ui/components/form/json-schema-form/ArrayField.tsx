@@ -5,19 +5,29 @@ import { Button } from "ui/components/buttons/Button";
 import { IconButton } from "ui/components/buttons/IconButton";
 import { Dropdown } from "ui/components/overlay/Dropdown";
 import { useEvent } from "ui/hooks/use-event";
-import { FieldComponent } from "./Field";
-import { FieldWrapper } from "./FieldWrapper";
-import { useDerivedFieldContext, useFormValue } from "./Form";
+import { Field, FieldComponent, type FieldProps } from "./Field";
+import { FieldWrapper, type FieldwrapperProps } from "./FieldWrapper";
+import { FormContextOverride, useDerivedFieldContext, useFormValue } from "./Form";
 import { coerce, getMultiSchema, getMultiSchemaMatched, isEqual, suffixPath } from "./utils";
 
-export const ArrayField = ({ path = "" }: { path?: string }) => {
+export type ArrayFieldProps = {
+   path?: string;
+   labelAdd?: string;
+   wrapperProps?: Omit<FieldwrapperProps, "name" | "children">;
+};
+
+export const ArrayField = ({
+   path = "",
+   labelAdd = "Add",
+   wrapperProps = { wrapper: "fieldset" },
+}: ArrayFieldProps) => {
    const { setValue, pointer, required, schema, ...ctx } = useDerivedFieldContext(path);
    if (!schema || typeof schema === "undefined") return `ArrayField(${path}): no schema ${pointer}`;
 
    // if unique items with enum
    if (schema.uniqueItems && typeof schema.items === "object" && "enum" in schema.items) {
       return (
-         <FieldWrapper name={path} schema={schema} wrapper="fieldset">
+         <FieldWrapper {...wrapperProps} name={path} schema={schema}>
             <FieldComponent
                required
                name={path}
@@ -35,7 +45,7 @@ export const ArrayField = ({ path = "" }: { path?: string }) => {
    }
 
    return (
-      <FieldWrapper name={path} schema={schema} wrapper="fieldset">
+      <FieldWrapper {...wrapperProps} name={path} schema={schema}>
          <ArrayIterator name={path}>
             {({ value }) =>
                value?.map((v, index: number) => (
@@ -44,27 +54,27 @@ export const ArrayField = ({ path = "" }: { path?: string }) => {
             }
          </ArrayIterator>
          <div className="flex flex-row">
-            <ArrayAdd path={path} schema={schema} />
+            <ArrayAdd path={path} schema={schema} label={labelAdd} />
          </div>
       </FieldWrapper>
    );
 };
 
 const ArrayItem = memo(({ path, index, schema }: any) => {
-   const { value, ...ctx } = useDerivedFieldContext(path, (ctx) => {
+   const {
+      value,
+      path: absolutePath,
+      ...ctx
+   } = useDerivedFieldContext(path, (ctx) => {
       return ctx.value?.[index];
    });
-   const itemPath = suffixPath(path, index);
+   const itemPath = suffixPath(absolutePath, index);
    let subschema = schema.items;
    const itemsMultiSchema = getMultiSchema(schema.items);
    if (itemsMultiSchema) {
       const [, , _subschema] = getMultiSchemaMatched(schema.items, value);
       subschema = _subschema;
    }
-
-   const handleUpdate = useEvent((pointer: string, value: any) => {
-      ctx.setValue(pointer, value);
-   });
 
    const handleDelete = useEvent((pointer: string) => {
       ctx.deleteValue(pointer);
@@ -76,20 +86,25 @@ const ArrayItem = memo(({ path, index, schema }: any) => {
    );
 
    return (
-      <div key={itemPath} className="flex flex-row gap-2">
-         <FieldComponent
-            name={itemPath}
-            schema={subschema!}
-            value={value}
-            onChange={(e) => {
-               handleUpdate(itemPath, coerce(e.target.value, subschema!));
-            }}
-            className="w-full"
-         />
-         {DeleteButton}
-      </div>
+      <FormContextOverride prefix={itemPath} schema={subschema!}>
+         <div className="flex flex-row gap-2 w-full">
+            {/* another wrap is required for primitive schemas */}
+            <AnotherField label={false} />
+            {DeleteButton}
+         </div>
+      </FormContextOverride>
    );
 }, isEqual);
+
+const AnotherField = (props: Partial<FieldProps>) => {
+   const { value } = useFormValue("");
+
+   const inputProps = {
+      // @todo: check, potentially just provide value
+      value: ["string", "number", "boolean"].includes(typeof value) ? value : undefined,
+   };
+   return <Field name={""} label={false} {...props} inputProps={inputProps} />;
+};
 
 const ArrayIterator = memo(
    ({ name, children }: any) => {
@@ -98,19 +113,25 @@ const ArrayIterator = memo(
    (prev, next) => prev.value?.length === next.value?.length,
 );
 
-const ArrayAdd = ({ schema, path }: { schema: JsonSchema; path: string }) => {
+const ArrayAdd = ({
+   schema,
+   path: _path,
+   label = "Add",
+}: { schema: JsonSchema; path: string; label?: string }) => {
    const {
       setValue,
       value: { currentIndex },
+      path,
       ...ctx
-   } = useDerivedFieldContext(path, (ctx) => {
+   } = useDerivedFieldContext(_path, (ctx) => {
       return { currentIndex: ctx.value?.length ?? 0 };
    });
    const itemsMultiSchema = getMultiSchema(schema.items);
+   const options = { addOptionalProps: true };
 
    function handleAdd(template?: any) {
       const newPath = suffixPath(path, currentIndex);
-      setValue(newPath, template ?? ctx.lib.getTemplate(undefined, schema!.items));
+      setValue(newPath, template ?? ctx.lib.getTemplate(undefined, schema!.items, options));
    }
 
    if (itemsMultiSchema) {
@@ -121,14 +142,14 @@ const ArrayAdd = ({ schema, path }: { schema: JsonSchema; path: string }) => {
             }}
             items={itemsMultiSchema.map((s, i) => ({
                label: s!.title ?? `Option ${i + 1}`,
-               onClick: () => handleAdd(ctx.lib.getTemplate(undefined, s!)),
+               onClick: () => handleAdd(ctx.lib.getTemplate(undefined, s!, options)),
             }))}
             onClickItem={console.log}
          >
-            <Button IconLeft={IconLibraryPlus}>Add</Button>
+            <Button IconLeft={IconLibraryPlus}>{label}</Button>
          </Dropdown>
       );
    }
 
-   return <Button onClick={() => handleAdd()}>Add</Button>;
+   return <Button onClick={() => handleAdd()}>{label}</Button>;
 };

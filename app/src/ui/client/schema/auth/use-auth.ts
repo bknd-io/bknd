@@ -16,8 +16,8 @@ type UseAuth = {
    verified: boolean;
    login: (data: LoginData) => Promise<AuthResponse>;
    register: (data: LoginData) => Promise<AuthResponse>;
-   logout: () => void;
-   verify: () => void;
+   logout: () => Promise<void>;
+   verify: () => Promise<void>;
    setToken: (token: string) => void;
 };
 
@@ -42,12 +42,13 @@ export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
    }
 
    async function logout() {
-      api.updateToken(undefined);
-      invalidate();
+      await api.auth.logout();
+      await invalidate();
    }
 
    async function verify() {
       await api.verifyAuth();
+      await invalidate();
    }
 
    return {

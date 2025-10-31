@@ -3,7 +3,7 @@ import type { FieldApi, ReactFormExtendedApi } from "@tanstack/react-form";
 import type { JSX } from "react";
 import { useStore } from "@tanstack/react-store";
 import { MediaField } from "media/MediaField";
-import { type ComponentProps, Suspense } from "react";
+import { type ComponentProps, Suspense, useState } from "react";
 import { JsonEditor } from "ui/components/code/JsonEditor";
 import * as Formy from "ui/components/form/Formy";
 import { FieldLabel } from "ui/components/form/Formy";
@@ -287,12 +287,14 @@ function EntityJsonFormField({
    field,
    ...props
 }: { fieldApi: TFieldApi; field: JsonField }) {
+   const [error, setError] = useState<any>(null);
    const handleUpdate = useEvent((value: any) => {
+      setError(null);
       fieldApi.handleChange(value);
    });
 
    return (
-      <Formy.Group>
+      <Formy.Group error={!!error}>
          <Formy.FieldLabel htmlFor={fieldApi.name} field={field} />
          <Suspense>
             <JsonEditor
@@ -300,6 +302,7 @@ function EntityJsonFormField({
                value={fieldApi.state.value}
                onChange={handleUpdate}
                onBlur={fieldApi.handleBlur}
+               onInvalid={setError}
                minHeight="100"
                {...props}
             />

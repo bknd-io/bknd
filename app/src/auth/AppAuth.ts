@@ -2,7 +2,7 @@ import type { DB, PrimaryFieldType } from "bknd";
 import * as AuthPermissions from "auth/auth-permissions";
 import type { AuthStrategy } from "auth/authenticate/strategies/Strategy";
 import type { PasswordStrategy } from "auth/authenticate/strategies/PasswordStrategy";
-import { $console, secureRandomString, transformObject } from "bknd/utils";
+import { $console, secureRandomString, transformObject, pickKeys } from "bknd/utils";
 import type { Entity, EntityManager } from "data/entities";
 import { em, entity, enumm, type FieldSchema } from "data/prototype";
 import { Module } from "modules/Module";
@@ -61,7 +61,7 @@ export class AppAuth extends Module<AppAuthSchema> {
 
       // register roles
       const roles = transformObject(this.config.roles ?? {}, (role, name) => {
-         return Role.create({ name, ...role });
+         return Role.create(name, role);
       });
       this.ctx.guard.setRoles(Object.values(roles));
       this.ctx.guard.setConfig(this.config.guard ?? {});
@@ -111,6 +111,19 @@ export class AppAuth extends Module<AppAuthSchema> {
 
    getSchema() {
       return authConfigSchema;
+   }
+
+   getGuardContextSchema() {
+      const userschema = this.getUsersEntity().toSchema() as any;
+      return {
+         type: "object",
+         properties: {
+            user: {
+               type: "object",
+               properties: pickKeys(userschema.properties, this.config.jwt.fields as any),
+            },
+         },
+      };
    }
 
    get authenticator(): Authenticator {
@@ -210,10 +223,12 @@ export class AppAuth extends Module<AppAuthSchema> {
       }
 
       const strategies = this.authenticator.getStrategies();
+      const roles = Object.fromEntries(this.ctx.guard.getRoles().map((r) => [r.name, r.toJSON()]));
 
       return {
          ...this.config,
          ...this.authenticator.toJSON(secrets),
+         roles,
          strategies: transformObject(strategies, (strategy) => ({
             enabled: this.isStrategyEnabled(strategy),
             ...strategy.toJSON(secrets),

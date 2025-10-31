@@ -37,19 +37,19 @@ export async function createApp<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env> = {},
    ctx: Partial<CloudflareContext<Env>> = {},
 ) {
-   const appConfig = await makeConfig(
+   const appConfig = await makeConfig(config, ctx);
+   return await createRuntimeApp<Env>(
       {
-         ...config,
+         ...appConfig,
          onBuilt: async (app) => {
             if (ctx.ctx) {
                registerAsyncsExecutionContext(app, ctx?.ctx);
             }
-            await config.onBuilt?.(app);
+            await appConfig.onBuilt?.(app);
          },
       },
-      ctx,
+      ctx?.env,
    );
-   return await createRuntimeApp<Env>(appConfig, ctx?.env);
 }
 
 // compatiblity

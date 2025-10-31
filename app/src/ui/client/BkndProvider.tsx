@@ -15,13 +15,14 @@ import { AppReduced } from "./utils/AppReduced";
 import { Message } from "ui/components/display/Message";
 import { useNavigate } from "ui/lib/routes";
 import type { BkndAdminProps } from "ui/Admin";
+import type { TPermission } from "auth/authorize/Permission";
 
 export type BkndContext = {
    version: number;
    readonly: boolean;
    schema: ModuleSchemas;
    config: ModuleConfigs;
-   permissions: string[];
+   permissions: TPermission[];
    hasSecrets: boolean;
    requireSecrets: () => Promise<void>;
    actions: ReturnType<typeof getSchemaActions>;

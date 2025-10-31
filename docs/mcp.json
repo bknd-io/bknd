@@ -613,6 +613,13 @@
       }
     },
     {
+      "name": "data_types",
+      "description": "Retrieve data typescript definitions",
+      "inputSchema": {
+        "type": "object"
+      }
+    },
+    {
       "name": "system_build",
       "description": "Build the app",
       "inputSchema": {
@@ -714,10 +721,66 @@
             "additionalProperties": false,
             "properties": {
               "permissions": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "permission": {
+                          "type": "string"
+                        },
+                        "effect": {
+                          "type": "string",
+                          "enum": [
+                            "allow",
+                            "deny"
+                          ],
+                          "default": "allow"
+                        },
+                        "policies": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "description": {
+                                "type": "string"
+                              },
+                              "condition": {
+                                "type": "object",
+                                "properties": {}
+                              },
+                              "effect": {
+                                "type": "string",
+                                "enum": [
+                                  "allow",
+                                  "deny",
+                                  "filter"
+                                ],
+                                "default": "allow"
+                              },
+                              "filter": {
+                                "type": "object",
+                                "properties": {}
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "permission"
+                      ]
+                    }
+                  }
+                ]
               },
               "is_default": {
                 "type": "boolean"
@@ -810,10 +873,66 @@
             "additionalProperties": false,
             "properties": {
               "permissions": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "permission"
+                      ],
+                      "properties": {
+                        "permission": {
+                          "type": "string"
+                        },
+                        "effect": {
+                          "type": "string",
+                          "enum": [
+                            "allow",
+                            "deny"
+                          ],
+                          "default": "allow"
+                        },
+                        "policies": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "description": {
+                                "type": "string"
+                              },
+                              "condition": {
+                                "type": "object",
+                                "properties": {}
+                              },
+                              "effect": {
+                                "type": "string",
+                                "enum": [
+                                  "allow",
+                                  "deny",
+                                  "filter"
+                                ],
+                                "default": "allow"
+                              },
+                              "filter": {
+                                "type": "object",
+                                "properties": {}
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
               },
               "is_default": {
                 "type": "boolean"
@@ -1062,6 +1181,9 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
+                  "domain": {
+                    "type": "string"
+                  },
                   "path": {
                     "type": "string",
                     "default": "/"
@@ -4067,6 +4189,20 @@
                   "path": {
                     "type": "string",
                     "default": "/api/system/mcp"
+                  },
+                  "logLevel": {
+                    "type": "string",
+                    "enum": [
+                      "emergency",
+                      "alert",
+                      "critical",
+                      "error",
+                      "warning",
+                      "notice",
+                      "info",
+                      "debug"
+                    ],
+                    "default": "warning"
                   }
                 }
               }

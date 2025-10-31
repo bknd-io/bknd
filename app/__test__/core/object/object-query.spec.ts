@@ -66,4 +66,14 @@ describe("object-query", () => {
          expect(result).toBe(expected);
       }
    });
+
+   test("paths", () => {
+      const result = validate({ "user.age": { $lt: 18 } }, { user: { age: 17 } });
+      expect(result).toBe(true);
+   });
+
+   test("empty filters", () => {
+      const result = validate({}, { user: { age: 17 } });
+      expect(result).toBe(true);
+   });
 });

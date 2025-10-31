@@ -39,7 +39,7 @@ export default function ToolsMcp() {
                <div className="hidden md:flex flex-row gap-2 items-center bg-primary/5 rounded-full px-3 pr-3.5 py-2">
                   <TbWorld />
                   <div className="min-w-0 flex-1">
-                     <span className="block truncate text-sm font-mono leading-none">
+                     <span className="block truncate text-sm font-mono leading-none select-text">
                         {window.location.origin + mcpPath}
                      </span>
                   </div>

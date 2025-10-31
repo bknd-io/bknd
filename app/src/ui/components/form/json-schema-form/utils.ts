@@ -67,18 +67,23 @@ export function isRequired(lib: Draft, pointer: string, schema: JsonSchema, data
          return false;
       }
 
-      const childSchema = lib.getSchema({ pointer, data, schema });
-      if (typeof childSchema === "object" && "const" in childSchema) {
-         return true;
+      try {
+         const childSchema = lib.getSchema({ pointer, data, schema });
+         if (typeof childSchema === "object" && "const" in childSchema) {
+            return true;
+         }
+      } catch (e) {
+         return false;
       }
 
       const parentPointer = getParentPointer(pointer);
       const parentSchema = lib.getSchema({ pointer: parentPointer, data });
-      const required = parentSchema?.required?.includes(pointer.split("/").pop()!);
+      const l = pointer.split("/").pop();
+      const required = parentSchema?.required?.includes(l);
 
       return !!required;
    } catch (e) {
-      console.error("isRequired", { pointer, schema, data, e });
+      console.warn("isRequired", { pointer, schema, data, e });
       return false;
    }
 }

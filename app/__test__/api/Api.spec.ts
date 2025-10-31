@@ -6,13 +6,16 @@ describe("Api", async () => {
    it("should construct without options", () => {
       const api = new Api();
       expect(api.baseUrl).toBe("http://localhost");
-      expect(api.isAuthVerified()).toBe(false);
+
+      // verified is true, because no token, user, headers or request given
+      // therefore nothing to check, auth state is verified
+      expect(api.isAuthVerified()).toBe(true);
    });
 
    it("should ignore force verify if no claims given", () => {
       const api = new Api({ verified: true });
       expect(api.baseUrl).toBe("http://localhost");
-      expect(api.isAuthVerified()).toBe(false);
+      expect(api.isAuthVerified()).toBe(true);
    });
 
    it("should construct from request (token)", async () => {

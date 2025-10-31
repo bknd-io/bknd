@@ -9,9 +9,9 @@ export type NextjsBkndConfig<Env = NextjsEnv> = FrameworkBkndConfig<Env> & {
 
 export async function getApp<Env = NextjsEnv>(
    config: NextjsBkndConfig<Env>,
-   args: Env = {} as Env,
+   args: Env = process.env as Env,
 ) {
-   return await createFrameworkApp(config, args ?? (process.env as Env));
+   return await createFrameworkApp(config, args);
 }
 
 function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequest"]) {
@@ -39,7 +39,7 @@ function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequ
 
 export function serve<Env = NextjsEnv>(
    { cleanRequest, ...config }: NextjsBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = process.env as Env,
 ) {
    return async (req: Request) => {
       const app = await getApp(config, args);

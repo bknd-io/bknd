@@ -3,6 +3,7 @@ import {
    log as $log,
    password as $password,
    text as $text,
+   select as $select,
 } from "@clack/prompts";
 import type { App } from "App";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
@@ -29,6 +30,11 @@ async function action(action: "create" | "update" | "token", options: WithConfig
       server: "node",
    });
 
+   if (!app.module.auth.enabled) {
+      $log.error("Auth is not enabled");
+      process.exit(1);
+   }
+
    switch (action) {
       case "create":
          await create(app, options);
@@ -43,7 +49,28 @@ async function action(action: "create" | "update" | "token", options: WithConfig
 }
 
 async function create(app: App, options: any) {
-   const strategy = app.module.auth.authenticator.strategy("password") as PasswordStrategy;
+   const auth = app.module.auth;
+   let role: string | null = null;
+   const roles = Object.keys(auth.config.roles ?? {});
+
+   const strategy = auth.authenticator.strategy("password") as PasswordStrategy;
+   if (roles.length > 0) {
+      role = (await $select({
+         message: "Select role",
+         options: [
+            {
+               value: null,
+               label: "<none>",
+               hint: "No role will be assigned to the user",
+            },
+            ...roles.map((role) => ({
+               value: role,
+               label: role,
+            })),
+         ],
+      })) as any;
+      if ($isCancel(role)) process.exit(1);
+   }
 
    if (!strategy) {
       $log.error("Password strategy not configured");
@@ -76,6 +103,7 @@ async function create(app: App, options: any) {
       const created = await app.createUser({
          email,
          password: await strategy.hash(password as string),
+         role,
       });
       $log.success(`Created user: ${c.cyan(created.email)}`);
       process.exit(0);

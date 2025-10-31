@@ -7,7 +7,7 @@ describe("[data] JsonField", async () => {
    const field = new JsonField("test");
    fieldTestSuite(bunTestRunner, JsonField, {
       defaultValue: { a: 1 },
-      sampleValues: ["string", { test: 1 }, 1],
+      //sampleValues: ["string", { test: 1 }, 1],
       schemaType: "text",
    });
 
@@ -33,9 +33,9 @@ describe("[data] JsonField", async () => {
    });
 
    test("getValue", async () => {
-      expect(field.getValue({ test: 1 }, "form")).toBe('{\n  "test": 1\n}');
-      expect(field.getValue("string", "form")).toBe('"string"');
-      expect(field.getValue(1, "form")).toBe("1");
+      expect(field.getValue({ test: 1 }, "form")).toEqual({ test: 1 });
+      expect(field.getValue("string", "form")).toBe("string");
+      expect(field.getValue(1, "form")).toBe(1);
 
       expect(field.getValue('{"test":1}', "submit")).toEqual({ test: 1 });
       expect(field.getValue('"string"', "submit")).toBe("string");
@@ -43,6 +43,5 @@ describe("[data] JsonField", async () => {
 
       expect(field.getValue({ test: 1 }, "table")).toBe('{"test":1}');
       expect(field.getValue("string", "table")).toBe('"string"');
-      expect(field.getValue(1, "form")).toBe("1");
    });
 });

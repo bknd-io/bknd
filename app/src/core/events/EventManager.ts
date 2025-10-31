@@ -205,7 +205,17 @@ export class EventManager<
          if (listener.mode === "sync") {
             syncs.push(listener);
          } else {
-            asyncs.push(async () => await listener.handler(event, listener.event.slug));
+            asyncs.push(async () => {
+               try {
+                  await listener.handler(event, listener.event.slug);
+               } catch (e) {
+                  if (this.options?.onError) {
+                     this.options.onError(event, e);
+                  } else {
+                     $console.error("Error executing async listener", listener, e);
+                  }
+               }
+            });
          }
          // Remove if `once` is true, otherwise keep
          return !listener.once;

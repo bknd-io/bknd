@@ -12,6 +12,7 @@ import * as Formy from "ui/components/form/Formy";
 import { appShellStore } from "ui/store";
 import { Icon } from "ui/components/display/Icon";
 import { useMcpClient } from "./hooks/use-mcp-client";
+import { Tooltip } from "@mantine/core";
 
 export function Sidebar({ open, toggle }) {
    const client = useMcpClient();
@@ -48,7 +49,11 @@ export function Sidebar({ open, toggle }) {
          toggle={toggle}
          renderHeaderRight={() => (
             <div className="flex flex-row gap-2 items-center">
-               {error && <Icon.Err title={error} className="size-5 pointer-events-auto" />}
+               {error && (
+                  <Tooltip label={error}>
+                     <Icon.Err className="size-5 pointer-events-auto" />
+                  </Tooltip>
+               )}
                <span className="flex-inline bg-primary/10 px-2 py-1.5 rounded-xl text-sm font-mono leading-none">
                   {tools.length}
                </span>

@@ -72,7 +72,7 @@ const FieldImpl = ({
       );
 
    if (isType(schema.type, "object")) {
-      return <ObjectField path={name} />;
+      return <ObjectField path={name} wrapperProps={props} />;
    }
 
    if (isType(schema.type, "array")) {
@@ -217,14 +217,14 @@ export type CustomFieldProps<Data = any> = {
    ) => React.ReactNode;
 };
 
-export const CustomField = <Data = any>({
+export function CustomField<Data = any>({
    path: _path,
    valueStrict = true,
    deriveFn,
    children,
-}: CustomFieldProps<Data>) => {
+}: CustomFieldProps<Data>) {
    const ctx = useDerivedFieldContext(_path, deriveFn);
-   const $value = useFormValue(ctx.path, { strict: valueStrict });
+   const $value = useFormValue(_path, { strict: valueStrict });
    const setValue = (value: any) => ctx.setValue(ctx.path, value);
    return children({ ...ctx, ...$value, setValue, _setValue: ctx.setValue });
-};
+}

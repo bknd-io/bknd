@@ -1,4 +1,4 @@
-import { Permission } from "core/security/Permission";
+import { Permission } from "auth/authorize/Permission";
 
 export const createUser = new Permission("auth.user.create");
 //export const updateUser = new Permission("auth.user.update");
