@@ -25,7 +25,10 @@ async function cleanDatabase(connection: InstanceType<typeof PostgresConnection>
 
 async function isPostgresRunning() {
    try {
-      await $`docker exec bknd-test-postgres pg_isready -U ${credentials.user}`;
+      // Try to actually connect to PostgreSQL
+      const conn = pg(credentials);
+      await conn.ping();
+      await conn.close();
       return true;
    } catch (e) {
       return false;
@@ -44,7 +47,9 @@ describe("postgres", () => {
    });
    afterAll(async () => {
       if (await isPostgresRunning()) {
-         await $`docker stop bknd-test-postgres`;
+         try {
+            await $`docker stop bknd-test-postgres`;
+         } catch (e) {}
       }
 
       enableConsoleLog();
