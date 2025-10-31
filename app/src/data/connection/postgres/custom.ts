@@ -6,7 +6,7 @@ import { PostgresIntrospector } from "./PostgresIntrospector";
 export type Constructor<T> = new (...args: any[]) => T;
 
 export type CustomPostgresConnection = {
-   supports?: PostgresConnection["supported"];
+   supports?: Partial<PostgresConnection["supported"]>;
    fn?: Partial<DbFunctions>;
    plugins?: KyselyPlugin[];
    excludeTables?: string[];

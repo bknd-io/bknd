@@ -165,7 +165,10 @@ export {
    PostgresJsConnection,
    type PostgresJsConfig,
 } from "data/connection/postgres/PostgresJsConnection";
-export { createCustomPostgresConnection } from "data/connection/postgres/custom";
+export {
+   createCustomPostgresConnection,
+   type CustomPostgresConnection,
+} from "data/connection/postgres/custom";
 
 // data prototype
 export {
