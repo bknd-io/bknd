@@ -1,7 +1,7 @@
 import { Kysely, PostgresDialect } from "kysely";
 import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
-import { customIntrospector } from "bknd";
+import { customIntrospector } from "../Connection";
 import $pg from "pg";
 
 export type PgPostgresConnectionConfig = $pg.PoolConfig;

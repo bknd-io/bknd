@@ -1,4 +1,4 @@
-import { customIntrospector, type DbFunctions } from "bknd";
+import { customIntrospector, type DbFunctions } from "../Connection";
 import { Kysely, type Dialect, type KyselyPlugin } from "kysely";
 import { plugins, PostgresConnection } from "./PostgresConnection";
 import { PostgresIntrospector } from "./PostgresIntrospector";

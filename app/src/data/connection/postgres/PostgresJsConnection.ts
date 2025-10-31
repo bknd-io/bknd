@@ -1,7 +1,7 @@
 import { Kysely } from "kysely";
 import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
-import { customIntrospector } from "bknd";
+import { customIntrospector } from "../Connection";
 import { PostgresJSDialect } from "kysely-postgres-js";
 import $postgresJs, { type Sql, type Options, type PostgresType } from "postgres";
 

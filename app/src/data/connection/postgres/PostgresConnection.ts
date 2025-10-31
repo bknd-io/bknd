@@ -5,7 +5,7 @@ import {
    type SchemaResponse,
    type ConnQuery,
    type ConnQueryResults,
-} from "bknd";
+} from "../Connection";
 import {
    ParseJSONResultsPlugin,
    type ColumnDataType,
