@@ -108,7 +108,7 @@ describe("App tests", async () => {
       expect(Array.from(app.plugins.keys())).toEqual(["test"]);
    });
 
-   test.only("drivers", async () => {
+   test("drivers", async () => {
       const called: string[] = [];
       const app = new App(dummyConnection, undefined, {
          drivers: {

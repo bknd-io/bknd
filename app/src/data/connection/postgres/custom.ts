@@ -1,4 +1,4 @@
-import { customIntrospector, type DbFunctions } from "bknd";
+import { customIntrospector, type DbFunctions } from "../Connection";
 import { Kysely, type Dialect, type KyselyPlugin } from "kysely";
 import { plugins, PostgresConnection } from "./PostgresConnection";
 import { PostgresIntrospector } from "./PostgresIntrospector";
@@ -6,7 +6,7 @@ import { PostgresIntrospector } from "./PostgresIntrospector";
 export type Constructor<T> = new (...args: any[]) => T;
 
 export type CustomPostgresConnection = {
-   supports?: PostgresConnection["supported"];
+   supports?: Partial<PostgresConnection["supported"]>;
    fn?: Partial<DbFunctions>;
    plugins?: KyselyPlugin[];
    excludeTables?: string[];

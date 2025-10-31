@@ -59,7 +59,7 @@ describe("SqliteIntrospector", () => {
                   dataType: "INTEGER",
                   isNullable: false,
                   isAutoIncrementing: true,
-                  hasDefaultValue: false,
+                  hasDefaultValue: true,
                   comment: undefined,
                },
                {
@@ -89,7 +89,7 @@ describe("SqliteIntrospector", () => {
                   dataType: "INTEGER",
                   isNullable: false,
                   isAutoIncrementing: true,
-                  hasDefaultValue: false,
+                  hasDefaultValue: true,
                   comment: undefined,
                },
                {

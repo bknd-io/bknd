@@ -13,7 +13,6 @@ import { customIntrospector } from "../Connection";
 import { SqliteIntrospector } from "./SqliteIntrospector";
 import type { Field } from "data/fields/Field";
 
-// @todo: add pragmas
 export type SqliteConnectionConfig<
    CustomDialect extends Constructor<Dialect> = Constructor<Dialect>,
 > = {

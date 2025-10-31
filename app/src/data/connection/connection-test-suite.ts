@@ -14,27 +14,31 @@ export function connectionTestSuite(
    {
       makeConnection,
       rawDialectDetails,
+      disableConsoleLog: _disableConsoleLog = true,
    }: {
       makeConnection: () => MaybePromise<{
          connection: Connection;
          dispose: () => MaybePromise<void>;
       }>;
       rawDialectDetails: string[];
+      disableConsoleLog?: boolean;
    },
 ) {
    const { test, expect, describe, beforeEach, afterEach, afterAll, beforeAll } = testRunner;
-   beforeAll(() => disableConsoleLog());
-   afterAll(() => enableConsoleLog());
+   if (_disableConsoleLog) {
+      beforeAll(() => disableConsoleLog());
+      afterAll(() => enableConsoleLog());
+   }
 
-   describe("base", () => {
-      let ctx: Awaited<ReturnType<typeof makeConnection>>;
-      beforeEach(async () => {
-         ctx = await makeConnection();
-      });
-      afterEach(async () => {
-         await ctx.dispose();
-      });
+   let ctx: Awaited<ReturnType<typeof makeConnection>>;
+   beforeEach(async () => {
+      ctx = await makeConnection();
+   });
+   afterEach(async () => {
+      await ctx.dispose();
+   });
 
+   describe("base", async () => {
       test("pings", async () => {
          const res = await ctx.connection.ping();
          expect(res).toBe(true);
@@ -98,52 +102,54 @@ export function connectionTestSuite(
    });
 
    describe("schema", async () => {
-      const { connection, dispose } = await makeConnection();
-      afterAll(async () => {
-         await dispose();
-      });
+      const makeSchema = async () => {
+         const fields = [
+            {
+               type: "integer",
+               name: "id",
+               primary: true,
+            },
+            {
+               type: "text",
+               name: "text",
+            },
+            {
+               type: "json",
+               name: "json",
+            },
+         ] as const satisfies FieldSpec[];
 
-      const fields = [
-         {
-            type: "integer",
-            name: "id",
-            primary: true,
-         },
-         {
-            type: "text",
-            name: "text",
-         },
-         {
-            type: "json",
-            name: "json",
-         },
-      ] as const satisfies FieldSpec[];
+         let b = ctx.connection.kysely.schema.createTable("test");
+         for (const field of fields) {
+            // @ts-expect-error
+            b = b.addColumn(...ctx.connection.getFieldSchema(field));
+         }
+         await b.execute();
 
-      let b = connection.kysely.schema.createTable("test");
-      for (const field of fields) {
-         // @ts-expect-error
-         b = b.addColumn(...connection.getFieldSchema(field));
-      }
-      await b.execute();
-
-      // add index
-      await connection.kysely.schema.createIndex("test_index").on("test").columns(["id"]).execute();
+         // add index
+         await ctx.connection.kysely.schema
+            .createIndex("test_index")
+            .on("test")
+            .columns(["id"])
+            .execute();
+      };
 
       test("executes query", async () => {
-         await connection.kysely
+         await makeSchema();
+         await ctx.connection.kysely
             .insertInto("test")
             .values({ id: 1, text: "test", json: JSON.stringify({ a: 1 }) })
             .execute();
 
          const expected = { id: 1, text: "test", json: { a: 1 } };
 
-         const qb = connection.kysely.selectFrom("test").selectAll();
-         const res = await connection.executeQuery(qb);
+         const qb = ctx.connection.kysely.selectFrom("test").selectAll();
+         const res = await ctx.connection.executeQuery(qb);
          expect(res.rows).toEqual([expected]);
          expect(rawDialectDetails.every((detail) => getPath(res, detail) !== undefined)).toBe(true);
 
          {
-            const res = await connection.executeQueries(qb, qb);
+            const res = await ctx.connection.executeQueries(qb, qb);
             expect(res.length).toBe(2);
             res.map((r) => {
                expect(r.rows).toEqual([expected]);
@@ -155,15 +161,21 @@ export function connectionTestSuite(
       });
 
       test("introspects", async () => {
-         const tables = await connection.getIntrospector().getTables({
+         await makeSchema();
+         const tables = await ctx.connection.getIntrospector().getTables({
             withInternalKyselyTables: false,
          });
          const clean = tables.map((t) => ({
             ...t,
-            columns: t.columns.map((c) => ({
-               ...c,
-               dataType: undefined,
-            })),
+            columns: t.columns
+               .map((c) => ({
+                  ...c,
+                  // ignore data type
+                  dataType: undefined,
+                  // ignore default value if "id"
+                  hasDefaultValue: c.name !== "id" ? c.hasDefaultValue : undefined,
+               }))
+               .sort((a, b) => a.name.localeCompare(b.name)),
          }));
 
          expect(clean).toEqual([
@@ -176,14 +188,8 @@ export function connectionTestSuite(
                      dataType: undefined,
                      isNullable: false,
                      isAutoIncrementing: true,
-                     hasDefaultValue: false,
-                  },
-                  {
-                     name: "text",
-                     dataType: undefined,
-                     isNullable: true,
-                     isAutoIncrementing: false,
-                     hasDefaultValue: false,
+                     hasDefaultValue: undefined,
+                     comment: undefined,
                   },
                   {
                      name: "json",
@@ -191,25 +197,34 @@ export function connectionTestSuite(
                      isNullable: true,
                      isAutoIncrementing: false,
                      hasDefaultValue: false,
+                     comment: undefined,
+                  },
+                  {
+                     name: "text",
+                     dataType: undefined,
+                     isNullable: true,
+                     isAutoIncrementing: false,
+                     hasDefaultValue: false,
+                     comment: undefined,
+                  },
+               ],
+            },
+         ]);
+
+         expect(await ctx.connection.getIntrospector().getIndices()).toEqual([
+            {
+               name: "test_index",
+               table: "test",
+               isUnique: false,
+               columns: [
+                  {
+                     name: "id",
+                     order: 0,
                   },
                ],
             },
          ]);
       });
-
-      expect(await connection.getIntrospector().getIndices()).toEqual([
-         {
-            name: "test_index",
-            table: "test",
-            isUnique: false,
-            columns: [
-               {
-                  name: "id",
-                  order: 0,
-               },
-            ],
-         },
-      ]);
    });
 
    describe("integration", async () => {

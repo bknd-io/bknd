@@ -1,7 +1,11 @@
-import { it, expect, describe } from "bun:test";
+import { it, expect, describe, beforeAll, afterAll } from "bun:test";
 import { DbModuleManager } from "modules/db/DbModuleManager";
 import { getDummyConnection } from "../helper";
 import { TABLE_NAME } from "modules/db/migrations";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("DbModuleManager", () => {
    it("should extract secrets", async () => {

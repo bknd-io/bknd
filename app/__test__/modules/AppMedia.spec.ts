@@ -1,10 +1,14 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import { createApp } from "core/test/utils";
 import { em, entity, text } from "data/prototype";
 import { registries } from "modules/registries";
 import { StorageLocalAdapter } from "adapter/node/storage/StorageLocalAdapter";
 import { AppMedia } from "../../src/media/AppMedia";
 import { moduleTestSuite } from "./module-test-suite";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("AppMedia", () => {
    test.skip("...", () => {
