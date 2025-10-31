@@ -5,8 +5,8 @@ import { adapterTestSuite } from "adapter/adapter-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
 import { type CloudflareBkndConfig, createApp } from "./cloudflare-workers.adapter";
 
-/* beforeAll(disableConsoleLog);
-afterAll(enableConsoleLog); */
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("cf adapter", () => {
    const DB_URL = ":memory:";

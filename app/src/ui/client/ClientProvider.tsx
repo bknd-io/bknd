@@ -53,9 +53,7 @@ export const ClientProvider = ({
       [JSON.stringify(apiProps)],
    );
 
-   const [authState, setAuthState] = useState<Partial<AuthState> | undefined>(
-      apiProps.user ? api.getAuthState() : undefined,
-   );
+   const [authState, setAuthState] = useState<Partial<AuthState> | undefined>(api.getAuthState());
 
    return (
       <ClientContext.Provider value={{ baseUrl: api.baseUrl, api, authState }}>

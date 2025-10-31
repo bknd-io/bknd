@@ -245,9 +245,8 @@ export class App<
 
    get fetch(): Hono["fetch"] {
       if (!this.isBuilt()) {
-         throw new Error("App is not built yet, run build() first");
+         console.error("App is not built yet, run build() first");
       }
-
       return this.server.fetch as any;
    }
 
@@ -296,6 +295,7 @@ export class App<
       return this.module.auth.createUser(p);
    }
 
+   // @todo: potentially add option to clone the app, so that when used in listeners, it won't trigger listeners
    getApi(options?: LocalApiOptions) {
       const fetcher = this.server.request as typeof fetch;
       if (options && options instanceof Request) {
@@ -311,8 +311,9 @@ export class App<
          throw new Error("MCP is not enabled");
       }
 
+      const url = new URL(config.path, "http://localhost").toString();
       return new McpClient({
-         url: "http://localhost" + config.path,
+         url,
          fetch: this.server.request,
       });
    }
@@ -385,6 +386,7 @@ export class App<
             }
          }
       }
+      await this.options?.manager?.onModulesBuilt?.(ctx);
    }
 }
 

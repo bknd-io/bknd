@@ -24,7 +24,7 @@ Get the available authentication strategies
 
 Create a new user
 
-<JsonSchemaTypeTable schema={{"type":"object","properties":{"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":8},"role":{"type":"string","enum":[]}},"required":["email","password"]}} key={"auth_user_create"} />
+<JsonSchemaTypeTable schema={{"type":"object","properties":{"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":8},"role":{"type":"string"}},"required":["email","password"]}} key={"auth_user_create"} />
 
 ### `auth_user_password_change`
 
@@ -48,67 +48,73 @@ Get a user token
 
 Delete many
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_delete_many"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_delete_many"} />
 
 ### `data_entity_delete_one`
 
 Delete one
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"}}}} key={"data_entity_delete_one"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"}}}} key={"data_entity_delete_one"} />
 
 ### `data_entity_fn_count`
 
 Count entities
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_count"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_count"} />
 
 ### `data_entity_fn_exists`
 
 Check if entity exists
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_exists"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_fn_exists"} />
 
 ### `data_entity_info`
 
 Retrieve entity info
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"}}}} key={"data_entity_info"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"}}}} key={"data_entity_info"} />
 
 ### `data_entity_insert`
 
 Insert one or many
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"json":{"anyOf":[{"type":"object","properties":{}},{"type":"array","items":{"type":"object","properties":{}}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_insert"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","json"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"json":{"anyOf":[{"type":"object","properties":{}},{"type":"array","items":{"type":"object","properties":{}}}],"$synthetic":true,"$target":"json"}}}} key={"data_entity_insert"} />
 
 ### `data_entity_read_many`
 
 Query entities
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"limit":{"type":"number","default":10,"$target":"json"},"offset":{"type":"number","default":0,"$target":"json"},"sort":{"type":"string","default":"id","$target":"json"},"where":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"},"select":{"type":"array","$target":"json","items":{"type":"string"}},"join":{"type":"array","$target":"json","items":{"type":"string"}},"with":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_read_many"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"limit":{"type":"number","default":10,"$target":"json"},"offset":{"type":"number","default":0,"$target":"json"},"sort":{"type":"string","default":"id","$target":"json"},"where":{"examples":[{"attribute":{"$eq":1}}],"default":{},"anyOf":[{"type":"string"},{"type":"object","properties":{}}],"$synthetic":true,"$target":"json"},"select":{"type":"array","$target":"json","items":{"type":"string"}},"join":{"type":"array","$target":"json","items":{"type":"string"}},"with":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_read_many"} />
 
 ### `data_entity_read_one`
 
 Read one
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"offset":{"type":"number","default":0,"$target":"query"},"sort":{"type":"string","default":"id","$target":"query"},"select":{"type":"array","$target":"query","items":{"type":"string"}}}}} key={"data_entity_read_one"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"offset":{"type":"number","default":0,"$target":"query"},"sort":{"type":"string","default":"id","$target":"query"},"select":{"type":"array","$target":"query","items":{"type":"string"}}}}} key={"data_entity_read_one"} />
 
 ### `data_entity_update_many`
 
 Update many
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","update","where"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"update":{"type":"object","$target":"json","properties":{}},"where":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_update_many"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","update","where"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"update":{"type":"object","$target":"json","properties":{}},"where":{"type":"object","$target":"json","properties":{}}}}} key={"data_entity_update_many"} />
 
 ### `data_entity_update_one`
 
 Update one
 
-<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id","json"],"properties":{"entity":{"type":"string","enum":["users","media"],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_update_one"} />
+<JsonSchemaTypeTable schema={{"type":"object","required":["entity","id","json"],"properties":{"entity":{"anyOf":[{"type":"string","enum":["users","media"]},{"type":"string"}],"$target":"param"},"id":{"anyOf":[{"type":"number","title":"Integer"},{"type":"string","title":"UUID"}],"$target":"param"},"json":{"type":"object","$synthetic":true,"$target":"json","properties":{}}}}} key={"data_entity_update_one"} />
 
 ### `data_sync`
 
 Sync database schema
 
 <JsonSchemaTypeTable schema={{"type":"object","properties":{"force":{"type":"boolean","$target":"query"},"drop":{"type":"boolean","$target":"query"}}}} key={"data_sync"} />
+
+### `data_types`
+
+Retrieve data typescript definitions
+
+<JsonSchemaTypeTable schema={{"type":"object"}} key={"data_types"} />
 
 ### `system_build`
 
@@ -144,7 +150,7 @@ Ping the server
 
 
 
-<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to add"},"value":{"type":"object","additionalProperties":false,"properties":{"permissions":{"type":"array","items":{"type":"string"}},"is_default":{"type":"boolean"},"implicit_allow":{"type":"boolean"}}},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false}},"required":["key","value"]}} key={"config_auth_roles_add"} />
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to add"},"value":{"type":"object","additionalProperties":false,"properties":{"permissions":{"anyOf":[{"type":"array","items":{"type":"string"}},{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"permission":{"type":"string"},"effect":{"type":"string","enum":["allow","deny"],"default":"allow"},"policies":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"description":{"type":"string"},"condition":{"type":"object","properties":{}},"effect":{"type":"string","enum":["allow","deny","filter"],"default":"allow"},"filter":{"type":"object","properties":{}}}}}},"required":["permission"]}}]},"is_default":{"type":"boolean"},"implicit_allow":{"type":"boolean"}}},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false}},"required":["key","value"]}} key={"config_auth_roles_add"} />
 
 ### `config_auth_roles_get`
 
@@ -162,7 +168,7 @@ Ping the server
 
 
 
-<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to update"},"value":{"type":"object","additionalProperties":false,"properties":{"permissions":{"type":"array","items":{"type":"string"}},"is_default":{"type":"boolean"},"implicit_allow":{"type":"boolean"}}},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false}},"required":["key","value"]}} key={"config_auth_roles_update"} />
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"key":{"type":"string","description":"key to update"},"value":{"type":"object","additionalProperties":false,"properties":{"permissions":{"anyOf":[{"type":"array","items":{"type":"string"}},{"type":"array","items":{"type":"object","additionalProperties":false,"required":["permission"],"properties":{"permission":{"type":"string"},"effect":{"type":"string","enum":["allow","deny"],"default":"allow"},"policies":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"description":{"type":"string"},"condition":{"type":"object","properties":{}},"effect":{"type":"string","enum":["allow","deny","filter"],"default":"allow"},"filter":{"type":"object","properties":{}}}}}}}}]},"is_default":{"type":"boolean"},"implicit_allow":{"type":"boolean"}}},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false}},"required":["key","value"]}} key={"config_auth_roles_update"} />
 
 ### `config_auth_strategies_add`
 
@@ -192,7 +198,7 @@ Ping the server
 
 
 
-<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false},"basepath":{"type":"string","default":"/api/auth"},"entity_name":{"type":"string","default":"users"},"allow_register":{"type":"boolean","default":true},"jwt":{"type":"object","default":{},"additionalProperties":false,"properties":{"secret":{"type":"string","default":""},"alg":{"type":"string","enum":["HS256","HS384","HS512"],"default":"HS256"},"expires":{"type":"number"},"issuer":{"type":"string"},"fields":{"type":"array","default":["id","email","role"],"items":{"type":"string"}}}},"cookie":{"type":"object","additionalProperties":false,"properties":{"path":{"type":"string","default":"/"},"sameSite":{"type":"string","enum":["strict","lax","none"],"default":"lax"},"secure":{"type":"boolean","default":true},"httpOnly":{"type":"boolean","default":true},"expires":{"type":"number","default":604800},"partitioned":{"type":"boolean","default":false},"renew":{"type":"boolean","default":true},"pathSuccess":{"type":"string","default":"/"},"pathLoggedOut":{"type":"string","default":"/"}}},"guard":{"type":"object","properties":{"enabled":{"type":"boolean","default":false}}}}}},"required":["value"]}} key={"config_auth_update"} />
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false},"basepath":{"type":"string","default":"/api/auth"},"entity_name":{"type":"string","default":"users"},"allow_register":{"type":"boolean","default":true},"jwt":{"type":"object","default":{},"additionalProperties":false,"properties":{"secret":{"type":"string","default":""},"alg":{"type":"string","enum":["HS256","HS384","HS512"],"default":"HS256"},"expires":{"type":"number"},"issuer":{"type":"string"},"fields":{"type":"array","default":["id","email","role"],"items":{"type":"string"}}}},"cookie":{"type":"object","additionalProperties":false,"properties":{"domain":{"type":"string"},"path":{"type":"string","default":"/"},"sameSite":{"type":"string","enum":["strict","lax","none"],"default":"lax"},"secure":{"type":"boolean","default":true},"httpOnly":{"type":"boolean","default":true},"expires":{"type":"number","default":604800},"partitioned":{"type":"boolean","default":false},"renew":{"type":"boolean","default":true},"pathSuccess":{"type":"string","default":"/"},"pathLoggedOut":{"type":"string","default":"/"}}},"guard":{"type":"object","properties":{"enabled":{"type":"boolean","default":false}}}}}},"required":["value"]}} key={"config_auth_update"} />
 
 ### `config_data_entities_add`
 
@@ -306,7 +312,7 @@ Get Server configuration
 
 Update Server configuration
 
-<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"cors":{"type":"object","additionalProperties":false,"properties":{"origin":{"type":"string","default":"*"},"allow_methods":{"type":"array","default":["GET","POST","PATCH","PUT","DELETE"],"uniqueItems":true,"items":{"type":"string","enum":["GET","POST","PATCH","PUT","DELETE"]}},"allow_headers":{"type":"array","default":["Content-Type","Content-Length","Authorization","Accept"],"items":{"type":"string"}},"allow_credentials":{"type":"boolean","default":true}}},"mcp":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false}}}}}},"required":["value"]}} key={"config_server_update"} />
+<JsonSchemaTypeTable schema={{"type":"object","additionalProperties":false,"properties":{"full":{"type":"boolean","default":false},"return_config":{"type":"boolean","description":"If the new configuration should be returned","default":false},"value":{"type":"object","additionalProperties":false,"properties":{"cors":{"type":"object","additionalProperties":false,"properties":{"origin":{"type":"string","default":"*"},"allow_methods":{"type":"array","default":["GET","POST","PATCH","PUT","DELETE"],"uniqueItems":true,"items":{"type":"string","enum":["GET","POST","PATCH","PUT","DELETE"]}},"allow_headers":{"type":"array","default":["Content-Type","Content-Length","Authorization","Accept"],"items":{"type":"string"}},"allow_credentials":{"type":"boolean","default":true}}},"mcp":{"type":"object","additionalProperties":false,"properties":{"enabled":{"type":"boolean","default":false},"path":{"type":"string","default":"/api/system/mcp"},"logLevel":{"type":"string","enum":["emergency","alert","critical","error","warning","notice","info","debug"],"default":"warning"}}}}}},"required":["value"]}} key={"config_server_update"} />
    
 
 ## Resources

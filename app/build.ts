@@ -85,7 +85,12 @@ async function buildApi() {
       sourcemap,
       watch,
       define,
-      entry: ["src/index.ts", "src/core/utils/index.ts", "src/plugins/index.ts"],
+      entry: [
+         "src/index.ts",
+         "src/core/utils/index.ts",
+         "src/plugins/index.ts",
+         "src/modes/index.ts",
+      ],
       outDir: "dist",
       external: [...external],
       metafile: true,

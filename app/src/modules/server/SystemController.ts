@@ -17,6 +17,7 @@ import {
    mcp as mcpMiddleware,
    isNode,
    type McpServer,
+   threw,
 } from "bknd/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
@@ -32,6 +33,7 @@ import { getVersion } from "core/env";
 import type { Module } from "modules/Module";
 import { getSystemMcp } from "modules/mcp/system-mcp";
 import type { DbModuleManager } from "modules/db/DbModuleManager";
+import type { TPermission } from "auth/authorize/Permission";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -46,7 +48,8 @@ export type SchemaResponse = {
    schema: ModuleSchemas;
    readonly: boolean;
    config: ModuleConfigs;
-   permissions: string[];
+   //permissions: string[];
+   permissions: TPermission[];
 };
 
 export class SystemController extends Controller {
@@ -67,10 +70,14 @@ export class SystemController extends Controller {
       if (!config.mcp.enabled) {
          return;
       }
+      const { permission, auth } = this.middlewares;
 
       this.registerMcp();
 
-      app.server.use(
+      app.server.all(
+         config.mcp.path,
+         auth(),
+         permission(SystemPermissions.mcp, {}),
          mcpMiddleware({
             setup: async () => {
                if (!this._mcpServer) {
@@ -108,7 +115,6 @@ export class SystemController extends Controller {
                explainEndpoint: true,
             },
             endpoint: {
-               path: config.mcp.path as any,
                // @ts-ignore
                _init: isNode() ? { duplex: "half" } : {},
             },
@@ -119,7 +125,7 @@ export class SystemController extends Controller {
    private registerConfigController(client: Hono<any>): void {
       const { permission } = this.middlewares;
       // don't add auth again, it's already added in getController
-      const hono = this.create().use(permission(SystemPermissions.configRead));
+      const hono = this.create(); /* .use(permission(SystemPermissions.configRead)); */
 
       if (!this.app.isReadOnly()) {
          const manager = this.app.modules as DbModuleManager;
@@ -130,7 +136,11 @@ export class SystemController extends Controller {
                summary: "Get the raw config",
                tags: ["system"],
             }),
-            permission([SystemPermissions.configReadSecrets]),
+            permission(SystemPermissions.configReadSecrets, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
             async (c) => {
                // @ts-expect-error "fetch" is private
                return c.json(await this.app.modules.fetch().then((r) => r?.configs));
@@ -165,7 +175,11 @@ export class SystemController extends Controller {
 
          hono.post(
             "/set/:module",
-            permission(SystemPermissions.configWrite),
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
             jsc("query", s.object({ force: s.boolean().optional() }), { skipOpenAPI: true }),
             async (c) => {
                const module = c.req.param("module") as any;
@@ -194,32 +208,44 @@ export class SystemController extends Controller {
             },
          );
 
-         hono.post("/add/:module/:path", permission(SystemPermissions.configWrite), async (c) => {
-            // @todo: require auth (admin)
-            const module = c.req.param("module") as any;
-            const value = await c.req.json();
-            const path = c.req.param("path") as string;
+         hono.post(
+            "/add/:module/:path",
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
+            async (c) => {
+               // @todo: require auth (admin)
+               const module = c.req.param("module") as any;
+               const value = await c.req.json();
+               const path = c.req.param("path") as string;
 
-            if (this.app.modules.get(module).schema().has(path)) {
-               return c.json(
-                  { success: false, path, error: "Path already exists" },
-                  { status: 400 },
-               );
-            }
+               if (this.app.modules.get(module).schema().has(path)) {
+                  return c.json(
+                     { success: false, path, error: "Path already exists" },
+                     { status: 400 },
+                  );
+               }
 
-            return await handleConfigUpdateResponse(c, async () => {
-               await manager.mutateConfigSafe(module).patch(path, value);
-               return {
-                  success: true,
-                  module,
-                  config: this.app.module[module].config,
-               };
-            });
-         });
+               return await handleConfigUpdateResponse(c, async () => {
+                  await manager.mutateConfigSafe(module).patch(path, value);
+                  return {
+                     success: true,
+                     module,
+                     config: this.app.module[module].config,
+                  };
+               });
+            },
+         );
 
          hono.patch(
             "/patch/:module/:path",
-            permission(SystemPermissions.configWrite),
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
             async (c) => {
                // @todo: require auth (admin)
                const module = c.req.param("module") as any;
@@ -239,7 +265,11 @@ export class SystemController extends Controller {
 
          hono.put(
             "/overwrite/:module/:path",
-            permission(SystemPermissions.configWrite),
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
             async (c) => {
                // @todo: require auth (admin)
                const module = c.req.param("module") as any;
@@ -259,7 +289,11 @@ export class SystemController extends Controller {
 
          hono.delete(
             "/remove/:module/:path",
-            permission(SystemPermissions.configWrite),
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
             async (c) => {
                // @todo: require auth (admin)
                const module = c.req.param("module") as any;
@@ -295,7 +329,11 @@ export class SystemController extends Controller {
             const { secrets } = c.req.valid("query");
             const { module } = c.req.valid("param");
 
-            secrets && this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c);
+            if (secrets) {
+               this.ctx.guard.granted(SystemPermissions.configReadSecrets, c, {
+                  module,
+               });
+            }
 
             const config = this.app.toJSON(secrets);
 
@@ -326,7 +364,11 @@ export class SystemController extends Controller {
             summary: "Get the schema for a module",
             tags: ["system"],
          }),
-         permission(SystemPermissions.schemaRead),
+         permission(SystemPermissions.schemaRead, {
+            context: (c) => ({
+               module: c.req.param("module"),
+            }),
+         }),
          jsc(
             "query",
             s
@@ -340,10 +382,22 @@ export class SystemController extends Controller {
          async (c) => {
             const module = c.req.param("module") as ModuleKey | undefined;
             const { config, secrets, fresh } = c.req.valid("query");
-            const readonly = this.app.isReadOnly();
+            const readonly =
+               // either if app is read only in general
+               this.app.isReadOnly() ||
+               // or if user is not allowed to modify the config
+               threw(() => this.ctx.guard.granted(SystemPermissions.configWrite, c, { module }));
 
-            config && this.ctx.guard.throwUnlessGranted(SystemPermissions.configRead, c);
-            secrets && this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c);
+            if (config) {
+               this.ctx.guard.granted(SystemPermissions.configRead, c, {
+                  module,
+               });
+            }
+            if (secrets) {
+               this.ctx.guard.granted(SystemPermissions.configReadSecrets, c, {
+                  module,
+               });
+            }
 
             const { version, ...schema } = this.app.getSchema();
 
@@ -368,8 +422,20 @@ export class SystemController extends Controller {
                readonly,
                schema,
                config: config ? this.app.toJSON(secrets) : undefined,
-               permissions: this.app.modules.ctx().guard.getPermissionNames(),
+               permissions: this.app.modules.ctx().guard.getPermissions(),
             });
+         },
+      );
+
+      hono.get(
+         "/permissions",
+         describeRoute({
+            summary: "Get the permissions",
+            tags: ["system"],
+         }),
+         (c) => {
+            const permissions = this.app.modules.ctx().guard.getPermissions();
+            return c.json({ permissions, context: this.app.module.auth.getGuardContextSchema() });
          },
       );
 
@@ -383,7 +449,7 @@ export class SystemController extends Controller {
          jsc("query", s.object({ sync: s.boolean().optional(), fetch: s.boolean().optional() })),
          async (c) => {
             const options = c.req.valid("query") as Record<string, boolean>;
-            this.ctx.guard.throwUnlessGranted(SystemPermissions.build, c);
+            this.ctx.guard.granted(SystemPermissions.build, c);
 
             await this.app.build(options);
             return c.json({
@@ -455,7 +521,7 @@ export class SystemController extends Controller {
       const { version, ...appConfig } = this.app.toJSON();
 
       mcp.resource("system_config", "bknd://system/config", async (c) => {
-         await c.context.ctx().helper.throwUnlessGranted(SystemPermissions.configRead, c);
+         await c.context.ctx().helper.granted(c, SystemPermissions.configRead, {});
 
          return c.json(this.app.toJSON(), {
             title: "System Config",
@@ -465,7 +531,9 @@ export class SystemController extends Controller {
             "system_config_module",
             "bknd://system/config/{module}",
             async (c, { module }) => {
-               await this.ctx.helper.throwUnlessGranted(SystemPermissions.configRead, c);
+               await this.ctx.helper.granted(c, SystemPermissions.configRead, {
+                  module,
+               });
 
                const m = this.app.modules.get(module as any) as Module;
                return c.json(m.toJSON(), {
@@ -477,7 +545,7 @@ export class SystemController extends Controller {
             },
          )
          .resource("system_schema", "bknd://system/schema", async (c) => {
-            await this.ctx.helper.throwUnlessGranted(SystemPermissions.schemaRead, c);
+            await this.ctx.helper.granted(c, SystemPermissions.schemaRead, {});
 
             return c.json(this.app.getSchema(), {
                title: "System Schema",
@@ -487,7 +555,9 @@ export class SystemController extends Controller {
             "system_schema_module",
             "bknd://system/schema/{module}",
             async (c, { module }) => {
-               await this.ctx.helper.throwUnlessGranted(SystemPermissions.schemaRead, c);
+               await this.ctx.helper.granted(c, SystemPermissions.schemaRead, {
+                  module,
+               });
 
                const m = this.app.modules.get(module as any);
                return c.json(m.getSchema().toJSON(), {

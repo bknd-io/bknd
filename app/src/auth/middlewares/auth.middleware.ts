@@ -1,4 +1,3 @@
-import type { Permission } from "core/security/Permission";
 import { $console, patternMatch } from "bknd/utils";
 import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
@@ -49,7 +48,7 @@ export const auth = (options?: {
       // make sure to only register once
       if (authCtx.registered) {
          skipped = true;
-         $console.warn(`auth middleware already registered for ${getPath(c)}`);
+         $console.debug(`auth middleware already registered for ${getPath(c)}`);
       } else {
          authCtx.registered = true;
 
@@ -66,49 +65,4 @@ export const auth = (options?: {
       authCtx.skip = false;
       authCtx.resolved = false;
       authCtx.user = undefined;
-   });
-
-export const permission = (
-   permission: Permission | Permission[],
-   options?: {
-      onGranted?: (c: Context<ServerEnv>) => Promise<Response | void | undefined>;
-      onDenied?: (c: Context<ServerEnv>) => Promise<Response | void | undefined>;
-   },
-) =>
-   // @ts-ignore
-   createMiddleware<ServerEnv>(async (c, next) => {
-      const app = c.get("app");
-      const authCtx = c.get("auth");
-      if (!authCtx) {
-         throw new Error("auth ctx not found");
-      }
-
-      // in tests, app is not defined
-      if (!authCtx.registered || !app) {
-         const msg = `auth middleware not registered, cannot check permissions for ${getPath(c)}`;
-         if (app?.module.auth.enabled) {
-            throw new Error(msg);
-         } else {
-            $console.warn(msg);
-         }
-      } else if (!authCtx.skip) {
-         const guard = app.modules.ctx().guard;
-         const permissions = Array.isArray(permission) ? permission : [permission];
-
-         if (options?.onGranted || options?.onDenied) {
-            let returned: undefined | void | Response;
-            if (permissions.every((p) => guard.granted(p, c))) {
-               returned = await options?.onGranted?.(c);
-            } else {
-               returned = await options?.onDenied?.(c);
-            }
-            if (returned instanceof Response) {
-               return returned;
-            }
-         } else {
-            permissions.some((p) => guard.throwUnlessGranted(p, c));
-         }
-      }
-
-      await next();
    });

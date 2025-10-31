@@ -63,10 +63,10 @@ export const AuthSettings = ({ schema: _unsafe_copy, config }) => {
    } catch (e) {}
    console.log("_s", _s);
    const roleSchema = _schema.properties.roles?.additionalProperties ?? { type: "object" };
-   if (_s.permissions) {
+   /* if (_s.permissions) {
       roleSchema.properties.permissions.items.enum = _s.permissions;
       roleSchema.properties.permissions.uniqueItems = true;
-   }
+   } */
 
    return (
       <Route path="/auth" nest>

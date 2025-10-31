@@ -5,7 +5,7 @@ import { entityTypes } from "data/entities/Entity";
 import { isEqual } from "lodash-es";
 import type { ModuleBuildContext, ModuleBuildContextMcpContext } from "./Module";
 import type { EntityRelation } from "data/relations";
-import type { Permission } from "core/security/Permission";
+import type { Permission, PermissionContext } from "auth/authorize/Permission";
 import { Exception } from "core/errors";
 import { invariant, isPlainObject } from "bknd/utils";
 
@@ -114,10 +114,20 @@ export class ModuleHelper {
       entity.__replaceField(name, newField);
    }
 
-   async throwUnlessGranted(
-      permission: Permission | string,
+   async granted<P extends Permission<any, any, any, any>>(
       c: { context: ModuleBuildContextMcpContext; raw?: unknown },
-   ) {
+      permission: P,
+      context: PermissionContext<P>,
+   ): Promise<void>;
+   async granted<P extends Permission<any, any, undefined, any>>(
+      c: { context: ModuleBuildContextMcpContext; raw?: unknown },
+      permission: P,
+   ): Promise<void>;
+   async granted<P extends Permission<any, any, any, any>>(
+      c: { context: ModuleBuildContextMcpContext; raw?: unknown },
+      permission: P,
+      context?: PermissionContext<P>,
+   ): Promise<void> {
       invariant(c.context.app, "app is not available in mcp context");
       const auth = c.context.app.module.auth;
       if (!auth.enabled) return;
@@ -127,12 +137,6 @@ export class ModuleHelper {
       }
 
       const user = await auth.authenticator?.resolveAuthFromRequest(c.raw as any);
-
-      if (!this.ctx.guard.granted(permission, user)) {
-         throw new Exception(
-            `Permission "${typeof permission === "string" ? permission : permission.name}" not granted`,
-            403,
-         );
-      }
+      this.ctx.guard.granted(permission, user as any, context as any);
    }
 }

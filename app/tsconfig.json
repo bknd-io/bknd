@@ -33,7 +33,9 @@
       "bknd": ["./src/index.ts"],
       "bknd/utils": ["./src/core/utils/index.ts"],
       "bknd/adapter": ["./src/adapter/index.ts"],
-      "bknd/client": ["./src/ui/client/index.ts"]
+      "bknd/adapter/*": ["./src/adapter/*/index.ts"],
+      "bknd/client": ["./src/ui/client/index.ts"],
+      "bknd/modes": ["./src/modes/index.ts"]
     }
   },
   "include": [

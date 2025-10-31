@@ -248,20 +248,16 @@ export class SchemaManager {
 
    async sync(config: { force?: boolean; drop?: boolean } = { force: false, drop: false }) {
       const diff = await this.getDiff();
-      let updates: number = 0;
       const statements: { sql: string; parameters: readonly unknown[] }[] = [];
       const schema = this.em.connection.kysely.schema;
+      const qbs: { compile(): CompiledQuery; execute(): Promise<void> }[] = [];
 
       for (const table of diff) {
-         const qbs: { compile(): CompiledQuery; execute(): Promise<void> }[] = [];
-         let local_updates: number = 0;
          const addFieldSchemas = this.collectFieldSchemas(table.name, table.columns.add);
          const dropFields = table.columns.drop;
          const dropIndices = table.indices.drop;
 
          if (table.isDrop) {
-            updates++;
-            local_updates++;
             if (config.drop) {
                qbs.push(schema.dropTable(table.name));
             }
@@ -269,8 +265,6 @@ export class SchemaManager {
             let createQb = schema.createTable(table.name);
             // add fields
             for (const fieldSchema of addFieldSchemas) {
-               updates++;
-               local_updates++;
                // @ts-ignore
                createQb = createQb.addColumn(...fieldSchema);
             }
@@ -281,8 +275,6 @@ export class SchemaManager {
             if (addFieldSchemas.length > 0) {
                // add fields
                for (const fieldSchema of addFieldSchemas) {
-                  updates++;
-                  local_updates++;
                   // @ts-ignore
                   qbs.push(schema.alterTable(table.name).addColumn(...fieldSchema));
                }
@@ -292,8 +284,6 @@ export class SchemaManager {
             if (config.drop && dropFields.length > 0) {
                // drop fields
                for (const column of dropFields) {
-                  updates++;
-                  local_updates++;
                   qbs.push(schema.alterTable(table.name).dropColumn(column));
                }
             }
@@ -311,35 +301,33 @@ export class SchemaManager {
                qb = qb.unique();
             }
             qbs.push(qb);
-            local_updates++;
-            updates++;
          }
 
          // drop indices
          if (config.drop) {
             for (const index of dropIndices) {
                qbs.push(schema.dropIndex(index));
-               local_updates++;
-               updates++;
             }
          }
+      }
 
-         if (local_updates === 0) continue;
+      if (qbs.length > 0) {
+         statements.push(
+            ...qbs.map((qb) => {
+               const { sql, parameters } = qb.compile();
+               return { sql, parameters };
+            }),
+         );
 
-         // iterate through built qbs
-         // @todo: run in batches
-         for (const qb of qbs) {
-            const { sql, parameters } = qb.compile();
-            statements.push({ sql, parameters });
+         $console.debug(
+            "[SchemaManager]",
+            `${qbs.length} statements\n${statements.map((stmt) => stmt.sql).join(";\n")}`,
+         );
 
-            if (config.force) {
-               try {
-                  $console.debug("[SchemaManager]", sql);
-                  await qb.execute();
-               } catch (e) {
-                  throw new Error(`Failed to execute query: ${sql}: ${(e as any).message}`);
-               }
-            }
+         try {
+            await this.em.connection.executeQueries(...qbs);
+         } catch (e) {
+            throw new Error(`Failed to execute batch: ${String(e)}`);
          }
       }
 

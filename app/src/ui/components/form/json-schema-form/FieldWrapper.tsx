@@ -1,4 +1,4 @@
-import { IconBug } from "@tabler/icons-react";
+import { IconBug, IconInfoCircle } from "@tabler/icons-react";
 import type { JsonSchema } from "json-schema-library";
 import { Children, type ReactElement, type ReactNode, cloneElement, isValidElement } from "react";
 import { IconButton } from "ui/components/buttons/IconButton";
@@ -11,6 +11,8 @@ import {
 } from "ui/components/form/json-schema-form/Form";
 import { Popover } from "ui/components/overlay/Popover";
 import { getLabel } from "./utils";
+import { twMerge } from "tailwind-merge";
+import { Tooltip } from "@mantine/core";
 
 export type FieldwrapperProps = {
    name: string;
@@ -23,8 +25,9 @@ export type FieldwrapperProps = {
    children: ReactElement | ReactNode;
    errorPlacement?: "top" | "bottom";
    description?: string;
-   descriptionPlacement?: "top" | "bottom";
+   descriptionPlacement?: "top" | "bottom" | "label";
    fieldId?: string;
+   className?: string;
 };
 
 export function FieldWrapper({
@@ -38,6 +41,7 @@ export function FieldWrapper({
    descriptionPlacement = "bottom",
    children,
    fieldId,
+   className,
    ...props
 }: FieldwrapperProps) {
    const errors = useFormError(name, { strict: true });
@@ -50,17 +54,23 @@ export function FieldWrapper({
       <Formy.ErrorMessage>{errors.map((e) => e.message).join(", ")}</Formy.ErrorMessage>
    );
 
-   const Description = description && (
-      <Formy.Help className={descriptionPlacement === "top" ? "-mt-1 mb-1" : "mb-2"}>
-         {description}
-      </Formy.Help>
-   );
+   const Description = description ? (
+      ["top", "bottom"].includes(descriptionPlacement) ? (
+         <Formy.Help className={descriptionPlacement === "top" ? "-mt-1 mb-1" : "mb-2"}>
+            {description}
+         </Formy.Help>
+      ) : (
+         <Tooltip label={description}>
+            <IconInfoCircle className="size-4 opacity-50" />
+         </Tooltip>
+      )
+   ) : null;
 
    return (
       <Formy.Group
          error={errors.length > 0}
          as={wrapper === "fieldset" ? "fieldset" : "div"}
-         className={hidden ? "hidden" : "relative"}
+         className={twMerge(hidden ? "hidden" : "relative", className)}
       >
          {errorPlacement === "top" && Errors}
          <FieldDebug name={name} schema={schema} required={required} />
@@ -69,14 +79,15 @@ export function FieldWrapper({
             <Formy.Label
                as={wrapper === "fieldset" ? "legend" : "label"}
                htmlFor={fieldId}
-               className="self-start"
+               className="self-start flex flex-row gap-1 items-center"
             >
                {label} {required && <span className="font-medium opacity-30">*</span>}
+               {descriptionPlacement === "label" && Description}
             </Formy.Label>
          )}
          {descriptionPlacement === "top" && Description}
 
-         <div className="flex flex-row gap-2">
+         <div className="flex flex-row flex-grow gap-2">
             <div className="flex flex-1 flex-col gap-3">
                {Children.count(children) === 1 && isValidElement(children)
                   ? cloneElement(children, {

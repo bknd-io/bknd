@@ -49,6 +49,8 @@ export function registerMedia(
  * @todo: add tests (bun tests won't work, need node native tests)
  */
 export class StorageR2Adapter extends StorageAdapter {
+   public keyPrefix: string = "";
+
    constructor(private readonly bucket: R2Bucket) {
       super();
    }
@@ -175,6 +177,9 @@ export class StorageR2Adapter extends StorageAdapter {
    }
 
    protected getKey(key: string) {
+      if (this.keyPrefix.length > 0) {
+         return `${this.keyPrefix}/${key}`.replace(/^\/\//, "/");
+      }
       return key;
    }
 

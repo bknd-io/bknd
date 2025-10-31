@@ -301,7 +301,11 @@ function EntityDetailInner({
 
    // @todo: add custom key for invalidation
    const $q = useApiQuery(
-      (api) => api.data.readManyByReference(entity.name, id, other.reference, search),
+      (api) =>
+         api.data.readManyByReference(entity.name, id, other.reference, {
+            ...search,
+            limit: search.limit + 1 /* overfetch for softscan=false */,
+         }),
       {
          keepPreviousData: true,
          revalidateOnFocus: true,
@@ -320,7 +324,6 @@ function EntityDetailInner({
             navigate(routes.data.entity.create(other.entity.name), {
                query: ref.where,
             });
-            //navigate(routes.data.entity.create(other.entity.name) + `?${query}`);
          };
       }
    } catch (e) {}
@@ -330,6 +333,7 @@ function EntityDetailInner({
    }
 
    const isUpdating = $q.isValidating || $q.isLoading;
+   const meta = $q.data?.body.meta;
 
    return (
       <div
@@ -344,7 +348,7 @@ function EntityDetailInner({
             onClickRow={handleClickRow}
             onClickNew={handleClickNew}
             page={Math.floor(search.offset / search.limit) + 1}
-            total={$q.data?.body?.meta?.count ?? 1}
+            total={meta?.count}
             onClickPage={(page) => {
                setSearch((s) => ({
                   ...s,

@@ -40,6 +40,7 @@ export type ApiOptions = {
    data?: SubApiOptions<DataApiOptions>;
    auth?: SubApiOptions<AuthApiOptions>;
    media?: SubApiOptions<MediaApiOptions>;
+   credentials?: RequestCredentials;
 } & (
    | {
         token?: string;
@@ -67,7 +68,7 @@ export class Api {
    public auth!: AuthApi;
    public media!: MediaApi;
 
-   constructor(private options: ApiOptions = {}) {
+   constructor(public options: ApiOptions = {}) {
       // only mark verified if forced
       this.verified = options.verified === true;
 
@@ -129,29 +130,45 @@ export class Api {
       } else if (this.storage) {
          this.storage.getItem(this.tokenKey).then((token) => {
             this.token_transport = "header";
-            this.updateToken(token ? String(token) : undefined);
+            this.updateToken(token ? String(token) : undefined, {
+               verified: true,
+               trigger: false,
+            });
          });
       }
    }
 
+   /**
+    * Make storage async to allow async storages even if sync given
+    * @private
+    */
    private get storage() {
-      if (!this.options.storage) return null;
-      return {
-         getItem: async (key: string) => {
-            return await this.options.storage!.getItem(key);
+      const storage = this.options.storage;
+      return new Proxy(
+         {},
+         {
+            get(_, prop) {
+               return (...args: any[]) => {
+                  const response = storage ? storage[prop](...args) : undefined;
+                  if (response instanceof Promise) {
+                     return response;
+                  }
+                  return {
+                     // biome-ignore lint/suspicious/noThenProperty: it's a promise :)
+                     then: (fn) => fn(response),
+                  };
+               };
+            },
          },
-         setItem: async (key: string, value: string) => {
-            return await this.options.storage!.setItem(key, value);
-         },
-         removeItem: async (key: string) => {
-            return await this.options.storage!.removeItem(key);
-         },
-      };
+      ) as any;
    }
 
-   updateToken(token?: string, opts?: { rebuild?: boolean; trigger?: boolean }) {
+   updateToken(
+      token?: string,
+      opts?: { rebuild?: boolean; verified?: boolean; trigger?: boolean },
+   ) {
       this.token = token;
-      this.verified = false;
+      this.verified = opts?.verified === true;
 
       if (token) {
          this.user = omitKeys(decode(token).payload as any, ["iat", "iss", "exp"]) as any;
@@ -159,21 +176,22 @@ export class Api {
          this.user = undefined;
       }
 
+      const emit = () => {
+         if (opts?.trigger !== false) {
+            this.options.onAuthStateChange?.(this.getAuthState());
+         }
+      };
       if (this.storage) {
          const key = this.tokenKey;
 
          if (token) {
-            this.storage.setItem(key, token).then(() => {
-               this.options.onAuthStateChange?.(this.getAuthState());
-            });
+            this.storage.setItem(key, token).then(emit);
          } else {
-            this.storage.removeItem(key).then(() => {
-               this.options.onAuthStateChange?.(this.getAuthState());
-            });
+            this.storage.removeItem(key).then(emit);
          }
       } else {
          if (opts?.trigger !== false) {
-            this.options.onAuthStateChange?.(this.getAuthState());
+            emit();
          }
       }
 
@@ -182,6 +200,7 @@ export class Api {
 
    private markAuthVerified(verfied: boolean) {
       this.verified = verfied;
+      this.options.onAuthStateChange?.(this.getAuthState());
       return this;
    }
 
@@ -208,11 +227,6 @@ export class Api {
    }
 
    async verifyAuth() {
-      if (!this.token) {
-         this.markAuthVerified(false);
-         return;
-      }
-
       try {
          const { ok, data } = await this.auth.me();
          const user = data?.user;
@@ -221,10 +235,10 @@ export class Api {
          }
 
          this.user = user;
-         this.markAuthVerified(true);
       } catch (e) {
-         this.markAuthVerified(false);
          this.updateToken(undefined);
+      } finally {
+         this.markAuthVerified(true);
       }
    }
 
@@ -239,6 +253,7 @@ export class Api {
          headers: this.options.headers,
          token_transport: this.token_transport,
          verbose: this.options.verbose,
+         credentials: this.options.credentials,
       });
    }
 
@@ -257,10 +272,9 @@ export class Api {
       this.auth = new AuthApi(
          {
             ...baseParams,
-            credentials: this.options.storage ? "omit" : "include",
             ...this.options.auth,
-            onTokenUpdate: (token) => {
-               this.updateToken(token, { rebuild: true });
+            onTokenUpdate: (token, verified) => {
+               this.updateToken(token, { rebuild: true, verified, trigger: true });
                this.options.auth?.onTokenUpdate?.(token);
             },
          },

@@ -30,9 +30,9 @@ describe("some tests", async () => {
       const query = await em.repository(users).findId(1);
 
       expect(query.sql).toBe(
-         'select "users"."id" as "id", "users"."username" as "username", "users"."email" as "email" from "users" where "id" = ? limit ?',
+         'select "users"."id" as "id", "users"."username" as "username", "users"."email" as "email" from "users" where "id" = ? order by "users"."id" asc limit ? offset ?',
       );
-      expect(query.parameters).toEqual([1, 1]);
+      expect(query.parameters).toEqual([1, 1, 0]);
       expect(query.data).toBeUndefined();
    });
 

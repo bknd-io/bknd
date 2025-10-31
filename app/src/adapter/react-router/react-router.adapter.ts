@@ -8,14 +8,14 @@ export type ReactRouterBkndConfig<Env = ReactRouterEnv> = FrameworkBkndConfig<En
 
 export async function getApp<Env = ReactRouterEnv>(
    config: ReactRouterBkndConfig<Env>,
-   args: Env = {} as Env,
+   args: Env = process.env as Env,
 ) {
-   return await createFrameworkApp(config, args ?? process.env);
+   return await createFrameworkApp(config, args);
 }
 
 export function serve<Env = ReactRouterEnv>(
    config: ReactRouterBkndConfig<Env> = {},
-   args: Env = {} as Env,
+   args: Env = process.env as Env,
 ) {
    return async (fnArgs: ReactRouterFunctionArgs) => {
       return (await getApp(config, args)).fetch(fnArgs.request);

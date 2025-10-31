@@ -6,10 +6,8 @@ import { deleteCookie, getSignedCookie, setSignedCookie } from "hono/cookie";
 import { sign, verify } from "hono/jwt";
 import { type CookieOptions, serializeSigned } from "hono/utils/cookie";
 import type { ServerEnv } from "modules/Controller";
-import { pick } from "lodash-es";
 import { InvalidConditionsException } from "auth/errors";
-import { s, parse, secret, runtimeSupports, truncate, $console } from "bknd/utils";
-import { $object } from "modules/mcp";
+import { s, parse, secret, runtimeSupports, truncate, $console, pickKeys } from "bknd/utils";
 import type { AuthStrategy } from "./strategies/Strategy";
 
 type Input = any; // workaround
@@ -44,6 +42,7 @@ export interface UserPool {
 const defaultCookieExpires = 60 * 60 * 24 * 7; // 1 week in seconds
 export const cookieConfig = s
    .strictObject({
+      domain: s.string().optional(),
       path: s.string({ default: "/" }),
       sameSite: s.string({ enum: ["strict", "lax", "none"], default: "lax" }),
       secure: s.boolean({ default: true }),
@@ -229,7 +228,7 @@ export class Authenticator<
 
    // @todo: add jwt tests
    async jwt(_user: SafeUser | ProfileExchange): Promise<string> {
-      const user = pick(_user, this.config.jwt.fields);
+      const user = pickKeys(_user, this.config.jwt.fields as any);
 
       const payload: JWTPayload = {
          ...user,
@@ -255,7 +254,7 @@ export class Authenticator<
    }
 
    async safeAuthResponse(_user: User): Promise<AuthResponse> {
-      const user = pick(_user, this.config.jwt.fields) as SafeUser;
+      const user = pickKeys(_user, this.config.jwt.fields as any) as SafeUser;
       return {
          user,
          token: await this.jwt(user),
@@ -290,6 +289,7 @@ export class Authenticator<
 
       return {
          ...cookieConfig,
+         domain: cookieConfig.domain ?? undefined,
          expires: new Date(Date.now() + expires * 1000),
       };
    }
@@ -327,6 +327,31 @@ export class Authenticator<
       await setSignedCookie(c, "auth", token, secret, this.cookieOptions);
    }
 
+   async getAuthCookieHeader(token: string, headers = new Headers()) {
+      const c = {
+         header: (key: string, value: string) => {
+            headers.set(key, value);
+         },
+      };
+      await this.setAuthCookie(c as any, token);
+      return headers;
+   }
+
+   async removeAuthCookieHeader(headers = new Headers()) {
+      const c = {
+         header: (key: string, value: string) => {
+            headers.set(key, value);
+         },
+         req: {
+            raw: {
+               headers,
+            },
+         },
+      };
+      this.deleteAuthCookie(c as any);
+      return headers;
+   }
+
    async unsafeGetAuthCookie(token: string): Promise<string | undefined> {
       // this works for as long as cookieOptions.prefix is not set
       return serializeSigned("auth", token, this.config.jwt.secret, this.cookieOptions);
@@ -354,7 +379,10 @@ export class Authenticator<
 
    // @todo: move this to a server helper
    isJsonRequest(c: Context): boolean {
-      return c.req.header("Content-Type") === "application/json";
+      return (
+         c.req.header("Content-Type") === "application/json" ||
+         c.req.header("Accept") === "application/json"
+      );
    }
 
    async getBody(c: Context) {
