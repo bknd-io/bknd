@@ -28,7 +28,7 @@ async function cleanDatabase(connection: InstanceType<typeof PostgresConnection>
 async function isPostgresRunning() {
    try {
       // Try to actually connect to PostgreSQL
-      const conn = pg(new Pool(credentials));
+      const conn = pg({ pool: new Pool(credentials) });
       await conn.ping();
       await conn.close();
       return true;
@@ -58,8 +58,8 @@ describe("postgres", () => {
    });
 
    describe.serial.each([
-      ["pg", () => pg(new Pool(credentials))],
-      ["postgresjs", () => postgresJs(postgres(credentials))],
+      ["pg", () => pg({ pool: new Pool(credentials) })],
+      ["postgresjs", () => postgresJs({ postgres: postgres(credentials) })],
    ])("%s", (name, createConnection) => {
       connectionTestSuite(
          {

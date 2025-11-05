@@ -2,22 +2,21 @@ import { Kysely } from "kysely";
 import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
 import { customIntrospector } from "../Connection";
-import { PostgresJSDialect } from "kysely-postgres-js";
-import type { Sql } from "postgres";
+import { PostgresJSDialect, type PostgresJSDialectConfig } from "kysely-postgres-js";
 
-export class PostgresJsConnection extends PostgresConnection<Sql> {
+export class PostgresJsConnection extends PostgresConnection<PostgresJSDialectConfig["postgres"]> {
    override name = "postgres-js";
 
-   constructor(opts: { postgres: Sql }) {
+   constructor(config: PostgresJSDialectConfig) {
       const kysely = new Kysely({
          dialect: customIntrospector(PostgresJSDialect, PostgresIntrospector, {
             excludeTables: [],
-         }).create({ postgres: opts.postgres }),
+         }).create(config),
          plugins,
       });
 
       super(kysely);
-      this.client = opts.postgres;
+      this.client = config.postgres;
    }
 
    override async close(): Promise<void> {
@@ -26,7 +25,7 @@ export class PostgresJsConnection extends PostgresConnection<Sql> {
 }
 
 export function postgresJs(
-   postgres: Sql,
+   config: PostgresJSDialectConfig,
 ): PostgresJsConnection {
-   return new PostgresJsConnection({ postgres });
+   return new PostgresJsConnection(config);
 }

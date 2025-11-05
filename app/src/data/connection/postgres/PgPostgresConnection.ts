@@ -1,22 +1,26 @@
-import { Kysely, PostgresDialect } from "kysely";
+import { Kysely, PostgresDialect, type PostgresDialectConfig as KyselyPostgresDialectConfig } from "kysely";
 import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
 import { customIntrospector } from "../Connection";
 import type { Pool } from "pg";
 
+export type PostgresDialectConfig = Omit<KyselyPostgresDialectConfig, "pool"> & {
+   pool: Pool;
+};
+
 export class PgPostgresConnection extends PostgresConnection<Pool> {
    override name = "pg";
 
-   constructor(pool: Pool) {
+   constructor(config: PostgresDialectConfig) {
       const kysely = new Kysely({
          dialect: customIntrospector(PostgresDialect, PostgresIntrospector, {
             excludeTables: [],
-         }).create({ pool }),
+         }).create(config),
          plugins,
       });
 
       super(kysely);
-      this.client = pool;
+      this.client = config.pool;
    }
 
    override async close(): Promise<void> {
@@ -24,6 +28,6 @@ export class PgPostgresConnection extends PostgresConnection<Pool> {
    }
 }
 
-export function pg(pool: Pool): PgPostgresConnection {
-   return new PgPostgresConnection(pool);
+export function pg(config: PostgresDialectConfig): PgPostgresConnection {
+   return new PgPostgresConnection(config);
 }

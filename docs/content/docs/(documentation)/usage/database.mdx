@@ -222,9 +222,11 @@ import { pg } from "bknd";
 import { Pool } from "pg";
 
 serve({
-  connection: pg(new Pool({
-    connectionString: "postgresql://user:password@localhost:5432/database",
-  })),
+  connection: pg({
+    pool: new Pool({
+      connectionString: "postgresql://user:password@localhost:5432/database",
+    }),
+  }),
 });
 ```
 
@@ -238,7 +240,9 @@ import { postgresJs } from "bknd";
 import postgres from 'postgres'
 
 serve({
-  connection: postgresJs(postgres("postgresql://user:password@localhost:5432/database")),
+  connection: postgresJs({
+    postgres: postgres("postgresql://user:password@localhost:5432/database"),
+  }),
 });
 ```
 
