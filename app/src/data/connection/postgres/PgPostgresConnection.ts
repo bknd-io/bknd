@@ -2,15 +2,12 @@ import { Kysely, PostgresDialect } from "kysely";
 import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
 import { customIntrospector } from "../Connection";
-import $pg from "pg";
+import type { Pool } from "pg";
 
-export type PgPostgresConnectionConfig = $pg.PoolConfig;
-
-export class PgPostgresConnection extends PostgresConnection<$pg.Pool> {
+export class PgPostgresConnection extends PostgresConnection<Pool> {
    override name = "pg";
 
-   constructor(config: PgPostgresConnectionConfig) {
-      const pool = new $pg.Pool(config);
+   constructor(pool: Pool) {
       const kysely = new Kysely({
          dialect: customIntrospector(PostgresDialect, PostgresIntrospector, {
             excludeTables: [],
@@ -27,6 +24,6 @@ export class PgPostgresConnection extends PostgresConnection<$pg.Pool> {
    }
 }
 
-export function pg(config: PgPostgresConnectionConfig): PgPostgresConnection {
-   return new PgPostgresConnection(config);
+export function pg(pool: Pool): PgPostgresConnection {
+   return new PgPostgresConnection(pool);
 }

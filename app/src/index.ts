@@ -156,14 +156,12 @@ export { SqliteLocalConnection } from "data/connection/sqlite/SqliteLocalConnect
 export {
    pg,
    PgPostgresConnection,
-   type PgPostgresConnectionConfig,
 } from "data/connection/postgres/PgPostgresConnection";
 export { PostgresIntrospector } from "data/connection/postgres/PostgresIntrospector";
 export { PostgresConnection } from "data/connection/postgres/PostgresConnection";
 export {
    postgresJs,
    PostgresJsConnection,
-   type PostgresJsConfig,
 } from "data/connection/postgres/PostgresJsConnection";
 export {
    createCustomPostgresConnection,

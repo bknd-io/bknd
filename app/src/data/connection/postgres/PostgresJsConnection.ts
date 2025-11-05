@@ -3,14 +3,12 @@ import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
 import { customIntrospector } from "../Connection";
 import { PostgresJSDialect } from "kysely-postgres-js";
-import $postgresJs, { type Sql, type Options, type PostgresType } from "postgres";
+import type { Sql } from "postgres";
 
-export type PostgresJsConfig = Options<Record<string, PostgresType>>;
-
-export class PostgresJsConnection extends PostgresConnection<$postgresJs.Sql> {
+export class PostgresJsConnection extends PostgresConnection<Sql> {
    override name = "postgres-js";
 
-   constructor(opts: { postgres: $postgresJs.Sql }) {
+   constructor(opts: { postgres: Sql }) {
       const kysely = new Kysely({
          dialect: customIntrospector(PostgresJSDialect, PostgresIntrospector, {
             excludeTables: [],
@@ -28,14 +26,7 @@ export class PostgresJsConnection extends PostgresConnection<$postgresJs.Sql> {
 }
 
 export function postgresJs(
-   connectionString: string,
-   config?: PostgresJsConfig,
-): PostgresJsConnection;
-export function postgresJs(config: PostgresJsConfig): PostgresJsConnection;
-export function postgresJs(
-   first: PostgresJsConfig | string,
-   second?: PostgresJsConfig,
+   postgres: Sql,
 ): PostgresJsConnection {
-   const postgres = typeof first === "string" ? $postgresJs(first, second) : $postgresJs(first);
    return new PostgresJsConnection({ postgres });
 }

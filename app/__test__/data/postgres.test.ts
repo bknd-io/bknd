@@ -1,6 +1,8 @@
-import { describe, beforeAll, afterAll, expect, test, it, afterEach } from "bun:test";
+import { describe, beforeAll, afterAll, test } from "bun:test";
 import type { PostgresConnection } from "data/connection/postgres";
-import { createApp, em, entity, text, pg, postgresJs } from "bknd";
+import { pg, postgresJs } from "bknd";
+import { Pool } from "pg";
+import postgres from 'postgres'
 import { disableConsoleLog, enableConsoleLog, $waitUntil } from "bknd/utils";
 import { $ } from "bun";
 import { connectionTestSuite } from "data/connection/connection-test-suite";
@@ -26,7 +28,7 @@ async function cleanDatabase(connection: InstanceType<typeof PostgresConnection>
 async function isPostgresRunning() {
    try {
       // Try to actually connect to PostgreSQL
-      const conn = pg(credentials);
+      const conn = pg(new Pool(credentials));
       await conn.ping();
       await conn.close();
       return true;
@@ -56,8 +58,8 @@ describe("postgres", () => {
    });
 
    describe.serial.each([
-      ["pg", () => pg(credentials)],
-      ["postgresjs", () => postgresJs(credentials)],
+      ["pg", () => pg(new Pool(credentials))],
+      ["postgresjs", () => postgresJs(postgres(credentials))],
    ])("%s", (name, createConnection) => {
       connectionTestSuite(
          {
