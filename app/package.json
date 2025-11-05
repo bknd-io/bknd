@@ -13,7 +13,7 @@
   "bugs": {
     "url": "https://github.com/bknd-io/bknd/issues"
   },
-  "packageManager": "bun@1.2.22",
+  "packageManager": "bun@1.3.1",
   "engines": {
     "node": ">=22.13"
   },
@@ -70,9 +70,10 @@
     "lodash-es": "^4.17.21",
     "oauth4webapi": "^2.11.1",
     "object-path-immutable": "^4.1.2",
-    "radix-ui": "^1.1.3",
     "picocolors": "^1.1.1",
-    "swr": "^2.3.6"
+    "radix-ui": "^1.1.3",
+    "swr": "^2.3.6",
+    "zustand": "^4"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.922.0",
@@ -88,10 +89,12 @@
     "@mantine/notifications": "^7.17.1",
     "@playwright/test": "^1.56.1",
     "@rjsf/core": "5.22.2",
+    "@rjsf/utils": "5.22.0",
     "@standard-schema/spec": "^1.0.0",
     "@tabler/icons-react": "3.35.0",
     "@tailwindcss/postcss": "^4.1.16",
     "@tailwindcss/vite": "^4.1.16",
+    "@tanstack/react-store": "^0.8.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^24.10.0",
