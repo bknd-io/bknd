@@ -76,7 +76,7 @@ describe("repros", async () => {
       expect(app.em.entities.map((e) => e.name)).toEqual(["media", "test"]);
    });
 
-   test.only("verify inversedBy", async () => {
+   test("verify inversedBy", async () => {
       const schema = proto.em(
          {
             products: proto.entity("products", {

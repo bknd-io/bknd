@@ -5,7 +5,7 @@ import path from "node:path";
 export default defineConfig({
    plugins: [tsconfigPaths()],
    test: {
-      projects: ["**/*.vitest.config.ts"],
+      projects: ["**/*.vitest.config.ts", "**/*/vitest.config.ts"],
       include: ["**/*.vi-test.ts", "**/*.vitest.ts"],
    },
 });

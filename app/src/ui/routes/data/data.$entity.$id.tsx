@@ -207,7 +207,7 @@ function DataEntityUpdateImpl({ params }) {
                   handleSubmit={handleSubmit}
                   fieldsDisabled={fieldsDisabled}
                   data={data ?? undefined}
-                  Form={Form}
+                  Form={Form as any}
                   action="update"
                   className="flex flex-grow flex-col gap-3 p-3"
                />

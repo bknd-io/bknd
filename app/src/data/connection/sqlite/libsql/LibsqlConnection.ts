@@ -18,7 +18,7 @@ export type LibsqlClientFns = {
 function getClient(clientOrCredentials: Client | LibSqlCredentials | LibsqlClientFns): Client {
    if (clientOrCredentials && "url" in clientOrCredentials) {
       const { url, authToken } = clientOrCredentials;
-      return createClient({ url, authToken });
+      return createClient({ url, authToken }) as unknown as Client;
    }
 
    return clientOrCredentials as Client;

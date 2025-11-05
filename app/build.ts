@@ -96,6 +96,7 @@ async function buildApi() {
       metafile: true,
       target: "esnext",
       platform: "browser",
+      removeNodeProtocol: false,
       format: ["esm"],
       splitting: false,
       loader: {
@@ -228,6 +229,7 @@ function baseConfig(adapter: string, overrides: Partial<tsup.Options> = {}): tsu
       outDir: `dist/adapter/${adapter}`,
       metafile: true,
       splitting: false,
+      removeNodeProtocol: false,
       onSuccess: async () => {
          delayTypes();
          oldConsole.log(c.cyan("[Adapter]"), adapter || "base", c.green("built"));
