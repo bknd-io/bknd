@@ -1,5 +1,3 @@
-/// <reference types="bun-types" />
-
 import path from "node:path";
 import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
 import { registerLocalMediaAdapter } from ".";

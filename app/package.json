@@ -104,6 +104,7 @@
     "@vitest/coverage-v8": "3.0.9",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.1.1",
+    "commander": "^14.0.2",
     "dotenv": "^17.2.3",
     "jotai": "^2.12.2",
     "jsdom": "^26.1.0",

@@ -1,5 +1,6 @@
 import { createFrameworkApp, type FrameworkBkndConfig } from "bknd/adapter";
 import { isNode } from "bknd/utils";
+// @ts-expect-error next is not installed
 import type { NextApiRequest } from "next";
 
 type NextjsEnv = NextApiRequest["env"];
