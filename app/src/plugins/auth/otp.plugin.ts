@@ -5,6 +5,7 @@ import {
    enumm,
    Exception,
    text,
+   DatabaseEvents,
    type App,
    type AppPlugin,
    type DB,
@@ -13,7 +14,6 @@ import {
    type EntityConfig,
 } from "bknd";
 import { invariant, s, jsc, HttpStatus, threwAsync, randomString } from "bknd/utils";
-import { MutatorDeleteBefore, MutatorInsertBefore, MutatorUpdateBefore } from "data/events";
 import { Hono } from "hono";
 
 export type OtpPluginOptions = {
@@ -93,6 +93,7 @@ export function otp({
                      entityConfig ?? {
                         name: "Users OTP",
                         sort_dir: "desc",
+                        primary_format: app.module.data.config.default_primary_format,
                      },
                      "generated",
                   ),
@@ -103,7 +104,6 @@ export function otp({
                },
             ),
          onBuilt: async () => {
-            // @todo: check if email driver is registered
             const auth = app.module.auth;
             invariant(auth && auth.enabled === true, "[OTP Plugin]: Auth is not enabled");
             invariant(app.drivers?.email, "[OTP Plugin]: Email driver is not registered");
@@ -300,17 +300,12 @@ function registerListeners(app: App, entityName: string) {
       (event) => {
          let allowed = true;
          let action = "";
-         if (event instanceof MutatorInsertBefore) {
+         if (event instanceof DatabaseEvents.MutatorInsertBefore) {
             if (event.params.entity.name === entityName) {
                allowed = false;
                action = "create";
             }
-         } else if (event instanceof MutatorDeleteBefore) {
-            if (event.params.entity.name === entityName) {
-               allowed = false;
-               action = "delete";
-            }
-         } else if (event instanceof MutatorUpdateBefore) {
+         } else if (event instanceof DatabaseEvents.MutatorUpdateBefore) {
             if (event.params.entity.name === entityName) {
                allowed = false;
                action = "update";
@@ -318,7 +313,7 @@ function registerListeners(app: App, entityName: string) {
          }
 
          if (!allowed) {
-            throw new Exception(`[OTP Plugin]: Not allowed ${action} OTP codes manually`);
+            throw new Exception(`[OTP Plugin]: Not allowed to ${action} OTP codes manually`);
          }
       },
       {
