@@ -10,6 +10,7 @@ import {
    type DB,
    type FieldSchema,
    type MaybePromise,
+   type EntityConfig,
 } from "bknd";
 import { invariant, s, jsc, HttpStatus, threwAsync, randomString } from "bknd/utils";
 import { MutatorDeleteBefore, MutatorInsertBefore, MutatorUpdateBefore } from "data/events";
@@ -38,6 +39,11 @@ export type OtpPluginOptions = {
     * @default "users_otp"
     */
    entity?: string;
+
+   /**
+    * The config for the OTP entity.
+    */
+   entityConfig?: EntityConfig;
 
    /**
     * Customize email content. If not provided, a default email will be sent.
@@ -71,6 +77,7 @@ export function otp({
    apiBasePath = "/api/auth/otp",
    ttl = 600,
    entity: entityName = "users_otp",
+   entityConfig,
    generateEmail: _generateEmail,
    showActualErrors = false,
 }: OtpPluginOptions = {}): AppPlugin {
@@ -80,7 +87,15 @@ export function otp({
          schema: () =>
             em(
                {
-                  [entityName]: entity(entityName, otpFields),
+                  [entityName]: entity(
+                     entityName,
+                     otpFields,
+                     entityConfig ?? {
+                        name: "Users OTP",
+                        sort_dir: "desc",
+                     },
+                     "generated",
+                  ),
                },
                ({ index }, schema) => {
                   const otp = schema[entityName]!;
@@ -131,14 +146,14 @@ export function otp({
                         // @ts-expect-error private method
                         return auth.authenticator.respondWithUser(c, { user, token: jwt });
                      } else {
-                        const otpData = await generateAndSendCode(
+                        await generateAndSendCode(
                            app,
                            { generateCode, generateEmail, ttl, entity: entityName },
                            user,
                            "login",
                         );
 
-                        return c.json({ data: otpData }, HttpStatus.CREATED);
+                        return c.json({ sent: true, action: "login" }, HttpStatus.CREATED);
                      }
                   },
                )
@@ -178,14 +193,14 @@ export function otp({
                         // @ts-expect-error private method
                         return auth.authenticator.respondWithUser(c, { user, token: jwt });
                      } else {
-                        const otpData = await generateAndSendCode(
+                        await generateAndSendCode(
                            app,
                            { generateCode, generateEmail, ttl, entity: entityName },
                            { email },
                            "register",
                         );
 
-                        return c.json({ data: otpData }, HttpStatus.CREATED);
+                        return c.json({ sent: true, action: "register" }, HttpStatus.CREATED);
                      }
                   },
                )
@@ -194,7 +209,7 @@ export function otp({
                      throw err;
                   }
 
-                  throw new Exception("Invalid code", HttpStatus.BAD_REQUEST);
+                  throw new Exception("Invalid credentials", HttpStatus.BAD_REQUEST);
                });
 
             app.server.route(apiBasePath, hono);
@@ -282,7 +297,7 @@ async function invalidateAllUserCodes(app: App, entityName: string, email: strin
 
 function registerListeners(app: App, entityName: string) {
    app.emgr.onAny(
-      async (event) => {
+      (event) => {
          let allowed = true;
          let action = "";
          if (event instanceof MutatorInsertBefore) {
