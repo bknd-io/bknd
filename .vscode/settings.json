@@ -8,8 +8,6 @@
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.autoImportFileExcludePatterns": [
-    "core/utils",
-    "core/utils/**",
     "**/dist/**",
     "**/node_modules/**/dist/**",
     "**/node_modules/**/!(src|lib|esm)/**" // optional, stricter
