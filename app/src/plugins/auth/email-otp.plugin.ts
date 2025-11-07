@@ -57,7 +57,7 @@ export type EmailOTPPluginOptions = {
     * @default false
     */
    showActualErrors?: boolean;
-   
+
    /**
     * Allow direct mutations (create/update) of OTP codes outside of this plugin,
     * e.g. via API or admin UI. If false, mutations are only allowed via the plugin's flows.
@@ -293,7 +293,7 @@ async function getValidatedCode(
    if (otpData.expires_at < new Date()) {
       throw new OTPError("Code expired");
    }
-   
+
    if (otpData.used_at) {
       throw new OTPError("Code already used");
    }
@@ -316,7 +316,10 @@ async function invalidateAllUserCodes(app: App, entityName: string, email: strin
 function registerListeners(app: App, entityName: string) {
    app.emgr.onAny(
       (event) => {
-         if (event instanceof DatabaseEvents.MutatorInsertBefore || event instanceof DatabaseEvents.MutatorUpdateBefore) {
+         if (
+            event instanceof DatabaseEvents.MutatorInsertBefore ||
+            event instanceof DatabaseEvents.MutatorUpdateBefore
+         ) {
             if (event.params.entity.name === entityName) {
                throw new OTPError("Mutations of the OTP entity are not allowed");
             }
