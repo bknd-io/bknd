@@ -118,8 +118,8 @@ export function emailOTP({
             ),
          onBuilt: async () => {
             const auth = app.module.auth;
-            invariant(auth && auth.enabled === true, "[OTP Plugin]: Auth is not enabled");
-            invariant(app.drivers?.email, "[OTP Plugin]: Email driver is not registered");
+            invariant(auth && auth.enabled === true, "Auth is not enabled");
+            invariant(app.drivers?.email, "Email driver is not registered");
 
             const generateCode =
                _generateCode ?? (() => Math.floor(100000 + Math.random() * 900000).toString());
