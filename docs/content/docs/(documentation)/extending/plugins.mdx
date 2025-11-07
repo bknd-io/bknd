@@ -261,3 +261,76 @@ export default {
 ```
 
 
+### `emailOTP`
+
+<Callout type="info">
+  This plugin requires the `email` driver to be registered.
+</Callout>
+
+A plugin that adds email OTP functionality to your app. It will add two endpoints to your app:
+- `POST /api/auth/otp/login` to login a user with an OTP code
+- `POST /api/auth/otp/register` to register a user with an OTP code
+
+Both endpoints accept a JSON body with `email` (required) and `code` (optional). If `code` is provided, the OTP code will be validated and the user will be logged in or registered. If `code` is not provided, a new OTP code will be generated and sent to the user's email.
+
+For example, to login an existing user with an OTP code, two requests are needed. The first one only with the email to generate and send the OTP code, and the second to send the users' email along with the OTP code. The last request will authenticate the user.
+
+```http title="Generate OTP code to login"
+POST /api/auth/otp/login
+Content-Type: application/json
+
+{
+   "email": "test@example.com"
+}
+```
+
+If the user exists, an email will be sent with the OTP code, and the response will be a `201 Created`.
+
+```http title="Login with OTP code"
+POST /api/auth/otp/login
+Content-Type: application/json
+
+{
+   "email": "test@example.com",
+   "code": "123456"
+}
+```
+
+If the code is valid, the user will be authenticated by sending a `Set-Cookie` header and a body property `token` with the JWT token (equally to the login endpoint).
+
+
+```typescript title="bknd.config.ts"
+import { emailOTP } from "bknd/plugins";
+import { resendEmail } from "bknd";
+
+export default {
+   options: {
+      drivers: {
+         // an email driver is required
+         email: resendEmail({ /* ... */}),
+      },
+      plugins: [
+         // all options are optional
+         emailOTP({
+            // the base path for the API endpoints
+            apiBasePath: "/api/auth/otp",
+            // the TTL for the OTP tokens in seconds
+            ttl: 600,
+            // the name of the OTP entity
+            entity: "users_otp",
+            // customize the email content
+            generateEmail: (otp) => ({
+               subject: "OTP Code",
+               body: `Your OTP code is: ${otp.code}`,
+            }),
+            // customize the code generation
+            generateCode: (user) => {
+               return Math.floor(100000 + Math.random() * 900000).toString();
+            },
+         })
+      ],
+   },
+} satisfies BkndConfig;
+```
+
+<AutoTypeTable path="../app/src/plugins/auth/email-otp.plugin.ts" name="EmailOTPPluginOptions" />
