@@ -293,6 +293,10 @@ async function getValidatedCode(
    if (otpData.expires_at < new Date()) {
       throw new OTPError("Code expired");
    }
+   
+   if (otpData.used_at) {
+      throw new OTPError("Code already used");
+   }
 
    return otpData;
 }
