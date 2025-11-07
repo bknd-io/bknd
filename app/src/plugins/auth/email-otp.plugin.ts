@@ -16,7 +16,7 @@ import {
 import { invariant, s, jsc, HttpStatus, threwAsync, randomString } from "bknd/utils";
 import { Hono } from "hono";
 
-export type OtpPluginOptions = {
+export type EmailOTPPluginOptions = {
    /**
     * Customize code generation. If not provided, a random 6-digit code will be generated.
     */
@@ -49,7 +49,7 @@ export type OtpPluginOptions = {
     * Customize email content. If not provided, a default email will be sent.
     */
    generateEmail?: (
-      otp: OtpFieldSchema,
+      otp: EmailOTPFieldSchema,
    ) => MaybePromise<{ subject: string; body: string | { text: string; html: string } }>;
 
    /**
@@ -57,6 +57,13 @@ export type OtpPluginOptions = {
     * @default false
     */
    showActualErrors?: boolean;
+   
+   /**
+    * Allow direct mutations (create/update) of OTP codes outside of this plugin,
+    * e.g. via API or admin UI. If false, mutations are only allowed via the plugin's flows.
+    * @default false
+    */
+   allowExternalMutations?: boolean;
 };
 
 const otpFields = {
@@ -70,9 +77,14 @@ const otpFields = {
    used_at: datetime(),
 };
 
-export type OtpFieldSchema = FieldSchema<typeof otpFields>;
+export type EmailOTPFieldSchema = FieldSchema<typeof otpFields>;
 
-export function otp({
+class OTPError extends Exception {
+   override name = "OTPError";
+   override code = HttpStatus.BAD_REQUEST;
+}
+
+export function emailOTP({
    generateCode: _generateCode,
    apiBasePath = "/api/auth/otp",
    ttl = 600,
@@ -80,10 +92,11 @@ export function otp({
    entityConfig,
    generateEmail: _generateEmail,
    showActualErrors = false,
-}: OtpPluginOptions = {}): AppPlugin {
+   allowExternalMutations = false,
+}: EmailOTPPluginOptions = {}): AppPlugin {
    return (app: App) => {
       return {
-         name: "bknd-otp",
+         name: "bknd-email-otp",
          schema: () =>
             em(
                {
@@ -112,7 +125,7 @@ export function otp({
                _generateCode ?? (() => Math.floor(100000 + Math.random() * 900000).toString());
             const generateEmail =
                _generateEmail ??
-               ((otp: OtpFieldSchema) => ({
+               ((otp: EmailOTPFieldSchema) => ({
                   subject: "OTP Code",
                   body: `Your OTP code is: ${otp.code}`,
                }));
@@ -205,7 +218,7 @@ export function otp({
                   },
                )
                .onError((err) => {
-                  if (showActualErrors) {
+                  if (showActualErrors || err instanceof OTPError) {
                      throw err;
                   }
 
@@ -214,8 +227,9 @@ export function otp({
 
             app.server.route(apiBasePath, hono);
 
-            // just for now, prevent mutations of the OTP entity
-            registerListeners(app, entityName);
+            if (allowExternalMutations !== true) {
+               registerListeners(app, entityName);
+            }
          },
       };
    };
@@ -233,14 +247,14 @@ async function findUser(app: App, email: string) {
 
 async function generateAndSendCode(
    app: App,
-   opts: Required<Pick<OtpPluginOptions, "generateCode" | "generateEmail" | "ttl" | "entity">>,
+   opts: Required<Pick<EmailOTPPluginOptions, "generateCode" | "generateEmail" | "ttl" | "entity">>,
    user: Pick<DB["users"], "email">,
-   action: OtpFieldSchema["action"],
+   action: EmailOTPFieldSchema["action"],
 ) {
    const { generateCode, generateEmail, ttl, entity: entityName } = opts;
    const newCode = generateCode?.(user);
    if (!newCode) {
-      throw new Exception("[OTP Plugin]: Failed to generate code");
+      throw new OTPError("Failed to generate code");
    }
 
    await invalidateAllUserCodes(app, entityName, user.email, ttl);
@@ -266,18 +280,18 @@ async function getValidatedCode(
    entityName: string,
    email: string,
    code: string,
-   action: OtpFieldSchema["action"],
+   action: EmailOTPFieldSchema["action"],
 ) {
    invariant(email, "[OTP Plugin]: Email is required");
    invariant(code, "[OTP Plugin]: Code is required");
    const em = app.em.fork();
    const { data: otpData } = await em.repo(entityName).findOne({ email, code, action });
    if (!otpData) {
-      throw new Exception("Invalid code", HttpStatus.BAD_REQUEST);
+      throw new OTPError("Invalid code");
    }
 
    if (otpData.expires_at < new Date()) {
-      throw new Exception("Code expired", HttpStatus.GONE);
+      throw new OTPError("Code expired");
    }
 
    return otpData;
@@ -298,27 +312,15 @@ async function invalidateAllUserCodes(app: App, entityName: string, email: strin
 function registerListeners(app: App, entityName: string) {
    app.emgr.onAny(
       (event) => {
-         let allowed = true;
-         let action = "";
-         if (event instanceof DatabaseEvents.MutatorInsertBefore) {
+         if (event instanceof DatabaseEvents.MutatorInsertBefore || event instanceof DatabaseEvents.MutatorUpdateBefore) {
             if (event.params.entity.name === entityName) {
-               allowed = false;
-               action = "create";
+               throw new OTPError("Mutations of the OTP entity are not allowed");
             }
-         } else if (event instanceof DatabaseEvents.MutatorUpdateBefore) {
-            if (event.params.entity.name === entityName) {
-               allowed = false;
-               action = "update";
-            }
-         }
-
-         if (!allowed) {
-            throw new Exception(`[OTP Plugin]: Not allowed to ${action} OTP codes manually`);
          }
       },
       {
          mode: "sync",
-         id: "bknd-otp",
+         id: "bknd-email-otp",
       },
    );
 }

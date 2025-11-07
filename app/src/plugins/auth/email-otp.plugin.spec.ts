@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
-import { otp } from "./otp.plugin";
+import { emailOTP } from "./email-otp.plugin";
 import { createApp } from "core/test/utils";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
@@ -10,7 +10,7 @@ describe("otp plugin", () => {
    test("should not work if auth is not enabled", async () => {
       const app = createApp({
          options: {
-            plugins: [otp({ showActualErrors: true })],
+            plugins: [emailOTP({ showActualErrors: true })],
          },
       });
       await app.build();
@@ -37,7 +37,7 @@ describe("otp plugin", () => {
                   send: async () => {},
                },
             },
-            plugins: [otp({ showActualErrors: true })],
+            plugins: [emailOTP({ showActualErrors: true })],
          },
       });
       await app.build();
@@ -69,7 +69,7 @@ describe("otp plugin", () => {
             },
          },
          options: {
-            plugins: [otp({ showActualErrors: true })],
+            plugins: [emailOTP({ showActualErrors: true })],
             drivers: {
                email: {
                   send: async (to) => {
@@ -121,7 +121,7 @@ describe("otp plugin", () => {
          },
          options: {
             plugins: [
-               otp({
+               emailOTP({
                   showActualErrors: true,
                   generateEmail: (otp) => ({ subject: "test", body: otp.code }),
                }),
@@ -179,7 +179,7 @@ describe("otp plugin", () => {
          },
          options: {
             plugins: [
-               otp({
+               emailOTP({
                   showActualErrors: true,
                   generateEmail: (otp) => ({ subject: "test", body: otp.code }),
                }),

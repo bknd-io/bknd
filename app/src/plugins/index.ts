@@ -8,4 +8,4 @@ export { syncConfig, type SyncConfigOptions } from "./dev/sync-config.plugin";
 export { syncTypes, type SyncTypesOptions } from "./dev/sync-types.plugin";
 export { syncSecrets, type SyncSecretsOptions } from "./dev/sync-secrets.plugin";
 export { timestamps, type TimestampsPluginOptions } from "./data/timestamps.plugin";
-export { otp, type OtpPluginOptions } from "./auth/otp.plugin";
+export { emailOTP, type EmailOTPPluginOptions } from "./auth/email-otp.plugin";
