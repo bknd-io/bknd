@@ -1,14 +1,13 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "organizeImports": {
-    "enabled": true
-  },
+  "$schema": "https://biomejs.dev/schemas/2.3.3/schema.json",
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "vcs": {
     "defaultBranch": "main"
   },
   "formatter": {
     "enabled": true,
-    "indentStyle": "space"
+    "indentStyle": "space",
+    "formatWithErrors": true
   },
   "javascript": {
     "formatter": {
@@ -30,27 +29,26 @@
     }
   },
   "files": {
-    "ignore": [
-      "**/node_modules/**",
-      "node_modules/**",
-      "**/.cache/**",
-      "**/.wrangler/**",
-      "**/build/**",
-      "**/dist/**",
-      "**/data.sqld/**",
-      "data.sqld/**",
-      "public/**",
-      ".history/**"
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/node_modules",
+      "!**/.cache",
+      "!**/.wrangler",
+      "!**/build",
+      "!**/dist",
+      "!**/data.sqld",
+      "!**/data.sqld",
+      "!**/public",
+      "!**/.history"
     ]
   },
   "linter": {
     "enabled": true,
-    "ignore": ["**/*.spec.ts"],
+    "includes": ["**"],
     "rules": {
       "recommended": true,
-      "a11y": {
-        "all": false
-      },
+      "a11y": {},
       "correctness": {
         "useExhaustiveDependencies": "off",
         "noUnreachable": "warn",
@@ -70,7 +68,7 @@
         "noArrayIndexKey": "off",
         "noImplicitAnyLet": "warn",
         "noConfusingVoidType": "off",
-        "noConsoleLog": "warn"
+        "noConsole": { "level": "warn", "options": { "allow": ["log"] } }
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"
