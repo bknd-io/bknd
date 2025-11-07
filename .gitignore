@@ -27,7 +27,7 @@ packages/media/.env
 .npmrc
 /.verdaccio
 .idea
-.vscode
+.vscode/*
 !.vscode/settings.json
 .git_old
 docker/tmp
