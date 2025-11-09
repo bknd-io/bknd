@@ -4,7 +4,7 @@ import { plunkEmail } from "./plunk";
 const ALL_TESTS = !!process.env.ALL_TESTS;
 
 describe.skipIf(ALL_TESTS)("plunk", () => {
-	it.only("should throw on failed", async () => {
+	it("should throw on failed", async () => {
 		const driver = plunkEmail({ apiKey: "invalid" });
 		expect(driver.send("foo@bar.com", "Test", "Test")).rejects.toThrow();
 	});
@@ -12,7 +12,7 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send an email", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "no-reply@useplunk.net",
+			from: undefined, // Default to what Plunk sets
 		});
 		const response = await driver.send(
 			"help@bknd.io",
@@ -28,7 +28,7 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send HTML email", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "no-reply@useplunk.net",
+			from: undefined,
 		});
 		const htmlBody = "<h1>Test Email</h1><p>This is a test email</p>";
 		const response = await driver.send(
@@ -43,7 +43,7 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send with text and html", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "no-reply@useplunk.net",
+			from: undefined,
 		});
 		const response = await driver.send("test@example.com", "Test Email", {
 			text: "help@bknd.io",
@@ -56,7 +56,7 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send to multiple recipients", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "no-reply@useplunk.net",
+			from: undefined,
 		});
 		const response = await driver.send(
 			"help@bknd.io",
@@ -74,7 +74,7 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should throw error for more than 5 recipients", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "no-reply@useplunk.net",
+			from: undefined,
 		});
 		expect(
 			driver.send("help@bknd.io", "Test", "Test", {
