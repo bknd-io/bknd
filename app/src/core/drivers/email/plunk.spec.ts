@@ -12,11 +12,11 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send an email", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "test@example.com",
+			from: "no-reply@useplunk.net",
 		});
 		const response = await driver.send(
-			"test@example.com",
-			"Test Email",
+			"help@bknd.io",
+			"Test Email from Plunk",
 			"This is a test email",
 		);
 		expect(response).toBeDefined();
@@ -28,11 +28,11 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send HTML email", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "test@example.com",
+			from: "no-reply@useplunk.net",
 		});
 		const htmlBody = "<h1>Test Email</h1><p>This is a test email</p>";
 		const response = await driver.send(
-			"test@example.com",
+			"help@bknd.io",
 			"HTML Test",
 			htmlBody,
 		);
@@ -43,10 +43,10 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send with text and html", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "test@example.com",
+			from: "no-reply@useplunk.net",
 		});
 		const response = await driver.send("test@example.com", "Test Email", {
-			text: "This is plain text",
+			text: "help@bknd.io",
 			html: "<p>This is HTML</p>",
 		});
 		expect(response).toBeDefined();
@@ -56,14 +56,14 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should send to multiple recipients", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "test@example.com",
+			from: "no-reply@useplunk.net",
 		});
 		const response = await driver.send(
-			"test@example.com",
+			"help@bknd.io",
 			"Multi-recipient Test",
 			"Test email to multiple recipients",
 			{
-				to: ["test1@example.com", "test2@example.com"],
+				to: ["help@bknd.io", "cameronandrewpak@gmail.com"],
 			},
 		);
 		expect(response).toBeDefined();
@@ -74,12 +74,12 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 	it("should throw error for more than 5 recipients", async () => {
 		const driver = plunkEmail({
 			apiKey: process.env.PLUNK_API_KEY!,
-			from: "test@example.com",
+			from: "no-reply@useplunk.net",
 		});
 		expect(
-			driver.send("test@example.com", "Test", "Test", {
+			driver.send("help@bknd.io", "Test", "Test", {
 				to: [
-					"test1@example.com",
+					"help@bknd.io",
 					"test2@example.com",
 					"test3@example.com",
 					"test4@example.com",
