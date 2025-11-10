@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test, setSystemTime } from "bun:test";
 import { emailOTP } from "./email-otp.plugin";
 import { createApp } from "core/test/utils";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
@@ -95,9 +95,7 @@ describe("otp plugin", () => {
       expect(res.status).toBe(201);
       expect(await res.json()).toEqual({ sent: true, action: "login" } as any);
 
-      const { data } = await app
-         .getApi()
-         .data.readOneBy("users_otp", { where: { email: "test@test.com" } });
+      const { data } = await app.em.fork().repo("users_otp").findOne({ email: "test@test.com" });
       expect(data?.code).toBeDefined();
       expect(data?.code?.length).toBe(6);
       expect(data?.code?.split("").every((char: string) => Number.isInteger(Number(char)))).toBe(
@@ -128,7 +126,7 @@ describe("otp plugin", () => {
             ],
             drivers: {
                email: {
-                  send: async (to, subject, body) => {
+                  send: async (to, _subject, body) => {
                      expect(to).toBe("test@test.com");
                      code = String(body);
                   },
@@ -186,7 +184,7 @@ describe("otp plugin", () => {
             ],
             drivers: {
                email: {
-                  send: async (to, subject, body) => {
+                  send: async (to, _subject, body) => {
                      expect(to).toBe("test@test.com");
                      code = String(body);
                   },
@@ -253,9 +251,379 @@ describe("otp plugin", () => {
       expect(called).not.toHaveBeenCalled();
    });
 
-   // @todo: test invalid codes
-   // @todo: test codes with different actions
-   // @todo: test code expiration
-   // @todo: test code reuse
-   // @todo: test invalidation of previous codes when sending new code
+   test("should reject invalid codes", async () => {
+      const app = createApp({
+         config: {
+            auth: {
+               enabled: true,
+               jwt: {
+                  secret: "test",
+               },
+            },
+         },
+         options: {
+            plugins: [
+               emailOTP({
+                  showActualErrors: true,
+                  generateEmail: (otp) => ({ subject: "test", body: otp.code }),
+               }),
+            ],
+            drivers: {
+               email: {
+                  send: async () => {},
+               },
+            },
+            seed: async (ctx) => {
+               await ctx.app.createUser({ email: "test@test.com", password: "12345678" });
+            },
+         },
+      });
+      await app.build();
+
+      // First send a code
+      await app.server.request("/api/auth/otp/login", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+
+      // Try to use an invalid code
+      const res = await app.server.request("/api/auth/otp/login", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com", code: "999999" }),
+      });
+      expect(res.status).toBe(400);
+      const error = await res.json();
+      expect(error).toBeDefined();
+   });
+
+   test("should reject code reuse", async () => {
+      let code = "";
+
+      const app = createApp({
+         config: {
+            auth: {
+               enabled: true,
+               jwt: {
+                  secret: "test",
+               },
+            },
+         },
+         options: {
+            plugins: [
+               emailOTP({
+                  showActualErrors: true,
+                  generateEmail: (otp) => ({ subject: "test", body: otp.code }),
+               }),
+            ],
+            drivers: {
+               email: {
+                  send: async (_to, _subject, body) => {
+                     code = String(body);
+                  },
+               },
+            },
+            seed: async (ctx) => {
+               await ctx.app.createUser({ email: "test@test.com", password: "12345678" });
+            },
+         },
+      });
+      await app.build();
+
+      // Send a code
+      await app.server.request("/api/auth/otp/login", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+
+      // Use the code successfully
+      {
+         const res = await app.server.request("/api/auth/otp/login", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com", code }),
+         });
+         expect(res.status).toBe(200);
+      }
+
+      // Try to use the same code again
+      {
+         const res = await app.server.request("/api/auth/otp/login", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com", code }),
+         });
+         expect(res.status).toBe(400);
+         const error = await res.json();
+         expect(error).toBeDefined();
+      }
+   });
+
+   test("should reject expired codes", async () => {
+      // Set a fixed system time
+      const baseTime = Date.now();
+      setSystemTime(new Date(baseTime));
+
+      try {
+         const app = createApp({
+            config: {
+               auth: {
+                  enabled: true,
+                  jwt: {
+                     secret: "test",
+                  },
+               },
+            },
+            options: {
+               plugins: [
+                  emailOTP({
+                     showActualErrors: true,
+                     ttl: 1, // 1 second TTL
+                     generateEmail: (otp) => ({ subject: "test", body: otp.code }),
+                  }),
+               ],
+               drivers: {
+                  email: {
+                     send: async () => {},
+                  },
+               },
+               seed: async (ctx) => {
+                  await ctx.app.createUser({ email: "test@test.com", password: "12345678" });
+               },
+            },
+         });
+         await app.build();
+
+         // Send a code
+         const sendRes = await app.server.request("/api/auth/otp/login", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com" }),
+         });
+         expect(sendRes.status).toBe(201);
+
+         // Get the code from the database
+         const { data: otpData } = await app.em
+            .fork()
+            .repo("users_otp")
+            .findOne({ email: "test@test.com" });
+         expect(otpData?.code).toBeDefined();
+
+         // Advance system time by more than 1 second to expire the code
+         setSystemTime(new Date(baseTime + 1100));
+
+         // Try to use the expired code
+         const res = await app.server.request("/api/auth/otp/login", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com", code: otpData?.code }),
+         });
+         expect(res.status).toBe(400);
+         const error = await res.json();
+         expect(error).toBeDefined();
+      } finally {
+         // Reset system time
+         setSystemTime();
+      }
+   });
+
+   test("should reject codes with different actions", async () => {
+      let loginCode = "";
+      let registerCode = "";
+
+      const app = createApp({
+         config: {
+            auth: {
+               enabled: true,
+               jwt: {
+                  secret: "test",
+               },
+            },
+         },
+         options: {
+            plugins: [
+               emailOTP({
+                  showActualErrors: true,
+                  generateEmail: (otp) => ({ subject: "test", body: otp.code }),
+               }),
+            ],
+            drivers: {
+               email: {
+                  send: async () => {},
+               },
+            },
+            seed: async (ctx) => {
+               await ctx.app.createUser({ email: "test@test.com", password: "12345678" });
+            },
+         },
+      });
+      await app.build();
+
+      // Send a login code
+      await app.server.request("/api/auth/otp/login", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+
+      // Get the login code
+      const { data: loginOtp } = await app
+         .getApi()
+         .data.readOneBy("users_otp", { where: { email: "test@test.com", action: "login" } });
+      loginCode = loginOtp?.code || "";
+
+      // Send a register code
+      await app.server.request("/api/auth/otp/register", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+
+      // Get the register code
+      const { data: registerOtp } = await app
+         .getApi()
+         .data.readOneBy("users_otp", { where: { email: "test@test.com", action: "register" } });
+      registerCode = registerOtp?.code || "";
+
+      // Try to use login code for register
+      {
+         const res = await app.server.request("/api/auth/otp/register", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com", code: loginCode }),
+         });
+         expect(res.status).toBe(400);
+         const error = await res.json();
+         expect(error).toBeDefined();
+      }
+
+      // Try to use register code for login
+      {
+         const res = await app.server.request("/api/auth/otp/login", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com", code: registerCode }),
+         });
+         expect(res.status).toBe(400);
+         const error = await res.json();
+         expect(error).toBeDefined();
+      }
+   });
+
+   test("should invalidate previous codes when sending new code", async () => {
+      let firstCode = "";
+      let secondCode = "";
+
+      const app = createApp({
+         config: {
+            auth: {
+               enabled: true,
+               jwt: {
+                  secret: "test",
+               },
+            },
+         },
+         options: {
+            plugins: [
+               emailOTP({
+                  showActualErrors: true,
+                  generateEmail: (otp) => ({ subject: "test", body: otp.code }),
+               }),
+            ],
+            drivers: {
+               email: {
+                  send: async () => {},
+               },
+            },
+            seed: async (ctx) => {
+               await ctx.app.createUser({ email: "test@test.com", password: "12345678" });
+            },
+         },
+      });
+      await app.build();
+      const em = app.em.fork();
+
+      // Send first code
+      await app.server.request("/api/auth/otp/login", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+
+      // Get the first code
+      const { data: firstOtp } = await em
+         .repo("users_otp")
+         .findOne({ email: "test@test.com", action: "login" });
+      firstCode = firstOtp?.code || "";
+      expect(firstCode).toBeDefined();
+
+      // Send second code (should invalidate the first)
+      await app.server.request("/api/auth/otp/login", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+
+      // Get the second code
+      const { data: secondOtp } = await em
+         .repo("users_otp")
+         .findOne({ email: "test@test.com", action: "login" });
+      secondCode = secondOtp?.code || "";
+      expect(secondCode).toBeDefined();
+      expect(secondCode).not.toBe(firstCode);
+
+      // Try to use the first code (should fail as it's been invalidated)
+      {
+         const res = await app.server.request("/api/auth/otp/login", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com", code: firstCode }),
+         });
+         expect(res.status).toBe(400);
+         const error = await res.json();
+         expect(error).toBeDefined();
+      }
+
+      // The second code should work
+      {
+         const res = await app.server.request("/api/auth/otp/login", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com", code: secondCode }),
+         });
+         expect(res.status).toBe(200);
+      }
+   });
 });

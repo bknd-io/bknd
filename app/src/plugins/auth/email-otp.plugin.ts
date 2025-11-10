@@ -5,13 +5,13 @@ import {
    enumm,
    Exception,
    text,
-   DatabaseEvents,
    type App,
    type AppPlugin,
    type DB,
    type FieldSchema,
    type MaybePromise,
    type EntityConfig,
+   DatabaseEvents,
 } from "bknd";
 import { invariant, s, jsc, HttpStatus, threwAsync, randomString, $console } from "bknd/utils";
 import { Hono } from "hono";
@@ -342,7 +342,7 @@ async function invalidateAllUserCodes(app: App, entityName: string, email: strin
    await em
       .mutator(entityName)
       .updateWhere(
-         { expires_at: new Date(Date.now() - ttl * 1000) },
+         { expires_at: new Date(Date.now() - 1000) },
          { email, used_at: { $isnull: true } },
       );
 }
