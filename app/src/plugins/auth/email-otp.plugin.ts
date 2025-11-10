@@ -13,7 +13,7 @@ import {
    type MaybePromise,
    type EntityConfig,
 } from "bknd";
-import { invariant, s, jsc, HttpStatus, threwAsync, randomString } from "bknd/utils";
+import { invariant, s, jsc, HttpStatus, threwAsync, randomString, $console } from "bknd/utils";
 import { Hono } from "hono";
 
 export type EmailOTPPluginOptions = {
@@ -64,6 +64,12 @@ export type EmailOTPPluginOptions = {
     * @default false
     */
    allowExternalMutations?: boolean;
+
+   /**
+    * Whether to send the email with the OTP code.
+    * @default true
+    */
+   sendEmail?: boolean;
 };
 
 const otpFields = {
@@ -93,6 +99,7 @@ export function emailOTP({
    generateEmail: _generateEmail,
    showActualErrors = false,
    allowExternalMutations = false,
+   sendEmail = true,
 }: EmailOTPPluginOptions = {}): AppPlugin {
    return (app: App) => {
       return {
@@ -138,11 +145,13 @@ export function emailOTP({
                      "json",
                      s.object({
                         email: s.string({ format: "email" }),
-                        code: s.string().optional(),
+                        code: s.string({ minLength: 1 }).optional(),
                      }),
                   ),
+                  jsc("query", s.object({ redirect: s.string().optional() })),
                   async (c) => {
                      const { email, code } = c.req.valid("json");
+                     const { redirect } = c.req.valid("query");
                      const user = await findUser(app, email);
 
                      if (code) {
@@ -157,14 +166,21 @@ export function emailOTP({
 
                         const jwt = await auth.authenticator.jwt(user);
                         // @ts-expect-error private method
-                        return auth.authenticator.respondWithUser(c, { user, token: jwt });
+                        return auth.authenticator.respondWithUser(
+                           c,
+                           { user, token: jwt },
+                           { redirect },
+                        );
                      } else {
-                        await generateAndSendCode(
+                        const otpData = await invalidateAndGenerateCode(
                            app,
-                           { generateCode, generateEmail, ttl, entity: entityName },
+                           { generateCode, ttl, entity: entityName },
                            user,
                            "login",
                         );
+                        if (sendEmail) {
+                           await sendCode(app, otpData, { generateEmail });
+                        }
 
                         return c.json({ sent: true, action: "login" }, HttpStatus.CREATED);
                      }
@@ -176,11 +192,13 @@ export function emailOTP({
                      "json",
                      s.object({
                         email: s.string({ format: "email" }),
-                        code: s.string().optional(),
+                        code: s.string({ minLength: 1 }).optional(),
                      }),
                   ),
+                  jsc("query", s.object({ redirect: s.string().optional() })),
                   async (c) => {
                      const { email, code } = c.req.valid("json");
+                     const { redirect } = c.req.valid("query");
 
                      // throw if user exists
                      if (!(await threwAsync(findUser(app, email)))) {
@@ -204,14 +222,21 @@ export function emailOTP({
 
                         const jwt = await auth.authenticator.jwt(user);
                         // @ts-expect-error private method
-                        return auth.authenticator.respondWithUser(c, { user, token: jwt });
+                        return auth.authenticator.respondWithUser(
+                           c,
+                           { user, token: jwt },
+                           { redirect },
+                        );
                      } else {
-                        await generateAndSendCode(
+                        const otpData = await invalidateAndGenerateCode(
                            app,
-                           { generateCode, generateEmail, ttl, entity: entityName },
+                           { generateCode, ttl, entity: entityName },
                            { email },
                            "register",
                         );
+                        if (sendEmail) {
+                           await sendCode(app, otpData, { generateEmail });
+                        }
 
                         return c.json({ sent: true, action: "register" }, HttpStatus.CREATED);
                      }
@@ -245,13 +270,13 @@ async function findUser(app: App, email: string) {
    return user;
 }
 
-async function generateAndSendCode(
+async function invalidateAndGenerateCode(
    app: App,
-   opts: Required<Pick<EmailOTPPluginOptions, "generateCode" | "generateEmail" | "ttl" | "entity">>,
+   opts: Required<Pick<EmailOTPPluginOptions, "generateCode" | "ttl" | "entity">>,
    user: Pick<DB["users"], "email">,
    action: EmailOTPFieldSchema["action"],
 ) {
-   const { generateCode, generateEmail, ttl, entity: entityName } = opts;
+   const { generateCode, ttl, entity: entityName } = opts;
    const newCode = generateCode?.(user);
    if (!newCode) {
       throw new OTPError("Failed to generate code");
@@ -269,10 +294,19 @@ async function generateAndSendCode(
          expires_at: new Date(Date.now() + ttl * 1000),
       });
 
-   const { subject, body } = await generateEmail(otpData);
-   await app.drivers?.email?.send(user.email, subject, body);
+   $console.log("[OTP Code]", newCode);
 
    return otpData;
+}
+
+async function sendCode(
+   app: App,
+   otpData: EmailOTPFieldSchema,
+   opts: Required<Pick<EmailOTPPluginOptions, "generateEmail">>,
+) {
+   const { generateEmail } = opts;
+   const { subject, body } = await generateEmail(otpData);
+   await app.drivers?.email?.send(otpData.email, subject, body);
 }
 
 async function getValidatedCode(

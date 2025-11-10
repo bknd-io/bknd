@@ -221,6 +221,38 @@ describe("otp plugin", () => {
       }
    });
 
+   test("should not send email if sendEmail is false", async () => {
+      const called = mock(() => null);
+      const app = createApp({
+         config: {
+            auth: {
+               enabled: true,
+            },
+         },
+         options: {
+            plugins: [emailOTP({ sendEmail: false })],
+            drivers: {
+               email: {
+                  send: async () => {
+                     called();
+                  },
+               },
+            },
+         },
+      });
+      await app.build();
+
+      const res = await app.server.request("/api/auth/otp/register", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+      expect(res.status).toBe(201);
+      expect(called).not.toHaveBeenCalled();
+   });
+
    // @todo: test invalid codes
    // @todo: test codes with different actions
    // @todo: test code expiration
