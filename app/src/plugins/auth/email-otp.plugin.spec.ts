@@ -256,4 +256,6 @@ describe("otp plugin", () => {
    // @todo: test invalid codes
    // @todo: test codes with different actions
    // @todo: test code expiration
+   // @todo: test code reuse
+   // @todo: test invalidation of previous codes when sending new code
 });

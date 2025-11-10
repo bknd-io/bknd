@@ -103,7 +103,7 @@ export function emailOTP({
 }: EmailOTPPluginOptions = {}): AppPlugin {
    return (app: App) => {
       return {
-         name: "bknd-email-otp",
+         name: "email-otp",
          schema: () =>
             em(
                {
@@ -348,20 +348,18 @@ async function invalidateAllUserCodes(app: App, entityName: string, email: strin
 }
 
 function registerListeners(app: App, entityName: string) {
-   app.emgr.onAny(
-      (event) => {
-         if (
-            event instanceof DatabaseEvents.MutatorInsertBefore ||
-            event instanceof DatabaseEvents.MutatorUpdateBefore
-         ) {
-            if (event.params.entity.name === entityName) {
+   [DatabaseEvents.MutatorInsertBefore, DatabaseEvents.MutatorUpdateBefore].forEach((event) => {
+      app.emgr.onEvent(
+         event,
+         (e: { params: { entity: { name: string } } }) => {
+            if (e.params.entity.name === entityName) {
                throw new OTPError("Mutations of the OTP entity are not allowed");
             }
-         }
-      },
-      {
-         mode: "sync",
-         id: "bknd-email-otp",
-      },
-   );
+         },
+         {
+            mode: "sync",
+            id: "bknd-email-otp",
+         },
+      );
+   });
 }
