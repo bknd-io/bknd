@@ -68,7 +68,7 @@
         "noArrayIndexKey": "off",
         "noImplicitAnyLet": "warn",
         "noConfusingVoidType": "off",
-        "noConsole": { "level": "warn", "options": { "allow": ["log"] } }
+        "noConsole": { "level": "warn", "options": { "allow": ["error"] } }
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"
