@@ -24,6 +24,50 @@ describe("otp plugin", () => {
       expect(res.status).toBe(404);
    });
 
+   test("should require email driver if sendEmail is true", async () => {
+      const app = createApp({
+         config: {
+            auth: {
+               enabled: true,
+            },
+         },
+         options: {
+            plugins: [emailOTP()],
+         },
+      });
+      await app.build();
+      const res = await app.server.request("/api/auth/otp/login", {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({ email: "test@test.com" }),
+      });
+      expect(res.status).toBe(404);
+
+      {
+         const app = createApp({
+            config: {
+               auth: {
+                  enabled: true,
+               },
+            },
+            options: {
+               plugins: [emailOTP({ sendEmail: false })],
+            },
+         });
+         await app.build();
+         const res = await app.server.request("/api/auth/otp/register", {
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "test@test.com" }),
+         });
+         expect(res.status).toBe(201);
+      }
+   });
+
    test("should prevent mutations of the OTP entity", async () => {
       const app = createApp({
          config: {

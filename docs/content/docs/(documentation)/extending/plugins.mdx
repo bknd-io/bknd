@@ -263,9 +263,10 @@ export default {
 
 ### `emailOTP`
 
-<Callout type="info">
-  This plugin requires the `email` driver to be registered.
+<Callout type="warning">
+  Make sure to setup proper permissions to restrict reading from the OTP entity. Also, this plugin requires the `email` driver to be registered.
 </Callout>
+
 
 A plugin that adds email OTP functionality to your app. It will add two endpoints to your app:
 - `POST /api/auth/otp/login` to login a user with an OTP code
