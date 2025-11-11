@@ -2,8 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "bknd-cf-worker-example",
   "main": "src/index.ts",
-  "compatibility_date": "2025-08-03",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_date": "2025-11-05",
   "workers_dev": true,
   "minify": true,
   "assets": {

@@ -73,8 +73,11 @@ export const env = <
       onValid?: (valid: R) => void;
    },
 ): R extends undefined ? Fallback : R => {
+   let source = opts?.source ?? {};
    try {
-      const source = opts?.source ?? process.env;
+      source = process?.env ?? {};
+   } catch (e) {}
+   try {
       const c = envs[key];
       const g = source[c.key];
       const v = c.validate(g) as any;

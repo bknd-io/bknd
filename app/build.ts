@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noConsole: . */
 import { $ } from "bun";
 import * as tsup from "tsup";
 import pkg from "./package.json" with { type: "json" };
@@ -267,7 +268,7 @@ async function buildAdapters() {
       tsup.build(baseConfig("react-router")),
       tsup.build(
          baseConfig("bun", {
-            external: [/^bun\:.*/],
+            external: [/^bun:.*/],
          }),
       ),
       tsup.build(baseConfig("astro")),
@@ -284,6 +285,14 @@ async function buildAdapters() {
             outDir: "dist/adapter/cloudflare",
             metafile: false,
             external: [/bknd/, "wrangler", "node:process"],
+         }),
+      ),
+      tsup.build(
+         baseConfig("cloudflare/vite", {
+            target: "esnext",
+            entry: ["src/adapter/cloudflare/vite.ts"],
+            outDir: "dist/adapter/cloudflare",
+            metafile: false,
          }),
       ),
 
@@ -322,7 +331,7 @@ async function buildAdapters() {
          entry: ["src/adapter/sqlite/bun.ts"],
          outDir: "dist/adapter/sqlite",
          metafile: false,
-         external: [/^bun\:.*/],
+         external: [/^bun:.*/],
       }),
    ]);
 }
