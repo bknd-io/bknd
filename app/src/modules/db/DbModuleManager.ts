@@ -1,4 +1,4 @@
-import { mark, stripMark, $console, s, SecretSchema, setPath } from "bknd/utils";
+import { mark, stripMark, $console, s, setPath } from "bknd/utils";
 import { BkndError } from "core/errors";
 import * as $diff from "core/object/diff";
 import type { Connection } from "data/connection";

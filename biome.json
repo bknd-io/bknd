@@ -1,6 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.3/schema.json",
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "assist": { "actions": { "source": { "organizeImports": "off" } } },
   "vcs": {
     "defaultBranch": "main"
   },
@@ -31,16 +31,15 @@
   "files": {
     "includes": [
       "**",
-      "!**/node_modules",
-      "!**/node_modules",
-      "!**/.cache",
-      "!**/.wrangler",
-      "!**/build",
-      "!**/dist",
-      "!**/data.sqld",
-      "!**/data.sqld",
-      "!**/public",
-      "!**/.history"
+      "!!**/node_modules",
+      "!!**/.cache",
+      "!!**/.wrangler",
+      "!!**/build",
+      "!!**/dist",
+      "!!**/data.sqld",
+      "!!**/data.sqld",
+      "!!**/public",
+      "!!**/.history"
     ]
   },
   "linter": {
@@ -53,7 +52,13 @@
         "useExhaustiveDependencies": "off",
         "noUnreachable": "warn",
         "noChildrenProp": "off",
-        "noSwitchDeclarations": "warn"
+        "noSwitchDeclarations": "warn",
+        "noUnusedVariables": {
+          "options": {
+            "ignoreRestSiblings": true
+          },
+          "level": "warn"
+        }
       },
       "complexity": {
         "noUselessFragments": "warn",
@@ -68,7 +73,11 @@
         "noArrayIndexKey": "off",
         "noImplicitAnyLet": "warn",
         "noConfusingVoidType": "off",
-        "noConsole": { "level": "warn", "options": { "allow": ["error"] } }
+        "noConsole": {
+          "level": "warn",
+          "options": { "allow": ["error", "info"] }
+        },
+        "noTsIgnore": "off"
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"
