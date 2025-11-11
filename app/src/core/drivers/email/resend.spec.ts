@@ -4,7 +4,7 @@ import { resendEmail } from "./resend";
 const ALL_TESTS = !!process.env.ALL_TESTS;
 
 describe.skipIf(ALL_TESTS)("resend", () => {
-   it.only("should throw on failed", async () => {
+   it("should throw on failed", async () => {
       const driver = resendEmail({ apiKey: "invalid" } as any);
       expect(driver.send("foo@bar.com", "Test", "Test")).rejects.toThrow();
    });

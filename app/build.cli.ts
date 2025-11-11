@@ -1,29 +1,9 @@
 import pkg from "./package.json" with { type: "json" };
 import c from "picocolors";
 import { formatNumber } from "bknd/utils";
-import * as esbuild from "esbuild";
 
 const deps = Object.keys(pkg.dependencies);
 const external = ["jsonv-ts/*", "wrangler", "bknd", "bknd/*", ...deps];
-
-if (process.env.DEBUG) {
-   const result = await esbuild.build({
-      entryPoints: ["./src/cli/index.ts"],
-      outdir: "./dist/cli",
-      platform: "node",
-      minify: true,
-      format: "esm",
-      metafile: true,
-      bundle: true,
-      external,
-      define: {
-         __isDev: "0",
-         __version: JSON.stringify(pkg.version),
-      },
-   });
-   await Bun.write("./dist/cli/metafile-esm.json", JSON.stringify(result.metafile, null, 2));
-   process.exit(0);
-}
 
 const result = await Bun.build({
    entrypoints: ["./src/cli/index.ts"],

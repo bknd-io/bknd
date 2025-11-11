@@ -17,6 +17,7 @@ import {
    type Simplify,
    sql,
 } from "kysely";
+import type { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/sqlite";
 import type { BaseIntrospector, BaseIntrospectorConfig } from "./BaseIntrospector";
 import type { DB } from "bknd";
 import type { Constructor } from "core/registry/Registry";
@@ -70,15 +71,9 @@ export type IndexSpec = {
 };
 
 export type DbFunctions = {
-   jsonObjectFrom<O>(expr: SelectQueryBuilderExpression<O>): RawBuilder<Simplify<O> | null>;
-   jsonArrayFrom<O>(expr: SelectQueryBuilderExpression<O>): RawBuilder<Simplify<O>[]>;
-   jsonBuildObject<O extends Record<string, Expression<unknown>>>(
-      obj: O,
-   ): RawBuilder<
-      Simplify<{
-         [K in keyof O]: O[K] extends Expression<infer V> ? V : never;
-      }>
-   >;
+   jsonObjectFrom: typeof jsonObjectFrom;
+   jsonArrayFrom: typeof jsonArrayFrom;
+   jsonBuildObject: typeof jsonBuildObject;
 };
 
 export type ConnQuery = CompiledQuery | Compilable;

@@ -1,4 +1,4 @@
-import type { JSONSchema7 } from "json-schema";
+import type { JSONSchema } from "json-schema-to-ts";
 import { omitKeys, type s } from "bknd/utils";
 
 export function extractSchema<
@@ -10,7 +10,7 @@ export function extractSchema<
    config: Config,
    keys: Keys[],
 ): [
-   JSONSchema7,
+   Exclude<JSONSchema, boolean | null | undefined>,
    Partial<Config>,
    {
       [K in Keys]: {

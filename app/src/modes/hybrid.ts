@@ -23,26 +23,17 @@ export type HybridMode<AdapterConfig extends BkndConfig> = AdapterConfig extends
    ? BkndModeConfig<Args, Merge<BkndHybridModeOptions & AdapterConfig>>
    : never;
 
-export function hybrid<Args>({
-   configFilePath = "bknd-config.json",
-   ...rest
-}: HybridBkndConfig<Args>): BkndConfig<Args> {
+export function hybrid<Args>(hybridConfig: HybridBkndConfig<Args>): BkndConfig<Args> {
    return {
-      ...rest,
-      config: undefined,
       app: async (args) => {
          const {
             config: appConfig,
             isProd,
             plugins,
             syncSchemaOptions,
-         } = await makeModeConfig(
-            {
-               ...rest,
-               configFilePath,
-            },
-            args,
-         );
+         } = await makeModeConfig(hybridConfig, args);
+
+         const configFilePath = appConfig.configFilePath ?? "bknd-config.json";
 
          if (appConfig?.options?.mode && appConfig?.options?.mode !== "db") {
             $console.warn("You should not set a different mode than `db` when using hybrid mode");
@@ -80,6 +71,13 @@ export function hybrid<Args>({
                   skipValidation: isProd,
                   // secrets are required for hybrid mode
                   secrets: appConfig.secrets,
+                  onModulesBuilt: async (ctx) => {
+                     if (ctx.flags.sync_required && !isProd && syncSchemaOptions.force) {
+                        $console.log("[hybrid] syncing schema");
+                        await ctx.em.schema().sync(syncSchemaOptions);
+                     }
+                     await appConfig?.options?.manager?.onModulesBuilt?.(ctx);
+                  },
                   ...appConfig?.options?.manager,
                },
             },
