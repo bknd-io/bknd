@@ -132,6 +132,8 @@ export type * from "data/entities/Entity";
 export type { EntityManager } from "data/entities/EntityManager";
 export type { SchemaManager } from "data/schema/SchemaManager";
 export type * from "data/entities";
+
+// data connection
 export {
    BaseIntrospector,
    Connection,
@@ -144,9 +146,29 @@ export {
    type ConnQuery,
    type ConnQueryResults,
 } from "data/connection";
+
+// data sqlite
 export { SqliteConnection } from "data/connection/sqlite/SqliteConnection";
 export { SqliteIntrospector } from "data/connection/sqlite/SqliteIntrospector";
 export { SqliteLocalConnection } from "data/connection/sqlite/SqliteLocalConnection";
+
+// data postgres
+export {
+   pg,
+   PgPostgresConnection,
+} from "data/connection/postgres/PgPostgresConnection";
+export { PostgresIntrospector } from "data/connection/postgres/PostgresIntrospector";
+export { PostgresConnection } from "data/connection/postgres/PostgresConnection";
+export {
+   postgresJs,
+   PostgresJsConnection,
+} from "data/connection/postgres/PostgresJsConnection";
+export {
+   createCustomPostgresConnection,
+   type CustomPostgresConnection,
+} from "data/connection/postgres/custom";
+
+// data prototype
 export {
    text,
    number,

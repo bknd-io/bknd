@@ -25,7 +25,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "$bknd/*": ["../../app/src/*"]
+      "bknd": ["../app/src/index.ts"],
+      "bknd/*": ["../app/src/*"]
     }
   },
   "include": ["./src/**/*.ts"],

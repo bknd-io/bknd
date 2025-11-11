@@ -11,7 +11,7 @@ import { s, stripMark } from "core/utils/schema";
 import { Connection } from "data/connection/Connection";
 import { entity, text } from "data/prototype";
 
-beforeAll(disableConsoleLog);
+beforeAll(() => disableConsoleLog());
 afterAll(enableConsoleLog);
 
 describe("ModuleManager", async () => {
@@ -82,7 +82,6 @@ describe("ModuleManager", async () => {
             },
          },
       } as any;
-      //const { version, ...json } = mm.toJSON() as any;
 
       const { dummyConnection } = getDummyConnection();
       const db = dummyConnection.kysely;
@@ -97,10 +96,6 @@ describe("ModuleManager", async () => {
 
       await mm2.build();
 
-      /* console.log({
-         json,
-         configs: mm2.configs(),
-      }); */
       //expect(stripMark(json)).toEqual(stripMark(mm2.configs()));
       expect(mm2.configs().data.entities?.test).toBeDefined();
       expect(mm2.configs().data.entities?.test?.fields?.content).toBeDefined();
@@ -228,8 +223,6 @@ describe("ModuleManager", async () => {
       const c = getDummyConnection();
       const mm = new ModuleManager(c.dummyConnection);
       await mm.build();
-      console.log("==".repeat(30));
-      console.log("");
       const json = mm.configs();
 
       const c2 = getDummyConnection();
@@ -275,7 +268,6 @@ describe("ModuleManager", async () => {
          }
 
          override async build() {
-            //console.log("building FailingModule", this.config);
             if (this.config.value && this.config.value < 0) {
                throw new Error("value must be positive, given: " + this.config.value);
             }
@@ -295,9 +287,6 @@ describe("ModuleManager", async () => {
             });
          }
       }
-
-      beforeEach(() => disableConsoleLog(["log", "warn", "error"]));
-      afterEach(enableConsoleLog);
 
       test("it builds", async () => {
          const { dummyConnection } = getDummyConnection();
