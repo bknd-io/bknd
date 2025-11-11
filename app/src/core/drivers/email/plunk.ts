@@ -7,7 +7,6 @@ export type PlunkEmailOptions = {
 };
 
 export type PlunkEmailSendOptions = {
-	to?: string | string[];
 	subscribed?: boolean;
 	name?: string;
 	from?: string;
@@ -40,40 +39,17 @@ export const plunkEmail = (
 			body: string | { text: string; html: string },
 			options?: PlunkEmailSendOptions,
 		) => {
-			// Determine recipients - options.to takes precedence if provided
-			const recipients = options?.to ?? to;
-
-			// Validate recipient count (Plunk max is 5)
-			const recipientArray = Array.isArray(recipients)
-				? recipients
-				: [recipients];
-			if (recipientArray.length > 5) {
-				throw new Error(
-					"Plunk supports a maximum of 5 recipients per email",
-				);
-			}
-
-			// Build base payload
 			const payload: any = {
-				to: recipients,
+			  from,
+				to,
 				subject,
 			};
 
-			// Handle body - Plunk only accepts a single body field
 			if (typeof body === "string") {
 				payload.body = body;
 			} else {
-				// When both text and html are provided, send html (degrades gracefully)
 				payload.body = body.html;
 			}
-
-			// Add optional fields from config
-			if (from) {
-				payload.from = from;
-			}
-
-			// Merge with additional options (excluding 'to' since we already handled it)
-			const { to: _, ...restOptions } = options ?? {};
 
 			const res = await fetch(host, {
 				method: "POST",
@@ -81,7 +57,7 @@ export const plunkEmail = (
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${config.apiKey}`,
 				},
-				body: JSON.stringify({ ...payload, ...restOptions }),
+				body: JSON.stringify({ ...payload, ...options }),
 			});
 
 			if (!res.ok) {

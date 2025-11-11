@@ -52,41 +52,4 @@ describe.skipIf(ALL_TESTS)("plunk", () => {
 		expect(response).toBeDefined();
 		expect(response.success).toBe(true);
 	});
-
-	it("should send to multiple recipients", async () => {
-		const driver = plunkEmail({
-			apiKey: process.env.PLUNK_API_KEY!,
-			from: undefined,
-		});
-		const response = await driver.send(
-			"help@bknd.io",
-			"Multi-recipient Test",
-			"Test email to multiple recipients",
-			{
-				to: ["help@bknd.io", "cameronandrewpak@gmail.com"],
-			},
-		);
-		expect(response).toBeDefined();
-		expect(response.success).toBe(true);
-		expect(response.emails).toHaveLength(2);
-	});
-
-	it("should throw error for more than 5 recipients", async () => {
-		const driver = plunkEmail({
-			apiKey: process.env.PLUNK_API_KEY!,
-			from: undefined,
-		});
-		expect(
-			driver.send("help@bknd.io", "Test", "Test", {
-				to: [
-					"help@bknd.io",
-					"test2@example.com",
-					"test3@example.com",
-					"test4@example.com",
-					"test5@example.com",
-					"test6@example.com",
-				],
-			}),
-		).rejects.toThrow("Plunk supports a maximum of 5 recipients per email");
-	});
 });
