@@ -32,6 +32,7 @@
   "files": {
     "includes": [
       "**",
+      "!!**/.tsup",
       "!!**/node_modules",
       "!!**/.cache",
       "!!**/.wrangler",
@@ -45,7 +46,7 @@
   },
   "linter": {
     "enabled": true,
-    "includes": ["**"],
+    "includes": ["**", "!!**/vitest.config.ts", "!!app/build.ts"],
     "rules": {
       "recommended": true,
       "a11y": {},

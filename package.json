@@ -12,7 +12,7 @@
     "ci": "find . -name 'node_modules' -type d -exec rm -rf {} + && bun install",
     "npm:local": "verdaccio --config verdaccio.yml",
     "format": "bunx biome format --write ./app",
-    "lint": "bunx biome lint --changed ./app"
+    "lint": "bunx biome lint --changed --write ./app"
   },
   "dependencies": {},
   "devDependencies": {
