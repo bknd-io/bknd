@@ -153,7 +153,7 @@ Create a new catch-all route at `src/pages/admin/[...admin].astro`:
 import { Admin } from "bknd/ui";
 import "bknd/dist/styles.css";
 
-import { getApi } from "bknd/adapter/astro";
+import { getApi } from "../../../bknd.ts"; // /src/bknd.ts
 
 const api = await getApi(Astro, { mode: "dynamic" });
 const user = api.getUser();
