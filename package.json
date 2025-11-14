@@ -3,12 +3,16 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "packageManager": "bun@1.3.2",
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "updater": "bun x npm-check-updates -ui",
     "ci": "find . -name 'node_modules' -type d -exec rm -rf {} + && bun install",
     "npm:local": "verdaccio --config verdaccio.yml",
     "format": "bunx biome format --write ./app",
-    "lint": "bunx biome lint --changed ./app"
+    "lint": "bunx biome lint --changed --write ./app"
   },
   "dependencies": {},
   "devDependencies": {
@@ -19,9 +23,6 @@
     "miniflare": "^3.20250718.2",
     "typescript": "^5.9.3",
     "verdaccio": "^6.2.1"
-  },
-  "engines": {
-    "node": ">=22"
   },
   "workspaces": ["app", "packages/*"]
 }

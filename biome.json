@@ -7,7 +7,8 @@
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
-    "formatWithErrors": true
+    "formatWithErrors": true,
+    "includes": ["**", "!!**/package.json"]
   },
   "javascript": {
     "formatter": {
@@ -31,21 +32,21 @@
   "files": {
     "includes": [
       "**",
-      "!**/node_modules",
-      "!**/node_modules",
-      "!**/.cache",
-      "!**/.wrangler",
-      "!**/build",
-      "!**/dist",
-      "!**/data.sqld",
-      "!**/data.sqld",
-      "!**/public",
-      "!**/.history"
+      "!!**/.tsup",
+      "!!**/node_modules",
+      "!!**/.cache",
+      "!!**/.wrangler",
+      "!!**/build",
+      "!!**/dist",
+      "!!**/data.sqld",
+      "!!**/data.sqld",
+      "!!**/public",
+      "!!**/.history"
     ]
   },
   "linter": {
     "enabled": true,
-    "includes": ["**"],
+    "includes": ["**", "!!**/vitest.config.ts", "!!app/build.ts"],
     "rules": {
       "recommended": true,
       "a11y": {},
@@ -53,7 +54,13 @@
         "useExhaustiveDependencies": "off",
         "noUnreachable": "warn",
         "noChildrenProp": "off",
-        "noSwitchDeclarations": "warn"
+        "noSwitchDeclarations": "warn",
+        "noUnusedVariables": {
+          "options": {
+            "ignoreRestSiblings": true
+          },
+          "level": "warn"
+        }
       },
       "complexity": {
         "noUselessFragments": "warn",
@@ -68,7 +75,11 @@
         "noArrayIndexKey": "off",
         "noImplicitAnyLet": "warn",
         "noConfusingVoidType": "off",
-        "noConsole": { "level": "warn", "options": { "allow": ["error"] } }
+        "noConsole": {
+          "level": "warn",
+          "options": { "allow": ["error", "info"] }
+        },
+        "noTsIgnore": "off"
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"

@@ -1,4 +1,4 @@
-import { mark, stripMark, $console, s, SecretSchema, setPath } from "bknd/utils";
+import { mark, stripMark, $console, s, setPath } from "bknd/utils";
 import { BkndError } from "core/errors";
 import * as $diff from "core/object/diff";
 import type { Connection } from "data/connection";
@@ -290,13 +290,12 @@ export class DbModuleManager extends ModuleManager {
                   updated_at: new Date(),
                });
             }
-         } else if (e instanceof TransformPersistFailedException) {
-            $console.error("ModuleManager: Cannot save invalid config");
-            this.revertModules();
-            throw e;
          } else {
+            if (e instanceof TransformPersistFailedException) {
+               $console.error("ModuleManager: Cannot save invalid config");
+            }
             $console.error("ModuleManager: Aborting");
-            this.revertModules();
+            await this.revertModules();
             throw e;
          }
       }
