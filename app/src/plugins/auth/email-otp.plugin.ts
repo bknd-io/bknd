@@ -13,7 +13,16 @@ import {
    type EntityConfig,
    DatabaseEvents,
 } from "bknd";
-import { invariant, s, jsc, HttpStatus, threwAsync, randomString, $console } from "bknd/utils";
+import {
+   invariant,
+   s,
+   jsc,
+   HttpStatus,
+   threwAsync,
+   randomString,
+   $console,
+   pickKeys,
+} from "bknd/utils";
 import { Hono } from "hono";
 
 export type EmailOTPPluginOptions = {
@@ -110,10 +119,11 @@ export function emailOTP({
                   [entityName]: entity(
                      entityName,
                      otpFields,
-                     entityConfig ?? {
+                     {
                         name: "Users OTP",
                         sort_dir: "desc",
                         primary_format: app.module.data.config.default_primary_format,
+                        ...entityConfig,
                      },
                      "generated",
                   ),
@@ -182,7 +192,13 @@ export function emailOTP({
                            await sendCode(app, otpData, { generateEmail });
                         }
 
-                        return c.json({ sent: true, action: "login" }, HttpStatus.CREATED);
+                        return c.json(
+                           {
+                              sent: true,
+                              data: pickKeys(otpData, ["email", "action", "expires_at"]),
+                           },
+                           HttpStatus.CREATED,
+                        );
                      }
                   },
                )
@@ -217,7 +233,7 @@ export function emailOTP({
 
                         const user = await app.createUser({
                            email,
-                           password: randomString(16, true),
+                           password: randomString(32, true),
                         });
 
                         const jwt = await auth.authenticator.jwt(user);
@@ -238,7 +254,13 @@ export function emailOTP({
                            await sendCode(app, otpData, { generateEmail });
                         }
 
-                        return c.json({ sent: true, action: "register" }, HttpStatus.CREATED);
+                        return c.json(
+                           {
+                              sent: true,
+                              data: pickKeys(otpData, ["email", "action", "expires_at"]),
+                           },
+                           HttpStatus.CREATED,
+                        );
                      }
                   },
                )

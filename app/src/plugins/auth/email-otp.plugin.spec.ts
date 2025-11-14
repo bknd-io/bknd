@@ -137,15 +137,21 @@ describe("otp plugin", () => {
          body: JSON.stringify({ email: "test@test.com" }),
       });
       expect(res.status).toBe(201);
-      expect(await res.json()).toEqual({ sent: true, action: "login" } as any);
+      const data = (await res.json()) as any;
+      expect(data.sent).toBe(true);
+      expect(data.data.email).toBe("test@test.com");
+      expect(data.data.action).toBe("login");
+      expect(data.data.expires_at).toBeDefined();
 
-      const { data } = await app.em.fork().repo("users_otp").findOne({ email: "test@test.com" });
-      expect(data?.code).toBeDefined();
-      expect(data?.code?.length).toBe(6);
-      expect(data?.code?.split("").every((char: string) => Number.isInteger(Number(char)))).toBe(
-         true,
-      );
-      expect(data?.email).toBe("test@test.com");
+      {
+         const { data } = await app.em.fork().repo("users_otp").findOne({ email: "test@test.com" });
+         expect(data?.code).toBeDefined();
+         expect(data?.code?.length).toBe(6);
+         expect(data?.code?.split("").every((char: string) => Number.isInteger(Number(char)))).toBe(
+            true,
+         );
+         expect(data?.email).toBe("test@test.com");
+      }
       expect(called).toHaveBeenCalled();
    });
 
@@ -245,7 +251,11 @@ describe("otp plugin", () => {
          },
          body: JSON.stringify({ email: "test@test.com" }),
       });
-      expect(await res.json()).toEqual({ sent: true, action: "register" } as any);
+      const data = (await res.json()) as any;
+      expect(data.sent).toBe(true);
+      expect(data.data.email).toBe("test@test.com");
+      expect(data.data.action).toBe("register");
+      expect(data.data.expires_at).toBeDefined();
 
       {
          const res = await app.server.request("/api/auth/otp/register", {
