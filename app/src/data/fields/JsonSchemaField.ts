@@ -26,7 +26,9 @@ export class JsonSchemaField<
 
    constructor(name: string, config: Partial<JsonSchemaFieldConfig>) {
       super(name, config);
-      this.validator = new Validator({ ...this.getJsonSchema() });
+
+      // make sure to hand over clean json
+      this.validator = new Validator(JSON.parse(JSON.stringify(this.getJsonSchema())));
    }
 
    protected getSchema() {
