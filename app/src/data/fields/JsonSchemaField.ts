@@ -28,7 +28,10 @@ export class JsonSchemaField<
       super(name, config);
 
       // make sure to hand over clean json
-      this.validator = new Validator(JSON.parse(JSON.stringify(this.getJsonSchema())));
+      const schema = this.getJsonSchema();
+      this.validator = new Validator(
+         typeof schema === "object" ? JSON.parse(JSON.stringify(schema)) : {},
+      );
    }
 
    protected getSchema() {
