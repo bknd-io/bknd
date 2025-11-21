@@ -1,7 +1,7 @@
 import type { AppPlugin, BkndConfig, MaybePromise, Merge } from "bknd";
 import { syncTypes, syncConfig } from "bknd/plugins";
 import { syncSecrets } from "plugins/dev/sync-secrets.plugin";
-import { invariant, $console } from "bknd/utils";
+import { $console } from "bknd/utils";
 
 export type BkndModeOptions = {
    /**
@@ -56,6 +56,14 @@ export type BkndModeConfig<Args = any, Additional = {}> = BkndConfig<
    Merge<BkndModeOptions & Additional>
 >;
 
+function _isProd() {
+   try {
+      return process.env.NODE_ENV === "production";
+   } catch (_e) {
+      return false;
+   }
+}
+
 export async function makeModeConfig<
    Args = any,
    Config extends BkndModeConfig<Args> = BkndModeConfig<Args>,
@@ -69,25 +77,24 @@ export async function makeModeConfig<
 
    if (typeof config.isProduction !== "boolean") {
       $console.warn(
-         "You should set `isProduction` option when using managed modes to prevent accidental issues",
+         "You should set `isProduction` option when using managed modes to prevent accidental issues with writing plugins and syncing schema. As fallback, it is set to",
+         _isProd(),
       );
    }
 
-   invariant(
-      typeof config.writer === "function",
-      "You must set the `writer` option when using managed modes",
-   );
+   let needsWriter = false;
 
    const { typesFilePath, configFilePath, writer, syncSecrets: syncSecretsOptions } = config;
 
-   const isProd = config.isProduction;
+   const isProd = config.isProduction ?? _isProd();
    const plugins = appConfig?.options?.plugins ?? ([] as AppPlugin[]);
+   const syncFallback = typeof config.syncSchema === "boolean" ? config.syncSchema : !isProd;
    const syncSchemaOptions =
       typeof config.syncSchema === "object"
          ? config.syncSchema
          : {
-              force: config.syncSchema !== false,
-              drop: true,
+              force: syncFallback,
+              drop: syncFallback,
            };
 
    if (!isProd) {
@@ -95,6 +102,7 @@ export async function makeModeConfig<
          if (plugins.some((p) => p.name === "bknd-sync-types")) {
             throw new Error("You have to unregister the `syncTypes` plugin");
          }
+         needsWriter = true;
          plugins.push(
             syncTypes({
                enabled: true,
@@ -114,6 +122,7 @@ export async function makeModeConfig<
          if (plugins.some((p) => p.name === "bknd-sync-config")) {
             throw new Error("You have to unregister the `syncConfig` plugin");
          }
+         needsWriter = true;
          plugins.push(
             syncConfig({
                enabled: true,
@@ -142,6 +151,7 @@ export async function makeModeConfig<
                .join(".");
          }
 
+         needsWriter = true;
          plugins.push(
             syncSecrets({
                enabled: true,
@@ -172,6 +182,10 @@ export async function makeModeConfig<
             }) as any,
          );
       }
+   }
+
+   if (needsWriter && typeof config.writer !== "function") {
+      $console.warn("You must set a `writer` function, attempts to write will fail");
    }
 
    return {
