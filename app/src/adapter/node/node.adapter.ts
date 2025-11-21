@@ -24,7 +24,7 @@ export async function createApp<Env = NodeEnv>(
       path.resolve(distPath ?? relativeDistPath ?? "./node_modules/bknd/dist", "static"),
    );
    if (relativeDistPath) {
-      console.warn("relativeDistPath is deprecated, please use distPath instead");
+      $console.warn("relativeDistPath is deprecated, please use distPath instead");
    }
 
    registerLocalMediaAdapter();
