@@ -9,7 +9,7 @@ export type BkndHybridModeOptions = {
     * Reader function to read the configuration from the file system.
     * This is required for hybrid mode to work.
     */
-   reader: (path: string) => MaybePromise<string | object>;
+   reader?: (path: string) => MaybePromise<string | object>;
    /**
     * Provided secrets to be merged into the configuration
     */
@@ -47,7 +47,7 @@ export function hybrid<
             "You must set a `reader` option when using hybrid mode",
          );
 
-         const fileContent = await appConfig.reader(configFilePath);
+         const fileContent = await appConfig.reader?.(configFilePath);
          let fileConfig = typeof fileContent === "string" ? JSON.parse(fileContent) : fileContent;
          if (!fileConfig) {
             $console.warn("No config found, using default config");
