@@ -105,7 +105,10 @@ export class AppServer extends Module<AppServerConfig> {
 
          if (err instanceof Error) {
             if (isDebug()) {
-               return c.json({ error: err.message, stack: err.stack }, 500);
+               return c.json(
+                  { error: err.message, stack: err.stack?.split("\n").map((line) => line.trim()) },
+                  500,
+               );
             }
          }
 

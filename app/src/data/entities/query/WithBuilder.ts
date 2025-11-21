@@ -4,6 +4,7 @@ import type { KyselyJsonFrom } from "data/relations/EntityRelation";
 import type { RepoQuery } from "data/server/query";
 import { InvalidSearchParamsException } from "data/errors";
 import type { Entity, EntityManager, RepositoryQB } from "data/entities";
+import { $console } from "bknd/utils";
 
 export class WithBuilder {
    static addClause(
@@ -13,7 +14,7 @@ export class WithBuilder {
       withs: RepoQuery["with"],
    ) {
       if (!withs || !isObject(withs)) {
-         console.warn(`'withs' undefined or invalid, given: ${JSON.stringify(withs)}`);
+         $console.warn(`'withs' undefined or invalid, given: ${JSON.stringify(withs)}`);
          return qb;
       }
 
@@ -37,9 +38,7 @@ export class WithBuilder {
             let subQuery = relation.buildWith(entity, ref)(eb);
             if (query) {
                subQuery = em.repo(other.entity).addOptionsToQueryBuilder(subQuery, query as any, {
-                  ignore: ["with", "join", cardinality === 1 ? "limit" : undefined].filter(
-                     Boolean,
-                  ) as any,
+                  ignore: ["with", cardinality === 1 ? "limit" : undefined].filter(Boolean) as any,
                });
             }
 
@@ -57,7 +56,7 @@ export class WithBuilder {
    static validateWiths(em: EntityManager<any>, entity: string, withs: RepoQuery["with"]) {
       let depth = 0;
       if (!withs || !isObject(withs)) {
-         withs && console.warn(`'withs' invalid, given: ${JSON.stringify(withs)}`);
+         withs && $console.warn(`'withs' invalid, given: ${JSON.stringify(withs)}`);
          return depth;
       }
 
