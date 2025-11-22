@@ -3,7 +3,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
-  "packageManager": "bun@1.3.2",
+  "packageManager": "bun@1.3.3",
   "engines": {
     "node": ">=22.13"
   },
@@ -20,6 +20,7 @@
     "@tsconfig/strictest": "^2.0.7",
     "@types/bun": "^1.3.1",
     "@types/lodash-es": "^4.17.12",
+    "@typescript/native-preview": "^7.0.0-dev.20251122.1",
     "miniflare": "^3.20250718.2",
     "typescript": "^5.9.3",
     "verdaccio": "^6.2.1"
