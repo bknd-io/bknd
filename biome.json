@@ -20,6 +20,9 @@
   "css": {
     "formatter": {
       "indentWidth": 3
+    },
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "json": {
