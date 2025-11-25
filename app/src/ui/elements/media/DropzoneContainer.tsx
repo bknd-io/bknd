@@ -1,9 +1,8 @@
-import type { Api } from "bknd/client";
 import type { PrimaryFieldType, RepoQueryIn } from "bknd";
 import type { MediaFieldSchema } from "media/AppMedia";
 import type { TAppMediaConfig } from "media/media-schema";
 import { useId, useEffect, useRef, useState } from "react";
-import { useApi, useApiInfiniteQuery, useApiQuery, useInvalidate } from "bknd/client";
+import { type Api, useApi, useApiInfiniteQuery, useApiQuery, useInvalidate } from "bknd/client";
 import { useEvent } from "ui/hooks/use-event";
 import { Dropzone, type DropzoneProps } from "./Dropzone";
 import { mediaItemsToFileStates } from "./helper";
@@ -132,26 +131,24 @@ export function DropzoneContainer({
    }
 
    return (
-      <>
-         <Dropzone
-            key={key}
-            getUploadInfo={getUploadInfo}
-            handleDelete={handleDelete}
-            autoUpload
-            initialItems={_initialItems}
-            footer={
-               infinite &&
-               "setSize" in $q && (
-                  <Footer
-                     items={_initialItems.length}
-                     length={placeholderLength}
-                     onFirstVisible={() => $q.setSize($q.size + 1)}
-                  />
-               )
-            }
-            {...props}
-         />
-      </>
+      <Dropzone
+         key={key}
+         getUploadInfo={getUploadInfo}
+         handleDelete={handleDelete}
+         autoUpload
+         initialItems={_initialItems}
+         footer={
+            infinite &&
+            "setSize" in $q && (
+               <Footer
+                  items={_initialItems.length}
+                  length={placeholderLength}
+                  onFirstVisible={() => $q.setSize($q.size + 1)}
+               />
+            )
+         }
+         {...props}
+      />
    );
 }
 
