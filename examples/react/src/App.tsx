@@ -1,21 +1,25 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { checksum } from "bknd/utils";
-import { App, boolean, em, entity, text } from "bknd";
+import { App, boolean, em, entity, text, registries } from "bknd";
 import { SQLocalConnection } from "@bknd/sqlocal";
 import { Route, Router, Switch } from "wouter";
 import IndexPage from "~/routes/_index";
 import { Center } from "~/components/Center";
-import { ClientProvider } from "bknd/client";
+import { type Api, ClientProvider } from "bknd/client";
+import { SQLocalKysely } from "sqlocal/kysely";
+import { OpfsStorageAdapter } from "~/OpfsStorageAdapter";
 
 const Admin = lazy(() => import("~/routes/admin"));
 
 export default function () {
    const [app, setApp] = useState<App | undefined>(undefined);
+   const [api, setApi] = useState<Api | undefined>(undefined);
    const [hash, setHash] = useState<string>("");
 
    async function onBuilt(app: App) {
       document.startViewTransition(async () => {
          setApp(app);
+         setApi(app.getApi());
          setHash(await checksum(app.toJSON()));
       });
    }
@@ -26,7 +30,7 @@ export default function () {
          .catch(console.error);
    }, []);
 
-   if (!app)
+   if (!app || !api)
       return (
          <Center>
             <span className="opacity-20">Loading...</span>
@@ -34,27 +38,22 @@ export default function () {
       );
 
    return (
-      <Router key={hash}>
-         <Switch>
-            <Route
-               path="/"
-               component={() => (
-                  <ClientProvider api={app.getApi()}>
-                     <IndexPage app={app} />
-                  </ClientProvider>
-               )}
-            />
+      <ClientProvider api={api}>
+         <Router key={hash}>
+            <Switch>
+               <Route path="/" component={() => <IndexPage app={app} />} />
 
-            <Route path="/admin/*?">
-               <Suspense>
-                  <Admin config={{ basepath: "/admin", logo_return_path: "/../" }} app={app} />
-               </Suspense>
-            </Route>
-            <Route path="*">
-               <Center className="font-mono text-4xl">404</Center>
-            </Route>
-         </Switch>
-      </Router>
+               <Route path="/admin/*?">
+                  <Suspense>
+                     <Admin config={{ basepath: "/admin", logo_return_path: "/../" }} />
+                  </Suspense>
+               </Route>
+               <Route path="*">
+                  <Center className="font-mono text-4xl">404</Center>
+               </Route>
+            </Switch>
+         </Router>
+      </ClientProvider>
    );
 }
 
@@ -79,16 +78,26 @@ async function setup(opts?: {
    if (initialized) return;
    initialized = true;
 
-   const connection = new SQLocalConnection({
-      databasePath: ":localStorage:",
-      verbose: true,
-   });
+   const connection = new SQLocalConnection(
+      new SQLocalKysely({
+         databasePath: ":localStorage:",
+         verbose: true,
+      }),
+   );
+
+   registries.media.register("opfs", OpfsStorageAdapter);
 
    const app = App.create({
       connection,
       // an initial config is only applied if the database is empty
       config: {
          data: schema.toJSON(),
+         auth: {
+            enabled: true,
+            jwt: {
+               secret: "secret",
+            },
+         },
       },
       options: {
          // the seed option is only executed if the database was empty
@@ -99,10 +108,10 @@ async function setup(opts?: {
             ]);
 
             // @todo: auth is currently not working due to POST request
-            /*await ctx.app.module.auth.createUser({
+            await ctx.app.module.auth.createUser({
                email: "test@bknd.io",
                password: "12345678",
-            });*/
+            });
          },
       },
    });
@@ -112,6 +121,8 @@ async function setup(opts?: {
          App.Events.AppBuiltEvent,
          async () => {
             await opts.onBuilt?.(app);
+            // @ts-ignore
+            window.sql = app.connection.client.sql;
          },
          "sync",
       );

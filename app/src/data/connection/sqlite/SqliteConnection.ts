@@ -18,26 +18,39 @@ export type SqliteConnectionConfig<
    CustomDialect extends Constructor<Dialect> = Constructor<Dialect>,
 > = {
    excludeTables?: string[];
-   dialect: CustomDialect;
-   dialectArgs?: ConstructorParameters<CustomDialect>;
    additionalPlugins?: KyselyPlugin[];
    customFn?: Partial<DbFunctions>;
-};
+} & (
+   | {
+        dialect: CustomDialect;
+        dialectArgs?: ConstructorParameters<CustomDialect>;
+     }
+   | {
+        kysely: Kysely<any>;
+     }
+);
 
 export abstract class SqliteConnection<Client = unknown> extends Connection<Client> {
    override name = "sqlite";
 
    constructor(config: SqliteConnectionConfig) {
-      const { excludeTables, dialect, dialectArgs = [], additionalPlugins } = config;
+      const { excludeTables, additionalPlugins } = config;
       const plugins = [new ParseJSONResultsPlugin(), ...(additionalPlugins ?? [])];
 
-      const kysely = new Kysely({
-         dialect: customIntrospector(dialect, SqliteIntrospector, {
-            excludeTables,
+      let kysely: Kysely<any>;
+      if ("dialect" in config) {
+         kysely = new Kysely({
+            dialect: customIntrospector(config.dialect, SqliteIntrospector, {
+               excludeTables,
+               plugins,
+            }).create(...(config.dialectArgs ?? [])),
             plugins,
-         }).create(...dialectArgs),
-         plugins,
-      });
+         });
+      } else if ("kysely" in config) {
+         kysely = config.kysely;
+      } else {
+         throw new Error("Either dialect or kysely must be provided");
+      }
 
       super(
          kysely,

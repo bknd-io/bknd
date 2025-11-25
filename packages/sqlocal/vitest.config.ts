@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 /// <reference types="@vitest/browser/providers/webdriverio" />
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 // https://github.com/DallasHoff/sqlocal/blob/main/vite.config.ts
 export default defineConfig({

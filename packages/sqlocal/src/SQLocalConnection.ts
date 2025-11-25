@@ -1,51 +1,44 @@
 import { Kysely, ParseJSONResultsPlugin } from "kysely";
-import { SqliteConnection, SqliteIntrospector } from "bknd/data";
-import { SQLocalKysely } from "sqlocal/kysely";
-import type { ClientConfig } from "sqlocal";
+import { SqliteConnection, SqliteIntrospector, type DB } from "bknd";
+import type { SQLocalKysely } from "sqlocal/kysely";
 
 const plugins = [new ParseJSONResultsPlugin()];
 
-export type SQLocalConnectionConfig = Omit<ClientConfig, "databasePath"> & {
-   // make it optional
-   databasePath?: ClientConfig["databasePath"];
-};
+export class SQLocalConnection extends SqliteConnection<SQLocalKysely> {
+   private connected: boolean = false;
 
-export class SQLocalConnection extends SqliteConnection {
-   private _client: SQLocalKysely | undefined;
-
-   constructor(private config: SQLocalConnectionConfig) {
-      super(null as any, {}, plugins);
+   constructor(client: SQLocalKysely) {
+      // @ts-expect-error - config is protected
+      client.config.onConnect = () => {
+         // we need to listen for the connection, it will be awaited in init()
+         this.connected = true;
+      };
+      super({
+         kysely: new Kysely<any>({
+            dialect: {
+               ...client.dialect,
+               createIntrospector: (db: Kysely<DB>) => {
+                  return new SqliteIntrospector(db as any, {
+                     plugins,
+                  });
+               },
+            },
+            plugins,
+         }) as any,
+      });
+      this.client = client;
    }
 
    override async init() {
       if (this.initialized) return;
-
-      await new Promise((resolve) => {
-         this._client = new SQLocalKysely({
-            ...this.config,
-            databasePath: this.config.databasePath ?? "session",
-            onConnect: (r) => {
-               this.kysely = new Kysely<any>({
-                  dialect: {
-                     ...this._client!.dialect,
-                     createIntrospector: (db: Kysely<any>) => {
-                        return new SqliteIntrospector(db, {
-                           plugins,
-                        });
-                     },
-                  },
-                  plugins,
-               });
-               this.config.onConnect?.(r);
-               resolve(1);
-            },
-         });
-      });
-      super.init();
-   }
-
-   get client(): SQLocalKysely {
-      if (!this._client) throw new Error("Client not initialized");
-      return this._client!;
+      let tries = 0;
+      while (!this.connected && tries < 100) {
+         tries++;
+         await new Promise((resolve) => setTimeout(resolve, 5));
+      }
+      if (!this.connected) {
+         throw new Error("Failed to connect to SQLite database");
+      }
+      this.initialized = true;
    }
 }
