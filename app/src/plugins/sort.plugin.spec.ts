@@ -752,7 +752,7 @@ describe("sort plugin", () => {
       expect(tasks[1].position).toBe(1);
    });
 
-   test.only("should not create duplicates when moving to an occupied position", async () => {
+   test("should not create duplicates when moving to an occupied position", async () => {
       const app = createApp({
          config: {
             data: em({
