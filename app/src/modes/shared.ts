@@ -87,7 +87,7 @@ export async function makeModeConfig<
    const { typesFilePath, configFilePath, writer, syncSecrets: syncSecretsOptions } = config;
 
    const isProd = config.isProduction ?? _isProd();
-   const plugins = appConfig?.options?.plugins ?? ([] as AppPlugin[]);
+   const plugins = config?.options?.plugins ?? ([] as AppPlugin[]);
    const syncFallback = typeof config.syncSchema === "boolean" ? config.syncSchema : !isProd;
    const syncSchemaOptions =
       typeof config.syncSchema === "object"
