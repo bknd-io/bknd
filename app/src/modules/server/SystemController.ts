@@ -125,7 +125,7 @@ export class SystemController extends Controller {
    private registerConfigController(client: Hono<any>): void {
       const { permission } = this.middlewares;
       // don't add auth again, it's already added in getController
-      const hono = this.create(); /* .use(permission(SystemPermissions.configRead)); */
+      const hono = this.create();
 
       if (!this.app.isReadOnly()) {
          const manager = this.app.modules as DbModuleManager;
@@ -316,6 +316,11 @@ export class SystemController extends Controller {
          describeRoute({
             summary: "Get the config for a module",
             tags: ["system"],
+         }),
+         permission(SystemPermissions.configRead, {
+            context: (c) => ({
+               module: c.req.param("module"),
+            }),
          }),
          mcpTool("system_config", {
             annotations: {
