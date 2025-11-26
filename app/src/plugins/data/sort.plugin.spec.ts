@@ -731,7 +731,7 @@ describe("sort plugin", () => {
          .execute();
 
       // create normal task
-      const { data: task2 } = await mutator.insertOne({ title: "Task 2" });
+      await mutator.insertOne({ title: "Task 2" });
 
       // update the null task to have a position
       const nullTask = await app.connection.kysely
@@ -791,7 +791,6 @@ describe("sort plugin", () => {
       const { data: tasks } = await app.em.repo("tasks").findMany({
          sort: { by: "position", dir: "asc" },
       });
-      console.dir(tasks, { depth: null });
 
       expect(tasks.length).toBe(2);
       expect(tasks[0].id).toBe(task2.id);
