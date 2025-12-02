@@ -1,7 +1,8 @@
 import { boolean, em, entity, text } from "bknd";
 import { Route } from "wouter";
 import IndexPage from "~/routes/_index";
-import { BkndBrowserApp, type BrowserBkndConfig } from "bknd/adapter/browser";
+import { BkndBrowserApp, type BrowserBkndConfig, useApp } from "bknd/adapter/browser";
+import { type ReactNode, useEffect } from "react";
 
 const schema = em({
    todos: entity("todos", {
@@ -49,8 +50,17 @@ const config = {
 
 export default function App() {
    return (
-      <BkndBrowserApp {...config}>
+      <BkndBrowserApp {...config} header={<Debug />}>
          <Route path="/" component={IndexPage} />
       </BkndBrowserApp>
    );
 }
+
+const Debug = () => {
+   const { app } = useApp();
+   useEffect(() => {
+      // @ts-ignore
+      window.app = app;
+   }, [app]);
+   return null;
+};

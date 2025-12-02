@@ -154,8 +154,10 @@ function UserMenu() {
 
    async function handleLogout() {
       await auth.logout();
-      // @todo: grab from somewhere constant
-      navigate(logout_route, { reload: true });
+
+      if (!auth.local) {
+         navigate(logout_route, { reload: true });
+      }
    }
 
    async function handleLogin() {

@@ -18,6 +18,7 @@ type UseAuth = {
    logout: () => Promise<void>;
    verify: () => Promise<void>;
    setToken: (token: string) => void;
+   local: boolean;
 };
 
 export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
@@ -60,5 +61,6 @@ export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
       logout,
       setToken,
       verify,
+      local: !!api.options.storage,
    };
 };

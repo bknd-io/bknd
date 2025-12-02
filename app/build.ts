@@ -188,6 +188,7 @@ async function buildUiElements() {
          "ui/client",
          "bknd",
          /^bknd\/.*/,
+         "wouter",
          "react",
          "react-dom",
          "react/jsx-runtime",
