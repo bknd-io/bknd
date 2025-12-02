@@ -223,7 +223,7 @@ export class ModuleManager {
    }
 
    extractSecrets() {
-      const moduleConfigs = structuredClone(this.configs());
+      const moduleConfigs = JSON.parse(JSON.stringify(this.configs()));
       const secrets = { ...this.options?.secrets };
       const extractedKeys: string[] = [];
 

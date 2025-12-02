@@ -1,11 +1,12 @@
 import { IconPhoto } from "@tabler/icons-react";
 import { useBknd } from "ui/client/BkndProvider";
 import { Empty } from "ui/components/display/Empty";
-import { type FileState, Media } from "ui/elements";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { useLocation } from "wouter";
 import { bkndModals } from "ui/modals";
+import { DropzoneContainer } from "ui/elements/media/DropzoneContainer";
+import type { FileState } from "ui/elements/media/Dropzone";
 
 export function MediaIndex() {
    const { config } = useBknd();
@@ -35,7 +36,7 @@ export function MediaIndex() {
    return (
       <AppShell.Scrollable>
          <div className="flex flex-1 p-3">
-            <Media.Dropzone onClick={onClick} infinite query={{ sort: "-id" }} />
+            <DropzoneContainer onClick={onClick} infinite query={{ sort: "-id" }} />
          </div>
       </AppShell.Scrollable>
    );

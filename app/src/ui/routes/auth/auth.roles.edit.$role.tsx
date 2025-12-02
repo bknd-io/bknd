@@ -35,7 +35,7 @@ import { SegmentedControl, Tooltip } from "@mantine/core";
 import { Popover } from "ui/components/overlay/Popover";
 import { cn } from "ui/lib/utils";
 import { JsonViewer } from "ui/components/code/JsonViewer";
-import { mountOnce, useApiQuery } from "ui/client";
+import { mountOnce, useApiQuery } from "bknd/client";
 import { CodePreview } from "ui/components/code/CodePreview";
 import type { JsonError } from "json-schema-library";
 import { Alert } from "ui/components/display/Alert";

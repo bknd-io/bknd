@@ -19,7 +19,9 @@ function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequ
    if (!cleanRequest) return req;
 
    const url = new URL(req.url);
-   cleanRequest?.searchParams?.forEach((k) => url.searchParams.delete(k));
+   cleanRequest?.searchParams?.forEach((k) => {
+      url.searchParams.delete(k);
+   });
 
    if (isNode()) {
       return new Request(url.toString(), {

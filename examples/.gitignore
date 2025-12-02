@@ -3,3 +3,4 @@
 */deno.lock
 */node_modules
 */*.db
+*/worker-configuration.d.ts

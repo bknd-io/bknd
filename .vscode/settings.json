@@ -1,0 +1,19 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "biome.enabled": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.codeActionsOnSave": {
+    //"source.organizeImports.biome": "explicit",
+    "source.fixAll.biome": "explicit"
+  },
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "**/dist/**",
+    "**/node_modules/**/dist/**",
+    "**/node_modules/**/!(src|lib|esm)/**" // optional, stricter
+  ],
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": ["**/dist", "**/node_modules/**/dist"]
+  }
+}

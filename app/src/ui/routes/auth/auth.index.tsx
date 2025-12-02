@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { TbArrowRight, TbCircle, TbCircleCheckFilled, TbFingerprint } from "react-icons/tb";
-import { useApiQuery } from "ui/client";
+import { useApiQuery } from "bknd/client";
 import { useBknd } from "ui/client/bknd";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { ButtonLink, type ButtonLinkProps } from "ui/components/buttons/Button";

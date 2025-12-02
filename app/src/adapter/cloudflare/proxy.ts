@@ -65,37 +65,31 @@ export function withPlatformProxy<Env extends CloudflareEnv>(
    }
 
    return {
-      ...config,
-      beforeBuild: async (app, registries) => {
-         if (!use_proxy) return;
-         const env = await getEnv();
-         registerMedia(env, registries as any);
-         await config?.beforeBuild?.(app, registries);
-      },
-      bindings: async (env) => {
-         return (await config?.bindings?.(await getEnv(env))) || {};
-      },
       // @ts-ignore
       app: async (_env) => {
          const env = await getEnv(_env);
          const binding = use_proxy ? getBinding(env, "D1Database") : undefined;
+         const appConfig = typeof config.app === "function" ? await config.app(env) : config;
+         const connection =
+            use_proxy && binding
+               ? d1Sqlite({
+                    binding: binding.value as any,
+                 })
+               : appConfig.connection;
 
-         if (config?.app === undefined && use_proxy && binding) {
-            return {
-               connection: d1Sqlite({
-                  binding: binding.value,
-               }),
-            };
-         } else if (typeof config?.app === "function") {
-            const appConfig = await config?.app(env);
-            if (binding) {
-               appConfig.connection = d1Sqlite({
-                  binding: binding.value,
-               }) as any;
-            }
-            return appConfig;
-         }
-         return config?.app || {};
+         return {
+            ...appConfig,
+            beforeBuild: async (app, registries) => {
+               if (!use_proxy) return;
+               const env = await getEnv();
+               registerMedia(env, registries as any);
+               await config?.beforeBuild?.(app, registries);
+            },
+            bindings: async (env) => {
+               return (await config?.bindings?.(await getEnv(env))) || {};
+            },
+            connection,
+         };
       },
    } satisfies CloudflareBkndConfig<Env>;
 }

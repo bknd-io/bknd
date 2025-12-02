@@ -1,6 +1,6 @@
 import type { EntityData } from "bknd";
 import { useState } from "react";
-import { useEntityMutate } from "ui/client";
+import { useEntityMutate } from "bknd/client";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 import { Button } from "ui/components/buttons/Button";
 import { Message } from "ui/components/display/Message";

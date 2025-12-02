@@ -79,6 +79,22 @@ export function threw(fn: () => any, instance?: new (...args: any[]) => Error) {
    }
 }
 
+export async function threwAsync(fn: Promise<any>, instance?: new (...args: any[]) => Error) {
+   try {
+      await fn;
+      return false;
+   } catch (e) {
+      if (instance) {
+         if (e instanceof instance) {
+            return true;
+         }
+         // if instance given but not what expected, throw
+         throw e;
+      }
+      return true;
+   }
+}
+
 export async function $waitUntil(
    message: string,
    condition: () => MaybePromise<boolean>,
