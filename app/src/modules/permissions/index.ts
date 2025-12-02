@@ -33,3 +33,5 @@ export const schemaRead = new Permission(
 );
 export const build = new Permission("system.build");
 export const mcp = new Permission("system.mcp");
+export const info = new Permission("system.info");
+export const openapi = new Permission("system.openapi");
