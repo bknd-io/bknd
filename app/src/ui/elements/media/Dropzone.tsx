@@ -14,7 +14,7 @@ import { isFileAccepted } from "bknd/utils";
 import { type FileWithPath, useDropzone } from "./use-dropzone";
 import { checkMaxReached } from "./helper";
 import { DropzoneInner } from "./DropzoneInner";
-import { createDropzoneStore } from "ui/elements/media/dropzone-state";
+import { createDropzoneStore } from "./dropzone-state";
 import { useStore } from "zustand";
 
 export type FileState = {

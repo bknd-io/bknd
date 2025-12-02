@@ -14,18 +14,20 @@ const ClientContext = createContext<BkndClientContext>(undefined!);
 export type ClientProviderProps = {
    children?: ReactNode;
    baseUrl?: string;
+   api?: Api;
 } & ApiOptions;
 
 export const ClientProvider = ({
    children,
    host,
    baseUrl: _baseUrl = host,
+   api: _api,
    ...props
 }: ClientProviderProps) => {
    const winCtx = useBkndWindowContext();
    const _ctx = useClientContext();
    let actualBaseUrl = _baseUrl ?? _ctx?.baseUrl ?? "";
-   let user: any = undefined;
+   let user: any;
 
    if (winCtx) {
       user = winCtx.user;
@@ -40,6 +42,7 @@ export const ClientProvider = ({
    const apiProps = { user, ...props, host: actualBaseUrl };
    const api = useMemo(
       () =>
+         _api ??
          new Api({
             ...apiProps,
             verbose: isDebug(),
@@ -50,7 +53,7 @@ export const ClientProvider = ({
                }
             },
          }),
-      [JSON.stringify(apiProps)],
+      [_api, JSON.stringify(apiProps)],
    );
 
    const [authState, setAuthState] = useState<Partial<AuthState> | undefined>(api.getAuthState());
@@ -64,6 +67,10 @@ export const ClientProvider = ({
 
 export const useApi = (host?: ApiOptions["host"]): Api => {
    const context = useContext(ClientContext);
+   if (!context) {
+      throw new Error("useApi must be used within a ClientProvider");
+   }
+
    if (!context?.api || (host && host.length > 0 && host !== context.baseUrl)) {
       return new Api({ host: host ?? "" });
    }

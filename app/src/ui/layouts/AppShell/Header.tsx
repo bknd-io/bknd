@@ -10,7 +10,7 @@ import {
    TbUser,
    TbX,
 } from "react-icons/tb";
-import { useAuth, useBkndWindowContext } from "ui/client";
+import { useAuth, useBkndWindowContext } from "bknd/client";
 import { useBknd } from "ui/client/bknd";
 import { useTheme } from "ui/client/use-theme";
 import { Button } from "ui/components/buttons/Button";

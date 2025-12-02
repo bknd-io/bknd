@@ -10,7 +10,7 @@ import type {
 import { objectTransform, encodeSearch } from "bknd/utils";
 import type { Insertable, Selectable, Updateable, Generated } from "kysely";
 import useSWR, { type SWRConfiguration, type SWRResponse, mutate } from "swr";
-import { type Api, useApi } from "ui/client";
+import { type Api, useApi } from "bknd/client";
 
 export class UseEntityApiError<Payload = any> extends Error {
    constructor(

@@ -186,6 +186,8 @@ async function buildUiElements() {
       outDir: "dist/ui/elements",
       external: [
          "ui/client",
+         "bknd",
+         /^bknd\/.*/,
          "react",
          "react-dom",
          "react/jsx-runtime",

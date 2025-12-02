@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useApi, useApiQuery } from "ui/client";
+import { useApi, useApiQuery } from "bknd/client";
 import { Scrollable } from "ui/layouts/AppShell/AppShell";
 
 function Bla() {
