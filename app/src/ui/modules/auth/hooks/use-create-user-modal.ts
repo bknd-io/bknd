@@ -1,4 +1,4 @@
-import { useApi, useInvalidate } from "ui/client";
+import { useApi, useInvalidate } from "bknd/client";
 import { useBkndAuth } from "ui/client/schema/auth/use-bknd-auth";
 import { routes, useNavigate } from "ui/lib/routes";
 import { bkndModals } from "ui/modals";

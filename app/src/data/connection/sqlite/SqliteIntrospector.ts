@@ -83,7 +83,7 @@ export class SqliteIntrospector extends BaseIntrospector {
                   dataType: col.type,
                   isNullable: !col.notnull,
                   isAutoIncrementing: col.name === autoIncrementCol,
-                  hasDefaultValue: col.dflt_value != null,
+                  hasDefaultValue: col.name === autoIncrementCol ? true : col.dflt_value != null,
                   comment: undefined,
                };
             }) ?? [],

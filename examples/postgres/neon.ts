@@ -1,8 +1,8 @@
 import { serve } from "bknd/adapter/bun";
-import { createCustomPostgresConnection } from "../src";
+import { createCustomPostgresConnection } from "bknd";
 import { NeonDialect } from "kysely-neon";
 
-const neon = createCustomPostgresConnection(NeonDialect);
+const neon = createCustomPostgresConnection("neon", NeonDialect);
 
 export default serve({
    connection: neon({

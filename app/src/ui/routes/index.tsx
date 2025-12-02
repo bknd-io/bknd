@@ -11,7 +11,7 @@ import SettingsRoutes from "./settings";
 import { FlashMessage } from "ui/modules/server/FlashMessage";
 import { AuthRegister } from "ui/routes/auth/auth.register";
 import { BkndModalsProvider } from "ui/modals";
-import { useBkndWindowContext } from "ui/client";
+import { useBkndWindowContext } from "bknd/client";
 import ToolsRoutes from "./tools";
 
 // @ts-ignore
