@@ -12,7 +12,7 @@ import { useBrowserTitle } from "ui/hooks/use-browser-title";
 export default function ToolsMcp() {
    useBrowserTitle(["MCP UI"]);
 
-   const { config, options } = useBknd();
+   const { config } = useBknd();
    const feature = useMcpStore((state) => state.feature);
    const setFeature = useMcpStore((state) => state.setFeature);
    const content = useMcpStore((state) => state.content);

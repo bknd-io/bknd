@@ -10,7 +10,7 @@ import {
 import { checksum } from "bknd/utils";
 import { App, registries, sqlocal, type BkndConfig } from "bknd";
 import { Route, Router, Switch } from "wouter";
-import { type Api, ClientProvider } from "bknd/client";
+import { ClientProvider } from "bknd/client";
 import { SQLocalKysely } from "sqlocal/kysely";
 import type { ClientConfig, DatabasePath } from "sqlocal";
 import { OpfsStorageAdapter } from "bknd/adapter/browser";
@@ -44,6 +44,7 @@ export type BrowserBkndConfig<Args = ImportMetaEnv> = Omit<
 
 export type BkndBrowserAppProps = {
    children: ReactNode;
+   header?: ReactNode;
    loading?: ReactNode;
    notFound?: ReactNode;
 } & BrowserBkndConfig;
@@ -56,19 +57,18 @@ const BkndBrowserAppContext = createContext<{
 export function BkndBrowserApp({
    children,
    adminConfig,
+   header,
    loading,
    notFound,
    ...config
 }: BkndBrowserAppProps) {
    const [app, setApp] = useState<App | undefined>(undefined);
-   const [api, setApi] = useState<Api | undefined>(undefined);
    const [hash, setHash] = useState<string>("");
    const adminRoutePath = (adminConfig?.basepath ?? "") + "/*?";
 
    async function onBuilt(app: App) {
       safeViewTransition(async () => {
          setApp(app);
-         setApi(app.getApi());
          setHash(await checksum(app.toJSON()));
       });
    }
@@ -79,7 +79,7 @@ export function BkndBrowserApp({
          .catch(console.error);
    }, []);
 
-   if (!app || !api) {
+   if (!app) {
       return (
          loading ?? (
             <Center>
@@ -91,7 +91,8 @@ export function BkndBrowserApp({
 
    return (
       <BkndBrowserAppContext.Provider value={{ app, hash }}>
-         <ClientProvider api={api}>
+         <ClientProvider storage={window.localStorage} fetcher={app.server.request}>
+            {header}
             <Router key={hash}>
                <Switch>
                   {children}

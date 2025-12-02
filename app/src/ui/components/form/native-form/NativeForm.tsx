@@ -16,10 +16,10 @@ import {
    setPath,
 } from "./utils";
 
-export type NativeFormProps = {
+export type NativeFormProps = Omit<ComponentPropsWithoutRef<"form">, "onChange" | "onSubmit"> & {
    hiddenSubmit?: boolean;
    validateOn?: "change" | "submit";
-   errorFieldSelector?: <K extends keyof HTMLElementTagNameMap>(name: string) => any | null;
+   errorFieldSelector?: (selector: string) => any | null;
    reportValidity?: boolean;
    onSubmit?: (data: any, ctx: { event: FormEvent<HTMLFormElement> }) => Promise<void> | void;
    onSubmitInvalid?: (
@@ -33,7 +33,7 @@ export type NativeFormProps = {
       ctx: { event: ChangeEvent<HTMLFormElement>; key: string; value: any; errors: InputError[] },
    ) => Promise<void> | void;
    clean?: CleanOptions | true;
-} & Omit<ComponentPropsWithoutRef<"form">, "onChange" | "onSubmit">;
+};
 
 export type InputError = {
    name: string;

@@ -67,12 +67,13 @@ export const ClientProvider = ({
 
 export const useApi = (host?: ApiOptions["host"]): Api => {
    const context = useContext(ClientContext);
-   if (!context) {
-      throw new Error("useApi must be used within a ClientProvider");
-   }
 
    if (!context?.api || (host && host.length > 0 && host !== context.baseUrl)) {
+      console.info("creating new api", { host });
       return new Api({ host: host ?? "" });
+   }
+   if (!context) {
+      throw new Error("useApi must be used within a ClientProvider");
    }
 
    return context.api;

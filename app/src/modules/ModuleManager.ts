@@ -87,7 +87,7 @@ export type ModuleManagerOptions = {
    verbosity?: Verbosity;
 };
 
-const debug_modules = env("modules_debug");
+const debug_modules = env("modules_debug", false);
 
 abstract class ModuleManagerEvent<A = {}> extends Event<{ ctx: ModuleBuildContext } & A> {}
 export class ModuleManagerConfigUpdateEvent<
