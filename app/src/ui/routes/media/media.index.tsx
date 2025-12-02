@@ -36,7 +36,7 @@ export function MediaIndex() {
    return (
       <AppShell.Scrollable>
          <div className="flex flex-1 p-3">
-            <DropzoneContainer onClick={onClick} query={{ sort: "-id" }} />
+            <DropzoneContainer onClick={onClick} infinite query={{ sort: "-id" }} />
          </div>
       </AppShell.Scrollable>
    );
