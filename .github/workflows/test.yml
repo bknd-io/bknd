@@ -39,7 +39,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./app
-        run: bun install --linker=hoisted
+        run: bun install #--linker=hoisted
 
       - name: Build
         working-directory: ./app
