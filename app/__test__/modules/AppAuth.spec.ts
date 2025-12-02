@@ -10,12 +10,6 @@ beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
 describe("AppAuth", () => {
-   test.skip("...", () => {
-      const auth = new AppAuth({});
-      console.log(auth.toJSON());
-      console.log(auth.config);
-   });
-
    moduleTestSuite(AppAuth);
 
    let ctx: ModuleBuildContext;
@@ -39,11 +33,9 @@ describe("AppAuth", () => {
       await auth.build();
 
       const oldConfig = auth.toJSON(true);
-      //console.log(oldConfig);
       await auth.schema().patch("enabled", true);
       await auth.build();
       const newConfig = auth.toJSON(true);
-      //console.log(newConfig);
       expect(newConfig.jwt.secret).not.toBe(oldConfig.jwt.secret);
    });
 
@@ -69,7 +61,6 @@ describe("AppAuth", () => {
       const app = new AuthController(auth).getController();
 
       {
-         disableConsoleLog();
          const res = await app.request("/password/register", {
             method: "POST",
             headers: {
@@ -80,7 +71,6 @@ describe("AppAuth", () => {
                password: "12345678",
             }),
          });
-         enableConsoleLog();
          expect(res.status).toBe(200);
 
          const { data: users } = await ctx.em.repository("users").findMany();
@@ -119,7 +109,6 @@ describe("AppAuth", () => {
       const app = new AuthController(auth).getController();
 
       {
-         disableConsoleLog();
          const res = await app.request("/password/register", {
             method: "POST",
             headers: {
@@ -130,7 +119,6 @@ describe("AppAuth", () => {
                password: "12345678",
             }),
          });
-         enableConsoleLog();
          expect(res.status).toBe(200);
 
          const { data: users } = await ctx.em.repository("users").findMany();
