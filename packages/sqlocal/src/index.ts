@@ -1,1 +1,1 @@
-export { SQLocalConnection, type SQLocalConnectionConfig } from "./SQLocalConnection";
+export { SQLocalConnection } from "./SQLocalConnection";

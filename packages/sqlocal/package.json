@@ -16,12 +16,12 @@
     "prepublishOnly": "bun run typecheck && bun run test && bun run build"
   },
   "dependencies": {
-    "sqlocal": "^0.14.0"
+    "sqlocal": "^0.16.0"
   },
   "devDependencies": {
     "@vitest/browser": "^3.0.8",
     "@vitest/ui": "^3.0.8",
-    "@types/node": "^22.13.10",
+    "@types/node": "^24.10.1",
     "bknd": "workspace:*",
     "kysely": "^0.27.6",
     "tsup": "^8.4.0",

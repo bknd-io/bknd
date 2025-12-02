@@ -188,23 +188,20 @@ export default serve<Env>({
 
 ### SQLocal
 
-To use bknd with `sqlocal` for a offline expierence, you need to install the `@bknd/sqlocal` package. You can do so by running the following command:
+To use bknd with `sqlocal` for a offline expierence, you need to install the `sqlocal` package. You can do so by running the following command:
 
 ```bash
-npm install @bknd/sqlocal
+npm install sqlocal
 ```
 
-This package uses `sqlocal` under the hood. Consult the [sqlocal documentation](https://sqlocal.dallashoffman.com/guide/setup) for connection options:
+Consult the [sqlocal documentation](https://sqlocal.dallashoffman.com/guide/setup) for connection options:
 
 ```ts
-import { createApp } from "bknd";
-import { SQLocalConnection } from "@bknd/sqlocal";
+import { createApp, sqlocal } from "bknd";
+import { SQLocalKysely } from "sqlocal/kysely";
 
 const app = createApp({
-  connection: new SQLocalConnection({
-    databasePath: ":localStorage:",
-    verbose: true,
-  }),
+  connection: sqlocal(new SQLocalKysely(":localStorage:")),
 });
 ```
 

@@ -268,6 +268,11 @@ async function buildAdapters() {
       // specific adatpers
       tsup.build(baseConfig("react-router")),
       tsup.build(
+         baseConfig("browser", {
+            external: [/^sqlocal\/?.*?/, "wouter"],
+         }),
+      ),
+      tsup.build(
          baseConfig("bun", {
             external: [/^bun\:.*/],
          }),

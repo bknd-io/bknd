@@ -129,6 +129,7 @@
     "react-icons": "5.5.0",
     "react-json-view-lite": "^2.5.0",
     "sql-formatter": "^15.6.10",
+    "sqlocal": "^0.16.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.1.16",
     "tailwindcss-animate": "^1.0.7",
@@ -256,6 +257,11 @@
       "types": "./dist/types/adapter/aws/index.d.ts",
       "import": "./dist/adapter/aws/index.js",
       "require": "./dist/adapter/aws/index.js"
+    },
+    "./adapter/browser": {
+      "types": "./dist/types/adapter/browser/index.d.ts",
+      "import": "./dist/adapter/browser/index.js",
+      "require": "./dist/adapter/browser/index.js"
     },
     "./dist/main.css": "./dist/ui/main.css",
     "./dist/styles.css": "./dist/ui/styles.css",

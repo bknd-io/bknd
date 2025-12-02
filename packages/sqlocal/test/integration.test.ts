@@ -1,11 +1,12 @@
-import { describe, expect, it } from "vitest";
-import { SQLocalConnection, type SQLocalConnectionConfig } from "../src";
-import { createApp } from "bknd";
-import * as proto from "bknd/data";
+import { describe, expect, it } from "bun:test";
+import { SQLocalConnection } from "../src";
+import { createApp, em, entity, text } from "bknd";
+import type { ClientConfig } from "sqlocal";
+import { SQLocalKysely } from "sqlocal/kysely";
 
 describe("integration", () => {
-   function create(config: SQLocalConnectionConfig = { databasePath: ":memory:" }) {
-      return new SQLocalConnection(config);
+   function create(config: ClientConfig = { databasePath: ":memory:" }) {
+      return new SQLocalConnection(new SQLocalKysely(config));
    }
 
    it("should create app and ping", async () => {
@@ -19,14 +20,14 @@ describe("integration", () => {
    });
 
    it("should create a basic schema", async () => {
-      const schema = proto.em(
+      const schema = em(
          {
-            posts: proto.entity("posts", {
-               title: proto.text().required(),
-               content: proto.text(),
+            posts: entity("posts", {
+               title: text().required(),
+               content: text(),
             }),
-            comments: proto.entity("comments", {
-               content: proto.text(),
+            comments: entity("comments", {
+               content: text(),
             }),
          },
          (fns, s) => {
