@@ -126,7 +126,7 @@ export function emailOTP({
                         ...entityConfig,
                      },
                      "generated",
-                  ),
+                  ) as any,
                },
                ({ index }, schema) => {
                   const otp = schema[entityName]!;

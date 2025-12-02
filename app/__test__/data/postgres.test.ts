@@ -1,8 +1,8 @@
 import { describe, beforeAll, afterAll, test } from "bun:test";
-import type { PostgresConnection } from "data/connection/postgres";
+import type { PostgresConnection } from "data/connection/postgres/PostgresConnection";
 import { pg, postgresJs } from "bknd";
 import { Pool } from "pg";
-import postgres from 'postgres'
+import postgres from "postgres";
 import { disableConsoleLog, enableConsoleLog, $waitUntil } from "bknd/utils";
 import { $ } from "bun";
 import { connectionTestSuite } from "data/connection/connection-test-suite";

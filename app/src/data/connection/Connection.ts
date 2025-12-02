@@ -6,15 +6,12 @@ import {
    type CompiledQuery,
    type DatabaseIntrospector,
    type Dialect,
-   type Expression,
    type Kysely,
    type KyselyPlugin,
    type OnModifyForeignAction,
    type QueryResult,
-   type RawBuilder,
    type SelectQueryBuilder,
    type SelectQueryNode,
-   type Simplify,
    sql,
 } from "kysely";
 import type { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/sqlite";

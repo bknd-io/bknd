@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@bknd/sqlocal": "file:../../packages/sqlocal",
     "bknd": "file:../../app",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,10 +1,11 @@
 import { Center } from "~/components/Center";
-import type { App } from "bknd";
 import { useEntityQuery } from "bknd/client";
-import type { SQLocalConnection } from "@bknd/sqlocal/src";
+import type { SQLocalConnection } from "bknd";
+import { useApp } from "bknd/adapter/browser";
 import { useEffect, useState } from "react";
+import { Link } from "wouter";
 
-export default function IndexPage({ app }: { app: App }) {
+export default function IndexPage() {
    //const user = app.getApi().getUser();
    const limit = 5;
    const { data: todos, ...$q } = useEntityQuery("todos", undefined, {
@@ -80,7 +81,7 @@ export default function IndexPage({ app }: { app: App }) {
          </div>
 
          <div className="flex flex-col items-center gap-1">
-            <a href="/admin">Go to Admin ➝</a>
+            <Link to="/admin">Go to Admin ➝</Link>
             {/*<div className="opacity-50 text-sm">
                   {user ? (
                      <p>
@@ -91,12 +92,13 @@ export default function IndexPage({ app }: { app: App }) {
                   )}
                </div>*/}
          </div>
-         <Debug app={app} />
+         <Debug />
       </Center>
    );
 }
 
-function Debug({ app }: { app: App }) {
+function Debug() {
+   const { app } = useApp();
    const [info, setInfo] = useState<any>();
    const connection = app.em.connection as SQLocalConnection;
 
@@ -128,6 +130,7 @@ function Debug({ app }: { app: App }) {
    return (
       <div className="flex flex-col gap-2 items-center">
          <button
+            type="button"
             className="bg-foreground/20 leading-none py-2 px-3.5 rounded-lg text-sm hover:bg-foreground/30 transition-colors cursor-pointer"
             onClick={download}
          >

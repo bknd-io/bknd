@@ -4,7 +4,7 @@ import { parse, s, isFile, isBlob } from "bknd/utils";
 
 export const opfsAdapterConfig = s.object(
    {
-      root: s.string({ default: "" }),
+      root: s.string({ default: "" }).optional(),
    },
    {
       title: "OPFS",

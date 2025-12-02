@@ -152,6 +152,9 @@ export { SqliteConnection } from "data/connection/sqlite/SqliteConnection";
 export { SqliteIntrospector } from "data/connection/sqlite/SqliteIntrospector";
 export { SqliteLocalConnection } from "data/connection/sqlite/SqliteLocalConnection";
 
+// data sqlocal
+export { SQLocalConnection, sqlocal } from "data/connection/sqlite/sqlocal/SQLocalConnection";
+
 // data postgres
 export {
    pg,

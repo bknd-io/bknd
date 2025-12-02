@@ -42,3 +42,7 @@ export class SQLocalConnection extends SqliteConnection<SQLocalKysely> {
       this.initialized = true;
    }
 }
+
+export function sqlocal(instance: InstanceType<typeof SQLocalKysely>): SQLocalConnection {
+   return new SQLocalConnection(instance);
+}
