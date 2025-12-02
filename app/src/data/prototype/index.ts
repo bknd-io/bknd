@@ -289,7 +289,7 @@ class EntityManagerPrototype<Entities extends Record<string, Entity>> extends En
       super(Object.values(__entities), new DummyConnection(), relations, indices);
    }
 
-   withConnection(connection: Connection): EntityManager<Schema<Entities>> {
+   withConnection(connection: Connection): EntityManager<Schemas<Entities>> {
       return new EntityManager(this.entities, connection, this.relations.all, this.indices);
    }
 }

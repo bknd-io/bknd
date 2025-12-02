@@ -124,6 +124,81 @@ describe("[Repository]", async () => {
             .then((r) => [r.count, r.total]),
       ).resolves.toEqual([undefined, undefined]);
    });
+
+   test("auto join", async () => {
+      const schema = $em(
+         {
+            posts: $entity("posts", {
+               title: $text(),
+               content: $text(),
+            }),
+            comments: $entity("comments", {
+               content: $text(),
+            }),
+            another: $entity("another", {
+               title: $text(),
+            }),
+         },
+         ({ relation }, { posts, comments }) => {
+            relation(comments).manyToOne(posts);
+         },
+      );
+      const em = schema.proto.withConnection(getDummyConnection().dummyConnection);
+      await em.schema().sync({ force: true });
+
+      await em.mutator("posts").insertOne({ title: "post1", content: "content1" });
+      await em
+         .mutator("comments")
+         .insertMany([{ content: "comment1", posts_id: 1 }, { content: "comment2" }] as any);
+
+      const res = await em.repo("comments").findMany({
+         where: {
+            "posts.title": "post1",
+         },
+      });
+      expect(res.data as any).toEqual([
+         {
+            id: 1,
+            content: "comment1",
+            posts_id: 1,
+         },
+      ]);
+
+      {
+         // manual join should still work
+         const res = await em.repo("comments").findMany({
+            join: ["posts"],
+            where: {
+               "posts.title": "post1",
+            },
+         });
+         expect(res.data as any).toEqual([
+            {
+               id: 1,
+               content: "comment1",
+               posts_id: 1,
+            },
+         ]);
+      }
+
+      // inexistent should be detected and thrown
+      expect(
+         em.repo("comments").findMany({
+            where: {
+               "random.title": "post1",
+            },
+         }),
+      ).rejects.toThrow(/Invalid where field/);
+
+      // existing alias, but not a relation should throw
+      expect(
+         em.repo("comments").findMany({
+            where: {
+               "another.title": "post1",
+            },
+         }),
+      ).rejects.toThrow(/Invalid where field/);
+   });
 });
 
 describe("[data] Repository (Events)", async () => {
