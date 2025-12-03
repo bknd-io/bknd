@@ -21,10 +21,13 @@ export type NativeFormProps = Omit<ComponentPropsWithoutRef<"form">, "onChange" 
    validateOn?: "change" | "submit";
    errorFieldSelector?: (selector: string) => any | null;
    reportValidity?: boolean;
-   onSubmit?: (data: any, ctx: { event: FormEvent<HTMLFormElement> }) => Promise<void> | void;
+   onSubmit?: (
+      data: any,
+      ctx: { event: FormEvent<HTMLFormElement>; form: HTMLFormElement },
+   ) => Promise<void> | void;
    onSubmitInvalid?: (
       errors: InputError[],
-      ctx: { event: FormEvent<HTMLFormElement> },
+      ctx: { event: FormEvent<HTMLFormElement>; form: HTMLFormElement },
    ) => Promise<void> | void;
    onError?: (errors: InputError[]) => void;
    disableSubmitOnError?: boolean;
@@ -188,12 +191,12 @@ export function NativeForm({
 
       const errors = validate({ report: true });
       if (errors.length > 0) {
-         onSubmitInvalid?.(errors, { event: e });
+         onSubmitInvalid?.(errors, { event: e, form });
          return;
       }
 
       if (onSubmit) {
-         await onSubmit(getFormValues(), { event: e });
+         await onSubmit(getFormValues(), { event: e, form });
       } else {
          form.submit();
       }

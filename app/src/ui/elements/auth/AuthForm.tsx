@@ -43,7 +43,10 @@ export function AuthForm({
    }) as Record<string, AppAuthOAuthStrategy>;
    const has_oauth = Object.keys(oauth).length > 0;
 
-   async function onSubmit(data: any, ctx: { event: FormEvent<HTMLFormElement> }) {
+   async function onSubmit(
+      data: any,
+      ctx: { event: FormEvent<HTMLFormElement>; form: HTMLFormElement },
+   ) {
       if ($auth?.local) {
          ctx.event.preventDefault();
 
@@ -58,7 +61,7 @@ export function AuthForm({
 
       await _onSubmit?.(ctx.event);
       // submit form
-      ctx.event.currentTarget.submit();
+      ctx.form.submit();
    }
 
    useEffect(() => {
