@@ -2,6 +2,8 @@ import { $ } from "bun";
 import * as tsup from "tsup";
 import pkg from "./package.json" with { type: "json" };
 import c from "picocolors";
+import { watch as fsWatch } from "node:fs";
+import { join } from "node:path";
 
 const args = process.argv.slice(2);
 const watch = args.includes("--watch");
@@ -83,7 +85,8 @@ async function buildApi() {
    await tsup.build({
       minify,
       sourcemap,
-      watch,
+      // don't use tsup's broken watch, we'll handle it ourselves
+      watch: false,
       define,
       entry: [
          "src/index.ts",
@@ -121,7 +124,7 @@ async function buildUi() {
    const base = {
       minify,
       sourcemap,
-      watch,
+      watch: false,
       define,
       external: [
          ...external,
@@ -180,7 +183,7 @@ async function buildUiElements() {
    await tsup.build({
       minify,
       sourcemap,
-      watch,
+      watch: false,
       define,
       entry: ["src/ui/elements/index.ts"],
       outDir: "dist/ui/elements",
@@ -225,7 +228,7 @@ function baseConfig(adapter: string, overrides: Partial<tsup.Options> = {}): tsu
    return {
       minify,
       sourcemap,
-      watch,
+      watch: false,
       entry: [`src/adapter/${adapter}/index.ts`],
       format: ["esm"],
       platform: "neutral",
@@ -335,4 +338,48 @@ async function buildAdapters() {
    ]);
 }
 
-await Promise.all([buildApi(), buildUi(), buildUiElements(), buildAdapters()]);
+async function buildAll() {
+   await Promise.all([buildApi(), buildUi(), buildUiElements(), buildAdapters()]);
+}
+
+// initial build
+await buildAll();
+
+// custom watcher since tsup's watch is broken in 8.3.5+
+if (watch) {
+   oldConsole.log(c.cyan("[Watch]"), "watching for changes in src/...");
+
+   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+   let isBuilding = false;
+
+   const rebuild = async () => {
+      if (isBuilding) return;
+      isBuilding = true;
+      oldConsole.log(c.cyan("[Watch]"), "rebuilding...");
+      try {
+         await buildAll();
+         oldConsole.log(c.cyan("[Watch]"), c.green("done"));
+      } catch (e) {
+         oldConsole.warn(c.cyan("[Watch]"), c.red("build failed"), e);
+      }
+      isBuilding = false;
+   };
+
+   const debouncedRebuild = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(rebuild, 100);
+   };
+
+   // watch src directory recursively
+   fsWatch(join(import.meta.dir, "src"), { recursive: true }, (event, filename) => {
+      if (!filename) return;
+      // ignore non-source files
+      if (!filename.endsWith(".ts") && !filename.endsWith(".tsx") && !filename.endsWith(".css"))
+         return;
+      oldConsole.log(c.cyan("[Watch]"), c.dim(`${event}: ${filename}`));
+      debouncedRebuild();
+   });
+
+   // keep process alive
+   await new Promise(() => {});
+}
