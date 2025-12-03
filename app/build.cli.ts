@@ -3,7 +3,17 @@ import c from "picocolors";
 import { formatNumber } from "bknd/utils";
 
 const deps = Object.keys(pkg.dependencies);
-const external = ["jsonv-ts/*", "wrangler", "bknd", "bknd/*", ...deps];
+const external = [
+   "jsonv-ts/*",
+   "wrangler",
+   "bknd",
+   "bknd/*",
+   "@vitejs/plugin-react",
+   "vite",
+   "@tailwindcss/vite",
+   "@cloudflare/vite-plugin",
+   ...deps,
+];
 
 const result = await Bun.build({
    entrypoints: ["./src/cli/index.ts"],

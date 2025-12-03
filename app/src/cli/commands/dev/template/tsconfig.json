@@ -1,0 +1,4 @@
+{
+  "extends": "./.bknd/tsconfig.json",
+  "include": ["src"]
+}

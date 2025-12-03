@@ -80,6 +80,7 @@
     "@aws-sdk/client-s3": "^3.922.0",
     "@bluwy/giget-core": "^0.1.6",
     "@clack/prompts": "^0.11.0",
+    "@cloudflare/vite-plugin": "^1.15.3",
     "@cloudflare/vitest-pool-workers": "^0.10.4",
     "@cloudflare/workers-types": "^4.20251014.0",
     "@dagrejs/dagre": "^1.1.4",
