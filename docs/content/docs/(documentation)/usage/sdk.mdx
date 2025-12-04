@@ -266,6 +266,16 @@ const { data } = await api.auth.register("password", {
 });
 ```
 
+### `auth.logout()`
+
+To log out the current user and clear the stored token, use the `logout` method:
+
+```ts
+await api.auth.logout();
+```
+
+This method takes no parameters. It sends a request to the logout endpoint and clears the authentication token. Returns a `Promise<void>`.
+
 ### `auth.me()`
 
 To retrieve the current user, use the `me` method:
