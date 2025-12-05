@@ -9,3 +9,4 @@ export { types } from "./types";
 export { mcp } from "./mcp/mcp";
 export { sync } from "./sync";
 export { secrets } from "./secrets";
+export { dev } from "./dev/dev";
