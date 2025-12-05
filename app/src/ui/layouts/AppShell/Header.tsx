@@ -1,4 +1,4 @@
-import { SegmentedControl, Tooltip } from "@mantine/core";
+import { SegmentedControl } from "@mantine/core";
 import { IconApi, IconBook, IconKeyOff, IconSettings, IconUser } from "@tabler/icons-react";
 import {
    TbDatabase,
@@ -24,7 +24,7 @@ import { useLocation } from "wouter";
 import { NavLink } from "./AppShell";
 import { autoFormatString } from "core/utils";
 import { appShellStore } from "ui/store";
-import { getVersion } from "core/env";
+import { getVersion, isDebug } from "core/env";
 import { McpIcon } from "ui/routes/tools/mcp/components/mcp-icon";
 import { useAppShellAdminOptions } from "ui/options";
 
@@ -45,7 +45,7 @@ export function HeaderNavigation() {
       { label: "Media", href: "/media", Icon: TbPhoto },
    ];
 
-   if (import.meta.env.DEV || Object.keys(config.flows?.flows ?? {}).length > 0) {
+   if (isDebug() || Object.keys(config.flows?.flows ?? {}).length > 0) {
       items.push({ label: "Flows", href: "/flows", Icon: TbHierarchy2 });
    }
 
