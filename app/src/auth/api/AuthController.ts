@@ -13,6 +13,7 @@ import {
    InvalidSchemaError,
    transformObject,
    mcpTool,
+   $console,
 } from "bknd/utils";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
 
@@ -210,7 +211,7 @@ export class AuthController extends Controller {
       const idType = s.anyOf([s.number({ title: "Integer" }), s.string({ title: "UUID" })]);
 
       const getUser = async (params: { id?: string | number; email?: string }) => {
-         let user: DB["users"] | undefined = undefined;
+         let user: DB["users"] | undefined;
          if (params.id) {
             const { data } = await this.userRepo.findId(params.id);
             user = data;
@@ -225,26 +226,33 @@ export class AuthController extends Controller {
       };
 
       const roles = Object.keys(this.auth.config.roles ?? {});
-      mcp.tool(
-         "auth_user_create",
-         {
-            description: "Create a new user",
-            inputSchema: s.object({
-               email: s.string({ format: "email" }),
-               password: s.string({ minLength: 8 }),
-               role: s
-                  .string({
-                     enum: roles.length > 0 ? roles : undefined,
-                  })
-                  .optional(),
-            }),
-         },
-         async (params, c) => {
-            await c.context.ctx().helper.granted(c, AuthPermissions.createUser);
+      try {
+         const actions = this.auth.authenticator.strategy("password").getActions();
+         if (actions.create) {
+            const schema = actions.create.schema;
+            mcp.tool(
+               "auth_user_create",
+               {
+                  description: "Create a new user",
+                  inputSchema: s.object({
+                     ...schema.properties,
+                     role: s
+                        .string({
+                           enum: roles.length > 0 ? roles : undefined,
+                        })
+                        .optional(),
+                  }),
+               },
+               async (params, c) => {
+                  await c.context.ctx().helper.granted(c, AuthPermissions.createUser);
 
-            return c.json(await this.auth.createUser(params));
-         },
-      );
+                  return c.json(await this.auth.createUser(params));
+               },
+            );
+         }
+      } catch (e) {
+         $console.warn("error creating auth_user_create tool", e);
+      }
 
       mcp.tool(
          "auth_user_token",
