@@ -15,7 +15,10 @@ import { useBkndWindowContext } from "bknd/client";
 import ToolsRoutes from "./tools";
 
 // @ts-ignore
-const TestRoutes = lazy(() => import("./test"));
+let TestRoutes: any;
+if (import.meta.env.DEV) {
+   TestRoutes = lazy(() => import("./test"));
+}
 
 export function Routes({
    BkndWrapper,
@@ -43,11 +46,13 @@ export function Routes({
                      <Route path="/" nest>
                         <Root>
                            <Switch>
-                              <Route path="/test*" nest>
-                                 <Suspense fallback={null}>
-                                    <TestRoutes />
-                                 </Suspense>
-                              </Route>
+                              {TestRoutes && (
+                                 <Route path="/test*" nest>
+                                    <Suspense fallback={null}>
+                                       <TestRoutes />
+                                    </Suspense>
+                                 </Route>
+                              )}
 
                               {children}
 

@@ -30,28 +30,29 @@ import { useAppShellAdminOptions } from "ui/options";
 
 export function HeaderNavigation() {
    const [location, navigate] = useLocation();
+   const { config } = useBknd();
 
    const items: {
       label: string;
       href: string;
-      Icon: any;
+      Icon?: any;
       exact?: boolean;
       tooltip?: string;
       disabled?: boolean;
    }[] = [
-      /*{
-         label: "Base",
-         href: "#",
-         exact: true,
-         Icon: TbLayoutDashboard,
-         disabled: true,
-         tooltip: "Coming soon"
-      },*/
       { label: "Data", href: "/data", Icon: TbDatabase },
       { label: "Auth", href: "/auth", Icon: TbFingerprint },
       { label: "Media", href: "/media", Icon: TbPhoto },
-      { label: "Flows", href: "/flows", Icon: TbHierarchy2 },
    ];
+
+   if (import.meta.env.DEV || Object.keys(config.flows?.flows ?? {}).length > 0) {
+      items.push({ label: "Flows", href: "/flows", Icon: TbHierarchy2 });
+   }
+
+   if (config.server.mcp.enabled) {
+      items.push({ label: "MCP", href: "/tools/mcp", Icon: McpIcon });
+   }
+
    const activeItem = items.find((item) =>
       item.exact ? location === item.href : location.startsWith(item.href),
    );
