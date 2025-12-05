@@ -15,7 +15,7 @@ const mockedBackend = new Hono()
    .get("/file/:name", async (c) => {
       const { name } = c.req.param();
       const file = Bun.file(`${assetsPath}/${name}`);
-      return new Response(file, {
+      return new Response(new File([await file.bytes()], name, { type: file.type }), {
          headers: {
             "Content-Type": file.type,
             "Content-Length": file.size.toString(),
@@ -67,7 +67,7 @@ describe("MediaApi", () => {
       const res = await mockedBackend.request("/api/media/file/" + name);
       await Bun.write(path, res);
 
-      const file = await Bun.file(path);
+      const file = Bun.file(path);
       expect(file.size).toBeGreaterThan(0);
       expect(file.type).toBe("image/png");
       await file.delete();
@@ -154,15 +154,12 @@ describe("MediaApi", () => {
       }
 
       // upload via readable from bun
-      await matches(await api.upload(file.stream(), { filename: "readable.png" }), "readable.png");
+      await matches(api.upload(file.stream(), { filename: "readable.png" }), "readable.png");
 
       // upload via readable from response
       {
          const response = (await mockedBackend.request(url)) as Response;
-         await matches(
-            await api.upload(response.body!, { filename: "readable.png" }),
-            "readable.png",
-         );
+         await matches(api.upload(response.body!, { filename: "readable.png" }), "readable.png");
       }
    });
 });

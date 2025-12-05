@@ -3,7 +3,7 @@
 import type { RuntimeBkndConfig } from "bknd/adapter";
 import { Hono } from "hono";
 import { serveStatic } from "hono/cloudflare-workers";
-import type { MaybePromise } from "bknd";
+import type { App, MaybePromise } from "bknd";
 import { $console } from "bknd/utils";
 import { createRuntimeApp } from "bknd/adapter";
 import { registerAsyncsExecutionContext, makeConfig, type CloudflareContext } from "./config";
@@ -55,8 +55,12 @@ export async function createApp<Env extends CloudflareEnv = CloudflareEnv>(
 // compatiblity
 export const getFresh = createApp;
 
+let app: App | undefined;
 export function serve<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env> = {},
+   serveOptions?: (args: Env) => {
+      warm?: boolean;
+   },
 ) {
    return {
       async fetch(request: Request, env: Env, ctx: ExecutionContext) {
@@ -92,8 +96,11 @@ export function serve<Env extends CloudflareEnv = CloudflareEnv>(
             }
          }
 
-         const context = { request, env, ctx } as CloudflareContext<Env>;
-         const app = await createApp(config, context);
+         const { warm } = serveOptions?.(env) ?? {};
+         if (!app || warm !== true) {
+            const context = { request, env, ctx } as CloudflareContext<Env>;
+            app = await createApp(config, context);
+         }
 
          return app.fetch(request, env, ctx);
       },

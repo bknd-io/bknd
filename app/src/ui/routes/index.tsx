@@ -11,11 +11,14 @@ import SettingsRoutes from "./settings";
 import { FlashMessage } from "ui/modules/server/FlashMessage";
 import { AuthRegister } from "ui/routes/auth/auth.register";
 import { BkndModalsProvider } from "ui/modals";
-import { useBkndWindowContext } from "ui/client";
+import { useBkndWindowContext } from "bknd/client";
 import ToolsRoutes from "./tools";
 
 // @ts-ignore
-const TestRoutes = lazy(() => import("./test"));
+let TestRoutes: any;
+if (import.meta.env.DEV) {
+   TestRoutes = lazy(() => import("./test"));
+}
 
 export function Routes({
    BkndWrapper,
@@ -43,11 +46,13 @@ export function Routes({
                      <Route path="/" nest>
                         <Root>
                            <Switch>
-                              <Route path="/test*" nest>
-                                 <Suspense fallback={null}>
-                                    <TestRoutes />
-                                 </Suspense>
-                              </Route>
+                              {TestRoutes && (
+                                 <Route path="/test*" nest>
+                                    <Suspense fallback={null}>
+                                       <TestRoutes />
+                                    </Suspense>
+                                 </Route>
+                              )}
 
                               {children}
 

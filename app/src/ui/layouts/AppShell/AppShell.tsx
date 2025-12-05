@@ -474,6 +474,7 @@ type SectionHeaderAccordionItemProps = {
    ActiveIcon?: any;
    children?: React.ReactNode;
    renderHeaderRight?: (props: { open: boolean }) => React.ReactNode;
+   scrollContainerRef?: React.RefObject<HTMLDivElement>;
 };
 
 export const SectionHeaderAccordionItem = ({
@@ -483,6 +484,7 @@ export const SectionHeaderAccordionItem = ({
    ActiveIcon = IconChevronUp,
    children,
    renderHeaderRight,
+   scrollContainerRef,
 }: SectionHeaderAccordionItemProps) => (
    <div
       style={{ minHeight: 49 }}
@@ -493,6 +495,8 @@ export const SectionHeaderAccordionItem = ({
             : "flex-initial cursor-pointer hover:bg-primary/5",
       )}
    >
+      {/** biome-ignore lint/a11y/noStaticElementInteractions: . */}
+      {/** biome-ignore lint/a11y/useKeyWithClickEvents: . */}
       <div
          className={twMerge(
             "flex flex-row bg-muted/10 border-muted border-b h-14 py-4 pr-4 pl-2 items-center gap-2",
@@ -501,14 +505,12 @@ export const SectionHeaderAccordionItem = ({
       >
          <IconButton Icon={open ? ActiveIcon : IconChevronDown} disabled={open} />
          <h2 className="text-lg dark:font-bold font-semibold select-text">{title}</h2>
-         <div className="flex flex-grow" />
+         <div className="flex grow" />
          {renderHeaderRight?.({ open })}
       </div>
       <div
-         className={twMerge(
-            "overflow-y-scroll transition-all",
-            open ? " flex-grow" : "h-0 opacity-0",
-         )}
+         ref={scrollContainerRef}
+         className={twMerge("overflow-y-scroll transition-all", open ? " grow" : "h-0 opacity-0")}
       >
          {children}
       </div>
@@ -518,14 +520,25 @@ export const SectionHeaderAccordionItem = ({
 export const RouteAwareSectionHeaderAccordionItem = ({
    routePattern,
    identifier,
+   renderHeaderRight,
    ...props
-}: Omit<SectionHeaderAccordionItemProps, "open" | "toggle"> & {
+}: Omit<SectionHeaderAccordionItemProps, "open" | "toggle" | "renderHeaderRight"> & {
+   renderHeaderRight?: (props: { open: boolean; active: boolean }) => React.ReactNode;
    // it's optional because it could be provided using the context
    routePattern?: string;
    identifier: string;
 }) => {
    const { active, toggle } = useRoutePathState(routePattern, identifier);
-   return <SectionHeaderAccordionItem {...props} open={active} toggle={toggle} />;
+   return (
+      <SectionHeaderAccordionItem
+         {...props}
+         open={active}
+         toggle={toggle}
+         renderHeaderRight={
+            renderHeaderRight && ((props) => renderHeaderRight?.({ open: props.open, active }))
+         }
+      />
+   );
 };
 
 export const Separator = ({ className, ...props }: ComponentPropsWithoutRef<"hr">) => (

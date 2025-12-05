@@ -10,7 +10,7 @@ import { assetsPath, assetsTmpPath } from "../helper";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
 beforeAll(() => {
-   //disableConsoleLog();
+   disableConsoleLog();
    registries.media.register("local", StorageLocalAdapter);
 });
 afterAll(enableConsoleLog);

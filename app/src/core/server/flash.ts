@@ -32,6 +32,7 @@ export function getFlashMessage(
 ): { type: FlashMessageType; message: string } | undefined {
    const flash = getCookieValue(flash_key);
    if (flash && clear) {
+      // biome-ignore lint/suspicious/noDocumentCookie: .
       document.cookie = `${flash_key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
    }
    return flash ? JSON.parse(flash) : undefined;

@@ -8,7 +8,7 @@ export function isDebug(): boolean {
    try {
       // @ts-expect-error - this is a global variable in dev
       return is_toggled(__isDev);
-   } catch (e) {
+   } catch (_e) {
       return false;
    }
 }

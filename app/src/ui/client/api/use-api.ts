@@ -2,7 +2,7 @@ import type { Api } from "Api";
 import { FetchPromise, type ModuleApi, type ResponseObject } from "modules/ModuleApi";
 import useSWR, { type SWRConfiguration, useSWRConfig, type Middleware, type SWRHook } from "swr";
 import useSWRInfinite from "swr/infinite";
-import { useApi } from "ui/client";
+import { useApi } from "../ClientProvider";
 import { useState } from "react";
 
 export const useApiQuery = <

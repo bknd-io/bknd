@@ -5,7 +5,7 @@ import { BkndProvider } from "ui/client/bknd";
 import { useTheme, type AppTheme } from "ui/client/use-theme";
 import { Logo } from "ui/components/display/Logo";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
-import { ClientProvider, useBkndWindowContext, type ClientProviderProps } from "./client";
+import { ClientProvider, useBkndWindowContext, type ClientProviderProps } from "bknd/client";
 import { createMantineTheme } from "./lib/mantine/theme";
 import { Routes } from "./routes";
 import type { BkndAdminAppShellOptions, BkndAdminEntitiesOptions } from "./options";
@@ -52,26 +52,30 @@ export type BkndAdminProps = {
    children?: ReactNode;
 };
 
-export default function Admin({
-   baseUrl: baseUrlOverride,
-   withProvider = false,
-   config: _config = {},
-   children,
-}: BkndAdminProps) {
-   const { theme } = useTheme();
+export default function Admin(props: BkndAdminProps) {
    const Provider = ({ children }: any) =>
-      withProvider ? (
+      props.withProvider ? (
          <ClientProvider
-            baseUrl={baseUrlOverride}
-            {...(typeof withProvider === "object" ? withProvider : {})}
+            baseUrl={props.baseUrl}
+            {...(typeof props.withProvider === "object" ? props.withProvider : {})}
          >
             {children}
          </ClientProvider>
       ) : (
          children
       );
+
+   return (
+      <Provider>
+         <AdminInner {...props} />
+      </Provider>
+   );
+}
+
+function AdminInner(props: BkndAdminProps) {
+   const { theme } = useTheme();
    const config = {
-      ..._config,
+      ...props.config,
       ...useBkndWindowContext(),
    };
 
@@ -82,14 +86,12 @@ export default function Admin({
    );
 
    return (
-      <Provider>
-         <MantineProvider {...createMantineTheme(theme as any)}>
-            <Notifications position="top-right" />
-            <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath}>
-               {children}
-            </Routes>
-         </MantineProvider>
-      </Provider>
+      <MantineProvider {...createMantineTheme(theme as any)}>
+         <Notifications position="top-right" />
+         <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath}>
+            {props.children}
+         </Routes>
+      </MantineProvider>
    );
 }
 

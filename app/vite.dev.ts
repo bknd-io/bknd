@@ -70,8 +70,9 @@ switch (dbType) {
       if (example) {
          const name = slugify(example);
          configPath = `.configs/${slugify(example)}.wrangler.json`;
-         const exists = await readFile(configPath, "utf-8");
-         if (!exists) {
+         try {
+            await readFile(configPath, "utf-8");
+         } catch (_e) {
             wranglerConfig.name = name;
             wranglerConfig.d1_databases[0]!.database_name = name;
             wranglerConfig.d1_databases[0]!.database_id = crypto.randomUUID();

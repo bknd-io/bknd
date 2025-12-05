@@ -4,7 +4,7 @@ import type { EntityData } from "bknd";
 import type { RelationField } from "data/relations";
 import { useEffect, useRef, useState } from "react";
 import { TbEye } from "react-icons/tb";
-import { useEntityQuery } from "ui/client";
+import { useEntityQuery } from "bknd/client";
 import { useBknd } from "ui/client/bknd";
 import { Button } from "ui/components/buttons/Button";
 import * as Formy from "ui/components/form/Formy";

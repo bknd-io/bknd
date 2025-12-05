@@ -49,19 +49,21 @@ export const AuthSettings = ({ schema: _unsafe_copy, config }) => {
    try {
       const user_entity = config.entity_name ?? "users";
       const entities = _s.config.data.entities ?? {};
-      console.log("entities", entities, user_entity);
       const user_fields = Object.entries(entities[user_entity]?.fields ?? {})
          .map(([name, field]) => (!field.config?.virtual ? name : undefined))
          .filter(Boolean);
 
       if (user_fields.length > 0) {
-         console.log("user_fields", user_fields);
          _schema.properties.jwt.properties.fields.items.enum = user_fields;
          _schema.properties.jwt.properties.fields.uniqueItems = true;
          uiSchema.jwt.fields["ui:widget"] = "checkboxes";
       }
-   } catch (e) {}
-   console.log("_s", _s);
+
+      const roles = Object.keys(config.roles ?? {});
+      if (roles.length > 0) {
+         _schema.properties.default_role_register.enum = roles;
+      }
+   } catch (_e) {}
    const roleSchema = _schema.properties.roles?.additionalProperties ?? { type: "object" };
    /* if (_s.permissions) {
       roleSchema.properties.permissions.items.enum = _s.permissions;

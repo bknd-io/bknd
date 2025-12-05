@@ -14,14 +14,15 @@ import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { Manifest } from "vite";
 
 export type BkndConfig<Args = any, Additional = {}> = Merge<
-   CreateAppConfig & {
-      app?:
-         | Merge<Omit<BkndConfig, "app"> & Additional>
-         | ((args: Args) => MaybePromise<Merge<Omit<BkndConfig<Args>, "app"> & Additional>>);
-      onBuilt?: (app: App) => MaybePromise<void>;
-      beforeBuild?: (app?: App, registries?: typeof $registries) => MaybePromise<void>;
-      buildConfig?: Parameters<App["build"]>[0];
-   } & Additional
+   CreateAppConfig &
+      Omit<Additional, "app"> & {
+         app?:
+            | Omit<BkndConfig<Args, Additional>, "app">
+            | ((args: Args) => MaybePromise<Omit<BkndConfig<Args, Additional>, "app">>);
+         onBuilt?: (app: App) => MaybePromise<void>;
+         beforeBuild?: (app?: App, registries?: typeof $registries) => MaybePromise<void>;
+         buildConfig?: Parameters<App["build"]>[0];
+      }
 >;
 
 export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;

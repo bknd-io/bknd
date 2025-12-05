@@ -213,9 +213,9 @@ To use it, you have to wrap your configuration in a mode helper, e.g. for `code`
 import { code, type CodeMode } from "bknd/modes";
 import { type BunBkndConfig, writer } from "bknd/adapter/bun";
 
-const config = {
+export default code<BunBkndConfig>({
    // some normal bun bknd config
-   connection: { url: "file:test.db" },
+   connection: { url: "file:data.db" },
    // ...
    // a writer is required, to sync the types
    writer,
@@ -227,9 +227,7 @@ const config = {
       force: true,
       drop: true,
    }
-} satisfies CodeMode<BunBkndConfig>;
-
-export default code(config);
+});
 ```
 
 Similarily, for `hybrid` mode:
@@ -238,9 +236,9 @@ Similarily, for `hybrid` mode:
 import { hybrid, type HybridMode } from "bknd/modes";
 import { type BunBkndConfig, writer, reader } from "bknd/adapter/bun";
 
-const config = {
+export default hybrid<BunBkndConfig>({
    // some normal bun bknd config
-   connection: { url: "file:test.db" },
+   connection: { url: "file:data.db" },
    // ...
    // reader/writer are required, to sync the types and config
    writer,
@@ -262,7 +260,5 @@ const config = {
       force: true,
       drop: true,
    },
-} satisfies HybridMode<BunBkndConfig>;
-
-export default hybrid(config);
+});
 ```

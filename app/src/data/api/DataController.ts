@@ -96,6 +96,9 @@ export class DataController extends Controller {
       // read entity schema
       hono.get(
          "/schema.json",
+         permission(SystemPermissions.schemaRead, {
+            context: (_c) => ({ module: "data" }),
+         }),
          permission(DataPermissions.entityRead, {
             context: (c) => ({ entity: c.req.param("entity") }),
          }),
@@ -124,6 +127,9 @@ export class DataController extends Controller {
       // read schema
       hono.get(
          "/schemas/:entity/:context?",
+         permission(SystemPermissions.schemaRead, {
+            context: (_c) => ({ module: "data" }),
+         }),
          permission(DataPermissions.entityRead, {
             context: (c) => ({ entity: c.req.param("entity") }),
          }),
@@ -161,7 +167,7 @@ export class DataController extends Controller {
       hono.get(
          "/types",
          permission(SystemPermissions.schemaRead, {
-            context: (c) => ({ module: "data" }),
+            context: (_c) => ({ module: "data" }),
          }),
          describeRoute({
             summary: "Retrieve data typescript definitions",
@@ -182,6 +188,9 @@ export class DataController extends Controller {
        */
       hono.get(
          "/info/:entity",
+         permission(SystemPermissions.schemaRead, {
+            context: (_c) => ({ module: "data" }),
+         }),
          permission(DataPermissions.entityRead, {
             context: (c) => ({ entity: c.req.param("entity") }),
          }),

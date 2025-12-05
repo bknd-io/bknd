@@ -6,7 +6,7 @@ export default function ToolsRoutes() {
    return (
       <>
          <Route path="/" component={ToolsIndex} />
-         <Route path="/mcp" component={ToolsMcp} />
+         <Route path="/mcp*" component={ToolsMcp} nest />
       </>
    );
 }

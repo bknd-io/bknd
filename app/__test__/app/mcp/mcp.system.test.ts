@@ -1,7 +1,11 @@
 import { AppEvents } from "App";
-import { describe, test, expect, beforeAll, mock } from "bun:test";
+import { describe, test, expect, beforeAll, mock, afterAll } from "bun:test";
 import { type App, createApp, createMcpToolCaller } from "core/test/utils";
 import type { McpServer } from "bknd/utils";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 /**
  * - [x] system_config

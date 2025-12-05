@@ -17,7 +17,7 @@ It's designed to avoid vendor lock-in and architectural limitations. Built exclu
   * SQLite: LibSQL, Node SQLite, Bun SQLite, Cloudflare D1, Cloudflare Durable Objects SQLite, SQLocal
   * Postgres: Vanilla Postgres, Supabase, Neon, Xata
 * **Frameworks**: React, Next.js, React Router, Astro, Vite, Waku
-* **Storage**: AWS S3, S3-compatible (Tigris, R2, Minio, etc.), Cloudflare R2 (binding), Cloudinary, Filesystem
+* **Storage**: AWS S3, S3-compatible (Tigris, R2, Minio, etc.), Cloudflare R2 (binding), Cloudinary, Filesystem, Origin Private File System (OPFS)
 * **Deployment**: Standalone, Docker, Cloudflare Workers, Vercel, Netlify, Deno Deploy, AWS Lambda, Valtown etc.
 
 **For documentation and examples, please visit https://docs.bknd.io.**

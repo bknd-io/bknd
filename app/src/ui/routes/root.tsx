@@ -1,6 +1,6 @@
 import { IconHome } from "@tabler/icons-react";
 import { useEffect } from "react";
-import { useAuth } from "ui/client";
+import { useAuth } from "bknd/client";
 import { useEffectOnce } from "ui/hooks/use-effect";
 import { Empty } from "../components/display/Empty";
 import { useBrowserTitle } from "../hooks/use-browser-title";

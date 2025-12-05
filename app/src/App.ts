@@ -5,7 +5,6 @@ import type { em as prototypeEm } from "data/prototype";
 import { Connection } from "data/connection/Connection";
 import type { Hono } from "hono";
 import {
-   type InitialModuleConfigs,
    type ModuleConfigs,
    type Modules,
    ModuleManager,
@@ -381,8 +380,10 @@ export class App<
       if (results.length > 0) {
          for (const { name, result } of results) {
             if (result) {
-               $console.log(`[Plugin:${name}] schema`);
                ctx.helper.ensureSchema(result);
+               if (ctx.flags.sync_required) {
+                  $console.log(`[Plugin:${name}] schema, sync required`);
+               }
             }
          }
       }

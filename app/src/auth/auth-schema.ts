@@ -51,6 +51,7 @@ export const authConfigSchema = $object(
       basepath: s.string({ default: "/api/auth" }),
       entity_name: s.string({ default: "users" }),
       allow_register: s.boolean({ default: true }).optional(),
+      default_role_register: s.string().optional(),
       jwt: jwtConfig,
       cookie: cookieConfig,
       strategies: $record(

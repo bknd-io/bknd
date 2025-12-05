@@ -9,6 +9,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: bknd
+        ports:
+          - 5430:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
     steps:
       - uses: actions/checkout@v4
       
@@ -20,11 +35,11 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
-          bun-version: "1.2.22"
+          bun-version: "1.3.3"
 
       - name: Install dependencies
         working-directory: ./app
-        run: bun install
+        run: bun install #--linker=hoisted
 
       - name: Build
         working-directory: ./app

@@ -3,7 +3,7 @@ import { ucFirst } from "bknd/utils";
 import type { Entity, EntityData, EntityRelation } from "bknd";
 import { Fragment, useState } from "react";
 import { TbDots } from "react-icons/tb";
-import { useApiQuery, useEntityQuery } from "ui/client";
+import { useApiQuery, useEntityQuery } from "bknd/client";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 import { Button } from "ui/components/buttons/Button";
 import { IconButton } from "ui/components/buttons/IconButton";
@@ -207,7 +207,7 @@ function DataEntityUpdateImpl({ params }) {
                   handleSubmit={handleSubmit}
                   fieldsDisabled={fieldsDisabled}
                   data={data ?? undefined}
-                  Form={Form}
+                  Form={Form as any}
                   action="update"
                   className="flex flex-grow flex-col gap-3 p-3"
                />

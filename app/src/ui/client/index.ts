@@ -4,6 +4,7 @@ export {
    type ClientProviderProps,
    useApi,
    useBaseUrl,
+   useClientContext
 } from "./ClientProvider";
 
 export * from "./api/use-api";

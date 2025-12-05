@@ -8,9 +8,9 @@ import type {
    ModuleApi,
 } from "bknd";
 import { objectTransform, encodeSearch } from "bknd/utils";
-import type { Insertable, Selectable, Updateable } from "kysely";
+import type { Insertable, Selectable, Updateable, Generated } from "kysely";
 import useSWR, { type SWRConfiguration, type SWRResponse, mutate } from "swr";
-import { type Api, useApi } from "ui/client";
+import { type Api, useApi } from "bknd/client";
 
 export class UseEntityApiError<Payload = any> extends Error {
    constructor(
@@ -33,6 +33,7 @@ interface UseEntityReturn<
    Entity extends keyof DB | string,
    Id extends PrimaryFieldType | undefined,
    Data = Entity extends keyof DB ? DB[Entity] : EntityData,
+   ActualId = Data extends { id: infer I } ? (I extends Generated<infer T> ? T : I) : never,
    Response = ResponseObject<RepositoryResult<Selectable<Data>>>,
 > {
    create: (input: Insertable<Data>) => Promise<Response>;
@@ -42,9 +43,11 @@ interface UseEntityReturn<
       ResponseObject<RepositoryResult<Id extends undefined ? Selectable<Data>[] : Selectable<Data>>>
    >;
    update: Id extends undefined
-      ? (input: Updateable<Data>, id: Id) => Promise<Response>
+      ? (input: Updateable<Data>, id: ActualId) => Promise<Response>
       : (input: Updateable<Data>) => Promise<Response>;
-   _delete: Id extends undefined ? (id: Id) => Promise<Response> : () => Promise<Response>;
+   _delete: Id extends undefined
+      ? (id: PrimaryFieldType) => Promise<Response>
+      : () => Promise<Response>;
 }
 
 export const useEntity = <

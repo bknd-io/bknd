@@ -103,6 +103,7 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          validated.with = options.with;
       }
 
+      // add explicit joins. Implicit joins are added in `where` builder
       if (options.join && options.join.length > 0) {
          for (const entry of options.join) {
             const related = this.em.relationOf(entity.name, entry);
@@ -127,12 +128,28 @@ export class Repository<TBD extends object = DefaultDB, TB extends keyof TBD = a
          const invalid = WhereBuilder.getPropertyNames(options.where).filter((field) => {
             if (field.includes(".")) {
                const [alias, prop] = field.split(".") as [string, string];
-               if (!aliases.includes(alias)) {
+               // check aliases first (added joins)
+               if (aliases.includes(alias)) {
+                  this.checkIndex(alias, prop, "where");
+                  return !this.em.entity(alias).getField(prop);
+               }
+               // check if alias (entity) exists
+               if (!this.em.hasEntity(alias)) {
                   return true;
                }
+               // check related fields for auto join
+               const related = this.em.relationOf(entity.name, alias);
+               if (related) {
+                  const other = related.other(entity);
+                  if (other.entity.getField(prop)) {
+                     // if related field is found, add join to validated options
+                     validated.join?.push(alias);
+                     this.checkIndex(alias, prop, "where");
+                     return false;
+                  }
+               }
 
-               this.checkIndex(alias, prop, "where");
-               return !this.em.entity(alias).getField(prop);
+               return true;
             }
 
             this.checkIndex(entity.name, field, "where");

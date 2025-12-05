@@ -2,7 +2,7 @@ import type { Entity } from "bknd";
 import { repoQuery } from "data/server/query";
 import { Fragment } from "react";
 import { TbDots } from "react-icons/tb";
-import { useApiQuery } from "ui/client";
+import { useApiQuery } from "bknd/client";
 import { useBknd } from "ui/client/bknd";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 import { Button } from "ui/components/buttons/Button";

@@ -14,9 +14,9 @@ export function isObject(value: unknown): value is Record<string, unknown> {
 
 export function omitKeys<T extends object, K extends keyof T>(
    obj: T,
-   keys_: readonly K[],
+   keys_: readonly K[] | K[] | string[],
 ): Omit<T, Extract<K, keyof T>> {
-   const keys = new Set(keys_);
+   const keys = new Set(keys_ as readonly K[]);
    const result = {} as Omit<T, Extract<K, keyof T>>;
    for (const [key, value] of Object.entries(obj) as [keyof T, T[keyof T]][]) {
       if (!keys.has(key as K)) {

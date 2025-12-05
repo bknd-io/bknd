@@ -1,3 +1,4 @@
+import type { MaybePromise } from "bknd";
 import type { Event } from "./Event";
 import type { EventClass } from "./EventManager";
 
@@ -7,7 +8,7 @@ export type ListenerMode = (typeof ListenerModes)[number];
 export type ListenerHandler<E extends Event<any, any>> = (
    event: E,
    slug: string,
-) => E extends Event<any, infer R> ? R | Promise<R | void> : never;
+) => E extends Event<any, infer R> ? MaybePromise<R | void> : never;
 
 export class EventListener<E extends Event = Event> {
    mode: ListenerMode = "async";

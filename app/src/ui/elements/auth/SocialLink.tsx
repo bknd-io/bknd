@@ -1,4 +1,4 @@
-import { ucFirstAllSnakeToPascalWithSpaces } from "core/utils";
+import { ucFirstAllSnakeToPascalWithSpaces } from "bknd/utils";
 import type { ReactNode } from "react";
 import { Button } from "ui/components/buttons/Button";
 import type { IconType } from "ui/components/buttons/IconButton";

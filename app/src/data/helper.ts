@@ -28,7 +28,7 @@ export function getChangeSet(
          const value = _value === "" ? null : _value;
 
          // normalize to null if undefined
-         const newValue = field.getValue(value, "submit") || null;
+         const newValue = field.getValue(value, "submit") ?? null;
          // @todo: add typing for "action"
          if (action === "create" || newValue !== data[key]) {
             acc[key] = newValue;

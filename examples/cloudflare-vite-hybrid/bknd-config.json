@@ -1,0 +1,204 @@
+{
+  "server": {
+    "cors": {
+      "origin": "*",
+      "allow_methods": [
+        "GET",
+        "POST",
+        "PATCH",
+        "PUT",
+        "DELETE"
+      ],
+      "allow_headers": [
+        "Content-Type",
+        "Content-Length",
+        "Authorization",
+        "Accept"
+      ],
+      "allow_credentials": true
+    },
+    "mcp": {
+      "enabled": false,
+      "path": "/api/system/mcp",
+      "logLevel": "emergency"
+    }
+  },
+  "data": {
+    "basepath": "/api/data",
+    "default_primary_format": "integer",
+    "entities": {
+      "todos": {
+        "type": "regular",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "title": {
+            "type": "text",
+            "config": {
+              "required": false
+            }
+          },
+          "done": {
+            "type": "boolean",
+            "config": {
+              "required": false
+            }
+          }
+        },
+        "config": {
+          "sort_field": "id",
+          "sort_dir": "asc"
+        }
+      },
+      "users": {
+        "type": "system",
+        "fields": {
+          "id": {
+            "type": "primary",
+            "config": {
+              "format": "integer",
+              "fillable": false,
+              "required": false
+            }
+          },
+          "email": {
+            "type": "text",
+            "config": {
+              "required": true
+            }
+          },
+          "strategy": {
+            "type": "enum",
+            "config": {
+              "options": {
+                "type": "strings",
+                "values": [
+                  "password"
+                ]
+              },
+              "required": true,
+              "hidden": [
+                "update",
+                "form"
+              ],
+              "fillable": [
+                "create"
+              ]
+            }
+          },
+          "strategy_value": {
+            "type": "text",
+            "config": {
+              "fillable": [
+                "create"
+              ],
+              "hidden": [
+                "read",
+                "table",
+                "update",
+                "form"
+              ],
+              "required": true
+            }
+          },
+          "role": {
+            "type": "enum",
+            "config": {
+              "options": {
+                "type": "objects",
+                "values": []
+              },
+              "required": false
+            }
+          }
+        },
+        "config": {
+          "sort_field": "id",
+          "sort_dir": "asc"
+        }
+      }
+    },
+    "relations": {},
+    "indices": {
+      "idx_unique_users_email": {
+        "entity": "users",
+        "fields": [
+          "email"
+        ],
+        "unique": true
+      },
+      "idx_users_strategy": {
+        "entity": "users",
+        "fields": [
+          "strategy"
+        ],
+        "unique": false
+      },
+      "idx_users_strategy_value": {
+        "entity": "users",
+        "fields": [
+          "strategy_value"
+        ],
+        "unique": false
+      }
+    }
+  },
+  "auth": {
+    "enabled": true,
+    "basepath": "/api/auth",
+    "entity_name": "users",
+    "allow_register": true,
+    "jwt": {
+      "secret": "",
+      "alg": "HS256",
+      "expires": 0,
+      "issuer": "bknd-cloudflare-example",
+      "fields": [
+        "id",
+        "email",
+        "role"
+      ]
+    },
+    "cookie": {
+      "domain": "",
+      "path": "/",
+      "sameSite": "strict",
+      "secure": true,
+      "httpOnly": true,
+      "expires": 604800,
+      "partitioned": false,
+      "renew": true,
+      "pathSuccess": "/",
+      "pathLoggedOut": "/"
+    },
+    "strategies": {
+      "password": {
+        "enabled": true,
+        "type": "password",
+        "config": {
+          "hashing": "sha256"
+        }
+      }
+    },
+    "guard": {
+      "enabled": false
+    },
+    "roles": {}
+  },
+  "media": {
+    "enabled": false,
+    "basepath": "/api/media",
+    "entity_name": "media",
+    "storage": {}
+  },
+  "flows": {
+    "basepath": "/api/flows",
+    "flows": {}
+  }
+}

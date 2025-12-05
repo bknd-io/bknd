@@ -87,7 +87,7 @@ export type ModuleManagerOptions = {
    verbosity?: Verbosity;
 };
 
-const debug_modules = env("modules_debug");
+const debug_modules = env("modules_debug", false);
 
 abstract class ModuleManagerEvent<A = {}> extends Event<{ ctx: ModuleBuildContext } & A> {}
 export class ModuleManagerConfigUpdateEvent<
@@ -223,7 +223,7 @@ export class ModuleManager {
    }
 
    extractSecrets() {
-      const moduleConfigs = structuredClone(this.configs());
+      const moduleConfigs = JSON.parse(JSON.stringify(this.configs()));
       const secrets = { ...this.options?.secrets };
       const extractedKeys: string[] = [];
 

@@ -19,9 +19,10 @@ import type { RelationField } from "data/relations";
 import { useEntityAdminOptions } from "ui/options";
 
 // simplify react form types 🤦
-export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any>;
 // biome-ignore format: ...
-export type TFieldApi = FieldApi<any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any>;
+export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any, any, any>;
+// biome-ignore format: ...
+export type TFieldApi = FieldApi<any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any>;
 
 type EntityFormProps = {
    entity: Entity;
