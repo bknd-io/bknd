@@ -143,7 +143,7 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "3.0.9",
     "wouter": "^3.7.1",
-    "wrangler": "^4.45.4"
+    "wrangler": "^4.52.1"
   },
   "optionalDependencies": {
     "@hono/node-server": "^1.19.6"

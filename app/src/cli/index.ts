@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 import { Command } from "commander";
 import color from "picocolors";
 import * as commands from "./commands";

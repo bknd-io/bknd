@@ -1,6 +1,6 @@
 import { RelativeFS } from "./RelativeFS";
 //import { $console } from "bknd/utils";
-import { type ViteDevServer, createServer } from "vite";
+import { type ViteDevServer, createServer, type UserConfig, createBuilder } from "vite";
 import { readdir, copyFile, stat } from "node:fs/promises";
 import path from "node:path";
 import react from "@vitejs/plugin-react";
@@ -64,10 +64,11 @@ export class Project {
       };
 
       await copyRecursive(source, destination);
+      this._server = await createServer(this.getViteConfig());
    }
 
-   async listen() {
-      this._server = await createServer({
+   private getViteConfig(): UserConfig {
+      return {
          clearScreen: false,
          publicDir: getRelativeDistPath() + "/static",
          plugins: [
@@ -81,16 +82,27 @@ export class Project {
                },
             }),
             injectMain({
-               mainPath: "/.bknd/main.tsx",
+               appPath: "./src/App.tsx",
+               rootId: "root",
             }),
          ],
-         build: {},
+         build: {
+            minify: true,
+         },
          resolve: {
             dedupe: ["react", "react-dom"],
          },
-      });
-      await this._server.listen();
-      this._server.printUrls();
-      this._server.bindCLIShortcuts({ print: true });
+      };
+   }
+
+   async build() {
+      const builder = await createBuilder(this.getViteConfig());
+      await builder.buildApp();
+   }
+
+   async listen() {
+      await this.server.listen();
+      this.server.printUrls();
+      this.server.bindCLIShortcuts({ print: true });
    }
 }

@@ -21,6 +21,7 @@ const result = await Bun.build({
    outdir: "./dist/cli",
    env: "PUBLIC_*",
    minify: true,
+   banner: `const __originalLog=console.log;console.log=(...o)=>{const n=o[0];"string"==typeof n&&n.includes("[dotenv@")||__originalLog.apply(console,o)};`,
    external,
    define: {
       __isDev: "0",
