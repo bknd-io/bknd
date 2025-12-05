@@ -223,4 +223,32 @@ describe("AppAuth", () => {
          }
       }
    });
+
+   test("default role for registration must be a valid role", async () => {
+      const app = createApp({
+         config: {
+            auth: {
+               enabled: true,
+               jwt: {
+                  secret: "123456",
+               },
+               allow_register: true,
+               roles: {
+                  guest: {
+                     is_default: true,
+                  },
+               },
+            },
+         },
+      });
+
+      await app.build();
+
+      const auth = app.module.auth;
+      // doesn't allow invalid role
+      expect(auth.schema().patch("default_role_register", "admin")).rejects.toThrow();
+      // allows valid role
+      await auth.schema().patch("default_role_register", "guest");
+      expect(auth.toJSON().default_role_register).toBe("guest");
+   });
 });

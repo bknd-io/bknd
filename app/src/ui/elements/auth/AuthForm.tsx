@@ -103,7 +103,7 @@ export function AuthForm({
             </Group>
             <Group>
                <Label htmlFor="password">Password</Label>
-               <Password name="password" required minLength={8} />
+               <Password name="password" required minLength={1} />
             </Group>
 
             <Button

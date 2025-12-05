@@ -46,6 +46,22 @@ export class AppAuth extends Module<AppAuthSchema> {
          to.strategies!.password!.enabled = true;
       }
 
+      if (to.default_role_register && to.default_role_register?.length > 0) {
+         const valid_to_role = Object.keys(to.roles ?? {}).includes(to.default_role_register);
+
+         if (!valid_to_role) {
+            const msg = `Default role for registration not found: ${to.default_role_register}`;
+            // if changing to a new value
+            if (from.default_role_register !== to.default_role_register) {
+               throw new Error(msg);
+            }
+
+            // resetting gracefully, since role doesn't exist anymore
+            $console.warn(`${msg}, resetting to undefined`);
+            to.default_role_register = undefined;
+         }
+      }
+
       return to;
    }
 
@@ -82,6 +98,7 @@ export class AppAuth extends Module<AppAuthSchema> {
       this._authenticator = new Authenticator(strategies, new AppUserPool(this), {
          jwt: this.config.jwt,
          cookie: this.config.cookie,
+         default_role_register: this.config.default_role_register,
       });
 
       this.registerEntities();
@@ -171,9 +188,19 @@ export class AppAuth extends Module<AppAuthSchema> {
       } catch (e) {}
    }
 
-   async createUser({ email, password, ...additional }: CreateUserPayload): Promise<DB["users"]> {
+   async createUser({
+      email,
+      password,
+      role,
+      ...additional
+   }: CreateUserPayload): Promise<DB["users"]> {
       if (!this.enabled) {
          throw new Error("Cannot create user, auth not enabled");
+      }
+      if (role) {
+         if (!Object.keys(this.config.roles ?? {}).includes(role)) {
+            throw new Error(`Role "${role}" not found`);
+         }
       }
 
       const strategy = "password" as const;
@@ -183,6 +210,7 @@ export class AppAuth extends Module<AppAuthSchema> {
       mutator.__unstable_toggleSystemEntityCreation(false);
       const { data: created } = await mutator.insertOne({
          ...(additional as any),
+         role: role || this.config.default_role_register || undefined,
          email,
          strategy,
          strategy_value,
