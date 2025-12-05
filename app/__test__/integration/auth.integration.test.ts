@@ -1,9 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { App, createApp, type AuthResponse } from "../../src";
 import { auth } from "../../src/modules/middlewares";
-import { randomString, secureRandomString, withDisabledConsole } from "../../src/core/utils";
+import {
+   mergeObject,
+   randomString,
+   secureRandomString,
+   withDisabledConsole,
+} from "../../src/core/utils";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 import { getDummyConnection } from "../helper";
+import type { AppAuthSchema } from "auth/auth-schema";
 
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
@@ -62,12 +68,12 @@ const configs = {
    },
 };
 
-function createAuthApp() {
+function createAuthApp(config?: Partial<AppAuthSchema>) {
    const { dummyConnection } = getDummyConnection();
    const app = createApp({
       connection: dummyConnection,
       config: {
-         auth: configs.auth,
+         auth: mergeObject(configs.auth, config ?? {}),
       },
    });
 
@@ -128,6 +134,16 @@ const fns = <Mode extends "cookie" | "token" = "token">(app: App, mode?: Mode) =
             body: body(user),
          })) as Response;
 
+         const data = mode === "cookie" ? getCookie(res, "auth") : await res.json();
+
+         return { res, data };
+      },
+      register: async (user: any): Promise<{ res: Response; data: AuthResponse }> => {
+         const res = (await app.server.request("/api/auth/password/register", {
+            method: "POST",
+            headers: headers(),
+            body: body(user),
+         })) as Response;
          const data = mode === "cookie" ? getCookie(res, "auth") : await res.json();
 
          return { res, data };
@@ -244,5 +260,62 @@ describe("integration auth", () => {
          expect(data.user).toBe(null);
          expect(await $fns.me()).toEqual({ user: null as any });
       }
+   });
+
+   it("should register users with default role", async () => {
+      const app = createAuthApp({ default_role_register: "guest" });
+      await app.build();
+      const $fns = fns(app);
+
+      // takes default role
+      expect(
+         await app
+            .createUser({
+               email: "test@bknd.io",
+               password: "12345678",
+            })
+            .then((r) => r.role),
+      ).toBe("guest");
+
+      // throws error if role doesn't exist
+      expect(
+         app.createUser({
+            email: "test@bknd.io",
+            password: "12345678",
+            role: "doesnt exist",
+         }),
+      ).rejects.toThrow();
+
+      // takes role if provided
+      expect(
+         await app
+            .createUser({
+               email: "test2@bknd.io",
+               password: "12345678",
+               role: "admin",
+            })
+            .then((r) => r.role),
+      ).toBe("admin");
+
+      // registering with role is not allowed
+      expect(
+         await $fns
+            .register({
+               email: "test3@bknd.io",
+               password: "12345678",
+               role: "admin",
+            })
+            .then((r) => r.res.ok),
+      ).toBe(false);
+
+      // takes default role
+      expect(
+         await $fns
+            .register({
+               email: "test3@bknd.io",
+               password: "12345678",
+            })
+            .then((r) => r.data.user.role),
+      ).toBe("guest");
    });
 });
