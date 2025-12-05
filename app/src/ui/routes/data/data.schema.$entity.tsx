@@ -155,17 +155,24 @@ const Fields = ({ entity }: { entity: Entity }) => {
    const { readonly } = useBknd();
    const [res, setRes] = useState<any>();
    const ref = useRef<EntityFieldsFormRef>(null);
+
+   // @todo: the return of toJSON from Fields doesn't match "type" enum
+   const initialFields = Object.fromEntries(entity.fields.map((f) => [f.name, f.toJSON()])) as any;
+
    async function handleUpdate() {
       if (submitting) return;
       setSubmitting(true);
       const fields = ref.current?.getData()!;
+
       await actions.entity.patch(entity.name).fields.set(fields);
+
+      // check if field order has changed
+      if (Object.keys(initialFields).join(",") !== Object.keys(fields).join(",")) {
+         await actions.entity.patch(entity.name).fields.set(fields, Object.keys(fields));
+      }
       setSubmitting(false);
       setUpdates((u) => u + 1);
    }
-
-   // @todo: the return of toJSON from Fields doesn't match "type" enum
-   const initialFields = Object.fromEntries(entity.fields.map((f) => [f.name, f.toJSON()])) as any;
 
    return (
       <AppShell.RouteAwareSectionHeaderAccordionItem
