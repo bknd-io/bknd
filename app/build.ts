@@ -309,6 +309,11 @@ async function buildAdapters() {
       }),
 
       tsup.build({
+         ...baseConfig("sveltekit"),
+         platform: "node",
+      }),
+
+      tsup.build({
          ...baseConfig("node"),
          platform: "node",
       }),
