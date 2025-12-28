@@ -1,10 +1,15 @@
-import { type FrameworkBkndConfig, createFrameworkApp } from "bknd/adapter";
+import { type FrameworkBkndConfig, createRuntimeApp } from "bknd/adapter";
 
 type TSvelteKit = {
    request: Request;
 };
 
-export type SvelteKitBkndConfig<Env> = FrameworkBkndConfig<Env>;
+export type SvelteKitBkndConfig<Env> = FrameworkBkndConfig<Env> & {
+   adminOptions?: {
+      adminBasepath?: string;
+      assetsPath?: string;
+   };
+};
 
 /**
  * Get bknd app instance
@@ -15,7 +20,7 @@ export async function getApp<Env>(
    config: SvelteKitBkndConfig<Env> = {} as SvelteKitBkndConfig<Env>,
    args: Env,
 ) {
-   return await createFrameworkApp(config, args);
+   return await createRuntimeApp(config, args);
 }
 
 /**
