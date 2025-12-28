@@ -9,7 +9,7 @@ afterAll(enableConsoleLog);
 
 describe("sveltekit adapter", () => {
    adapterTestSuite(bunTestRunner, {
-      makeApp: sveltekit.getApp,
-      makeHandler: (c, a) => (request: Request) => sveltekit.serve(c, a)({ request }),
+      makeApp: (c, a) => sveltekit.getApp(c, a ?? ({} as any)),
+      makeHandler: (c, a) => (request: Request) => sveltekit.serve(c, a ?? ({} as any))({ request }),
    });
 });
