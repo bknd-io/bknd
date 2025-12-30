@@ -5,7 +5,7 @@ import { format as sqlFormat } from "sql-formatter";
 import type { em as protoEm } from "../src/data/prototype";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { slugify } from "core/utils/strings";
+import { slugify } from "bknd/utils";
 import { type Connection, SqliteLocalConnection } from "data/connection";
 import { EntityManager } from "data/entities/EntityManager";
 
@@ -39,26 +39,6 @@ export function getLocalLibsqlConnection() {
    return { url: "http://127.0.0.1:8080" };
 }
 
-type ConsoleSeverity = "debug" | "log" | "warn" | "error";
-const _oldConsoles = {
-   debug: console.debug,
-   log: console.log,
-   warn: console.warn,
-   error: console.error,
-};
-
-export function disableConsoleLog(severities: ConsoleSeverity[] = ["debug", "log", "warn"]) {
-   severities.forEach((severity) => {
-      console[severity] = () => null;
-   });
-}
-
-export function enableConsoleLog() {
-   Object.entries(_oldConsoles).forEach(([severity, fn]) => {
-      console[severity as ConsoleSeverity] = fn;
-   });
-}
-
 export function compileQb(qb: SelectQueryBuilder<any, any, any>) {
    const { sql, parameters } = qb.compile();
    return { sql, parameters };
@@ -66,7 +46,7 @@ export function compileQb(qb: SelectQueryBuilder<any, any, any>) {
 
 export function prettyPrintQb(qb: SelectQueryBuilder<any, any, any>) {
    const { sql, parameters } = qb.compile();
-   console.log("$", sqlFormat(sql), "\n[params]", parameters);
+   console.info("$", sqlFormat(sql), "\n[params]", parameters);
 }
 
 export function schemaToEm(s: ReturnType<typeof protoEm>, conn?: Connection): EntityManager<any> {

@@ -12,6 +12,7 @@ import { FlashMessage } from "ui/modules/server/FlashMessage";
 import { AuthRegister } from "ui/routes/auth/auth.register";
 import { BkndModalsProvider } from "ui/modals";
 import { useBkndWindowContext } from "ui/client";
+import ToolsRoutes from "./tools";
 
 // @ts-ignore
 const TestRoutes = lazy(() => import("./test"));
@@ -19,7 +20,12 @@ const TestRoutes = lazy(() => import("./test"));
 export function Routes({
    BkndWrapper,
    basePath = "",
-}: { BkndWrapper: ComponentType<{ children: ReactNode }>; basePath?: string }) {
+   children,
+}: {
+   BkndWrapper: ComponentType<{ children: ReactNode }>;
+   basePath?: string;
+   children?: ReactNode;
+}) {
    const { theme } = useTheme();
    const ctx = useBkndWindowContext();
    const actualBasePath = basePath || ctx.admin_basepath;
@@ -42,6 +48,8 @@ export function Routes({
                                     <TestRoutes />
                                  </Suspense>
                               </Route>
+
+                              {children}
 
                               <Route path="/" component={RootEmpty} />
                               <Route path="/data" nest>
@@ -67,6 +75,11 @@ export function Routes({
                               <Route path="/settings" nest>
                                  <Suspense fallback={null}>
                                     <SettingsRoutes />
+                                 </Suspense>
+                              </Route>
+                              <Route path="/tools" nest>
+                                 <Suspense fallback={null}>
+                                    <ToolsRoutes />
                                  </Suspense>
                               </Route>
 

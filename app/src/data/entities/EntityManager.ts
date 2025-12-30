@@ -34,7 +34,6 @@ export class EntityManager<TBD extends object = DefaultDB> {
    private _entities: Entity[] = [];
    private _relations: EntityRelation[] = [];
    private _indices: EntityIndex[] = [];
-   private _schema?: SchemaManager;
    readonly emgr: EventManager<typeof EntityManager.Events>;
    static readonly Events = { ...MutatorEvents, ...RepositoryEvents };
 
@@ -249,15 +248,14 @@ export class EntityManager<TBD extends object = DefaultDB> {
    }
 
    schema() {
-      if (!this._schema) {
-         this._schema = new SchemaManager(this);
-      }
-
-      return this._schema;
+      return new SchemaManager(this);
    }
 
    // @todo: centralize and add tests
    hydrate(entity_name: string, _data: EntityData[]) {
+      if (!Array.isArray(_data) || _data.length === 0) {
+         return [];
+      }
       const entity = this.entity(entity_name);
       const data: EntityData[] = [];
 

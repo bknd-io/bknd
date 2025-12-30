@@ -3,7 +3,7 @@ import { App, boolean, em, entity, text } from "bknd";
 import { secureRandomString } from "bknd/utils";
 
 export default serve({
-   initialConfig: {
+   config: {
       data: em({
          todos: entity("todos", {
             title: text(),

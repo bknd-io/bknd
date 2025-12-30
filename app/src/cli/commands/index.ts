@@ -6,3 +6,6 @@ export { user } from "./user";
 export { create } from "./create";
 export { copyAssets } from "./copy-assets";
 export { types } from "./types";
+export { mcp } from "./mcp/mcp";
+export { sync } from "./sync";
+export { secrets } from "./secrets";

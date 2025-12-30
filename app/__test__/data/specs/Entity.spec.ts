@@ -47,8 +47,4 @@ describe("[data] Entity", async () => {
       entity.addField(field);
       expect(entity.getField("new_field")).toBe(field);
    });
-
-   test.only("types", async () => {
-      console.log(entity.toTypes());
-   });
 });

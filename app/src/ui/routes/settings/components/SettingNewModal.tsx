@@ -30,7 +30,7 @@ export const SettingNewModal = ({
    const [location, navigate] = useLocation();
    const [formSchema, setFormSchema] = useState(schema);
    const [submitting, setSubmitting] = useState(false);
-   const { actions } = useBknd();
+   const { actions, readonly } = useBknd();
    const [opened, { open, close }] = useDisclosure(false);
    const isGeneratedKey = generateKey !== undefined;
    const isStaticGeneratedKey = typeof generateKey === "string";
@@ -98,15 +98,17 @@ export const SettingNewModal = ({
 
    return (
       <>
-         <div className="flex flex-row">
-            {isAnyOf ? (
-               <Dropdown position="top-start" items={anyOfItems} itemsClassName="gap-3">
-                  <Button>Add new</Button>
-               </Dropdown>
-            ) : (
-               <Button onClick={open}>Add new</Button>
-            )}
-         </div>
+         {!readonly && (
+            <div className="flex flex-row">
+               {isAnyOf ? (
+                  <Dropdown position="top-start" items={anyOfItems} itemsClassName="gap-3">
+                     <Button>Add new</Button>
+                  </Dropdown>
+               ) : (
+                  <Button onClick={open}>Add new</Button>
+               )}
+            </div>
+         )}
 
          <Modal
             open={opened}

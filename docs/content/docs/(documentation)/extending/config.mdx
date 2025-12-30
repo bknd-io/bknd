@@ -23,41 +23,216 @@ export default {
 } satisfies BkndConfig;
 ```
 
-## Overview
+The supported configuration file extensions are `js`, `ts`, `mjs`, `cjs` and `json`. Throughout the documentation, we'll use `ts` for the file extension.
 
-The `BkndConfig` extends the [`CreateAppConfig`](/usage/introduction#configuration-createappconfig) type with the following properties:
+## Example
 
-{/* <AutoTypeTable path="../app/src/adapter/index.ts" name="BkndConfig" /> */}
-
+Here is an example of a configuration file that specifies a database connection, registers a plugin, add custom routes using [Hono](https://hono.dev/) and performs a [Kysely](https://kysely.dev/) query.
 
 ```typescript
-export type BkndConfig = CreateAppConfig & {
-  // return the app configuration as object or from a function
-  app?: CreateAppConfig | ((args: Args) => CreateAppConfig);
-  // called before the app is built
-  beforeBuild?: (app: App) => Promise<void>;
-  // called after the app has been built
+import type { BkndConfig } from "bknd/adapter";
+import { showRoutes } from "bknd/plugins";
+
+export default {
+  connection: {
+    url: process.env.DB_URL ?? "file:data.db",
+  },
+  onBuilt: async (app) => {
+    // `app.server` is a Hono instance
+    const hono = app.server;
+    hono.get("/hello", (c) => c.text("Hello World"));
+
+    // for complex queries, you can use Kysely directly
+    const db = app.connection.kysely;
+    hono.get("/custom_query", async (c) => {
+      return c.json(await db.selectFrom("pages").selectAll().execute());
+    });
+  },
+  options: {
+    plugins: [showRoutes()],
+  },
+} satisfies BkndConfig;
+```
+
+
+## Configuration (`BkndConfig`)
+
+The `BkndConfig` type is the main configuration object for the `createApp` function. It has
+the following properties:
+
+```typescript
+import type { App, InitialModuleConfigs, ModuleBuildContext, Connection, MaybePromise } from "bknd";
+import type { Config } from "@libsql/client";
+
+type AppPlugin = (app: App) => Promise<void> | void;
+type ManagerOptions = {
+  basePath?: string;
+  trustFetched?: boolean;
+  onFirstBoot?: () => Promise<void>;
+  seed?: (ctx: ModuleBuildContext) => Promise<void>;
+};
+
+type BkndConfig<Args = any> = {
+  connection?: Connection | Config;
+  config?: InitialModuleConfigs;
+  options?: {
+    plugins?: AppPlugin[];
+    manager?: ManagerOptions;
+  };
+  app?: BkndConfig<Args> | ((args: Args) => MaybePromise<BkndConfig<Args>>);
   onBuilt?: (app: App) => Promise<void>;
-  // passed as the first argument to the `App.build` method
-  buildConfig?: Parameters<App["build"]>[0];
-  // force the app to be recreated
-  force?: boolean;
-  // the id of the app, defaults to `app`
-  id?: string;
+  beforeBuild?: (app?: App) => Promise<void>;
+  buildConfig?: {
+    sync?: boolean;
+  }
 };
 ```
 
-The supported configuration file extensions are `js`, `ts`, `mjs`, `cjs` and `json`. Throughout the documentation, we'll use `ts` for the file extension.
+### `connection`
 
-### `app` (CreateAppConfig)
+The `connection` property is the main connection object to the database. It can be either an object with libsql config or the actual `Connection` class.
 
-The `app` property is a function that returns a `CreateAppConfig` object. It allows to pass in the environment variables to the configuration object.
+```ts
+// uses the default SQLite connection depending on the runtime
+const connection = { url: "<url>" };
+
+// the same as above, but more explicit
+import { sqlite } from "bknd/adapter/sqlite";
+const connection = sqlite({ url: "<url>" });
+
+// Node.js SQLite, default on Node.js
+import { nodeSqlite } from "bknd/adapter/node";
+const connection = nodeSqlite({ url: "<url>" });
+
+// Bun SQLite, default on Bun
+import { bunSqlite } from "bknd/adapter/bun";
+const connection = bunSqlite({ url: "<url>" });
+
+// LibSQL, default on Cloudflare
+import { libsql } from "bknd";
+const connection = libsql({ url: "<url>" });
+```
+
+See a full list of available connections in the [Database](/usage/database) section. Alternatively, you can pass an instance of a `Connection` class directly, see [Custom Connection](/usage/database#custom-connection) as a reference.
+
+If the connection object is omitted, the app will try to use an in-memory database.
+
+### `config`
+
+As configuration, you can either pass a partial configuration object or a complete one
+with a version number. The version number is used to automatically migrate the configuration up
+to the latest version upon boot ([`db` mode](/usage/introduction#ui-only-mode) only). The default configuration looks like this:
+
+```json
+{
+  "server": {
+    "cors": {
+      "origin": "*",
+      "allow_methods": [
+        "GET",
+        "POST",
+        "PATCH",
+        "PUT",
+        "DELETE"
+      ],
+      "allow_headers": [
+        "Content-Type",
+        "Content-Length",
+        "Authorization",
+        "Accept"
+      ],
+      "allow_credentials": true
+    },
+    "mcp": {
+      "enabled": false,
+      "path": "/api/system/mcp",
+      "logLevel": "emergency"
+    }
+  },
+  "data": {
+    "basepath": "/api/data",
+    "default_primary_format": "integer",
+    "entities": {},
+    "relations": {},
+    "indices": {}
+  },
+  "auth": {
+    "enabled": false,
+    "basepath": "/api/auth",
+    "entity_name": "users",
+    "allow_register": true,
+    "jwt": {
+      "secret": "",
+      "alg": "HS256",
+      "expires": 0,
+      "issuer": "",
+      "fields": [
+        "id",
+        "email",
+        "role"
+      ]
+    },
+    "cookie": {
+      "path": "/",
+      "sameSite": "strict",
+      "secure": true,
+      "httpOnly": true,
+      "expires": 604800,
+      "partitioned": false,
+      "renew": true,
+      "pathSuccess": "/",
+      "pathLoggedOut": "/"
+    },
+    "strategies": {
+      "password": {
+        "type": "password",
+        "enabled": true,
+        "config": {
+          "hashing": "sha256"
+        }
+      }
+    },
+    "guard": {
+      "enabled": false
+    },
+    "roles": {}
+  },
+  "media": {
+    "enabled": false,
+    "basepath": "/api/media",
+    "entity_name": "media",
+    "storage": {}
+  },
+  "flows": {
+    "basepath": "/api/flows",
+    "flows": {}
+  }
+}
+```
+
+You can use the [CLI](/usage/cli/#getting-the-configuration-config) to get the default configuration:
+
+```sh
+npx bknd config --default --pretty
+```
+
+To validate your configuration against a JSON schema, you can also dump the schema using the CLI:
+
+```sh
+npx bknd schema
+```
+
+To create an initial data structure, you can use helpers [described here](/usage/database#data-structure).
+
+### `app`
+
+The `app` property is a function that returns a `CreateAppConfig` object. It allows accessing the adapter specific environment variables. This is especially useful when using the [Cloudflare Workers](/integration/cloudflare) runtime, where the environment variables are only available inside the request handler.
 
 ```typescript
 import type { BkndConfig } from "bknd/adapter";
 
 export default {
-  app: ({ env }) => ({
+  app: (env) => ({
     connection: {
       url: env.DB_URL,
     },
@@ -104,11 +279,51 @@ export default {
 };
 ```
 
-### `force` & `id`
+### `options.plugins`
 
-The `force` property is a boolean that forces the app to be recreated. This is mainly useful for serverless environments where the execution environment is re-used, and you may or may not want to recreate the app on every request.
+The `plugins` property is an array of functions that are called after the app has been built,
+but before its event is emitted. This is useful for adding custom routes or other functionality.
+A simple plugin that adds a custom route looks like this:
 
-The `id` property is the reference in a cache map. You may create multiple instances of apps in the same process by using different ids (e.g. multi tenant applications).
+```ts
+import type { AppPlugin } from "bknd";
+
+export const myPlugin: AppPlugin = (app) => {
+  app.server.get("/hello", (c) => c.json({ hello: "world" }));
+};
+```
+
+Since each plugin has full access to the `app` instance, it can add routes, modify the database
+structure, add custom middlewares, respond to or add events, etc. Plugins are very powerful, so
+make sure to only run trusted ones.
+
+Read more about plugins in the [Plugins](/extending/plugins) section.
+
+### `options.seed`
+
+<Callout type="info">
+  The seed function will only be executed on app's first boot in `"db"` mode. If a configuration already exists in the database, or in `"code"` mode, it will not be executed.
+</Callout>
+
+The `seed` property is a function that is called when the app is booted for the first time. It is used to seed the database with initial data. The function is passed a `ModuleBuildContext` object:
+
+```ts
+type ModuleBuildContext = {
+  connection: Connection;
+  server: Hono;
+  em: EntityManager;
+  emgr: EventManager;
+  guard: Guard;
+};
+
+const seed = async (ctx: ModuleBuildContext) => {
+  // seed the database
+  await ctx.em.mutator("todos").insertMany([
+    { title: "Learn bknd", done: true },
+    { title: "Build something cool", done: false },
+  ]);
+};
+```
 
 ## Framework & Runtime configuration
 

@@ -6,6 +6,7 @@ import { EntityRelation, type KyselyJsonFrom, type KyselyQueryBuilder } from "./
 import { EntityRelationAnchor } from "./EntityRelationAnchor";
 import { type RelationType, RelationTypes } from "./relation-types";
 import { s } from "bknd/utils";
+import type { PrimaryFieldType } from "bknd";
 
 export type PolymorphicRelationConfig = s.Static<typeof PolymorphicRelation.schema>;
 
@@ -70,7 +71,7 @@ export class PolymorphicRelation extends EntityRelation<typeof PolymorphicRelati
          .groupBy(groupBy);
    }
 
-   override getReferenceQuery(entity: Entity, id: number): Partial<RepoQuery> {
+   override getReferenceQuery(entity: Entity, id: PrimaryFieldType): Partial<RepoQuery> {
       const info = this.queryInfo(entity);
 
       return {
@@ -101,8 +102,8 @@ export class PolymorphicRelation extends EntityRelation<typeof PolymorphicRelati
       return new TextField("reference", { hidden: true, fillable: ["create"] });
    }
 
-   getEntityIdField(): NumberField {
-      return new NumberField("entity_id", { hidden: true, fillable: ["create"] });
+   getEntityIdField(): TextField {
+      return new TextField("entity_id", { hidden: true, fillable: ["create"] });
    }
 
    initialize(em: EntityManager<any>) {

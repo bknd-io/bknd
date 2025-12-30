@@ -40,12 +40,6 @@ bun add bknd
 
 </Tabs>
 
-<Callout type="info">
-  The guide below assumes you're using Astro v4. We've experienced issues with
-  Astro DB using v5, see [this
-  issue](https://github.com/withastro/astro/issues/12474).
-</Callout>
-
 For the Astro integration to work, you also need to [add the react integration](https://docs.astro.build/en/guides/integrations-guide/react/):
 
 ```bash
@@ -159,7 +153,7 @@ Create a new catch-all route at `src/pages/admin/[...admin].astro`:
 import { Admin } from "bknd/ui";
 import "bknd/dist/styles.css";
 
-import { getApi } from "bknd/adapter/astro";
+import { getApi } from "../../../bknd.ts"; // /src/bknd.ts
 
 const api = await getApi(Astro, { mode: "dynamic" });
 const user = api.getUser();
@@ -173,7 +167,7 @@ export const prerender = false;
          withProvider={{ user }}
          config={{
             basepath: "/admin",
-            color_scheme: "dark",
+            theme: "dark",
             logo_return_path: "/../"
          }}
          client:only

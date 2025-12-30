@@ -22,6 +22,7 @@ import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { routes, useNavigate, useRouteNavigate } from "ui/lib/routes";
 import { testIds } from "ui/lib/config";
+import { SchemaEditable, useBknd } from "ui/client/bknd";
 
 export function DataRoot({ children }) {
    // @todo: settings routes should be centralized
@@ -73,9 +74,11 @@ export function DataRoot({ children }) {
                         value={context}
                         onChange={handleSegmentChange}
                      />
-                     <Tooltip label="New Entity">
-                        <IconButton Icon={TbDatabasePlus} onClick={$data.modals.createEntity} />
-                     </Tooltip>
+                     <SchemaEditable>
+                        <Tooltip label="New Entity">
+                           <IconButton Icon={TbDatabasePlus} onClick={$data.modals.createEntity} />
+                        </Tooltip>
+                     </SchemaEditable>
                   </>
                }
             >
@@ -109,18 +112,27 @@ const EntityLinkList = ({
    suggestCreate = false,
 }: { entities: Entity[]; title?: string; context: "data" | "schema"; suggestCreate?: boolean }) => {
    const { $data } = useBkndData();
+   const { readonly } = useBknd();
    const navigate = useRouteNavigate();
+
    if (entities.length === 0) {
-      return suggestCreate ? (
-         <Empty
-            className="py-10"
-            description="Create your first entity to get started."
-            secondary={{
-               children: "Create entity",
-               onClick: () => $data.modals.createEntity(),
-            }}
-         />
-      ) : null;
+      if (suggestCreate) {
+         if (readonly) {
+            return <Empty className="py-10" description="No entities created." />;
+         }
+         return (
+            <Empty
+               className="py-10"
+               description="Create your first entity to get started."
+               secondary={{
+                  children: "Create entity",
+                  onClick: () => $data.modals.createEntity(),
+               }}
+            />
+         );
+      }
+
+      return null;
    }
 
    function handleClick(entity: Entity) {
@@ -160,7 +172,7 @@ const EntityLinkList = ({
                      href={href}
                      className="justify-between items-center"
                   >
-                     {entity.label}
+                     <span className="truncate">{entity.label}</span>
 
                      {isLinkActive(href, 1) && (
                         <Button
@@ -203,7 +215,9 @@ const EntityContextMenu = ({
             href && {
                icon: IconExternalLink,
                label: "Open in tab",
-               onClick: () => navigate(href, { target: "_blank" }),
+               onClick: () => {
+                  navigate(href, { target: "_blank", absolute: true });
+               },
             },
             separator,
             !$data.system(entity.name).any && {
@@ -254,9 +268,24 @@ export function DataEmpty() {
    useBrowserTitle(["Data"]);
    const [navigate] = useNavigate();
    const { $data } = useBkndData();
+   const { readonly } = useBknd();
 
    function handleButtonClick() {
       navigate(routes.data.schema.root());
+   }
+
+   if (readonly) {
+      return (
+         <Empty
+            Icon={IconDatabase}
+            title="No entity selected"
+            description="Please select an entity from the left sidebar."
+            primary={{
+               children: "Go to schema",
+               onClick: handleButtonClick,
+            }}
+         />
+      );
    }
 
    return (

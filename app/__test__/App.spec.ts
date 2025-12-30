@@ -1,12 +1,15 @@
-import { afterEach, describe, test, expect } from "bun:test";
+import { afterEach, describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { App, createApp } from "core/test/utils";
 import { getDummyConnection } from "./helper";
 import { Hono } from "hono";
 import * as proto from "../src/data/prototype";
 import { pick } from "lodash-es";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(() => disableConsoleLog());
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
-afterEach(afterAllCleanup);
+afterEach(async () => (await afterAllCleanup()) && enableConsoleLog());
 
 describe("App tests", async () => {
    test("boots and pongs", async () => {
@@ -19,7 +22,7 @@ describe("App tests", async () => {
    test("plugins", async () => {
       const called: string[] = [];
       const app = createApp({
-         initialConfig: {
+         config: {
             auth: {
                enabled: true,
             },

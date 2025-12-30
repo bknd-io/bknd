@@ -1,6 +1,6 @@
 import type { Api } from "Api";
 import { FetchPromise, type ModuleApi, type ResponseObject } from "modules/ModuleApi";
-import useSWR, { type SWRConfiguration, useSWRConfig } from "swr";
+import useSWR, { type SWRConfiguration, useSWRConfig, type Middleware, type SWRHook } from "swr";
 import useSWRInfinite from "swr/infinite";
 import { useApi } from "ui/client";
 import { useState } from "react";
@@ -35,7 +35,7 @@ export const useApiInfiniteQuery = <
    RefineFn extends (data: ResponseObject<Data>) => unknown = (data: ResponseObject<Data>) => Data,
 >(
    fn: (api: Api, page: number) => FetchPromise<Data>,
-   options?: SWRConfiguration & { refine?: RefineFn },
+   options?: SWRConfiguration & { refine?: RefineFn; pageSize?: number },
 ) => {
    const [endReached, setEndReached] = useState(false);
    const api = useApi();
@@ -47,7 +47,7 @@ export const useApiInfiniteQuery = <
    // @ts-ignore
    const swr = useSWRInfinite<RefinedData>(
       (index, previousPageData: any) => {
-         if (previousPageData && !previousPageData.length) {
+         if (index > 0 && previousPageData && previousPageData.length < (options?.pageSize ?? 0)) {
             setEndReached(true);
             return null; // reached the end
          }
@@ -88,4 +88,26 @@ export const useInvalidate = (options?: { exact?: boolean }) => {
       if (options?.exact) return mutate(key);
       return mutate((k) => typeof k === "string" && k.startsWith(key));
    };
+};
+
+const mountOnceCache = new Map<string, any>();
+
+/**
+ * Simple middleware to only load on first mount.
+ */
+export const mountOnce: Middleware = (useSWRNext: SWRHook) => (key, fetcher, config) => {
+   if (typeof key === "string") {
+      if (mountOnceCache.has(key)) {
+         return useSWRNext(key, fetcher, {
+            ...config,
+            revalidateOnMount: false,
+         });
+      }
+      const swr = useSWRNext(key, fetcher, config);
+      if (swr.data) {
+         mountOnceCache.set(key, true);
+      }
+      return swr;
+   }
+   return useSWRNext(key, fetcher, config);
 };

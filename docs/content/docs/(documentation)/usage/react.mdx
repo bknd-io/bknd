@@ -1,21 +1,27 @@
 ---
 title: "SDK (React)"
 description: "Use the bknd SDK for React"
+icon: React
 tags: ["documentation"]
 ---
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 
-There are 4 useful hooks to work with your backend:
+There are several useful hooks to work with your backend:
 
-1. simple hooks which are solely based on the [API](/usage/sdk):
-   - [`useApi`](#useapi)
-   - [`useEntity`](#useentity)
-2. query hooks that wraps the API in [SWR](https://swr.vercel.app/):
-   - [`useApiQuery`](#useapiquery)
-   - [`useEntityQuery`](#useentityquery)
+1. **Simple hooks** based on the [API](/usage/sdk):
+   - [`useApi`](#useapi) - Access the API instance
+   - [`useAuth`](#useauth) - Authentication helpers and state
+   - [`useEntity`](#useentity) - CRUD operations without caching
+2. **Query hooks** that wrap the API in [SWR](https://swr.vercel.app/):
+   - [`useApiQuery`](#useapiquery) - Query any API endpoint with caching
+   - [`useEntityQuery`](#useentityquery) - Entity CRUD with automatic caching
+3. **Utility hooks** for advanced use cases:
+   - [`useInvalidate`](#useinvalidate) - Manual cache invalidation
+   - [`useEntityMutate`](#useentitymutate) - Mutations without fetching
 
 ## Setup
 
-In order to use them, make sure you wrap your `<App />` inside `<ClientProvider />`, so that these hooks point to your bknd instance:
+In order to use the React hooks, make sure you wrap your `<App />` inside `<ClientProvider />`. This provides the bknd API instance to all hooks in your component tree:
 
 ```tsx
 import { ClientProvider } from "bknd/client";
@@ -25,20 +31,433 @@ export default function App() {
 }
 ```
 
-For all other examples below, we'll assume that your app is wrapped inside the `ClientProvider`.
+### ClientProvider Props
+
+The `ClientProvider` accepts the following props:
+
+<TypeTable
+  type={{
+    baseUrl: {
+      description: 'The base URL of your bknd instance (similar to host in the API). If left blank, it points to the same origin, which is useful when bknd is served from your framework (e.g., Next.js, Astro, React Router)',
+      type: 'string',
+    },
+    children: {
+      description: 'React components that will have access to the bknd context',
+      type: 'ReactNode',
+    },
+  }}
+/>
+
+All [Api options](/usage/sdk#setup) are also supported and will be passed to the internal API instance. Common options include:
+
+<TypeTable
+  type={{
+    token: {
+      description: 'Authentication token for API requests',
+      type: 'string',
+    },
+    storage: {
+      description: 'Custom storage implementation for persisting tokens (defaults to localStorage in browsers)',
+      type: '{ getItem, setItem, removeItem }',
+    },
+    onAuthStateChange: {
+      description: 'Callback function triggered when authentication state changes',
+      type: '(state: AuthState) => void',
+    },
+    fetcher: {
+      description: 'Custom fetch implementation (useful for local/embedded mode)',
+      type: '(input: RequestInfo, init?: RequestInit) => Promise<Response>',
+    },
+    credentials: {
+      description: 'Request credentials mode',
+      type: '"include" | "omit" | "same-origin"',
+    },
+  }}
+/>
+
+### Usage Examples
+
+**Using with a remote bknd instance:**
+
+```tsx
+import { ClientProvider } from "bknd/client";
+
+export default function App() {
+  return (
+    <ClientProvider baseUrl="https://your-bknd-instance.com">
+      {/* your app */}
+    </ClientProvider>
+  );
+}
+```
+
+**Using with an embedded bknd instance (same origin):**
+
+```tsx
+import { ClientProvider } from "bknd/client";
+
+export default function App() {
+  // no baseUrl needed - will use window.location.origin
+  return <ClientProvider>{/* your app */}</ClientProvider>;
+}
+```
+
+**Using with custom authentication:**
+
+```tsx
+import { ClientProvider } from "bknd/client";
+
+export default function App() {
+  return (
+    <ClientProvider
+      baseUrl="https://your-bknd-instance.com"
+      token="your-auth-token"
+      onAuthStateChange={(state) => {
+        console.log("Auth state changed:", state);
+      }}
+    >
+      {/* your app */}
+    </ClientProvider>
+  );
+}
+```
+
+For all examples below, we'll assume that your app is wrapped inside the `ClientProvider`.
 
 ## `useApi()`
 
-To use the simple hook that returns the Api, you can use:
+Returns the [Api instance](/usage/sdk) from the `ClientProvider` context. This gives you direct access to all API methods for data, auth, media, and system operations.
 
 ```tsx
 import { useApi } from "bknd/client";
 
-export default function App() {
+export default async function App() {
   const api = useApi();
+  
+  // access data API
+  const posts = await api.data.readMany("posts");
+  
+  // access auth API
+  const user = await api.auth.me();
+  
+  // access media API
+  const files = await api.media.listFiles();
+  
   // ...
 }
 ```
+
+**Props:**
+
+<TypeTable
+  type={{
+    host: {
+      description: 'Optional host URL to create a new Api instance instead of using the one from context',
+      type: 'string',
+    },
+  }}
+/>
+
+See the [SDK documentation](/usage/sdk) for all available API methods and options.
+
+## `useAuth()`
+
+Provides authentication state and helper functions for login, register, logout, and token management. This hook automatically tracks the authentication state from the `ClientProvider` context.
+
+```tsx
+import { useAuth } from "bknd/client";
+
+export default function AuthComponent() {
+  const { user, verified, login, logout } = useAuth();
+
+  if (!user) {
+    return (
+      <button
+        onClick={async () => {
+          await login({
+            email: "user@example.com",
+            password: "password123",
+          });
+        }}
+      >
+        Login
+      </button>
+    );
+  }
+
+  return (
+    <div>
+      <p>Welcome, {user.email}!</p>
+      <button onClick={logout}>Logout</button>
+    </div>
+  );
+}
+```
+
+### Props
+
+<TypeTable
+  type={{
+    baseUrl: {
+      description: 'Optional base URL to use a different bknd instance',
+      type: 'string',
+    },
+  }}
+/>
+
+### Return Values
+
+<TypeTable
+  type={{
+    data: {
+      description: 'The complete authentication state object',
+      type: 'Partial<AuthState>',
+    },
+    user: {
+      description: 'The currently authenticated user (or undefined if not authenticated)',
+      type: 'SafeUser | undefined',
+    },
+    token: {
+      description: 'The current authentication token',
+      type: 'string | undefined',
+    },
+    verified: {
+      description: 'Whether the token has been verified with the server',
+      type: 'boolean',
+    },
+    login: {
+      description: 'Login with email and password',
+      type: '(data: { email: string; password: string }) => Promise<AuthResponse>',
+    },
+    register: {
+      description: 'Register a new user with email and password',
+      type: '(data: { email: string; password: string }) => Promise<AuthResponse>',
+    },
+    logout: {
+      description: 'Logout and invalidate all cached data',
+      type: '() => Promise<void>',
+    },
+    verify: {
+      description: 'Verify the current token with the server and invalidate cache',
+      type: '() => Promise<void>',
+    },
+    setToken: {
+      description: 'Manually set the authentication token',
+      type: '(token: string) => void',
+    },
+  }}
+/>
+
+### Usage Notes
+
+- The `login` and `register` functions automatically update the authentication state and store the token
+- The `logout` function clears the token and invalidates all SWR cache entries
+- The `verify` function checks if the current token is still valid with the server
+- Authentication state changes are automatically propagated to all components using `useAuth`
+
+### Authentication Patterns
+
+Depending on your deployment architecture, there are different ways to handle authentication:
+
+#### 1. SPA with localStorage (Independent Deployments)
+
+Use this pattern when your frontend and backend are deployed independently on different domains. The token is stored in the browser's localStorage.
+
+```tsx
+import { ClientProvider, useAuth } from "bknd/client";
+import { useEffect, useState } from "react";
+
+// setup ClientProvider with localStorage
+export default function App() {
+  return (
+    <ClientProvider
+      baseUrl="https://your-backend.com"
+      storage={window.localStorage}
+    >
+      <AuthComponent />
+    </ClientProvider>
+  );
+}
+
+function AuthComponent() {
+  const auth = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // important: verify auth on mount to check if stored token is still valid
+  useEffect(() => {
+    auth.verify();
+  }, []);
+
+  if (auth.user) {
+    return (
+      <div>
+        <p>Logged in as {auth.user.email}</p>
+        <button onClick={() => auth.logout()}>Logout</button>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        await auth.login({ email, password });
+      }}
+    >
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+      />
+      <button type="submit">Login</button>
+    </form>
+  );
+}
+```
+
+#### 2. SPA with Cookies (Same Domain)
+
+Use this pattern when your frontend and backend are deployed on the same domain or when using a framework that serves both. Authentication is handled via HTTP-only cookies.
+
+```tsx
+import { ClientProvider, useAuth } from "bknd/client";
+import { useEffect } from "react";
+
+// setup ClientProvider with credentials included
+export default function App() {
+  return (
+    <ClientProvider
+      baseUrl="https://your-app.com"
+      credentials="include"
+    >
+      <InnerApp />
+    </ClientProvider>
+  );
+}
+
+function InnerApp() {
+  const auth = useAuth();
+
+  // important: verify auth on mount since cookies aren't readable from client-side JavaScript
+  // cookies are included automatically in requests
+  useEffect(() => {
+    auth.verify();
+  }, []);
+
+  if (auth.user) {
+    return (
+      <div>
+        <p>Logged in as {auth.user.email}</p>
+        {/* logout by navigating to the logout endpoint */}
+        <a href="/api/auth/logout">Logout</a>
+      </div>
+    );
+  }
+
+  // option 1: programmatic login
+  return (
+    <button
+      onClick={async () => {
+        await auth.login({ email: "user@example.com", password: "password" });
+      }}
+    >
+      Login
+    </button>
+  );
+
+  // option 2: form-based login (traditional)
+  return (
+    <form method="post" action="/api/auth/password/login">
+      <input type="email" name="email" placeholder="Email" />
+      <input type="password" name="password" placeholder="Password" />
+      <button type="submit">Login</button>
+    </form>
+  );
+}
+```
+
+**Notes:**
+- With `credentials: "include"`, cookies are automatically sent with every request
+- The logout endpoint (`/api/auth/logout`) clears the cookie and redirects back to the referrer
+- You can use either programmatic login with `auth.login()` or traditional form submission
+
+#### 3. Full Stack (Embedded Mode)
+
+Use this pattern when bknd is embedded in your framework (e.g., Next.js, Astro, React Router). The backend and frontend run in the same process.
+
+```tsx
+// this example is not specific to any framework, but you can use it with any framework that supports server-side rendering
+
+import { ClientProvider, useAuth } from "bknd/client";
+import { useEffect } from "react";
+
+// setup: extract user from server-side
+// in your server-side code (e.g., Next.js loader, Astro endpoint):
+export async function loader({ request }) {
+  // create API instance from your app (may be available in context)
+  const api = app.getApi({ request }); // extracts credentials from request
+  // or: const api = app.getApi({ headers: request.headers });
+  
+  const user = api.getUser();
+  // optionally: await api.verifyAuth();
+  
+  return { user };
+}
+
+// in your component:
+export default function App({ user }) {
+  return (
+    <ClientProvider user={user}>
+      <InnerApp />
+    </ClientProvider>
+  );
+}
+
+function InnerApp() {
+  const auth = useAuth();
+
+  // optionally verify if not already verified
+  useEffect(() => {
+    if (!auth.verified) {
+      auth.verify();
+    }
+  }, []);
+
+  if (auth.user) {
+    return (
+      <div>
+        <p>Logged in as {auth.user.email}</p>
+        {/* logout by navigating to the logout endpoint */}
+        <a href="/api/auth/logout">Logout</a>
+      </div>
+    );
+  }
+
+  // use form-based authentication for full-stack apps
+  return (
+    <form method="post" action="/api/auth/password/login">
+      <input type="email" name="email" placeholder="Email" />
+      <input type="password" name="password" placeholder="Password" />
+      <button type="submit">Login</button>
+    </form>
+  );
+}
+```
+
+**Notes:**
+- No `baseUrl` needed in `ClientProvider` - it automatically uses the same origin
+- Pass the `user` prop from server-side to avoid an initial unauthenticated state
+- Use `app.getApi({ request })` or `app.getApi({ headers })` on the server to extract credentials
+- The logout endpoint (`/api/auth/logout`) clears the session and redirects back
+- Authentication persists via cookies automatically handled by the framework
 
 ## `useApiQuery()`
 
@@ -60,24 +479,34 @@ export default function App() {
 
 ### Props
 
-- `selector: (api: Api) => FetchPromise`
+<TypeTable
+  type={{
+    selector: {
+      description: 'A selector function that provides an Api instance and expects an endpoint function to be returned',
+      type: '(api: Api) => FetchPromise',
+      required: true,
+    },
+    options: {
+      description: 'Optional SWR configuration with additional options',
+      type: 'SWRConfiguration & { enabled?: boolean; refine?: (data: Data) => Data | any }',
+    },
+  }}
+/>
 
-  The first parameter is a selector function that provides an Api instance and expects an
-  endpoint function to be returned.
+**Options properties:**
 
-- `options`: optional object that inherits from `SWRConfiguration`
-
-```ts
-type Options<Data> = import("swr").SWRConfiguration & {
-  enabled?: boolean;
-  refine?: (data: Data) => Data | any;
-};
-```
-
-      * `enabled`: Determines whether this hook should trigger a fetch of the data or not.
-      * `refine`: Optional refinement that is called after a response from the API has been
-
-received. Useful to omit irrelevant data from the response (see example below).
+<TypeTable
+  type={{
+    enabled: {
+      description: 'Determines whether this hook should trigger a fetch of the data or not',
+      type: 'boolean',
+    },
+    refine: {
+      description: 'Optional refinement function called after a response from the API has been received. Useful to omit irrelevant data from the response',
+      type: '(data: Data) => Data | any',
+    },
+  }}
+/>
 
 ### Using mutations
 
@@ -162,27 +591,46 @@ of entities instead of a single entry.
 
 ### Props
 
-Following props are available when using `useEntityQuery([entity], [id?])`:
-
-- `entity: string`: Specify the table name of the entity
-- `id?: number | string`: If an id given, it will fetch a single entry, otherwise a list
+<TypeTable
+  type={{
+    entity: {
+      description: 'The table name of the entity',
+      type: 'string',
+      required: true,
+    },
+    id: {
+      description: 'Optional ID. If provided, operations target a single entry; otherwise a list',
+      type: 'number | string',
+    },
+  }}
+/>
 
 ### Returned actions
 
-The following actions are returned from this hook:
-
-- `create: (input: object)`: Create a new entry
-- `read: (query: Partial<RepoQuery> = {})`: If an id was given,
-  it returns a single item, otherwise a list
-- `update: (input: object, id?: number | string)`: If an id was given, the id parameter is
-  optional. Updates the given entry partially.
-- `_delete: (id?: number | string)`: If an id was given, the id parameter is
-  optional. Deletes the given entry.
+<TypeTable
+  type={{
+    create: {
+      description: 'Create a new entry',
+      type: '(input: object) => Promise<Response>',
+    },
+    read: {
+      description: 'If an id was given, returns a single item; otherwise returns a list',
+      type: '(query?: RepoQueryIn) => Promise<Response>',
+    },
+    update: {
+      description: 'Update an entry partially. If an id was given to the hook, the id parameter is optional',
+      type: '(input: object, id?: number | string) => Promise<Response>',
+    },
+    _delete: {
+      description: 'Delete an entry. If an id was given to the hook, the id parameter is optional',
+      type: '(id?: number | string) => Promise<Response>',
+    },
+  }}
+/>
 
 ## `useEntityQuery()`
 
-This hook wraps the actions from `useEntity` around `SWR`. The previous example would look like
-this:
+This hook wraps the actions from `useEntity` around `SWR` for automatic data fetching, caching, and revalidation. It combines the power of SWR with CRUD operations for your entities.
 
 ```tsx
 import { useEntityQuery } from "bknd/client";
@@ -194,10 +642,207 @@ export default function App() {
 }
 ```
 
+**Important:** The returned CRUD actions are typed differently based on whether you provide an `id`:
+
+- **With `id`** (single item mode): `update` and `_delete` don't require an `id` parameter since the item is already specified
+- **Without `id`** (list mode): `update` and `_delete` require an `id` parameter to specify which item to modify
+
+```tsx
+// single item mode - id is already specified
+const { data, update, _delete } = useEntityQuery("comments", 1);
+await update({ content: "new text" }); // no id needed
+await _delete(); // no id needed
+
+// list mode - must specify which item to update/delete
+const { data, update, _delete } = useEntityQuery("comments");
+await update({ content: "new text" }, 1); // id required
+await _delete(1); // id required
+```
+
+### Props
+
+<TypeTable
+  type={{
+    entity: {
+      description: 'The table name of the entity',
+      type: 'string',
+      required: true,
+    },
+    id: {
+      description: 'Optional ID. If provided, fetches a single entry; otherwise fetches a list',
+      type: 'number | string',
+    },
+    query: {
+      description: 'Optional query parameters for filtering, sorting, pagination, etc.',
+      type: 'RepoQueryIn',
+    },
+    options: {
+      description: 'Optional SWR configuration plus additional options',
+      type: 'SWRConfiguration & { enabled?: boolean; revalidateOnMutate?: boolean }',
+    },
+  }}
+/>
+
+#### Query Parameters
+
+The `query` parameter accepts a `RepoQueryIn` object with the following options:
+
+<TypeTable
+  type={{
+    limit: {
+      description: 'Limit the number of results',
+      type: 'number',
+      default: '10',
+    },
+    offset: {
+      description: 'Skip a number of results for pagination',
+      type: 'number',
+      default: '0',
+    },
+    sort: {
+      description: 'Sort by field(s). Prefix with - for descending order (e.g., "-id" or ["name", "-createdAt"])',
+      type: 'string | string[]',
+      default: 'id',
+    },
+    where: {
+      description: 'Filter conditions using query operators (e.g., { status: "active", views: { $gt: 100 } })',
+      type: 'object',
+    },
+    with: {
+      description: 'Include related entities',
+      type: 'string[]',
+    },
+  }}
+/>
+
+#### Options
+
+The `options` parameter extends SWR's configuration and adds bknd-specific options:
+
+<TypeTable
+  type={{
+    enabled: {
+      description: 'If false, prevents the query from running (useful for conditional fetching)',
+      type: 'boolean',
+      default: 'true',
+    },
+    revalidateOnMutate: {
+      description: "If false, mutations won't automatically trigger revalidation",
+      type: 'boolean',
+      default: 'true',
+    },
+    keepPreviousData: {
+      description: 'Keeps showing previous data while fetching new data',
+      type: 'boolean',
+      default: 'true',
+    },
+    revalidateOnFocus: {
+      description: 'Controls whether to revalidate when window regains focus',
+      type: 'boolean',
+      default: 'false',
+    },
+  }}
+/>
+
+All standard [SWR configuration options](https://swr.vercel.app/docs/api) are also supported.
+
+### Return Values
+
+The hook returns an object with the following properties:
+
+**SWR Properties:**
+
+<TypeTable
+  type={{
+    data: {
+      description: 'The fetched data (single entity or array of entities)',
+      type: 'Entity | Entity[]',
+    },
+    error: {
+      description: 'Error object if the request failed',
+      type: 'Error',
+    },
+    isLoading: {
+      description: 'True when the initial request is in progress',
+      type: 'boolean',
+    },
+    isValidating: {
+      description: 'True when a request or revalidation is in progress',
+      type: 'boolean',
+    },
+  }}
+/>
+
+**CRUD Actions (auto-wrapped with cache revalidation):**
+
+<TypeTable
+  type={{
+    create: {
+      description: 'Create a new entry',
+      type: '(input: object) => Promise<Response>',
+    },
+    update: {
+      description: 'Update an entry. When id is provided to the hook (single item mode), the id parameter is optional and defaults to the hook id. When no id is provided to the hook (list mode), the id parameter is required',
+      type: '(input: object, id?: number | string) => Promise<Response>',
+    },
+    _delete: {
+      description: 'Delete an entry. When id is provided to the hook (single item mode), the id parameter is optional and defaults to the hook id. When no id is provided to the hook (list mode), the id parameter is required',
+      type: '(id?: number | string) => Promise<Response>',
+    },
+  }}
+/>
+
+**Cache Management:**
+
+<TypeTable
+  type={{
+    mutate: {
+      description: 'Manually invalidate and revalidate cache for this entity',
+      type: '(id?: number | string) => Promise<void>',
+    },
+    mutateRaw: {
+      description: "Direct access to SWR's mutate function for advanced use cases",
+      type: 'SWRResponse["mutate"]',
+    },
+    key: {
+      description: 'The SWR cache key being used',
+      type: 'string',
+    },
+    api: {
+      description: 'Direct access to the data API instance',
+      type: 'Api["data"]',
+    },
+  }}
+/>
+
+### Query Example
+
+Fetching a limited, sorted list of entities:
+
+```tsx
+import { useEntityQuery } from "bknd/client";
+
+export default function TodoList() {
+  const { data: todos, isLoading } = useEntityQuery("todos", undefined, {
+    limit: 5,
+    sort: "-id", // descending by id
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {todos?.map((todo) => (
+        <li key={todo.id}>{todo.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
 ### Using mutations
 
-All actions returned from `useEntityQuery` are conveniently wrapped around the `mutate` function,
-so you don't have think about this:
+All actions returned from `useEntityQuery` are conveniently wrapped to automatically revalidate the cache after mutations:
 
 ```tsx
 import { useState, useEffect } from "react";
@@ -238,3 +883,195 @@ export default function App() {
   );
 }
 ```
+
+### Complete CRUD Example
+
+Here's a comprehensive example showing all CRUD operations with query parameters:
+
+```tsx
+import { useEntityQuery } from "bknd/client";
+
+export default function TodoList() {
+  const { data: todos, create, update, _delete, isLoading } = useEntityQuery(
+    "todos",
+    undefined, // no id, so we fetch a list
+    {
+      limit: 10,
+      sort: "-id", // newest first
+    }
+  );
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <form
+        action={async (formData: FormData) => {
+          const title = formData.get("title") as string;
+          await create({ title, done: false });
+        }}
+      >
+        <input type="text" name="title" placeholder="New todo" />
+        <button type="submit">Add</button>
+      </form>
+
+      <ul>
+        {todos?.map((todo) => (
+          <li key={todo.id}>
+            <input
+              type="checkbox"
+              checked={!!todo.done}
+              onChange={async () => {
+                await update({ done: !todo.done }, todo.id);
+              }}
+            />
+            <span>{todo.title}</span>
+            <button onClick={() => _delete(todo.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Mutation Behavior
+
+**Important notes about mutations:**
+
+- **Auto-revalidation**: By default, all mutations (`create`, `update`, `_delete`) automatically revalidate all queries for that entity. This ensures your UI stays in sync.
+
+- **Optimistic updates**: For more advanced scenarios, you can use `mutateRaw` to implement optimistic updates manually.
+
+- **Disable auto-revalidation**: If you need more control, set `revalidateOnMutate: false`:
+
+```tsx
+const { data, update } = useEntityQuery("comments", 1, undefined, {
+  revalidateOnMutate: false,
+});
+
+// now update won't trigger automatic revalidation
+await update({ content: "new text" });
+```
+
+- **Manual revalidation**: Use the returned `mutate` function to manually trigger revalidation:
+
+```tsx
+const { mutate } = useEntityQuery("comments");
+
+// revalidate all "comments" queries
+await mutate();
+
+// revalidate specific comment
+await mutate(commentId);
+```
+
+## Utility Hooks
+
+### `useInvalidate()`
+
+This hook provides a convenient way to invalidate SWR cache entries for manual revalidation.
+
+```tsx
+import { useInvalidate } from "bknd/client";
+
+export default function App() {
+  const invalidate = useInvalidate();
+
+  const handleRefresh = async () => {
+    // invalidate by string key prefix
+    await invalidate("/data/comments");
+
+    // or invalidate using API selector
+    await invalidate((api) => api.data.readMany("comments"));
+  };
+
+  return <button onClick={handleRefresh}>Refresh Comments</button>;
+}
+```
+
+**Options:**
+
+<TypeTable
+  type={{
+    options: {
+      description: 'Configuration options',
+      type: '{ exact?: boolean }',
+    },
+  }}
+/>
+
+**Options properties:**
+
+<TypeTable
+  type={{
+    exact: {
+      description: 'If true, only invalidates the exact key match instead of keys that start with the given prefix',
+      type: 'boolean',
+      default: false,
+    },
+  }}
+/>
+
+### `useEntityMutate()`
+
+This hook provides mutation actions without fetching data. Useful when you only need to perform CRUD operations without subscribing to data updates.
+
+```tsx
+import { useEntityMutate } from "bknd/client";
+
+export default function QuickActions() {
+  const { create, update, _delete, mutate } = useEntityMutate("todos");
+
+  const createTodo = async () => {
+    await create({ title: "New todo", done: false });
+    // manually update cache
+    await mutate();
+  };
+
+  return <button onClick={createTodo}>Quick Add Todo</button>;
+}
+```
+
+**Props:**
+
+<TypeTable
+  type={{
+    entity: {
+      description: 'The table name of the entity',
+      type: 'string',
+      required: true,
+    },
+    id: {
+      description: 'Optional ID for single entity operations',
+      type: 'number | string',
+    },
+    options: {
+      description: 'Optional SWR configuration',
+      type: 'SWRConfiguration',
+    },
+  }}
+/>
+
+**Return Values:**
+
+<TypeTable
+  type={{
+    create: {
+      description: 'Create a new entry',
+      type: '(input: object) => Promise<Response>',
+    },
+    update: {
+      description: 'Update an entry',
+      type: '(input: object, id?: number | string) => Promise<Response>',
+    },
+    _delete: {
+      description: 'Delete an entry',
+      type: '(id?: number | string) => Promise<Response>',
+    },
+    mutate: {
+      description: 'Function to update cache with partial data without refetching',
+      type: '(id: number | string, data: Partial<Entity>) => Promise<void>',
+    },
+  }}
+/>

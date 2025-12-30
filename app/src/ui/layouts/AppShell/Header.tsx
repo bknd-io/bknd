@@ -16,7 +16,7 @@ import { useTheme } from "ui/client/use-theme";
 import { Button } from "ui/components/buttons/Button";
 import { IconButton } from "ui/components/buttons/IconButton";
 import { Logo } from "ui/components/display/Logo";
-import { Dropdown, type DropdownItem } from "ui/components/overlay/Dropdown";
+import { Dropdown, type DropdownProps } from "ui/components/overlay/Dropdown";
 import { Link } from "ui/components/wouter/Link";
 import { useEvent } from "ui/hooks/use-event";
 import { useNavigate } from "ui/lib/routes";
@@ -25,6 +25,8 @@ import { NavLink } from "./AppShell";
 import { autoFormatString } from "core/utils";
 import { appShellStore } from "ui/store";
 import { getVersion } from "core/env";
+import { McpIcon } from "ui/routes/tools/mcp/components/mcp-icon";
+import { useAppShellAdminOptions } from "ui/options";
 
 export function HeaderNavigation() {
    const [location, navigate] = useLocation();
@@ -105,9 +107,9 @@ export function HeaderNavigation() {
    );
 }
 
-function SidebarToggler() {
-   const toggle = appShellStore((store) => store.toggleSidebar);
-   const open = appShellStore((store) => store.sidebarOpen);
+function SidebarToggler({ name = "default" }: { name?: string }) {
+   const toggle = appShellStore((store) => store.toggleSidebar(name));
+   const open = appShellStore((store) => store.sidebars[name]?.open);
    return <IconButton id="toggle-sidebar" size="lg" Icon={open ? TbX : TbMenu2} onClick={toggle} />;
 }
 
@@ -132,7 +134,7 @@ export function Header({ hasSidebar = true }) {
          <HeaderNavigation />
          <div className="flex flex-grow" />
          <div className="flex md:hidden flex-row items-center pr-2 gap-2">
-            <SidebarToggler />
+            <SidebarToggler name="default" />
             <UserMenu />
          </div>
          <div className="hidden md:flex flex-row items-center px-4 gap-2">
@@ -143,7 +145,9 @@ export function Header({ hasSidebar = true }) {
 }
 
 function UserMenu() {
-   const { config, options } = useBknd();
+   const { config } = useBknd();
+   const uiOptions = useAppShellAdminOptions();
+
    const auth = useAuth();
    const [navigate] = useNavigate();
    const { logout_route } = useBkndWindowContext();
@@ -158,7 +162,8 @@ function UserMenu() {
       navigate("/auth/login");
    }
 
-   const items: DropdownItem[] = [
+   const items: DropdownProps["items"] = [
+      ...(uiOptions.userMenu ?? []),
       { label: "Settings", onClick: () => navigate("/settings"), icon: IconSettings },
       {
          label: "OpenAPI",
@@ -171,6 +176,14 @@ function UserMenu() {
          icon: IconBook,
       },
    ];
+
+   if (config.server.mcp.enabled) {
+      items.push({
+         label: "MCP",
+         onClick: () => navigate("/tools/mcp"),
+         icon: McpIcon,
+      });
+   }
 
    if (config.auth.enabled) {
       if (!auth.user) {

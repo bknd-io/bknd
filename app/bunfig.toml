@@ -3,3 +3,4 @@
 
 [test]
 coverageSkipTestFiles = true
+console.depth = 10

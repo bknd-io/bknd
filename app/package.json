@@ -3,7 +3,7 @@
   "type": "module",
   "sideEffects": false,
   "bin": "./dist/cli/index.js",
-  "version": "0.16.0",
+  "version": "0.19.0",
   "description": "Lightweight Firebase/Supabase alternative built to run anywhere — incl. Next.js, React Router, Astro, Cloudflare, Bun, Node, AWS Lambda & more.",
   "homepage": "https://bknd.io",
   "repository": {
@@ -13,9 +13,9 @@
   "bugs": {
     "url": "https://github.com/bknd-io/bknd/issues"
   },
-  "packageManager": "bun@1.2.19",
+  "packageManager": "bun@1.2.22",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13"
   },
   "scripts": {
     "dev": "BKND_CLI_LOG_LEVEL=debug vite",
@@ -30,7 +30,7 @@
     "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly && tsc-alias",
     "updater": "bun x npm-check-updates -ui",
     "cli": "LOCAL=1 bun src/cli/index.ts",
-    "prepublishOnly": "bun run types && bun run test && bun run test:node && bun run test:e2e && bun run build:all && cp ../README.md ./",
+    "prepublishOnly": "bun run types && bun run test && bun run test:node && NODE_NO_WARNINGS=1 VITE_DB_URL=:memory: bun run test:e2e && bun run build:all && cp ../README.md ./",
     "postpublish": "rm -f README.md",
     "test": "ALL_TESTS=1 bun test --bail",
     "test:all": "bun run test && bun run test:node",
@@ -40,10 +40,11 @@
     "test:coverage": "ALL_TESTS=1 bun test --bail --coverage",
     "test:vitest:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:adapters": "bun run e2e/adapters.ts",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:adapters": "NODE_NO_WARNINGS=1 bun run e2e/adapters.ts",
+    "test:e2e:ui": "VITE_DB_URL=:memory: playwright test --ui",
+    "test:e2e:debug": "VITE_DB_URL=:memory: playwright test --debug",
+    "test:e2e:report": "VITE_DB_URL=:memory: playwright show-report",
+    "docs:build-assets": "bun internal/docs.build-assets.ts"
   },
   "license": "FSL-1.1-MIT",
   "dependencies": {
@@ -65,20 +66,23 @@
     "hono": "4.8.3",
     "json-schema-library": "10.0.0-rc7",
     "json-schema-to-ts": "^3.1.1",
-    "kysely": "^0.27.6",
+    "jsonv-ts": "0.9.1",
+    "kysely": "0.27.6",
     "lodash-es": "^4.17.21",
     "oauth4webapi": "^2.11.1",
     "object-path-immutable": "^4.1.2",
     "radix-ui": "^1.1.3",
+    "picocolors": "^1.1.1",
     "swr": "^2.3.3"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
     "@bluwy/giget-core": "^0.1.2",
-    "@cloudflare/vitest-pool-workers": "^0.8.38",
+    "@clack/prompts": "^0.11.0",
+    "@cloudflare/vitest-pool-workers": "^0.9.3",
     "@cloudflare/workers-types": "^4.20250606.0",
     "@dagrejs/dagre": "^1.1.4",
-    "@hono/vite-dev-server": "^0.19.1",
+    "@hono/vite-dev-server": "^0.21.0",
     "@hookform/resolvers": "^4.1.3",
     "@libsql/client": "^0.15.9",
     "@mantine/modals": "^7.17.1",
@@ -101,13 +105,11 @@
     "dotenv": "^16.4.7",
     "jotai": "^2.12.2",
     "jsdom": "^26.0.0",
-    "jsonv-ts": "^0.3.2",
     "kysely-d1": "^0.3.0",
     "kysely-generic-sqlite": "^1.2.1",
     "libsql-stateless-easy": "^1.8.0",
     "open": "^10.1.0",
     "openapi-types": "^12.1.3",
-    "picocolors": "^1.1.1",
     "postcss": "^8.5.3",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
@@ -129,7 +131,9 @@
     "vite-plugin-circular-dependency": "^0.5.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.9",
-    "wouter": "^3.6.0"
+    "wouter": "^3.6.0",
+    "wrangler": "^4.37.1",
+    "miniflare": "^4.20250913.0"
   },
   "optionalDependencies": {
     "@hono/node-server": "^1.14.3"
@@ -177,6 +181,11 @@
       "import": "./dist/plugins/index.js",
       "require": "./dist/plugins/index.js"
     },
+    "./modes": {
+      "types": "./dist/types/modes/index.d.ts",
+      "import": "./dist/modes/index.js",
+      "require": "./dist/modes/index.js"
+    },
     "./adapter/sqlite": {
       "types": "./dist/types/adapter/sqlite/edge.d.ts",
       "import": {
@@ -195,6 +204,11 @@
       "types": "./dist/types/adapter/cloudflare/index.d.ts",
       "import": "./dist/adapter/cloudflare/index.js",
       "require": "./dist/adapter/cloudflare/index.js"
+    },
+    "./adapter/cloudflare/proxy": {
+      "types": "./dist/types/adapter/cloudflare/proxy.d.ts",
+      "import": "./dist/adapter/cloudflare/proxy.js",
+      "require": "./dist/adapter/cloudflare/proxy.js"
     },
     "./adapter": {
       "types": "./dist/types/adapter/index.d.ts",

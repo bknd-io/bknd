@@ -13,6 +13,14 @@ const Warning = ({ className, ...props }: IconProps) => (
    />
 );
 
+const Err = ({ className, ...props }: IconProps) => (
+   <TbAlertCircle
+      {...props}
+      className={twMerge("dark:text-red-300 text-red-700 cursor-help", className)}
+   />
+);
+
 export const Icon = {
    Warning,
+   Err,
 };

@@ -8,15 +8,15 @@ import type {
 } from "@aws-sdk/client-s3";
 import { AwsClient } from "core/clients/aws/AwsClient";
 import { isDebug } from "core/env";
-import { isFile, pickHeaders2, parse, s } from "bknd/utils";
+import { isFile, pickHeaders2, parse, s, secret } from "bknd/utils";
 import { transform } from "lodash-es";
 import type { FileBody, FileListObject } from "../../Storage";
 import { StorageAdapter } from "../../StorageAdapter";
 
 export const s3AdapterConfig = s.object(
    {
-      access_key: s.string(),
-      secret_access_key: s.string(),
+      access_key: secret(),
+      secret_access_key: secret(),
       url: s.string({
          pattern: "^https?://(?:.*)?[^/.]+$",
          description: "URL to S3 compatible endpoint without trailing slash",
@@ -45,6 +45,7 @@ export class StorageS3Adapter extends StorageAdapter {
             accessKeyId: config.access_key,
             secretAccessKey: config.secret_access_key,
             retries: isDebug() ? 0 : 10,
+            service: "s3",
          },
          {
             convertParams: "pascalToKebab",
@@ -183,13 +184,13 @@ export class StorageS3Adapter extends StorageAdapter {
          method: "GET",
          headers: pickHeaders2(headers, [
             "if-none-match",
-            "accept-encoding",
+            //"accept-encoding", (causes 403 on r2)
             "accept",
             "if-modified-since",
          ]),
       });
 
-      // Response has to be copied, because of middlewares that might set headers
+      // response has to be copied, because of middlewares that might set headers
       return new Response(res.body, {
          status: res.status,
          statusText: res.statusText,

@@ -1,6 +1,7 @@
 import type { JSONSchema } from "json-schema-to-ts";
 import { useBknd } from "ui/client/bknd";
 import { Button } from "ui/components/buttons/Button";
+import { s } from "bknd/utils";
 import {
    AnyOf,
    AnyOfField,
@@ -55,6 +56,14 @@ const authSchema = {
    },
 } as const satisfies JSONSchema;
 
+const objectCodeSchema = {
+   type: "object",
+   properties: {
+      name: { type: "string" },
+      config: { type: "object", properties: {} },
+   },
+};
+
 const formOptions = {
    debug: true,
 };
@@ -73,7 +82,70 @@ export default function JsonSchemaForm3() {
    return (
       <Scrollable>
          <div className="flex flex-col p-3">
-            <Form schema={_schema.auth.toJSON()} options={formOptions} />
+            {/* <Form schema={_schema.auth.toJSON()} options={formOptions} /> */}
+
+            <Form
+               schema={objectCodeSchema as any}
+               options={formOptions}
+               initialValues={{
+                  name: "Peter",
+                  config: {
+                     foo: "bar",
+                  },
+               }}
+            />
+            <Form
+               schema={s
+                  .object({
+                     name: s.string(),
+                     props: s.array(
+                        s.object({
+                           age: s.number(),
+                           config: s.object({}),
+                        }),
+                     ),
+                  })
+                  .toJSON()}
+               options={formOptions}
+               initialValues={{
+                  name: "Peter",
+                  props: [{ age: 20, config: { foo: "bar" } }],
+               }}
+            />
+
+            <Form
+               schema={s
+                  .object({
+                     name: s.string(),
+                     props: s.array(s.anyOf([s.string(), s.number()])),
+                  })
+                  .toJSON()}
+               options={formOptions}
+            />
+
+            {/* <Form
+               options={{
+                  anyOfNoneSelectedMode: "first",
+                  debug: true,
+               }}
+               initialValues={{ isd: "1", nested2: { name: "hello" } }}
+               schema={s
+                  .object({
+                     isd: s
+                        .anyOf([s.string({ title: "String" }), s.number({ title: "Number" })])
+                        .optional(),
+                     email: s.string({ format: "email" }).optional(),
+                     nested: s
+                        .object({
+                           name: s.string(),
+                        })
+                        .optional(),
+                     nested2: s
+                        .anyOf([s.object({ name: s.string() }), s.object({ age: s.number() })])
+                        .optional(),
+                  })
+                  .toJSON()}
+            /> */}
 
             {/*<Form
                onChange={(data) => console.log("change", data)}

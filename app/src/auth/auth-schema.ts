@@ -1,6 +1,8 @@
 import { cookieConfig, jwtConfig } from "auth/authenticate/Authenticator";
 import { CustomOAuthStrategy, OAuthStrategy, PasswordStrategy } from "auth/authenticate/strategies";
-import { objectTransform, s } from "bknd/utils";
+import { roleSchema } from "auth/authorize/Role";
+import { objectTransform, omitKeys, pick, s } from "bknd/utils";
+import { $object, $record } from "modules/mcp";
 
 export const Strategies = {
    password: {
@@ -39,13 +41,11 @@ export type AppAuthCustomOAuthStrategy = s.Static<typeof STRATEGIES.custom_oauth
 const guardConfigSchema = s.object({
    enabled: s.boolean({ default: false }).optional(),
 });
-export const guardRoleSchema = s.strictObject({
-   permissions: s.array(s.string()).optional(),
-   is_default: s.boolean().optional(),
-   implicit_allow: s.boolean().optional(),
-});
 
-export const authConfigSchema = s.strictObject(
+export const guardRoleSchema = roleSchema;
+
+export const authConfigSchema = $object(
+   "config_auth",
    {
       enabled: s.boolean({ default: false }),
       basepath: s.string({ default: "/api/auth" }),
@@ -53,20 +53,29 @@ export const authConfigSchema = s.strictObject(
       allow_register: s.boolean({ default: true }).optional(),
       jwt: jwtConfig,
       cookie: cookieConfig,
-      strategies: s.record(strategiesSchema, {
-         title: "Strategies",
-         default: {
-            password: {
-               type: "password",
-               enabled: true,
-               config: {
-                  hashing: "sha256",
+      strategies: $record(
+         "config_auth_strategies",
+         strategiesSchema,
+         {
+            title: "Strategies",
+            default: {
+               password: {
+                  type: "password",
+                  enabled: true,
+                  config: {
+                     hashing: "sha256",
+                  },
                },
             },
          },
-      }),
+         s.strictObject({
+            type: s.string(),
+            enabled: s.boolean({ default: true }).optional(),
+            config: s.object({}),
+         }),
+      ),
       guard: guardConfigSchema.optional(),
-      roles: s.record(guardRoleSchema, { default: {} }).optional(),
+      roles: $record("config_auth_roles", guardRoleSchema, { default: {} }).optional(),
    },
    { title: "Authentication" },
 );

@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it } from "bun:test";
 
 import { Hono } from "hono";
 import { Guard } from "auth/authorize/Guard";
-import { DebugLogger } from "core/utils/DebugLogger";
 import { EventManager } from "core/events";
 import { EntityManager } from "data/entities/EntityManager";
 import { Module, type ModuleBuildContext } from "modules/Module";
 import { getDummyConnection } from "../helper";
 import { ModuleHelper } from "modules/ModuleHelper";
+import { DebugLogger, McpServer } from "bknd/utils";
 
 export function makeCtx(overrides?: Partial<ModuleBuildContext>): ModuleBuildContext {
    const { dummyConnection } = getDummyConnection();
@@ -19,6 +19,7 @@ export function makeCtx(overrides?: Partial<ModuleBuildContext>): ModuleBuildCon
       guard: new Guard(),
       flags: Module.ctx_flags,
       logger: new DebugLogger(false),
+      mcp: new McpServer(),
       ...overrides,
    };
    return {

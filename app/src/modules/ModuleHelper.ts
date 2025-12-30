@@ -3,8 +3,11 @@ import { Entity } from "data/entities";
 import type { EntityIndex, Field } from "data/fields";
 import { entityTypes } from "data/entities/Entity";
 import { isEqual } from "lodash-es";
-import type { ModuleBuildContext } from "./Module";
+import type { ModuleBuildContext, ModuleBuildContextMcpContext } from "./Module";
 import type { EntityRelation } from "data/relations";
+import type { Permission, PermissionContext } from "auth/authorize/Permission";
+import { Exception } from "core/errors";
+import { invariant, isPlainObject } from "bknd/utils";
 
 export class ModuleHelper {
    constructor(protected ctx: Omit<ModuleBuildContext, "helper">) {}
@@ -109,5 +112,31 @@ export class ModuleHelper {
       this.setEntityFieldConfigs(entity.field(name)!, newField);
 
       entity.__replaceField(name, newField);
+   }
+
+   async granted<P extends Permission<any, any, any, any>>(
+      c: { context: ModuleBuildContextMcpContext; raw?: unknown },
+      permission: P,
+      context: PermissionContext<P>,
+   ): Promise<void>;
+   async granted<P extends Permission<any, any, undefined, any>>(
+      c: { context: ModuleBuildContextMcpContext; raw?: unknown },
+      permission: P,
+   ): Promise<void>;
+   async granted<P extends Permission<any, any, any, any>>(
+      c: { context: ModuleBuildContextMcpContext; raw?: unknown },
+      permission: P,
+      context?: PermissionContext<P>,
+   ): Promise<void> {
+      invariant(c.context.app, "app is not available in mcp context");
+      const auth = c.context.app.module.auth;
+      if (!auth.enabled) return;
+
+      if (c.raw === undefined || c.raw === null) {
+         throw new Exception("Request/Headers/Context is not available in mcp context", 400);
+      }
+
+      const user = await auth.authenticator?.resolveAuthFromRequest(c.raw as any);
+      this.ctx.guard.granted(permission, user as any, context as any);
    }
 }

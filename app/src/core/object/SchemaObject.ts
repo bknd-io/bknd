@@ -27,7 +27,7 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
    ) {
       this._default = deepFreeze(_schema.template({}, { withOptional: true }) as any);
       this._value = deepFreeze(
-         parse(_schema, structuredClone(initial ?? {}), {
+         parse(_schema, initial ?? {}, {
             withDefaults: true,
             //withExtendedDefaults: true,
             forceParse: this.isForceParse(),
@@ -177,7 +177,6 @@ export class SchemaObject<Schema extends TSchema = TSchema> {
 
       this.throwIfRestricted(partial);
 
-      // overwrite arrays and primitives, only deep merge objects
       // @ts-ignore
       const config = set(current, path, value);
 

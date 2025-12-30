@@ -40,7 +40,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <BaseError>{this.props.fallback}</BaseError>
          );
       }
-      return <BaseError>Error1</BaseError>;
+      return <BaseError>{this.state.error?.message ?? "Unknown error"}</BaseError>;
    }
 
    override render() {
@@ -61,7 +61,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 const BaseError = ({ children }: { children: ReactNode }) => (
-   <div className="bg-red-700 text-white py-1 px-2 rounded-md leading-none font-mono">
+   <div className="bg-red-700 text-white py-1 px-2 rounded-md leading-tight font-mono">
       {children}
    </div>
 );

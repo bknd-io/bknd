@@ -1,4 +1,4 @@
-import { $console, transformObject } from "core/utils";
+import { $console, transformObject } from "bknd/utils";
 import { type TaskMapType, TriggerMap } from "../index";
 import type { Task } from "../tasks/Task";
 import { Condition, TaskConnection } from "../tasks/TaskConnection";

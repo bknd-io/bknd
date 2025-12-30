@@ -1,4 +1,4 @@
-import { $console } from "core/utils";
+import { $console } from "bknd/utils";
 import { execSync, exec as nodeExec } from "node:child_process";
 import { readFile, writeFile as nodeWriteFile } from "node:fs/promises";
 import path from "node:path";
@@ -26,7 +26,7 @@ export async function getVersion(_path: string = "") {
          return JSON.parse(pkg).version ?? "preview";
       }
    } catch (e) {
-      console.error("Failed to resolve version");
+      //console.error("Failed to resolve version");
    }
 
    return "unknown";

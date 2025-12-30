@@ -5,6 +5,7 @@ import { type RelationType, RelationTypes } from "./relation-types";
 
 /**
  * Both source and target receive a mapping field
+ * Source gets the mapping field, and can $create the target
  * @todo: determine if it should be removed
  */
 export type OneToOneRelationConfig = ManyToOneRelationConfig;
@@ -17,6 +18,7 @@ export class OneToOneRelation extends ManyToOneRelation {
          inversedBy,
          sourceCardinality: 1,
          required,
+         with_limit: 1,
       });
    }
 

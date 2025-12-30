@@ -1,16 +1,18 @@
-import { objectTransform } from "core/utils";
+import { objectTransform } from "bknd/utils";
 import { MediaField, mediaFieldConfigSchema } from "../media/MediaField";
 import { FieldClassMap } from "data/fields";
 import { RelationClassMap, RelationFieldClassMap } from "data/relations";
 import { entityConfigSchema, entityTypes } from "data/entities";
-import { primaryFieldTypes } from "./fields";
+import { primaryFieldTypes, baseFieldConfigSchema } from "./fields";
 import { s } from "bknd/utils";
+import { $object, $record } from "modules/mcp";
 
 export const FIELDS = {
    ...FieldClassMap,
    ...RelationFieldClassMap,
    media: { schema: mediaFieldConfigSchema, field: MediaField },
 };
+export const FIELD_TYPES = Object.keys(FIELDS);
 export type FieldType = keyof typeof FIELDS;
 
 export const RELATIONS = RelationClassMap;
@@ -28,17 +30,30 @@ export const fieldsSchemaObject = objectTransform(FIELDS, (field, name) => {
    );
 });
 export const fieldsSchema = s.anyOf(Object.values(fieldsSchemaObject));
-export const entityFields = s.record(fieldsSchema);
+export const entityFields = s.record(fieldsSchema, { default: {} });
 export type TAppDataField = s.Static<typeof fieldsSchema>;
 export type TAppDataEntityFields = s.Static<typeof entityFields>;
 
 export const entitiesSchema = s.strictObject({
    name: s.string().optional(), // @todo: verify, old schema wasn't strict (req in UI)
-   type: s.string({ enum: entityTypes, default: "regular" }),
-   config: entityConfigSchema,
-   fields: entityFields,
+   type: s.string({ enum: entityTypes, default: "regular" }).optional(),
+   config: entityConfigSchema.optional(),
+   fields: entityFields.optional(),
 });
 export type TAppDataEntity = s.Static<typeof entitiesSchema>;
+export const simpleEntitiesSchema = s.strictObject({
+   type: s.string({ enum: entityTypes, default: "regular" }).optional(),
+   config: entityConfigSchema.optional(),
+   fields: s
+      .record(
+         s.object({
+            type: s.anyOf([s.string({ enum: FIELD_TYPES }), s.string()]),
+            config: baseFieldConfigSchema.optional(),
+         }),
+         { default: {} },
+      )
+      .optional(),
+});
 
 export const relationsSchema = Object.entries(RelationClassMap).map(([name, relationClass]) => {
    return s.strictObject(
@@ -61,12 +76,27 @@ export const indicesSchema = s.strictObject({
    unique: s.boolean({ default: false }).optional(),
 });
 
-export const dataConfigSchema = s.strictObject({
+export const dataConfigSchema = $object("config_data", {
    basepath: s.string({ default: "/api/data" }).optional(),
    default_primary_format: s.string({ enum: primaryFieldTypes, default: "integer" }).optional(),
-   entities: s.record(entitiesSchema, { default: {} }).optional(),
-   relations: s.record(s.anyOf(relationsSchema), { default: {} }).optional(),
-   indices: s.record(indicesSchema, { default: {} }).optional(),
-});
+   entities: $record("config_data_entities", entitiesSchema, { default: {} }).optional(),
+   relations: $record(
+      "config_data_relations",
+      s.anyOf(relationsSchema),
+      {
+         default: {},
+      },
+      s.strictObject({
+         type: s.string({ enum: Object.keys(RelationClassMap) }),
+         source: s.string(),
+         target: s.string(),
+         config: s.object({}).optional(),
+      }),
+   ).optional(),
+   indices: $record("config_data_indices", indicesSchema, {
+      default: {},
+      mcp: { update: false },
+   }).optional(),
+}).strict();
 
 export type AppDataConfig = s.Static<typeof dataConfigSchema>;

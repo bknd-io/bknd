@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import Admin from "./Admin";
-import "./main.css";
+//import "./main.css";
 import "./styles.css";
 
 function render() {

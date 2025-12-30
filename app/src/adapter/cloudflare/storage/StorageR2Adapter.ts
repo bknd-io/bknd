@@ -1,4 +1,4 @@
-import { registries, isDebug, guessMimeType } from "bknd";
+import { registries as $registries, isDebug, guessMimeType } from "bknd";
 import { getBindings } from "../bindings";
 import { s } from "bknd/utils";
 import { StorageAdapter, type FileBody } from "bknd";
@@ -12,7 +12,10 @@ export function makeSchema(bindings: string[] = []) {
    );
 }
 
-export function registerMedia(env: Record<string, any>) {
+export function registerMedia(
+   env: Record<string, any>,
+   registries: typeof $registries = $registries,
+) {
    const r2_bindings = getBindings(env, "R2Bucket");
 
    registries.media.register(
@@ -46,6 +49,8 @@ export function registerMedia(env: Record<string, any>) {
  * @todo: add tests (bun tests won't work, need node native tests)
  */
 export class StorageR2Adapter extends StorageAdapter {
+   public keyPrefix: string = "";
+
    constructor(private readonly bucket: R2Bucket) {
       super();
    }
@@ -172,6 +177,9 @@ export class StorageR2Adapter extends StorageAdapter {
    }
 
    protected getKey(key: string) {
+      if (this.keyPrefix.length > 0) {
+         return `${this.keyPrefix}/${key}`.replace(/^\/\//, "/");
+      }
       return key;
    }
 

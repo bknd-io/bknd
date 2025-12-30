@@ -2,7 +2,7 @@ import type { Entity, EntityData } from "../Entity";
 import type { EntityManager } from "../EntityManager";
 import { Result, type ResultJSON, type ResultOptions } from "../Result";
 import type { Compilable, SelectQueryBuilder } from "kysely";
-import { $console, ensureInt } from "core/utils";
+import { $console, ensureInt } from "bknd/utils";
 
 export type RepositoryResultOptions = ResultOptions & {
    silent?: boolean;

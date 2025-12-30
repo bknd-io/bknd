@@ -16,25 +16,55 @@ const schema = s.partialObject({
    metadata: s.string({ enum: ["copyright", "keep", "none"] }),
    quality: s.number({ minimum: 1, maximum: 100 }),
 });
-type ImageOptimizationSchema = s.Static<typeof schema>;
+export type CloudflareImageOptimizationSchema = s.Static<typeof schema>;
 
 export type CloudflareImageOptimizationOptions = {
+   /**
+    * The url to access the image optimization plugin
+    * @default /api/plugin/image/optimize
+    */
    accessUrl?: string;
+   /**
+    * The path to resolve the image from
+    * @default /api/media/file
+    */
    resolvePath?: string;
+   /**
+    * Whether to explain the image optimization schema
+    * @default false
+    */
    explain?: boolean;
-   defaultOptions?: ImageOptimizationSchema;
-   fixedOptions?: ImageOptimizationSchema;
+   /**
+    * The default options to use
+    * @default {}
+    */
+   defaultOptions?: CloudflareImageOptimizationSchema;
+   /**
+    * The fixed options to use
+    * @default {}
+    */
+   fixedOptions?: CloudflareImageOptimizationSchema;
+   /**
+    * The cache control to use
+    * @default public, max-age=31536000, immutable
+    */
    cacheControl?: string;
+   /**
+    * Whether to fallback to the original image if the image optimization fails
+    * @default false
+    */
+   fallbackRedirect?: boolean;
 };
 
 export function cloudflareImageOptimization({
-   accessUrl = "/_plugin/image/optimize",
+   accessUrl = "/api/plugin/image/optimize",
    resolvePath = "/api/media/file",
    explain = false,
    defaultOptions = {},
    fixedOptions = {},
+   fallbackRedirect = false,
 }: CloudflareImageOptimizationOptions = {}): AppPlugin {
-   const disallowedAccessUrls = ["/api", "/admin", "/_optimize"];
+   const disallowedAccessUrls = ["/api", "/admin", "/api/plugin"];
    if (disallowedAccessUrls.includes(accessUrl) || accessUrl.length < 2) {
       throw new Error(`Disallowed accessUrl: ${accessUrl}`);
    }
@@ -93,6 +123,12 @@ export function cloudflareImageOptimization({
 
             // Returning fetch() with resizing options will pass through response with the resized image.
             const res = await fetch(imageRequest, { cf: { image: options as any } });
+
+            if (!res.ok && fallbackRedirect) {
+               // add redirect response to the original image
+               return new Response(null, { status: 307, headers: { Location: imageURL } });
+            }
+
             const headers = pickHeaders2(res.headers, [
                "Content-Type",
                "Content-Length",

@@ -1,12 +1,21 @@
-import type { Handler } from "hono/types";
 import type { ModuleBuildContext } from "modules";
 import { Controller } from "modules/Controller";
-import { jsc, s, describeRoute, schemaToSpec, omitKeys } from "bknd/utils";
+import {
+   jsc,
+   s,
+   describeRoute,
+   schemaToSpec,
+   omitKeys,
+   pickKeys,
+   mcpTool,
+   convertNumberedObjectToArray,
+} from "bknd/utils";
 import * as SystemPermissions from "modules/permissions";
 import type { AppDataConfig } from "../data-schema";
 import type { EntityManager, EntityData } from "data/entities";
 import * as DataPermissions from "data/permissions";
 import { repoQuery, type RepoQuery } from "data/server/query";
+import { EntityTypescript } from "data/entities/EntityTypescript";
 
 export class DataController extends Controller {
    constructor(
@@ -34,16 +43,8 @@ export class DataController extends Controller {
 
    override getController() {
       const { permission, auth } = this.middlewares;
-      const hono = this.create().use(auth(), permission(SystemPermissions.accessApi));
+      const hono = this.create().use(auth(), permission(SystemPermissions.accessApi, {}));
       const entitiesEnum = this.getEntitiesEnum(this.em);
-
-      // @todo: sample implementation how to augment handler with additional info
-      function handler<HH extends Handler>(name: string, h: HH): any {
-         const func = h;
-         // @ts-ignore
-         func.description = name;
-         return func;
-      }
 
       // info
       hono.get(
@@ -52,16 +53,19 @@ export class DataController extends Controller {
             summary: "Retrieve data configuration",
             tags: ["data"],
          }),
-         handler("data info", (c) => {
-            // sample implementation
-            return c.json(this.em.toJSON());
-         }),
+         (c) => c.json(this.em.toJSON()),
       );
 
       // sync endpoint
       hono.get(
          "/sync",
-         permission(DataPermissions.databaseSync),
+         permission(DataPermissions.databaseSync, {}),
+         mcpTool("data_sync", {
+            // @todo: should be removed if readonly
+            annotations: {
+               destructiveHint: true,
+            },
+         }),
          describeRoute({
             summary: "Sync database schema",
             tags: ["data"],
@@ -77,9 +81,7 @@ export class DataController extends Controller {
          ),
          async (c) => {
             const { force, drop } = c.req.valid("query");
-            //console.log("force", force);
             const tables = await this.em.schema().introspect();
-            //console.log("tables", tables);
             const changes = await this.em.schema().sync({
                force,
                drop,
@@ -94,7 +96,9 @@ export class DataController extends Controller {
       // read entity schema
       hono.get(
          "/schema.json",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
          describeRoute({
             summary: "Retrieve data schema",
             tags: ["data"],
@@ -120,7 +124,9 @@ export class DataController extends Controller {
       // read schema
       hono.get(
          "/schemas/:entity/:context?",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
          describeRoute({
             summary: "Retrieve entity schema",
             tags: ["data"],
@@ -152,6 +158,22 @@ export class DataController extends Controller {
          },
       );
 
+      hono.get(
+         "/types",
+         permission(SystemPermissions.schemaRead, {
+            context: (c) => ({ module: "data" }),
+         }),
+         describeRoute({
+            summary: "Retrieve data typescript definitions",
+            tags: ["data"],
+         }),
+         mcpTool("data_types"),
+         async (c) => {
+            const et = new EntityTypescript(this.em);
+            return c.text(et.toString());
+         },
+      );
+
       // entity endpoints
       hono.route("/entity", this.getEntityRoutes());
 
@@ -160,11 +182,14 @@ export class DataController extends Controller {
        */
       hono.get(
          "/info/:entity",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
          describeRoute({
             summary: "Retrieve entity info",
             tags: ["data"],
          }),
+         mcpTool("data_entity_info"),
          jsc("param", s.object({ entity: entitiesEnum })),
          async (c) => {
             const { entity } = c.req.param();
@@ -201,7 +226,9 @@ export class DataController extends Controller {
 
       const entitiesEnum = this.getEntitiesEnum(this.em);
       // @todo: make dynamic based on entity
-      const idType = s.anyOf([s.number(), s.string()], { coerce: (v) => v as number | string });
+      const idType = s.anyOf([s.number({ title: "Integer" }), s.string({ title: "UUID" })], {
+         coerce: (v) => v as number | string,
+      });
 
       /**
        * Function endpoints
@@ -209,11 +236,14 @@ export class DataController extends Controller {
       // fn: count
       hono.post(
          "/:entity/fn/count",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
          describeRoute({
             summary: "Count entities",
             tags: ["data"],
          }),
+         mcpTool("data_entity_fn_count"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery.properties.where),
          async (c) => {
@@ -231,11 +261,14 @@ export class DataController extends Controller {
       // fn: exists
       hono.post(
          "/:entity/fn/exists",
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
          describeRoute({
             summary: "Check if entity exists",
             tags: ["data"],
          }),
+         mcpTool("data_entity_fn_exists"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery.properties.where),
          async (c) => {
@@ -268,6 +301,9 @@ export class DataController extends Controller {
             (p) => pick.includes(p.name),
          ) as any),
       ];
+      const saveRepoQuerySchema = (pick: string[] = Object.keys(saveRepoQuery.properties)) => {
+         return s.object(pickKeys(saveRepoQuery.properties, pick as any));
+      };
 
       hono.get(
          "/:entity",
@@ -276,16 +312,26 @@ export class DataController extends Controller {
             parameters: saveRepoQueryParams(["limit", "offset", "sort", "select", "join"]),
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("query", repoQuery, { skipOpenAPI: true }),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
          async (c) => {
             const { entity } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
+
+            const { merge } = this.ctx.guard.filters(DataPermissions.entityRead, c, {
+               entity,
+            });
+
             const options = c.req.valid("query") as RepoQuery;
-            const result = await this.em.repository(entity).findMany(options);
+            const result = await this.em.repository(entity).findMany({
+               ...options,
+               where: merge(options.where),
+            });
 
             return c.json(result, { status: result.data ? 200 : 404 });
          },
@@ -299,7 +345,16 @@ export class DataController extends Controller {
             parameters: saveRepoQueryParams(["offset", "sort", "select"]),
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ ...c.req.param() }) as any,
+         }),
+         mcpTool("data_entity_read_one", {
+            inputSchema: {
+               param: s.object({ entity: entitiesEnum, id: idType }),
+               query: saveRepoQuerySchema(["offset", "sort", "select"]),
+            },
+            noErrorCodes: [404],
+         }),
          jsc(
             "param",
             s.object({
@@ -310,11 +365,19 @@ export class DataController extends Controller {
          jsc("query", repoQuery, { skipOpenAPI: true }),
          async (c) => {
             const { entity, id } = c.req.valid("param");
-            if (!this.entityExists(entity)) {
+            if (!this.entityExists(entity) || !id) {
                return this.notFound(c);
             }
             const options = c.req.valid("query") as RepoQuery;
-            const result = await this.em.repository(entity).findId(id, options);
+            const { merge } = this.ctx.guard.filters(
+               DataPermissions.entityRead,
+               c,
+               c.req.valid("param"),
+            );
+            const id_name = this.em.entity(entity).getPrimaryField().name;
+            const result = await this.em
+               .repository(entity)
+               .findOne(merge({ [id_name]: id }), options);
 
             return c.json(result, { status: result.data ? 200 : 404 });
          },
@@ -328,7 +391,9 @@ export class DataController extends Controller {
             parameters: saveRepoQueryParams(),
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ ...c.req.param() }) as any,
+         }),
          jsc(
             "param",
             s.object({
@@ -345,9 +410,20 @@ export class DataController extends Controller {
             }
 
             const options = c.req.valid("query") as RepoQuery;
-            const result = await this.em
+            const { entity: newEntity } = this.em
                .repository(entity)
-               .findManyByReference(id, reference, options);
+               .getEntityByReference(reference);
+
+            const { merge } = this.ctx.guard.filters(DataPermissions.entityRead, c, {
+               entity: newEntity.name,
+               id,
+               reference,
+            });
+
+            const result = await this.em.repository(entity).findManyByReference(id, reference, {
+               ...options,
+               where: merge(options.where),
+            });
 
             return c.json(result, { status: result.data ? 200 : 404 });
          },
@@ -374,7 +450,15 @@ export class DataController extends Controller {
             },
             tags: ["data"],
          }),
-         permission(DataPermissions.entityRead),
+         permission(DataPermissions.entityRead, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
+         mcpTool("data_entity_read_many", {
+            inputSchema: {
+               param: s.object({ entity: entitiesEnum }),
+               json: fnQuery,
+            },
+         }),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery, { skipOpenAPI: true }),
          async (c) => {
@@ -383,7 +467,13 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const options = c.req.valid("json") as RepoQuery;
-            const result = await this.em.repository(entity).findMany(options);
+            const { merge } = this.ctx.guard.filters(DataPermissions.entityRead, c, {
+               entity,
+            });
+            const result = await this.em.repository(entity).findMany({
+               ...options,
+               where: merge(options.where),
+            });
 
             return c.json(result, { status: result.data ? 200 : 404 });
          },
@@ -399,7 +489,10 @@ export class DataController extends Controller {
             summary: "Insert one or many",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityCreate),
+         permission(DataPermissions.entityCreate, {
+            context: (c) => ({ ...c.req.param() }) as any,
+         }),
+         mcpTool("data_entity_insert"),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", s.anyOf([s.object({}), s.array(s.object({}))])),
          async (c) => {
@@ -407,7 +500,19 @@ export class DataController extends Controller {
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
-            const body = (await c.req.json()) as EntityData | EntityData[];
+
+            const _body = (await c.req.json()) as EntityData | EntityData[];
+            // @todo: check on jsonv-ts how to handle this better
+            // temporary fix for numbered object to array
+            // this happens when the MCP tool uses the allOf function
+            // to transform all validation targets into a single object
+            const body = convertNumberedObjectToArray(_body);
+
+            this.ctx.guard
+               .filters(DataPermissions.entityCreate, c, {
+                  entity,
+               })
+               .matches(body, { throwOnError: true });
 
             if (Array.isArray(body)) {
                const result = await this.em.mutator(entity).insertMany(body);
@@ -426,7 +531,18 @@ export class DataController extends Controller {
             summary: "Update many",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityUpdate),
+         permission(DataPermissions.entityUpdate, {
+            context: (c) => ({ ...c.req.param() }) as any,
+         }),
+         mcpTool("data_entity_update_many", {
+            inputSchema: {
+               param: s.object({ entity: entitiesEnum }),
+               json: s.object({
+                  update: s.object({}),
+                  where: s.object({}),
+               }),
+            },
+         }),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc(
             "json",
@@ -444,7 +560,10 @@ export class DataController extends Controller {
                update: EntityData;
                where: RepoQuery["where"];
             };
-            const result = await this.em.mutator(entity).updateWhere(update, where);
+            const { merge } = this.ctx.guard.filters(DataPermissions.entityUpdate, c, {
+               entity,
+            });
+            const result = await this.em.mutator(entity).updateWhere(update, merge(where));
 
             return c.json(result);
          },
@@ -457,7 +576,10 @@ export class DataController extends Controller {
             summary: "Update one",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityUpdate),
+         permission(DataPermissions.entityUpdate, {
+            context: (c) => ({ ...c.req.param() }) as any,
+         }),
+         mcpTool("data_entity_update_one"),
          jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          jsc("json", s.object({})),
          async (c) => {
@@ -466,6 +588,17 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const body = (await c.req.json()) as EntityData;
+            const fns = this.ctx.guard.filters(DataPermissions.entityUpdate, c, {
+               entity,
+               id,
+            });
+
+            // if it has filters attached, fetch entry and make the check
+            if (fns.filters.length > 0) {
+               const { data } = await this.em.repository(entity).findId(id);
+               fns.matches(data, { throwOnError: true });
+            }
+
             const result = await this.em.mutator(entity).updateOne(id, body);
 
             return c.json(result);
@@ -479,13 +612,28 @@ export class DataController extends Controller {
             summary: "Delete one",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityDelete),
+         permission(DataPermissions.entityDelete, {
+            context: (c) => ({ ...c.req.param() }) as any,
+         }),
+         mcpTool("data_entity_delete_one"),
          jsc("param", s.object({ entity: entitiesEnum, id: idType })),
          async (c) => {
             const { entity, id } = c.req.valid("param");
             if (!this.entityExists(entity)) {
                return this.notFound(c);
             }
+
+            const fns = this.ctx.guard.filters(DataPermissions.entityDelete, c, {
+               entity,
+               id,
+            });
+
+            // if it has filters attached, fetch entry and make the check
+            if (fns.filters.length > 0) {
+               const { data } = await this.em.repository(entity).findId(id);
+               fns.matches(data, { throwOnError: true });
+            }
+
             const result = await this.em.mutator(entity).deleteOne(id);
 
             return c.json(result);
@@ -499,7 +647,15 @@ export class DataController extends Controller {
             summary: "Delete many",
             tags: ["data"],
          }),
-         permission(DataPermissions.entityDelete),
+         permission(DataPermissions.entityDelete, {
+            context: (c) => ({ ...c.req.param() }) as any,
+         }),
+         mcpTool("data_entity_delete_many", {
+            inputSchema: {
+               param: s.object({ entity: entitiesEnum }),
+               json: s.object({}),
+            },
+         }),
          jsc("param", s.object({ entity: entitiesEnum })),
          jsc("json", repoQuery.properties.where),
          async (c) => {
@@ -508,12 +664,46 @@ export class DataController extends Controller {
                return this.notFound(c);
             }
             const where = (await c.req.json()) as RepoQuery["where"];
-            const result = await this.em.mutator(entity).deleteWhere(where);
+            const { merge } = this.ctx.guard.filters(DataPermissions.entityDelete, c, {
+               entity,
+            });
+            const result = await this.em.mutator(entity).deleteWhere(merge(where));
 
             return c.json(result);
          },
       );
 
       return hono;
+   }
+
+   override registerMcp() {
+      this.ctx.mcp
+         .resource(
+            "data_entities",
+            "bknd://data/entities",
+            (c) => c.json(c.context.ctx().em.toJSON().entities),
+            {
+               title: "Entities",
+               description: "Retrieve all entities",
+            },
+         )
+         .resource(
+            "data_relations",
+            "bknd://data/relations",
+            (c) => c.json(c.context.ctx().em.toJSON().relations),
+            {
+               title: "Relations",
+               description: "Retrieve all relations",
+            },
+         )
+         .resource(
+            "data_indices",
+            "bknd://data/indices",
+            (c) => c.json(c.context.ctx().em.toJSON().indices),
+            {
+               title: "Indices",
+               description: "Retrieve all indices",
+            },
+         );
    }
 }

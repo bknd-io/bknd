@@ -1,4 +1,4 @@
-import { objectCleanEmpty, uuid } from "core/utils";
+import { objectCleanEmpty, uuid } from "bknd/utils";
 import { get } from "lodash-es";
 import type { Task, TaskResult } from "./Task";
 

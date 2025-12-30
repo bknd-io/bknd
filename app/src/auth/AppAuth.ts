@@ -1,8 +1,8 @@
-import type { DB } from "bknd";
+import type { DB, PrimaryFieldType } from "bknd";
 import * as AuthPermissions from "auth/auth-permissions";
 import type { AuthStrategy } from "auth/authenticate/strategies/Strategy";
 import type { PasswordStrategy } from "auth/authenticate/strategies/PasswordStrategy";
-import { $console, secureRandomString, transformObject } from "core/utils";
+import { $console, secureRandomString, transformObject, pickKeys } from "bknd/utils";
 import type { Entity, EntityManager } from "data/entities";
 import { em, entity, enumm, type FieldSchema } from "data/prototype";
 import { Module } from "modules/Module";
@@ -14,6 +14,7 @@ import { usersFields } from "./auth-entities";
 import { Authenticator } from "./authenticate/Authenticator";
 import { Role } from "./authorize/Role";
 
+export type UsersFields = typeof AppAuth.usersFields;
 export type UserFieldSchema = FieldSchema<typeof AppAuth.usersFields>;
 declare module "bknd" {
    interface Users extends AppEntity, UserFieldSchema {}
@@ -60,7 +61,7 @@ export class AppAuth extends Module<AppAuthSchema> {
 
       // register roles
       const roles = transformObject(this.config.roles ?? {}, (role, name) => {
-         return Role.create({ name, ...role });
+         return Role.create(name, role);
       });
       this.ctx.guard.setRoles(Object.values(roles));
       this.ctx.guard.setConfig(this.config.guard ?? {});
@@ -87,6 +88,7 @@ export class AppAuth extends Module<AppAuthSchema> {
       super.setBuilt();
 
       this._controller = new AuthController(this);
+      this._controller.registerMcp();
       this.ctx.server.route(this.config.basepath, this._controller.getController());
       this.ctx.guard.registerPermissions(AuthPermissions);
    }
@@ -109,6 +111,19 @@ export class AppAuth extends Module<AppAuthSchema> {
 
    getSchema() {
       return authConfigSchema;
+   }
+
+   getGuardContextSchema() {
+      const userschema = this.getUsersEntity().toSchema() as any;
+      return {
+         type: "object",
+         properties: {
+            user: {
+               type: "object",
+               properties: pickKeys(userschema.properties, this.config.jwt.fields as any),
+            },
+         },
+      };
    }
 
    get authenticator(): Authenticator {
@@ -176,16 +191,44 @@ export class AppAuth extends Module<AppAuthSchema> {
       return created;
    }
 
+   async changePassword(userId: PrimaryFieldType, newPassword: string) {
+      const users_entity = this.config.entity_name as "users";
+      const { data: user } = await this.em.repository(users_entity).findId(userId);
+      if (!user) {
+         throw new Error("User not found");
+      } else if (user.strategy !== "password") {
+         throw new Error("User is not using password strategy");
+      }
+
+      const togglePw = (visible: boolean) => {
+         const field = this.em.entity(users_entity).field("strategy_value")!;
+
+         field.config.hidden = !visible;
+         field.config.fillable = visible;
+      };
+
+      const pw = this.authenticator.strategy("password" as const) as PasswordStrategy;
+      togglePw(true);
+      await this.em.mutator(users_entity).updateOne(user.id, {
+         strategy_value: await pw.hash(newPassword),
+      });
+      togglePw(false);
+
+      return true;
+   }
+
    override toJSON(secrets?: boolean): AppAuthSchema {
       if (!this.config.enabled) {
          return this.configDefault;
       }
 
       const strategies = this.authenticator.getStrategies();
+      const roles = Object.fromEntries(this.ctx.guard.getRoles().map((r) => [r.name, r.toJSON()]));
 
       return {
          ...this.config,
          ...this.authenticator.toJSON(secrets),
+         roles,
          strategies: transformObject(strategies, (strategy) => ({
             enabled: this.isStrategyEnabled(strategy),
             ...strategy.toJSON(secrets),

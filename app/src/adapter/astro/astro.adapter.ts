@@ -1,4 +1,4 @@
-import { type FrameworkBkndConfig, createFrameworkApp, type FrameworkOptions } from "bknd/adapter";
+import { type FrameworkBkndConfig, createFrameworkApp } from "bknd/adapter";
 
 type AstroEnv = NodeJS.ProcessEnv;
 type TAstro = {
@@ -8,18 +8,16 @@ export type AstroBkndConfig<Env = AstroEnv> = FrameworkBkndConfig<Env>;
 
 export async function getApp<Env = AstroEnv>(
    config: AstroBkndConfig<Env> = {},
-   args: Env = {} as Env,
-   opts: FrameworkOptions = {},
+   args: Env = import.meta.env as Env,
 ) {
-   return await createFrameworkApp(config, args ?? import.meta.env, opts);
+   return await createFrameworkApp(config, args);
 }
 
 export function serve<Env = AstroEnv>(
    config: AstroBkndConfig<Env> = {},
-   args: Env = {} as Env,
-   opts?: FrameworkOptions,
+   args: Env = import.meta.env as Env,
 ) {
    return async (fnArgs: TAstro) => {
-      return (await getApp(config, args, opts)).fetch(fnArgs.request);
+      return (await getApp(config, args)).fetch(fnArgs.request);
    };
 }

@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "bknd": {
+      "url": "http://localhost:28623/api/system/mcp"
+    }
+  }
+}

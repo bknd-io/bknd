@@ -29,24 +29,28 @@ export {
    type InitialModuleConfigs,
    ModuleManagerEvents,
 } from "./modules/ModuleManager";
+export type * from "modules/ModuleApi";
 
 export type { ServerEnv } from "modules/Controller";
 export type { BkndConfig } from "bknd/adapter";
 
 export * as middlewares from "modules/middlewares";
 export { registries } from "modules/registries";
+export { getSystemMcp } from "modules/mcp/system-mcp";
 
 /**
  * Core
  */
+export type { MaybePromise, Merge } from "core/types";
 export { Exception, BkndError } from "core/errors";
 export { isDebug, env } from "core/env";
 export { type PrimaryFieldType, config, type DB, type AppEntity } from "core/config";
-export { Permission } from "core/security/Permission";
+export { Permission } from "auth/authorize/Permission";
 export { getFlashMessage } from "core/server/flash";
 export * from "core/drivers";
 export { Event, InvalidEventReturn } from "core/events/Event";
 export type {
+   EventListener,
    ListenerMode,
    ListenerHandler,
 } from "core/events/EventListener";
@@ -113,6 +117,7 @@ export {
    genericSqlite,
    genericSqliteUtils,
    type GenericSqliteConnection,
+   type GenericSqliteConnectionConfig,
 } from "data/connection/sqlite/GenericSqliteConnection";
 export {
    EntityTypescript,
@@ -126,10 +131,12 @@ export type { EntityRelation } from "data/relations";
 export type * from "data/entities/Entity";
 export type { EntityManager } from "data/entities/EntityManager";
 export type { SchemaManager } from "data/schema/SchemaManager";
+export type * from "data/entities";
 export {
    BaseIntrospector,
    Connection,
    customIntrospector,
+   DummyConnection,
    type FieldSpec,
    type IndexSpec,
    type DbFunctions,
@@ -154,6 +161,7 @@ export {
    medium,
    make,
    entity,
+   systemEntity,
    relation,
    index,
    em,

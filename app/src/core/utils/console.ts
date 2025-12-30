@@ -76,6 +76,7 @@ declare global {
       | {
            level: TConsoleSeverity;
            id?: string;
+           enabled?: boolean;
         }
       | undefined;
 }
@@ -86,6 +87,7 @@ const defaultLevel = env("cli_log_level", "log") as TConsoleSeverity;
 // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
 const config = (globalThis.__consoleConfig ??= {
    level: defaultLevel,
+   enabled: true,
    //id: crypto.randomUUID(), // for debugging
 });
 
@@ -95,6 +97,14 @@ export const $console = new Proxy(config as any, {
       switch (prop) {
          case "original":
             return console;
+         case "disable":
+            return () => {
+               config.enabled = false;
+            };
+         case "enable":
+            return () => {
+               config.enabled = true;
+            };
          case "setLevel":
             return (l: TConsoleSeverity) => {
                config.level = l;
@@ -103,6 +113,10 @@ export const $console = new Proxy(config as any, {
             return () => {
                config.level = defaultLevel;
             };
+      }
+
+      if (!config.enabled) {
+         return () => null;
       }
 
       const current = keys.indexOf(config.level);
@@ -118,6 +132,8 @@ export const $console = new Proxy(config as any, {
 } & {
    setLevel: (l: TConsoleSeverity) => void;
    resetLevel: () => void;
+   disable: () => void;
+   enable: () => void;
 };
 
 export function colorizeConsole(con: typeof console) {

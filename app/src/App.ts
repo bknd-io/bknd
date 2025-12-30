@@ -1,21 +1,22 @@
 import type { CreateUserPayload } from "auth/AppAuth";
-import { $console } from "core/utils";
+import { $console, McpClient } from "bknd/utils";
 import { Event } from "core/events";
 import type { em as prototypeEm } from "data/prototype";
 import { Connection } from "data/connection/Connection";
 import type { Hono } from "hono";
 import {
-   ModuleManager,
    type InitialModuleConfigs,
-   type ModuleBuildContext,
    type ModuleConfigs,
-   type ModuleManagerOptions,
    type Modules,
+   ModuleManager,
+   type ModuleBuildContext,
+   type ModuleManagerOptions,
 } from "modules/ModuleManager";
+import { DbModuleManager } from "modules/db/DbModuleManager";
 import * as SystemPermissions from "modules/permissions";
 import { AdminController, type AdminControllerOptions } from "modules/server/AdminController";
 import { SystemController } from "modules/server/SystemController";
-import type { MaybePromise } from "core/types";
+import type { MaybePromise, PartialRec } from "core/types";
 import type { ServerEnv } from "modules/Controller";
 import type { IEmailDriver, ICacheDriver } from "core/drivers";
 
@@ -23,13 +24,34 @@ import type { IEmailDriver, ICacheDriver } from "core/drivers";
 import { Api, type ApiOptions } from "Api";
 
 export type AppPluginConfig = {
+   /**
+    * The name of the plugin.
+    */
    name: string;
+   /**
+    * The schema of the plugin.
+    */
    schema?: () => MaybePromise<ReturnType<typeof prototypeEm> | void>;
+   /**
+    * Called before the app is built.
+    */
    beforeBuild?: () => MaybePromise<void>;
+   /**
+    * Called after the app is built.
+    */
    onBuilt?: () => MaybePromise<void>;
+   /**
+    * Called when the server is initialized.
+    */
    onServerInit?: (server: Hono<ServerEnv>) => MaybePromise<void>;
-   onFirstBoot?: () => MaybePromise<void>;
+   /**
+    * Called when the app is booted.
+    */
    onBoot?: () => MaybePromise<void>;
+   /**
+    * Called when the app is first booted.
+    */
+   onFirstBoot?: () => MaybePromise<void>;
 };
 export type AppPlugin = (app: App) => AppPluginConfig;
 
@@ -72,20 +94,23 @@ export type AppOptions = {
       email?: IEmailDriver;
       cache?: ICacheDriver;
    };
+   mode?: "db" | "code";
+   readonly?: boolean;
 };
 export type CreateAppConfig = {
-   /**
-    * bla
-    */
    connection?: Connection | { url: string };
-   initialConfig?: InitialModuleConfigs;
+   config?: PartialRec<ModuleConfigs>;
    options?: AppOptions;
 };
 
-export type AppConfig = InitialModuleConfigs;
+export type AppConfig = { version: number } & ModuleConfigs;
 export type LocalApiOptions = Request | ApiOptions;
 
-export class App<C extends Connection = Connection, Options extends AppOptions = AppOptions> {
+export class App<
+   C extends Connection = Connection,
+   Config extends PartialRec<ModuleConfigs> = PartialRec<ModuleConfigs>,
+   Options extends AppOptions = AppOptions,
+> {
    static readonly Events = AppEvents;
 
    modules: ModuleManager;
@@ -96,11 +121,12 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
 
    private trigger_first_boot = false;
    private _building: boolean = false;
+   private _systemController: SystemController | null = null;
 
    constructor(
       public connection: C,
-      _initialConfig?: InitialModuleConfigs,
-      private options?: Options,
+      _config?: Config,
+      public options?: Options,
    ) {
       this.drivers = options?.drivers ?? {};
 
@@ -112,15 +138,27 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
          this.plugins.set(config.name, config);
       }
       this.runPlugins("onBoot");
-      this.modules = new ModuleManager(connection, {
+
+      // use db manager by default
+      const Manager = this.mode === "db" ? DbModuleManager : ModuleManager;
+
+      this.modules = new Manager(connection, {
          ...(options?.manager ?? {}),
-         initial: _initialConfig,
+         initial: _config,
          onUpdated: this.onUpdated.bind(this),
          onFirstBoot: this.onFirstBoot.bind(this),
          onServerInit: this.onServerInit.bind(this),
          onModulesBuilt: this.onModulesBuilt.bind(this),
       });
       this.modules.ctx().emgr.registerEvents(AppEvents);
+   }
+
+   get mode() {
+      return this.options?.mode ?? "db";
+   }
+
+   isReadOnly() {
+      return Boolean(this.mode === "code" || this.options?.readonly);
    }
 
    get emgr() {
@@ -153,7 +191,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       return results as any;
    }
 
-   async build(options?: { sync?: boolean; fetch?: boolean; forceBuild?: boolean }) {
+   async build(options?: { sync?: boolean; forceBuild?: boolean; [key: string]: any }) {
       // prevent multiple concurrent builds
       if (this._building) {
          while (this._building) {
@@ -166,13 +204,14 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       this._building = true;
 
       if (options?.sync) this.modules.ctx().flags.sync_required = true;
-      await this.modules.build({ fetch: options?.fetch });
+      await this.modules.build();
 
-      const { guard, server } = this.modules.ctx();
+      const { guard } = this.modules.ctx();
 
       // load system controller
       guard.registerPermissions(Object.values(SystemPermissions));
-      server.route("/api/system", new SystemController(this).getController());
+      this._systemController = new SystemController(this);
+      this._systemController.register(this);
 
       // emit built event
       $console.log("App built");
@@ -192,10 +231,6 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       this._building = false;
    }
 
-   mutateConfig<Module extends keyof Modules>(module: Module) {
-      return this.modules.mutateConfigSafe(module);
-   }
-
    get server() {
       return this.modules.server;
    }
@@ -204,7 +239,14 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       return this.modules.ctx().em;
    }
 
+   get mcp() {
+      return this._systemController?._mcpServer;
+   }
+
    get fetch(): Hono["fetch"] {
+      if (!this.isBuilt()) {
+         console.error("App is not built yet, run build() first");
+      }
       return this.server.fetch as any;
    }
 
@@ -253,6 +295,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       return this.module.auth.createUser(p);
    }
 
+   // @todo: potentially add option to clone the app, so that when used in listeners, it won't trigger listeners
    getApi(options?: LocalApiOptions) {
       const fetcher = this.server.request as typeof fetch;
       if (options && options instanceof Request) {
@@ -260,6 +303,19 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
       }
 
       return new Api({ host: "http://localhost", ...(options ?? {}), fetcher });
+   }
+
+   getMcpClient() {
+      const config = this.modules.get("server").config.mcp;
+      if (!config.enabled) {
+         throw new Error("MCP is not enabled");
+      }
+
+      const url = new URL(config.path, "http://localhost").toString();
+      return new McpClient({
+         url,
+         fetch: this.server.request,
+      });
    }
 
    async onUpdated<Module extends keyof Modules>(module: Module, config: ModuleConfigs[Module]) {
@@ -330,6 +386,7 @@ export class App<C extends Connection = Connection, Options extends AppOptions =
             }
          }
       }
+      await this.options?.manager?.onModulesBuilt?.(ctx);
    }
 }
 
@@ -338,5 +395,5 @@ export function createApp(config: CreateAppConfig = {}) {
       throw new Error("Invalid connection");
    }
 
-   return new App(config.connection, config.initialConfig, config.options);
+   return new App(config.connection, config.config, config.options);
 }

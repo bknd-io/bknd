@@ -5,7 +5,13 @@ import { twMerge } from "tailwind-merge";
 import * as Formy from "ui/components/form/Formy";
 import { useEvent } from "ui/hooks/use-event";
 import { FieldComponent, Field as FormField, type FieldProps as FormFieldProps } from "./Field";
-import { FormContextOverride, useDerivedFieldContext, useFormError } from "./Form";
+import {
+   FormContextOverride,
+   useDerivedFieldContext,
+   useFormContext,
+   useFormError,
+   useFormValue,
+} from "./Form";
 import { getLabel, getMultiSchemaMatched } from "./utils";
 
 export type AnyOfFieldRootProps = {
@@ -47,7 +53,17 @@ const Root = ({ path = "", children }: AnyOfFieldRootProps) => {
    const errors = useFormError(path, { strict: true });
    if (!schema) return `AnyOfField(${path}): no schema ${pointer}`;
    const [_selected, setSelected] = useAtom(selectedAtom);
-   const selected = _selected !== null ? _selected : matchedIndex > -1 ? matchedIndex : null;
+   const {
+      options: { anyOfNoneSelectedMode },
+   } = useFormContext();
+   const selected =
+      _selected !== null
+         ? _selected
+         : matchedIndex > -1
+           ? matchedIndex
+           : anyOfNoneSelectedMode === "first"
+             ? 0
+             : null;
 
    const select = useEvent((index: number | null) => {
       setValue(path, index !== null ? lib.getTemplate(undefined, schemas[index]) : undefined);
@@ -117,13 +133,25 @@ const Select = () => {
 const Field = ({ name, label, ...props }: Partial<FormFieldProps>) => {
    const { selected, selectedSchema, path, errors } = useAnyOfContext();
    if (selected === null) return null;
+
    return (
       <FormContextOverride prefix={path} schema={selectedSchema}>
          <div className={twMerge(errors.length > 0 && "bg-red-500/10")}>
-            <FormField key={`${path}_${selected}`} name={""} label={false} {...props} />
+            {/* another wrap is required for primitive schemas */}
+            <AnotherField key={`${path}_${selected}`} label={false} {...props} />
          </div>
       </FormContextOverride>
    );
+};
+
+const AnotherField = (props: Partial<FormFieldProps>) => {
+   const { value } = useFormValue("");
+
+   const inputProps = {
+      // @todo: check, potentially just provide value
+      value: ["string", "number", "boolean"].includes(typeof value) ? value : undefined,
+   };
+   return <FormField name={""} label={false} {...props} inputProps={inputProps} />;
 };
 
 export const AnyOf = {

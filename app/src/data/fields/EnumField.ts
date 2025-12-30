@@ -1,4 +1,4 @@
-import { omitKeys } from "core/utils";
+import { omitKeys } from "bknd/utils";
 import type { EntityManager } from "data/entities";
 import { TransformPersistFailedException } from "../errors";
 import { baseFieldConfigSchema, Field, type TActionContext, type TRenderContext } from "./Field";

@@ -3,11 +3,10 @@
 import type { RuntimeBkndConfig } from "bknd/adapter";
 import { Hono } from "hono";
 import { serveStatic } from "hono/cloudflare-workers";
-import { getFresh } from "./modes/fresh";
-import { getCached } from "./modes/cached";
-import { getDurable } from "./modes/durable";
-import type { App } from "bknd";
-import { $console } from "core/utils";
+import type { MaybePromise } from "bknd";
+import { $console } from "bknd/utils";
+import { createRuntimeApp } from "bknd/adapter";
+import { registerAsyncsExecutionContext, makeConfig, type CloudflareContext } from "./config";
 
 declare global {
    namespace Cloudflare {
@@ -17,12 +16,10 @@ declare global {
 
 export type CloudflareEnv = Cloudflare.Env;
 export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> & {
-   mode?: "warm" | "fresh" | "cache" | "durable";
-   bindings?: (args: Env) => {
+   bindings?: (args: Env) => MaybePromise<{
       kv?: KVNamespace;
-      dobj?: DurableObjectNamespace;
       db?: D1Database;
-   };
+   }>;
    d1?: {
       session?: boolean;
       transport?: "header" | "cookie";
@@ -36,11 +33,27 @@ export type CloudflareBkndConfig<Env = CloudflareEnv> = RuntimeBkndConfig<Env> &
    registerMedia?: boolean | ((env: Env) => void);
 };
 
-export type Context<Env = CloudflareEnv> = {
-   request: Request;
-   env: Env;
-   ctx: ExecutionContext;
-};
+export async function createApp<Env extends CloudflareEnv = CloudflareEnv>(
+   config: CloudflareBkndConfig<Env> = {},
+   ctx: Partial<CloudflareContext<Env>> = {},
+) {
+   const appConfig = await makeConfig(config, ctx);
+   return await createRuntimeApp<Env>(
+      {
+         ...appConfig,
+         onBuilt: async (app) => {
+            if (ctx.ctx) {
+               registerAsyncsExecutionContext(app, ctx?.ctx);
+            }
+            await appConfig.onBuilt?.(app);
+         },
+      },
+      ctx?.env,
+   );
+}
+
+// compatiblity
+export const getFresh = createApp;
 
 export function serve<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env> = {},
@@ -79,25 +92,8 @@ export function serve<Env extends CloudflareEnv = CloudflareEnv>(
             }
          }
 
-         const context = { request, env, ctx } as Context<Env>;
-         const mode = config.mode ?? "warm";
-
-         let app: App;
-         switch (mode) {
-            case "fresh":
-               app = await getFresh(config, context, { force: true });
-               break;
-            case "warm":
-               app = await getFresh(config, context);
-               break;
-            case "cache":
-               app = await getCached(config, context);
-               break;
-            case "durable":
-               return await getDurable(config, context);
-            default:
-               throw new Error(`Unknown mode ${mode}`);
-         }
+         const context = { request, env, ctx } as CloudflareContext<Env>;
+         const app = await createApp(config, context);
 
          return app.fetch(request, env, ctx);
       },

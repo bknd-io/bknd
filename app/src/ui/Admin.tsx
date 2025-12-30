@@ -1,24 +1,62 @@
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import React, { type ReactNode } from "react";
-import { BkndProvider, type BkndAdminOptions } from "ui/client/bknd";
-import { useTheme } from "ui/client/use-theme";
+import { BkndProvider } from "ui/client/bknd";
+import { useTheme, type AppTheme } from "ui/client/use-theme";
 import { Logo } from "ui/components/display/Logo";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 import { ClientProvider, useBkndWindowContext, type ClientProviderProps } from "./client";
 import { createMantineTheme } from "./lib/mantine/theme";
 import { Routes } from "./routes";
+import type { BkndAdminAppShellOptions, BkndAdminEntitiesOptions } from "./options";
+
+export type BkndAdminConfig = {
+   /**
+    * Base path of the Admin UI
+    * @default `/`
+    */
+   basepath?: string;
+   /**
+    * Path to return to when clicking the logo
+    * @default `/`
+    */
+   logo_return_path?: string;
+   /**
+    * Theme of the Admin UI
+    * @default `system`
+    */
+   theme?: AppTheme;
+   /**
+    * Entities configuration like headers, footers, actions, field renders, etc.
+    */
+   entities?: BkndAdminEntitiesOptions;
+   /**
+    * App shell configuration like user menu actions.
+    */
+   appShell?: BkndAdminAppShellOptions;
+};
 
 export type BkndAdminProps = {
+   /**
+    * Base URL of the API, only needed if you are not using the `withProvider` prop
+    */
    baseUrl?: string;
+   /**
+    * Whether to wrap Admin in a `<ClientProvider />`
+    */
    withProvider?: boolean | ClientProviderProps;
-   config?: BkndAdminOptions;
+   /**
+    * Admin UI customization options
+    */
+   config?: BkndAdminConfig;
+   children?: ReactNode;
 };
 
 export default function Admin({
    baseUrl: baseUrlOverride,
    withProvider = false,
    config: _config = {},
+   children,
 }: BkndAdminProps) {
    const { theme } = useTheme();
    const Provider = ({ children }: any) =>
@@ -47,7 +85,9 @@ export default function Admin({
       <Provider>
          <MantineProvider {...createMantineTheme(theme as any)}>
             <Notifications position="top-right" />
-            <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath} />
+            <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath}>
+               {children}
+            </Routes>
          </MantineProvider>
       </Provider>
    );

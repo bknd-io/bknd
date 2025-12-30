@@ -17,7 +17,7 @@ async function run(
       });
 
       // Read from stdout
-      const reader = proc.stdout.getReader();
+      const reader = (proc.stdout as ReadableStream).getReader();
       const decoder = new TextDecoder();
 
       // Function to read chunks
@@ -30,7 +30,7 @@ async function run(
 
                const text = decoder.decode(value);
                if (!resolveCalled) {
-                  console.log(c.dim(text.replace(/\n$/, "")));
+                  console.info(c.dim(text.replace(/\n$/, "")));
                }
                onChunk(
                   text,
@@ -189,21 +189,21 @@ const adapters = {
 
 async function testAdapter(name: keyof typeof adapters) {
    const config = adapters[name];
-   console.log("adapter", c.cyan(name));
+   console.info("adapter", c.cyan(name));
    await config.clean();
 
    const { proc, data } = await config.start();
-   console.log("proc:", proc.pid, "data:", c.cyan(data));
+   console.info("proc:", proc.pid, "data:", c.cyan(data));
    //proc.kill();process.exit(0);
 
    const add_env = "env" in config && config.env ? config.env : "";
    await $`TEST_URL=${data} TEST_ADAPTER=${name} ${add_env} bun run test:e2e`;
-   console.log("DONE!");
+   console.info("DONE!");
 
    while (!proc.killed) {
       proc.kill("SIGINT");
       await Bun.sleep(250);
-      console.log("Waiting for process to exit...");
+      console.info("Waiting for process to exit...");
    }
 }
 

@@ -8,8 +8,10 @@ html.fixed,
 html.fixed body {
    top: 0;
    left: 0;
-   height: 100%;
-   width: 100%;
+   right: 0;
+   bottom: 0;
+   height: 100dvh;
+   width: 100dvw;
    position: fixed;
    overflow: hidden;
    overscroll-behavior-x: contain;

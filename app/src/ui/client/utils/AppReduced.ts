@@ -4,7 +4,7 @@ import type { EntityRelation } from "data/relations";
 import { constructEntity, constructRelation } from "data/schema/constructor";
 import { RelationAccessor } from "data/relations/RelationAccessor";
 import { Flow, TaskMap } from "flows";
-import type { BkndAdminOptions } from "ui/client/BkndProvider";
+import type { BkndAdminProps } from "ui/Admin";
 
 export type AppType = ReturnType<App["toJSON"]>;
 
@@ -20,11 +20,7 @@ export class AppReduced {
 
    constructor(
       protected appJson: AppType,
-      protected _options: BkndAdminOptions & { basepath?: string } = {
-         basepath: "/",
-         admin_basepath: "",
-         logo_return_path: "/",
-      },
+      protected _options: BkndAdminProps["config"] = {},
    ) {
       //console.log("received appjson", _options);
 

@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeAll, afterAll } from "bun:test";
+import { expect, describe, it, beforeAll, afterAll, mock } from "bun:test";
 import * as adapter from "adapter";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
@@ -9,60 +9,49 @@ beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
 describe("adapter", () => {
-   it("makes config", () => {
-      expect(omitKeys(adapter.makeConfig({}), ["connection"])).toEqual({});
-      expect(omitKeys(adapter.makeConfig({}, { env: { TEST: "test" } }), ["connection"])).toEqual(
-         {},
-      );
+   it("makes config", async () => {
+      expect(omitKeys(await adapter.makeConfig({}), ["connection"])).toEqual({});
+      expect(
+         omitKeys(await adapter.makeConfig({}, { env: { TEST: "test" } }), ["connection"]),
+      ).toEqual({});
 
       // merges everything returned from `app` with the config
       expect(
          omitKeys(
-            adapter.makeConfig(
-               { app: (a) => ({ initialConfig: { server: { cors: { origin: a.env.TEST } } } }) },
+            await adapter.makeConfig(
+               { app: (a) => ({ config: { server: { cors: { origin: a.env.TEST } } } }) },
                { env: { TEST: "test" } },
             ),
             ["connection"],
          ),
       ).toEqual({
-         initialConfig: { server: { cors: { origin: "test" } } },
+         config: { server: { cors: { origin: "test" } } },
       });
    });
 
-   /* it.only("...", async () => {
-      const app = await adapter.createAdapterApp();
-   }); */
-
-   it("reuses apps correctly", async () => {
-      const id = crypto.randomUUID();
-
-      const first = await adapter.createAdapterApp(
+   it("allows all properties in app function", async () => {
+      const called = mock(() => null);
+      const config = await adapter.makeConfig(
          {
-            initialConfig: { server: { cors: { origin: "random" } } },
+            app: (env) => ({
+               connection: { url: "test" },
+               config: { server: { cors: { origin: "test" } } },
+               options: {
+                  mode: "db",
+               },
+               onBuilt: () => {
+                  called();
+                  expect(env).toEqual({ foo: "bar" });
+               },
+            }),
          },
-         undefined,
-         { id },
+         { foo: "bar" },
       );
-      const second = await adapter.createAdapterApp();
-      const third = await adapter.createAdapterApp(undefined, undefined, { id });
-
-      await first.build();
-      await second.build();
-      await third.build();
-
-      expect(first.toJSON().server.cors.origin).toEqual("random");
-      expect(first).toBe(third);
-      expect(first).not.toBe(second);
-      expect(second).not.toBe(third);
-      expect(second.toJSON().server.cors.origin).toEqual("*");
-
-      // recreate the first one
-      const first2 = await adapter.createAdapterApp(undefined, undefined, { id, force: true });
-      await first2.build();
-      expect(first2).not.toBe(first);
-      expect(first2).not.toBe(third);
-      expect(first2).not.toBe(second);
-      expect(first2.toJSON().server.cors.origin).toEqual("*");
+      expect(config.connection).toEqual({ url: "test" });
+      expect(config.config).toEqual({ server: { cors: { origin: "test" } } });
+      expect(config.options).toEqual({ mode: "db" });
+      await config.onBuilt?.(null as any);
+      expect(called).toHaveBeenCalled();
    });
 
    adapterTestSuite(bunTestRunner, {

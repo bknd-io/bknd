@@ -2,9 +2,8 @@ import type { Config } from "@libsql/client/node";
 import { StorageLocalAdapter } from "adapter/node/storage";
 import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
-import { config, type App, type CreateAppConfig } from "bknd";
+import { config, type App, type CreateAppConfig, type MaybePromise, registries } from "bknd";
 import dotenv from "dotenv";
-import { registries } from "modules/registries";
 import c from "picocolors";
 import path from "node:path";
 import {
@@ -17,6 +16,7 @@ import {
 } from "./platform";
 import { createRuntimeApp, makeConfig } from "bknd/adapter";
 import { colorizeConsole, isBun } from "bknd/utils";
+import { withConfigOptions, type WithConfigOptions } from "cli/utils/options";
 
 const env_files = [".env", ".dev.vars"];
 dotenv.config({
@@ -25,8 +25,7 @@ dotenv.config({
 const is_bun = isBun();
 
 export const run: CliCommand = (program) => {
-   program
-      .command("run")
+   withConfigOptions(program.command("run"))
       .description("run an instance")
       .addOption(
          new Option("-p, --port <port>", "port to run on")
@@ -40,12 +39,6 @@ export const run: CliCommand = (program) => {
             "db-url",
             "db-token",
          ]),
-      )
-      .addOption(new Option("-c, --config <config>", "config file"))
-      .addOption(
-         new Option("--db-url <db>", "database url, can be any valid sqlite url").conflicts(
-            "config",
-         ),
       )
       .addOption(
          new Option("--server <server>", "server type")
@@ -66,7 +59,7 @@ type MakeAppConfig = {
    connection?: CreateAppConfig["connection"];
    server?: { platform?: Platform };
    setAdminHtml?: boolean;
-   onBuilt?: (app: App) => Promise<void>;
+   onBuilt?: (app: App) => MaybePromise<void>;
 };
 
 async function makeApp(config: MakeAppConfig) {
@@ -77,21 +70,21 @@ async function makeApp(config: MakeAppConfig) {
 }
 
 export async function makeConfigApp(_config: CliBkndConfig, platform?: Platform) {
-   const config = makeConfig(_config, process.env);
+   const config = await makeConfig(_config, process.env);
    return makeApp({
       ...config,
       server: { platform },
    });
 }
 
-type RunOptions = {
+type RunOptions = WithConfigOptions<{
    port: number;
    memory?: boolean;
    config?: string;
    dbUrl?: string;
    server: Platform;
    open?: boolean;
-};
+}>;
 
 export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
    const configFilePath = await getConfigPath(options.config);
@@ -117,7 +110,10 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
       // try to use an in-memory connection
    } else if (options.memory) {
       console.info("Using", c.cyan("in-memory"), "connection");
-      app = await makeApp({ server: { platform: options.server } });
+      app = await makeApp({
+         server: { platform: options.server },
+         connection: { url: ":memory:" },
+      });
 
       // finally try to use env variables
    } else {

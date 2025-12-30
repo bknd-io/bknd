@@ -1,17 +1,27 @@
-import { App, type AppConfig, type AppPlugin } from "bknd";
+import { App, type AppConfig, type AppPlugin, type MaybePromise, type ModuleConfigs } from "bknd";
 
 export type SyncConfigOptions = {
    enabled?: boolean;
    includeSecrets?: boolean;
-   write: (config: AppConfig) => Promise<void>;
+   includeFirstBoot?: boolean;
+   write: (config: ModuleConfigs) => MaybePromise<void>;
 };
 
 export function syncConfig({
    enabled = true,
    includeSecrets = false,
+   includeFirstBoot = false,
    write,
 }: SyncConfigOptions): AppPlugin {
    let firstBoot = true;
+
+   const getConfigs = (app: App, secrets = false) => {
+      if (secrets) {
+         return app.toJSON(true);
+      }
+      return app.modules.extractSecrets().configs;
+   };
+
    return (app: App) => ({
       name: "bknd-sync-config",
       onBuilt: async () => {
@@ -19,16 +29,16 @@ export function syncConfig({
          app.emgr.onEvent(
             App.Events.AppConfigUpdatedEvent,
             async () => {
-               await write?.(app.toJSON(includeSecrets));
+               await write?.(getConfigs(app, includeSecrets));
             },
             {
                id: "sync-config",
             },
          );
 
-         if (firstBoot) {
+         if (firstBoot && includeFirstBoot) {
             firstBoot = false;
-            await write?.(app.toJSON(true));
+            await write?.(getConfigs(app, includeSecrets));
          }
       },
    });

@@ -1,7 +1,6 @@
 import type { KyselyPlugin, QueryResult } from "kysely";
 import {
    type IGenericSqlite,
-   type OnCreateConnection,
    type Promisable,
    parseBigInt,
    buildQueryFn,
@@ -9,6 +8,7 @@ import {
 } from "kysely-generic-sqlite";
 import { SqliteConnection } from "./SqliteConnection";
 import type { ConnQuery, ConnQueryResults, Features } from "../Connection";
+import type { MaybePromise } from "bknd";
 
 export type { IGenericSqlite };
 export type TStatement = { sql: string; parameters?: any[] | readonly any[] };
@@ -16,11 +16,11 @@ export interface IGenericCustomSqlite<DB = unknown> extends IGenericSqlite<DB> {
    batch?: (stmts: TStatement[]) => Promisable<QueryResult<any>[]>;
 }
 
-export type GenericSqliteConnectionConfig = {
+export type GenericSqliteConnectionConfig<Database = unknown> = {
    name?: string;
    additionalPlugins?: KyselyPlugin[];
    excludeTables?: string[];
-   onCreateConnection?: OnCreateConnection;
+   onCreateConnection?: (db: Database) => MaybePromise<void>;
    supports?: Partial<Features>;
 };
 
@@ -35,7 +35,12 @@ export class GenericSqliteConnection<DB = unknown> extends SqliteConnection<DB> 
    ) {
       super({
          dialect: GenericSqliteDialect,
-         dialectArgs: [executor, config?.onCreateConnection],
+         dialectArgs: [
+            executor,
+            config?.onCreateConnection && typeof config.onCreateConnection === "function"
+               ? (c: any) => config.onCreateConnection?.(c.db.db as any)
+               : undefined,
+         ],
          additionalPlugins: config?.additionalPlugins,
          excludeTables: config?.excludeTables,
       });
@@ -61,7 +66,6 @@ export class GenericSqliteConnection<DB = unknown> extends SqliteConnection<DB> 
    override async executeQueries<O extends ConnQuery[]>(...qbs: O): Promise<ConnQueryResults<O>> {
       const executor = await this.getExecutor();
       if (!executor.batch) {
-         //$console.debug("Batching is not supported by this database");
          return super.executeQueries(...qbs);
       }
 

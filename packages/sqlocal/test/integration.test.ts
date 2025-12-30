@@ -37,7 +37,7 @@ describe("integration", () => {
 
       const app = createApp({
          connection: create(),
-         initialConfig: {
+         config: {
             data: schema.toJSON(),
          },
       });

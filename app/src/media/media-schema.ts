@@ -1,6 +1,7 @@
 import { MediaAdapters } from "media/media-registry";
 import { registries } from "modules/registries";
 import { s, objectTransform } from "bknd/utils";
+import { $object, $record, $schema } from "modules/mcp";
 
 export const ADAPTERS = {
    ...MediaAdapters,
@@ -22,7 +23,8 @@ export function buildMediaSchema() {
       );
    });
 
-   return s.strictObject(
+   return $object(
+      "config_media",
       {
          enabled: s.boolean({ default: false }),
          basepath: s.string({ default: "/api/media" }),
@@ -37,12 +39,16 @@ export function buildMediaSchema() {
             },
             { default: {} },
          ),
-         adapter: s.anyOf(Object.values(adapterSchemaObject)).optional(),
+         // @todo: currently cannot be updated partially using mcp
+         adapter: $schema(
+            "config_media_adapter",
+            s.anyOf(Object.values(adapterSchemaObject)),
+         ).optional(),
       },
       {
          default: {},
       },
-   );
+   ).strict();
 }
 
 export const mediaConfigSchema = buildMediaSchema();

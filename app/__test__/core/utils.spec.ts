@@ -194,6 +194,182 @@ describe("Core Utils", async () => {
             expect(result).toEqual(expected);
          }
       });
+
+      test("recursivelyReplacePlaceholders", () => {
+         // test basic replacement with simple pattern
+         const obj1 = { a: "Hello, {$name}!", b: { c: "Hello, {$name}!" } };
+         const variables1 = { name: "John" };
+         const result1 = utils.recursivelyReplacePlaceholders(obj1, /\{\$(\w+)\}/g, variables1);
+         expect(result1).toEqual({ a: "Hello, John!", b: { c: "Hello, John!" } });
+
+         // test the specific example from the user request
+         const obj2 = { some: "value", here: "@auth.user" };
+         const variables2 = { auth: { user: "what" } };
+         const result2 = utils.recursivelyReplacePlaceholders(obj2, /^@([a-z\.]+)$/, variables2);
+         expect(result2).toEqual({ some: "value", here: "what" });
+
+         // test with arrays
+         const obj3 = { items: ["@config.name", "static", "@config.version"] };
+         const variables3 = { config: { name: "MyApp", version: "1.0.0" } };
+         const result3 = utils.recursivelyReplacePlaceholders(obj3, /^@([a-z\.]+)$/, variables3);
+         expect(result3).toEqual({ items: ["MyApp", "static", "1.0.0"] });
+
+         // test with nested objects and deep paths
+         const obj4 = {
+            user: "@auth.user.name",
+            settings: {
+               theme: "@ui.theme",
+               nested: {
+                  value: "@deep.nested.value",
+               },
+            },
+         };
+         const variables4 = {
+            auth: { user: { name: "Alice" } },
+            ui: { theme: "dark" },
+            deep: { nested: { value: "found" } },
+         };
+         const result4 = utils.recursivelyReplacePlaceholders(obj4, /^@([a-z\.]+)$/, variables4);
+         expect(result4).toEqual({
+            user: "Alice",
+            settings: {
+               theme: "dark",
+               nested: {
+                  value: "found",
+               },
+            },
+         });
+
+         // test with missing paths (should return original match)
+         const obj5 = { value: "@missing.path" };
+         const variables5 = { existing: "value" };
+         const result5 = utils.recursivelyReplacePlaceholders(obj5, /^@([a-z\.]+)$/, variables5);
+         expect(result5).toEqual({ value: "@missing.path" });
+
+         // test with non-matching strings (should remain unchanged)
+         const obj6 = { value: "normal string", other: "not@matching" };
+         const variables6 = { some: "value" };
+         const result6 = utils.recursivelyReplacePlaceholders(obj6, /^@([a-z\.]+)$/, variables6);
+         expect(result6).toEqual({ value: "normal string", other: "not@matching" });
+
+         // test with primitive values (should handle gracefully)
+         expect(
+            utils.recursivelyReplacePlaceholders("@test.value", /^@([a-z\.]+)$/, {
+               test: { value: "replaced" },
+            }),
+         ).toBe("replaced");
+         expect(utils.recursivelyReplacePlaceholders(123, /^@([a-z\.]+)$/, {})).toBe(123);
+         expect(utils.recursivelyReplacePlaceholders(null, /^@([a-z\.]+)$/, {})).toBe(null);
+
+         // test type preservation for full string matches
+         const variables7 = { test: { value: 123, flag: true, data: null, arr: [1, 2, 3] } };
+         const result7 = utils.recursivelyReplacePlaceholders(
+            {
+               number: "@test.value",
+               boolean: "@test.flag",
+               nullValue: "@test.data",
+               array: "@test.arr",
+            },
+            /^@([a-z\.]+)$/,
+            variables7,
+            null,
+         );
+         expect(result7).toEqual({
+            number: 123,
+            boolean: true,
+            nullValue: null,
+            array: [1, 2, 3],
+         });
+
+         // test partial string replacement (should convert to string)
+         const result8 = utils.recursivelyReplacePlaceholders(
+            { message: "The value is @test.value!" },
+            /@([a-z\.]+)/g,
+            variables7,
+         );
+         expect(result8).toEqual({ message: "The value is 123!" });
+
+         // test with fallback parameter
+         const obj9 = { user: "@user.id", config: "@config.theme" };
+         const variables9 = {}; // empty context
+         const result9 = utils.recursivelyReplacePlaceholders(
+            obj9,
+            /^@([a-z\.]+)$/,
+            variables9,
+            null,
+         );
+         expect(result9).toEqual({ user: null, config: null });
+
+         // test with fallback for partial matches
+         const obj10 = { message: "Hello @user.name, welcome!" };
+         const variables10 = {}; // empty context
+         const result10 = utils.recursivelyReplacePlaceholders(
+            obj10,
+            /@([a-z\.]+)/g,
+            variables10,
+            "Guest",
+         );
+         expect(result10).toEqual({ message: "Hello Guest, welcome!" });
+
+         // test with different fallback types
+         const obj11 = {
+            stringFallback: "@missing.string",
+            numberFallback: "@missing.number",
+            booleanFallback: "@missing.boolean",
+            objectFallback: "@missing.object",
+         };
+         const variables11 = {};
+         const result11 = utils.recursivelyReplacePlaceholders(
+            obj11,
+            /^@([a-z\.]+)$/,
+            variables11,
+            "default",
+         );
+         expect(result11).toEqual({
+            stringFallback: "default",
+            numberFallback: "default",
+            booleanFallback: "default",
+            objectFallback: "default",
+         });
+
+         // test fallback with arrays
+         const obj12 = { items: ["@item1", "@item2", "static"] };
+         const variables12 = { item1: "found" }; // item2 is missing
+         const result12 = utils.recursivelyReplacePlaceholders(
+            obj12,
+            /^@([a-zA-Z0-9\.]+)$/,
+            variables12,
+            "missing",
+         );
+         expect(result12).toEqual({ items: ["found", "missing", "static"] });
+
+         // test fallback with nested objects
+         const obj13 = {
+            user: "@user.id",
+            settings: {
+               theme: "@theme.name",
+               nested: {
+                  value: "@deep.value",
+               },
+            },
+         };
+         const variables13 = {}; // empty context
+         const result13 = utils.recursivelyReplacePlaceholders(
+            obj13,
+            /^@([a-z\.]+)$/,
+            variables13,
+            null,
+         );
+         expect(result13).toEqual({
+            user: null,
+            settings: {
+               theme: null,
+               nested: {
+                  value: null,
+               },
+            },
+         });
+      });
    });
 
    describe("file", async () => {
@@ -248,7 +424,7 @@ describe("Core Utils", async () => {
          expect(utils.getContentName(request)).toBe(name);
       });
 
-      test.only("detectImageDimensions", async () => {
+      test("detectImageDimensions", async () => {
          // wrong
          // @ts-expect-error
          expect(utils.detectImageDimensions(new ArrayBuffer(), "text/plain")).rejects.toThrow();
@@ -264,15 +440,44 @@ describe("Core Utils", async () => {
             height: 512,
          });
       });
+
+      test("isFileAccepted", () => {
+         const file = new File([""], "file.txt", {
+            type: "text/plain",
+         });
+         expect(utils.isFileAccepted(file, "text/plain")).toBe(true);
+         expect(utils.isFileAccepted(file, "text/plain,text/html")).toBe(true);
+         expect(utils.isFileAccepted(file, "text/html")).toBe(false);
+
+         {
+            const file = new File([""], "file.jpg", {
+               type: "image/jpeg",
+            });
+            expect(utils.isFileAccepted(file, "image/jpeg")).toBe(true);
+            expect(utils.isFileAccepted(file, "image/jpeg,image/png")).toBe(true);
+            expect(utils.isFileAccepted(file, "image/png")).toBe(false);
+            expect(utils.isFileAccepted(file, "image/*")).toBe(true);
+            expect(utils.isFileAccepted(file, ".jpg")).toBe(true);
+            expect(utils.isFileAccepted(file, ".jpg,.png")).toBe(true);
+            expect(utils.isFileAccepted(file, ".png")).toBe(false);
+         }
+
+         {
+            const file = new File([""], "file.png");
+            expect(utils.isFileAccepted(file, undefined as any)).toBe(true);
+         }
+
+         expect(() => utils.isFileAccepted(null as any, "text/plain")).toThrow();
+      });
    });
 
    describe("dates", () => {
-      test.only("formats local time", () => {
+      test("formats local time", () => {
          expect(utils.datetimeStringUTC("2025-02-21T16:48:25.841Z")).toBe("2025-02-21 16:48:25");
-         console.log(utils.datetimeStringUTC(new Date()));
+         /*console.log(utils.datetimeStringUTC(new Date()));
          console.log(utils.datetimeStringUTC());
          console.log(new Date());
-         console.log("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone);
+         console.log("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone); */
       });
    });
 });

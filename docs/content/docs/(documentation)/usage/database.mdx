@@ -1,6 +1,7 @@
 ---
 title: "Database"
 description: "Choosing the right database configuration"
+icon: Database
 tags: ["documentation"]
 ---
 
@@ -63,7 +64,7 @@ import type { BkndConfig } from "bknd";
 
 export default {
   connection: { url: "file:data.db" },
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 ```
 
 Throughout the documentation, it is assumed you use `bknd.config.ts` to define your connection.
@@ -93,17 +94,51 @@ import type { BkndConfig } from "bknd";
 
 // no connection is required, bknd will use a SQLite database in-memory
 // this does not work on edge environments!
-export default {} as const satisfies BkndConfig;
+export default {} satisfies BkndConfig;
 
 // or explicitly in-memory
 export default {
   connection: { url: ":memory:" },
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 
 // or explicitly as a file
 export default {
   connection: { url: "file:<path/to/your/database.db>" },
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
+```
+
+### Node.js SQLite
+
+To use the Node.js SQLite adapter directly, use the `nodeSqlite` function as value for the `connection` property. This lets you customize the database connection, such as enabling WAL mode.
+
+```typescript title="bknd.config.ts"
+import { nodeSqlite, type NodeBkndConfig } from "bknd/adapter/node";
+
+export default {
+  connection: nodeSqlite({
+    url: "file:<path/to/your/database.db>",
+    onCreateConnection: (db) => {
+      db.exec("PRAGMA journal_mode = WAL;");
+    },
+  }),
+} satisfies NodeBkndConfig;
+```
+
+### Bun SQLite
+
+You can explicitly use the Bun SQLite adapter by passing the `bunSqlite` function to the `connection` property. This allows further configuration of the database, e.g. enabling WAL mode.
+
+```typescript title="bknd.config.ts"
+import { bunSqlite, type BunBkndConfig } from "bknd/adapter/bun";
+
+export default {
+  connection: bunSqlite({ 
+    url: "file:<path/to/your/database.db>",
+    onCreateConnection: (db) => {
+      db.run("PRAGMA journal_mode = WAL;");
+    },
+  }),
+} satisfies BunBkndConfig;
 ```
 
 ### LibSQL
@@ -118,7 +153,7 @@ export default {
     url: "libsql://<database>.turso.io",
     authToken: "<auth-token>",
   }),
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 ```
 
 If you wish to use LibSQL as file, in-memory or make use of [Embedded Replicas](https://docs.turso.tech/features/embedded-replicas/introduction), you have to pass in the `Client` from `@libsql/client`:
@@ -134,7 +169,7 @@ const client = createClient({
 
 export default {
   connection: libsql(client),
-} as const satisfies BkndConfig;
+} satisfies BkndConfig;
 ```
 
 ### Cloudflare D1
@@ -147,7 +182,7 @@ To manually specify which D1 database to take, you can specify it explicitly:
 import { serve, d1 } from "bknd/adapter/cloudflare";
 
 export default serve<Env>({
-  app: ({ env }) => d1({ binding: env.D1_BINDING }),
+  app: (env) => d1({ binding: env.D1_BINDING }),
 });
 ```
 
@@ -224,7 +259,7 @@ Example using `@neondatabase/serverless`:
 import { createCustomPostgresConnection } from "@bknd/postgres";
 import { NeonDialect } from "kysely-neon";
 
-const neon = createCustomPostgresConnection(NeonDialect);
+const neon = createCustomPostgresConnection("neon", NeonDialect);
 
 serve({
   connection: neon({
@@ -247,7 +282,7 @@ const xata = new client({
   branch: process.env.XATA_BRANCH,
 });
 
-const xataConnection = createCustomPostgresConnection(XataDialect, {
+const xataConnection = createCustomPostgresConnection("xata", XataDialect, {
   supports: {
     batching: false,
   },
@@ -279,15 +314,11 @@ const connection = new CustomConnection();
 const app = createApp({ connection });
 ```
 
-## Initial Structure
+## Data Structure
 
-To provide an initial database structure, you can pass `initialConfig` to the creation of an app. This will only be used if there isn't an existing configuration found in the database given. Here is a quick example:
-
-<Callout type="info">
-  The initial structure is only respected if the database is empty! If you made
-  updates, ensure to delete the database first, or perform updates through the
-  Admin UI.
-</Callout>
+To provide a database structure, you can pass `config` to the creation of an app. In [`db` mode](/usage/introduction#ui-only-mode), the data structure is only respected if the database is empty. If you made updates, ensure to delete the database first, or perform updates through the Admin UI.
+  
+Here is a quick example:
 
 ```typescript
 import { createApp, em, entity, text, number } from "bknd";
@@ -332,10 +363,7 @@ type Database = (typeof schema)["DB"];
 
 // pass the schema to the app
 const app = createApp({
-  connection: {
-    /* ... */
-  },
-  initialConfig: {
+  config: {
     data: schema.toJSON(),
   },
 });
@@ -349,11 +377,96 @@ Note that we didn't add relational fields directly to the entity, but instead de
   manually.
 </Callout>
 
+### System entities
+
+There are multiple system entities which are added depending on if the module is enabled:
+- `users`: if authentication is enabled
+- `media`: if media is enabled and an adapter is configured
+
+You can add additional fields to these entities. System-defined fields don't have to be repeated, those are automatically added to the entity, so don't worry about that. It's important though to match the system entities name, otherwise a new unrelated entity will be created.
+
+If you'd like to connect your entities to system entities, you need them in the schema to access their reference when making relations. From the example above, if you'd like to connect the `posts` entity to the `users` entity, you can do so like this:
+
+```typescript
+import { em, entity, text, number, systemEntity } from "bknd";
+
+const schema = em(
+  {
+    posts: entity("posts", {
+      title: text().required(),
+      slug: text().required(),
+      content: text(),
+      views: number(),
+      // don't add the foreign key field, it's automatically added
+    }),
+    comments: entity("comments", {
+      content: text(),
+    }),
+    // [!code highlight]
+    // add a `users` entity 
+    users: systemEntity("users", { // [!code highlight]
+      // [!code highlight]
+      // optionally add additional fields
+    }) // [!code highlight]
+  },
+  // now you have access to the system entity "users"
+  ({ relation, index }, { posts, comments, users }) => {
+    // ... other relations
+    relation(posts).manyToOne(users); // [!code highlight]
+  },
+);
+```
+
+### Add media to an entity
+
+If media is enabled, you can upload media directly or associate it with an entity. E.g. you may want to upload a cover image for a post, but also a gallery of images. Since a relation to the media entity is polymorphic, you have to:
+1. add a virtual field to your entity (single `medium` or multiple `media`)
+2. add the relation from the owning entity to the media entity
+3. specify the mapped field name by using the `mappedBy` option
+
+```typescript
+import { em, entity, text, number, systemEntity, medium, media } from "bknd";
+
+const schema = em(
+  {
+    posts: entity("posts", {
+      title: text().required(),
+      slug: text().required(),
+      content: text(),
+      views: number(),
+      // [!code highlight]
+      // `medium` represents a single media item
+      cover: medium(), // [!code highlight]
+      // [!code highlight]
+      // `media` represents a list of media items
+      gallery: media(), // [!code highlight]
+    }),
+    comments: entity("comments", {
+      content: text(),
+    }),
+    // [!code highlight]
+    // add the `media` entity 
+    media: systemEntity("media", { // [!code highlight]
+      // [!code highlight]
+      // optionally add additional fields
+    }) // [!code highlight]
+  },
+  // now you have access to the system entity "media"
+  ({ relation, index }, { posts, comments, media }) => {
+    // add the `cover` relation
+    relation(posts).polyToOne(media, { mappedBy: "cover" }); // [!code highlight]
+    // add the `gallery` relation
+    relation(posts).polyToMany(media, { mappedBy: "gallery" }); // [!code highlight]
+  },
+);
+```
+
+
 ### Type completion
 
 To get type completion, there are two options:
 
-1. Use the CLI to [generate the types](/usage/cli#generating-types-types)
+1. Use the CLI to [generate the types](/usage/cli#generating-types-types) (recommended)
 2. If you have an initial structure created with the prototype functions, you can extend the `DB` interface with your own schema.
 
 All entity related functions use the types defined in `DB` from `bknd`. To get type completion, you can extend that interface with your own schema:
@@ -362,18 +475,14 @@ All entity related functions use the types defined in `DB` from `bknd`. To get t
 import { em } from "bknd";
 import { Api } from "bknd/client";
 
-const schema = em({
-  /* ... */
-});
+const schema = em({ /* ... */ });
 
 type Database = (typeof schema)["DB"];
 declare module "bknd" {
   interface DB extends Database {}
 }
 
-const api = new Api({
-  /* ... */
-});
+const api = new Api({ /* ... */ });
 const { data: posts } = await api.data.readMany("posts", {});
 // `posts` is now typed as Database["posts"]
 ```
@@ -385,21 +494,13 @@ The type completion is available for the API as well as all provided [React hook
 To seed your database with initial data, you can pass a `seed` function to the configuration. It
 provides the `ModuleBuildContext` as the first argument.
 
-<Callout type="info">
-  Note that the seed function will only be executed on app's first boot. If a
-  configuration already exists in the database, it will not be executed.
-</Callout>
 
 ```typescript
 import { createApp, type ModuleBuildContext } from "bknd";
 
 const app = createApp({
-  connection: {
-    /* ... */
-  },
-  initialConfig: {
-    /* ... */
-  },
+  connection: { /* ... */ },
+  config: { /* ... */ },
   options: {
     seed: async (ctx: ModuleBuildContext) => {
       await ctx.em.mutator("posts").insertMany([
@@ -410,3 +511,13 @@ const app = createApp({
   },
 });
 ```
+
+Note that in [`db` mode](/usage/introduction#ui-only-mode), the seed function will only be executed on app's first boot. If a configuration already exists in the database, it will not be executed.
+
+In [`code` mode](/usage/introduction#code-only-mode), the seed function will not be automatically executed. You can manually execute it by running the following command:
+
+```bash
+npx bknd sync --seed --force
+```
+
+See the [sync command](/usage/cli#syncing-the-database-sync) documentation for more details.

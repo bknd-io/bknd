@@ -1,2 +1,5 @@
 */package-lock.json
 */bun.lock
+*/deno.lock
+*/node_modules
+*/*.db

@@ -1,5 +1,4 @@
-import { transformObject } from "core/utils";
-
+import { transformObject } from "bknd/utils";
 import { Module } from "modules/Module";
 import { DataController } from "./api/DataController";
 import { type AppDataConfig, dataConfigSchema } from "./data-schema";
@@ -49,10 +48,9 @@ export class AppData extends Module<AppDataConfig> {
          this.ctx.em.addIndex(index);
       }
 
-      this.ctx.server.route(
-         this.basepath,
-         new DataController(this.ctx, this.config).getController(),
-      );
+      const dataController = new DataController(this.ctx, this.config);
+      dataController.registerMcp();
+      this.ctx.server.route(this.basepath, dataController.getController());
       this.ctx.guard.registerPermissions(Object.values(DataPermissions));
 
       this.setBuilt();

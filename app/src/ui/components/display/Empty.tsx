@@ -8,6 +8,7 @@ export type EmptyProps = {
    primary?: ButtonProps;
    secondary?: ButtonProps;
    className?: string;
+   children?: React.ReactNode;
 };
 export const Empty: React.FC<EmptyProps> = ({
    Icon = undefined,
@@ -16,6 +17,7 @@ export const Empty: React.FC<EmptyProps> = ({
    primary,
    secondary,
    className,
+   children,
 }) => (
    <div className={twMerge("flex flex-col h-full w-full justify-center items-center", className)}>
       <div className="flex flex-col gap-3 items-center max-w-80">
@@ -27,6 +29,7 @@ export const Empty: React.FC<EmptyProps> = ({
          <div className="mt-1.5 flex flex-row gap-2">
             {secondary && <Button variant="default" {...secondary} />}
             {primary && <Button variant="primary" {...primary} />}
+            {children}
          </div>
       </div>
    </div>

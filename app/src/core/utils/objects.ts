@@ -26,6 +26,20 @@ export function omitKeys<T extends object, K extends keyof T>(
    return result;
 }
 
+export function pickKeys<T extends object, K extends keyof T>(
+   obj: T,
+   keys_: readonly K[],
+): Pick<T, Extract<K, keyof T>> {
+   const keys = new Set(keys_);
+   const result = {} as Pick<T, Extract<K, keyof T>>;
+   for (const [key, value] of Object.entries(obj) as [keyof T, T[keyof T]][]) {
+      if (keys.has(key as K)) {
+         (result as any)[key] = value;
+      }
+   }
+   return result;
+}
+
 export function safelyParseObjectValues<T extends { [key: string]: any }>(obj: T): T {
    return Object.entries(obj).reduce((acc, [key, value]) => {
       try {
@@ -189,6 +203,30 @@ export function objectDepth(object: object): number {
    return level;
 }
 
+export function limitObjectDepth<T>(obj: T, maxDepth: number): T {
+   function _limit(current: any, depth: number): any {
+      if (isPlainObject(current)) {
+         if (depth > maxDepth) {
+            return undefined;
+         }
+         const result: any = {};
+         for (const key in current) {
+            if (Object.prototype.hasOwnProperty.call(current, key)) {
+               result[key] = _limit(current[key], depth + 1);
+            }
+         }
+         return result;
+      }
+      if (Array.isArray(current)) {
+         // Arrays themselves are not limited, but their object elements are
+         return current.map((item) => _limit(item, depth));
+      }
+      // Primitives are always returned, regardless of depth
+      return current;
+   }
+   return _limit(obj, 1);
+}
+
 export function objectCleanEmpty<Obj extends { [key: string]: any }>(obj: Obj): Obj {
    if (!obj) return obj;
    return Object.entries(obj).reduce((acc, [key, value]) => {
@@ -334,7 +372,7 @@ export function isEqual(value1: any, value2: any): boolean {
 export function getPath(
    object: object,
    _path: string | (string | number)[],
-   defaultValue = undefined,
+   defaultValue: any = undefined,
 ): any {
    const path = typeof _path === "string" ? _path.split(/[.\[\]\"]+/).filter((x) => x) : _path;
 
@@ -356,6 +394,38 @@ export function getPath(
 
       throw new Error(`Invalid path: ${path.join(".")}`);
    }
+}
+
+export function setPath(object: object, _path: string | (string | number)[], value: any) {
+   let path = _path;
+   // Optional string-path support.
+   // You can remove this `if` block if you don't need it.
+   if (typeof path === "string") {
+      const isQuoted = (str) => str[0] === '"' && str.at(-1) === '"';
+      path = path
+         .split(/[.\[\]]+/)
+         .filter((x) => x)
+         .map((x) => (!Number.isNaN(Number(x)) ? Number(x) : x))
+         .map((x) => (typeof x === "string" && isQuoted(x) ? x.slice(1, -1) : x));
+   }
+
+   if (path.length === 0) {
+      throw new Error("The path must have at least one entry in it");
+   }
+
+   const [head, ...tail] = path as any;
+
+   if (tail.length === 0) {
+      object[head] = value;
+      return object;
+   }
+
+   if (!(head in object)) {
+      object[head] = typeof tail[0] === "number" ? [] : {};
+   }
+
+   setPath(object[head], tail, value);
+   return object;
 }
 
 export function objectToJsLiteral(value: object, indent: number = 0, _level: number = 0): string {
@@ -434,4 +504,51 @@ export function deepFreeze<T extends object>(object: T): T {
    }
 
    return Object.freeze(object);
+}
+
+export function convertNumberedObjectToArray(obj: object): any[] | object {
+   if (Object.keys(obj).every((key) => Number.isInteger(Number(key)))) {
+      return Object.values(obj);
+   }
+   return obj;
+}
+
+export function recursivelyReplacePlaceholders(
+   obj: any,
+   pattern: RegExp,
+   variables: Record<string, any>,
+   fallback?: any,
+) {
+   if (typeof obj === "string") {
+      // check if the entire string matches the pattern
+      const match = obj.match(pattern);
+      if (match && match[0] === obj && match[1]) {
+         // full string match - replace with the actual value (preserving type)
+         const key = match[1];
+         const value = getPath(variables, key, null);
+         return value !== null ? value : fallback !== undefined ? fallback : obj;
+      }
+      // partial match - use string replacement
+      if (pattern.test(obj)) {
+         return obj.replace(pattern, (match, key) => {
+            const value = getPath(variables, key, null);
+            // convert to string for partial replacements
+            return value !== null
+               ? String(value)
+               : fallback !== undefined
+                 ? String(fallback)
+                 : match;
+         });
+      }
+   }
+   if (Array.isArray(obj)) {
+      return obj.map((item) => recursivelyReplacePlaceholders(item, pattern, variables, fallback));
+   }
+   if (obj && typeof obj === "object") {
+      return Object.entries(obj).reduce((acc, [key, value]) => {
+         acc[key] = recursivelyReplacePlaceholders(value, pattern, variables, fallback);
+         return acc;
+      }, {} as object);
+   }
+   return obj;
 }

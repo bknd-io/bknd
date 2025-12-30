@@ -1,6 +1,6 @@
 import { type NotificationData, notifications } from "@mantine/notifications";
 import type { Api } from "Api";
-import { ucFirst } from "core/utils";
+import { ucFirst } from "bknd/utils";
 import type { ModuleConfigs } from "modules";
 import type { ResponseObject } from "modules/ModuleApi";
 import type { ConfigUpdateResponse } from "modules/server/SystemController";

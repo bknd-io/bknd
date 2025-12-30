@@ -1,8 +1,11 @@
 import { describe, beforeAll, afterAll, expect, it, afterEach } from "bun:test";
 import type { PostgresConnection } from "../src";
-import { createApp } from "bknd";
-import * as proto from "bknd/data";
+import { createApp, em, entity, text } from "bknd";
 import { disableConsoleLog, enableConsoleLog } from "bknd/utils";
+// @ts-ignore
+import { connectionTestSuite } from "$bknd/data/connection/connection-test-suite";
+// @ts-ignore
+import { bunTestRunner } from "$bknd/adapter/bun/test";
 
 export type TestSuiteConfig = {
    createConnection: () => InstanceType<typeof PostgresConnection>;
@@ -12,8 +15,9 @@ export type TestSuiteConfig = {
 export async function defaultCleanDatabase(connection: InstanceType<typeof PostgresConnection>) {
    const kysely = connection.kysely;
 
-   // drop all tables & create new schema
+   // drop all tables+indexes & create new schema
    await kysely.schema.dropSchema("public").ifExists().cascade().execute();
+   await kysely.schema.dropIndex("public").ifExists().cascade().execute();
    await kysely.schema.createSchema("public").execute();
 }
 
@@ -31,6 +35,23 @@ async function cleanDatabase(
 export function testSuite(config: TestSuiteConfig) {
    beforeAll(() => disableConsoleLog(["log", "warn", "error"]));
    afterAll(() => enableConsoleLog());
+
+   // @todo: postgres seems to add multiple indexes, thus failing the test suite
+   /* describe("test suite", () => {
+      connectionTestSuite(bunTestRunner, {
+         makeConnection: () => {
+            const connection = config.createConnection();
+            return {
+               connection,
+               dispose: async () => {
+                  await cleanDatabase(connection, config);
+                  await connection.close();
+               },
+            };
+         },
+         rawDialectDetails: [],
+      });
+   }); */
 
    describe("base", () => {
       it("should connect to the database", async () => {
@@ -73,14 +94,14 @@ export function testSuite(config: TestSuiteConfig) {
       });
 
       it("should create a basic schema", async () => {
-         const schema = proto.em(
+         const schema = em(
             {
-               posts: proto.entity("posts", {
-                  title: proto.text().required(),
-                  content: proto.text(),
+               posts: entity("posts", {
+                  title: text().required(),
+                  content: text(),
                }),
-               comments: proto.entity("comments", {
-                  content: proto.text(),
+               comments: entity("comments", {
+                  content: text(),
                }),
             },
             (fns, s) => {
@@ -91,7 +112,7 @@ export function testSuite(config: TestSuiteConfig) {
 
          const app = createApp({
             connection,
-            initialConfig: {
+            config: {
                data: schema.toJSON(),
             },
          });
@@ -153,20 +174,20 @@ export function testSuite(config: TestSuiteConfig) {
       });
 
       it("should support uuid", async () => {
-         const schema = proto.em(
+         const schema = em(
             {
-               posts: proto.entity(
+               posts: entity(
                   "posts",
                   {
-                     title: proto.text().required(),
-                     content: proto.text(),
+                     title: text().required(),
+                     content: text(),
                   },
                   {
                      primary_format: "uuid",
                   },
                ),
-               comments: proto.entity("comments", {
-                  content: proto.text(),
+               comments: entity("comments", {
+                  content: text(),
                }),
             },
             (fns, s) => {
@@ -177,7 +198,7 @@ export function testSuite(config: TestSuiteConfig) {
 
          const app = createApp({
             connection,
-            initialConfig: {
+            config: {
                data: schema.toJSON(),
             },
          });
@@ -187,8 +208,8 @@ export function testSuite(config: TestSuiteConfig) {
          // @ts-expect-error
          expect(config.data.entities?.posts.fields?.id.config?.format).toBe("uuid");
 
-         const em = app.em;
-         const mutator = em.mutator(em.entity("posts"));
+         const $em = app.em;
+         const mutator = $em.mutator($em.entity("posts"));
          const data = await mutator.insertOne({ title: "Hello", content: "World" });
          expect(data.data.id).toBeString();
          expect(String(data.data.id).length).toBe(36);

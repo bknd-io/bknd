@@ -12,7 +12,7 @@ import * as Formy from "ui/components/form/Formy";
 import { useEvent } from "ui/hooks/use-event";
 import { ArrayField } from "./ArrayField";
 import { FieldWrapper, type FieldwrapperProps } from "./FieldWrapper";
-import { useDerivedFieldContext, useFormValue } from "./Form";
+import { useDerivedFieldContext, useFormValue, type DeriveFn } from "./Form";
 import { ObjectField } from "./ObjectField";
 import { coerce, firstDefined, isType, isTypeSchema } from "./utils";
 
@@ -72,7 +72,7 @@ const FieldImpl = ({
       );
 
    if (isType(schema.type, "object")) {
-      return <ObjectField path={name} />;
+      return <ObjectField path={name} wrapperProps={props} />;
    }
 
    if (isType(schema.type, "array")) {
@@ -88,6 +88,7 @@ const FieldImpl = ({
    }, [inputProps?.defaultValue]);
 
    const disabled = firstDefined(
+      ctx.readOnly,
       inputProps?.disabled,
       props.disabled,
       schema.readOnly,
@@ -107,13 +108,13 @@ const FieldImpl = ({
    return (
       <FieldWrapper name={name} required={required} schema={schema} fieldId={id} {...props}>
          <FieldComponent
+            placeholder={placeholder}
             {...inputProps}
             id={id}
             schema={schema}
             name={name}
             required={required}
             disabled={disabled}
-            placeholder={placeholder}
             onChange={onChange ?? handleChange}
          />
       </FieldWrapper>
@@ -130,7 +131,7 @@ export type FieldComponentProps = {
    schema: JsonSchema;
    render?: (props: Omit<FieldComponentProps, "render">) => ReactNode;
    "data-testId"?: string;
-} & ComponentPropsWithoutRef<"input">;
+} & ComponentPropsWithoutRef<"input"> & { [key: `data-${string}`]: string };
 
 export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProps) => {
    const { value } = useFormValue(_props.name!, { strict: true });
@@ -139,10 +140,11 @@ export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProp
       ..._props,
       // allow override
       value: typeof _props.value !== "undefined" ? _props.value : value,
-      placeholder:
-         (_props.placeholder ?? typeof schema.default !== "undefined")
-            ? String(schema.default)
-            : "",
+      placeholder: _props.placeholder
+         ? _props.placeholder
+         : typeof schema.default !== "undefined"
+           ? String(schema.default)
+           : "",
    };
 
    if (render) return render({ schema, ...props });
@@ -201,3 +203,28 @@ export const FieldComponent = ({ schema, render, ..._props }: FieldComponentProp
 
    return <Formy.TypeAwareInput {...props} value={props.value ?? ""} {...additional} />;
 };
+
+export type CustomFieldProps<Data = any> = {
+   path: string;
+   valueStrict?: boolean;
+   deriveFn?: DeriveFn<Data>;
+   children: (
+      props: Omit<ReturnType<typeof useDerivedFieldContext<Data>>, "setValue"> &
+         ReturnType<typeof useFormValue> & {
+            setValue: (value: any) => void;
+            _setValue: (path: string, value: any) => void;
+         },
+   ) => React.ReactNode;
+};
+
+export function CustomField<Data = any>({
+   path: _path,
+   valueStrict = true,
+   deriveFn,
+   children,
+}: CustomFieldProps<Data>) {
+   const ctx = useDerivedFieldContext(_path, deriveFn);
+   const $value = useFormValue(_path, { strict: valueStrict });
+   const setValue = (value: any) => ctx.setValue(ctx.path, value);
+   return children({ ...ctx, ...$value, setValue, _setValue: ctx.setValue });
+}

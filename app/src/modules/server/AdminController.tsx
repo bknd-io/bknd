@@ -12,6 +12,7 @@ import { Controller } from "modules/Controller";
 import * as SystemPermissions from "modules/permissions";
 import type { TApiUser } from "Api";
 import type { AppTheme } from "ui/client/use-theme";
+import type { Manifest } from "vite";
 
 const htmlBkndContextReplace = "<!-- BKND_CONTEXT -->";
 
@@ -33,6 +34,7 @@ export type AdminControllerOptions = {
    debugRerenders?: boolean;
    theme?: AppTheme;
    logoReturnPath?: string;
+   manifest?: Manifest;
 };
 
 export class AdminController extends Controller {
@@ -92,7 +94,7 @@ export class AdminController extends Controller {
          logout: "/api/auth/logout",
       };
 
-      const paths = ["/", "/data/*", "/auth/*", "/media/*", "/flows/*", "/settings/*"];
+      const paths = ["/", "/data/*", "/auth/*", "/media/*", "/flows/*", "/settings/*", "/tools/*"];
       if (isDebug()) {
          paths.push("/test/*");
       }
@@ -113,8 +115,9 @@ export class AdminController extends Controller {
             }),
             permission(SystemPermissions.schemaRead, {
                onDenied: async (c) => {
-                  addFlashMessage(c, "You not allowed to read the schema", "warning");
+                  addFlashMessage(c, "You are not allowed to read the schema", "warning");
                },
+               context: (c) => ({}),
             }),
             async (c) => {
                const obj: AdminBkndWindowContext = {
@@ -138,17 +141,19 @@ export class AdminController extends Controller {
       }
 
       if (auth_enabled) {
+         const options = {
+            onGranted: async (c) => {
+               // @todo: add strict test to permissions middleware?
+               if (c.get("auth")?.user) {
+                  $console.log("redirecting to success");
+                  return c.redirect(authRoutes.success);
+               }
+            },
+            context: (c) => ({}),
+         };
          const redirectRouteParams = [
-            permission([SystemPermissions.accessAdmin, SystemPermissions.schemaRead], {
-               // @ts-ignore
-               onGranted: async (c) => {
-                  // @todo: add strict test to permissions middleware?
-                  if (c.get("auth")?.user) {
-                     $console.log("redirecting to success");
-                     return c.redirect(authRoutes.success);
-                  }
-               },
-            }),
+            permission(SystemPermissions.accessAdmin, options as any),
+            permission(SystemPermissions.schemaRead, options),
             async (c) => {
                return c.html(c.get("html")!);
             },
@@ -191,12 +196,14 @@ export class AdminController extends Controller {
 
       const assets = {
          js: "main.js",
-         css: "styles.css",
+         css: ["styles.css"],
       };
 
       if (isProd) {
-         let manifest: any;
-         if (this.options.assetsPath.startsWith("http")) {
+         let manifest: Manifest;
+         if (this.options.manifest) {
+            manifest = this.options.manifest;
+         } else if (this.options.assetsPath.startsWith("http")) {
             manifest = await fetch(this.options.assetsPath + ".vite/manifest.json", {
                headers: {
                   Accept: "application/json",
@@ -205,14 +212,17 @@ export class AdminController extends Controller {
          } else {
             // @ts-ignore
             manifest = await import("bknd/dist/manifest.json", {
-               assert: { type: "json" },
+               with: { type: "json" },
             }).then((res) => res.default);
          }
 
          try {
-            // @todo: load all marked as entry (incl. css)
-            assets.js = manifest["src/ui/main.tsx"].file;
-            assets.css = manifest["src/ui/main.tsx"].css[0] as any;
+            const entry = Object.values(manifest).find((m) => m.isEntry);
+            if (!entry) {
+               throw new Error("No entry found in manifest");
+            }
+            assets.js = entry?.file;
+            assets.css = entry?.css ?? [];
          } catch (e) {
             $console.warn("Couldn't find assets in manifest", e);
          }
@@ -242,7 +252,9 @@ export class AdminController extends Controller {
                   {isProd ? (
                      <Fragment>
                         <script type="module" src={this.options.assetsPath + assets?.js} />
-                        <link rel="stylesheet" href={this.options.assetsPath + assets?.css} />
+                        {assets?.css.map((css, i) => (
+                           <link key={i} rel="stylesheet" href={this.options.assetsPath + css} />
+                        ))}
                      </Fragment>
                   ) : (
                      <Fragment>
@@ -293,7 +305,7 @@ const wrapperStyle = css`
    -moz-osx-font-smoothing: grayscale;
    color: rgb(9,9,11);
    background-color: rgb(250,250,250);
-   
+
    @media (prefers-color-scheme: dark) {
       color: rgb(250,250,250);
       background-color: rgb(30,31,34);

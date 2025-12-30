@@ -1,3 +1,4 @@
+import { deno } from "cli/commands/create/templates/deno";
 import { cloudflare } from "./cloudflare";
 
 export type TemplateSetupCtx = {
@@ -15,6 +16,7 @@ export type Integration =
    | "react-router"
    | "astro"
    | "aws"
+   | "deno"
    | "custom";
 
 type TemplateScripts = "install" | "dev" | "build" | "start";
@@ -34,6 +36,11 @@ export type Template = {
     * adds a ref "#{ref}" to the path. If "true", adds the current version of bknd
     */
    ref?: true | string;
+   /**
+    * control whether to install dependencies automatically
+    * e.g. on deno, this is not needed
+    */
+   installDeps?: boolean;
    scripts?: Partial<Record<TemplateScripts, string>>;
    preinstall?: (ctx: TemplateSetupCtx) => Promise<void>;
    postinstall?: (ctx: TemplateSetupCtx) => Promise<void>;
@@ -90,4 +97,5 @@ export const templates: Template[] = [
       path: "gh:bknd-io/bknd/examples/aws-lambda",
       ref: true,
    },
+   deno,
 ];

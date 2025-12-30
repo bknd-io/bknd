@@ -1,13 +1,11 @@
-import { s } from "bknd/utils";
+import { s, isObject, $console } from "bknd/utils";
 import { WhereBuilder, type WhereQuery } from "data/entities/query/WhereBuilder";
-import { isObject, $console } from "core/utils";
-import type { anyOf, CoercionOptions, Schema } from "jsonv-ts";
 
 // -------
 // helpers
 const stringIdentifier = s.string({
    // allow "id", "id,title" – but not "id," or "not allowed"
-   pattern: "^(?:[a-zA-Z_$][\\w$]*)(?:,[a-zA-Z_$][\\w$]*)*$",
+   //pattern: "^(?:[a-zA-Z_$][\\w$]*)(?:,[a-zA-Z_$][\\w$]*)*$",
 });
 const stringArray = s.anyOf(
    [
@@ -25,7 +23,7 @@ const stringArray = s.anyOf(
             if (v.includes(",")) {
                return v.split(",");
             }
-            return [v];
+            return [v].filter(Boolean);
          }
          return [];
       },
@@ -80,12 +78,12 @@ const where = s.anyOf([s.string(), s.object({})], {
       },
    ],
    coerce: (value: unknown) => {
+      if (value === undefined || value === null || value === "") return {};
+
       const q = typeof value === "string" ? JSON.parse(value) : value;
       return WhereBuilder.convert(q);
    },
 });
-//type WhereSchemaIn = s.Static<typeof where>;
-//type WhereSchema = s.StaticCoerced<typeof where>;
 
 // ------
 // with
@@ -97,9 +95,9 @@ export type RepoWithSchema = Record<
    }
 >;
 
-const withSchema = <Type = unknown>(self: Schema): Schema<{}, Type, Type> =>
+const withSchema = <Type = unknown>(self: s.Schema): s.Schema<{}, Type, Type> =>
    s.anyOf([stringIdentifier, s.array(stringIdentifier), self], {
-      coerce: function (this: typeof anyOf, _value: unknown, opts: CoercionOptions = {}) {
+      coerce: function (this: typeof s.anyOf, _value: unknown, opts: s.CoercionOptions = {}) {
          let value: any = _value;
 
          if (typeof value === "string") {
@@ -128,7 +126,7 @@ const withSchema = <Type = unknown>(self: Schema): Schema<{}, Type, Type> =>
             }
          }
 
-         return value as unknown as any;
+         return value as any;
       },
    }) as any;
 
@@ -167,15 +165,3 @@ export type RepoQueryIn = {
 export type RepoQuery = s.StaticCoerced<typeof repoQuery> & {
    sort: SortSchema;
 };
-
-//export type RepoQuery = s.StaticCoerced<typeof repoQuery>;
-// @todo: CURRENT WORKAROUND
-/* export type RepoQuery = {
-   limit?: number;
-   offset?: number;
-   sort?: { by: string; dir: "asc" | "desc" };
-   select?: string[];
-   with?: Record<string, RepoQuery>;
-   join?: string[];
-   where?: WhereQuery;
-}; */

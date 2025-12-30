@@ -1,24 +1,30 @@
-import { config as $config, App, type CreateAppConfig, Connection, guessMimeType } from "bknd";
+import {
+   config as $config,
+   App,
+   type CreateAppConfig,
+   Connection,
+   guessMimeType,
+   type MaybePromise,
+   registries as $registries,
+   type Merge,
+} from "bknd";
 import { $console } from "bknd/utils";
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { Manifest } from "vite";
 
-export type BkndConfig<Args = any> = CreateAppConfig & {
-   app?: CreateAppConfig | ((args: Args) => CreateAppConfig);
-   onBuilt?: (app: App) => Promise<void>;
-   beforeBuild?: (app: App) => Promise<void>;
-   buildConfig?: Parameters<App["build"]>[0];
-};
+export type BkndConfig<Args = any, Additional = {}> = Merge<
+   CreateAppConfig & {
+      app?:
+         | Merge<Omit<BkndConfig, "app"> & Additional>
+         | ((args: Args) => MaybePromise<Merge<Omit<BkndConfig<Args>, "app"> & Additional>>);
+      onBuilt?: (app: App) => MaybePromise<void>;
+      beforeBuild?: (app?: App, registries?: typeof $registries) => MaybePromise<void>;
+      buildConfig?: Parameters<App["build"]>[0];
+   } & Additional
+>;
 
 export type FrameworkBkndConfig<Args = any> = BkndConfig<Args>;
-
-export type CreateAdapterAppOptions = {
-   force?: boolean;
-   id?: string;
-};
-export type FrameworkOptions = CreateAdapterAppOptions;
-export type RuntimeOptions = CreateAdapterAppOptions;
 
 export type RuntimeBkndConfig<Args = any> = BkndConfig<Args> & {
    distPath?: string;
@@ -30,10 +36,10 @@ export type DefaultArgs = {
    [key: string]: any;
 };
 
-export function makeConfig<Args = DefaultArgs>(
+export async function makeConfig<Args = DefaultArgs>(
    config: BkndConfig<Args>,
    args?: Args,
-): CreateAppConfig {
+): Promise<Omit<BkndConfig<Args>, "app">> {
    let additionalConfig: CreateAppConfig = {};
    const { app, ...rest } = config;
    if (app) {
@@ -41,7 +47,7 @@ export function makeConfig<Args = DefaultArgs>(
          if (!args) {
             throw new Error("args is required when config.app is a function");
          }
-         additionalConfig = app(args);
+         additionalConfig = await app(args);
       } else {
          additionalConfig = app;
       }
@@ -50,55 +56,50 @@ export function makeConfig<Args = DefaultArgs>(
    return { ...rest, ...additionalConfig };
 }
 
-// a map that contains all apps by id
-const apps = new Map<string, App>();
 export async function createAdapterApp<Config extends BkndConfig = BkndConfig, Args = DefaultArgs>(
    config: Config = {} as Config,
    args?: Args,
-   opts?: CreateAdapterAppOptions,
-): Promise<App> {
-   const id = opts?.id ?? "app";
-   let app = apps.get(id);
-   if (!app || opts?.force) {
-      const appConfig = makeConfig(config, args);
-      if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
-         let connection: Connection | undefined;
-         if (Connection.isConnection(config.connection)) {
-            connection = config.connection;
-         } else {
-            const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
-            const conf = appConfig.connection ?? { url: ":memory:" };
-            connection = sqlite(conf);
-            $console.info(`Using ${connection!.name} connection`, conf.url);
-         }
-         appConfig.connection = connection;
-      }
+): Promise<{ app: App; config: BkndConfig<Args> }> {
+   await config.beforeBuild?.(undefined, $registries);
 
-      app = App.create(appConfig);
-      apps.set(id, app);
+   const appConfig = await makeConfig(config, args);
+   if (!appConfig.connection || !Connection.isConnection(appConfig.connection)) {
+      let connection: Connection | undefined;
+      if (Connection.isConnection(config.connection)) {
+         connection = config.connection;
+      } else {
+         const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
+         const conf = appConfig.connection ?? { url: "file:data.db" };
+         connection = sqlite(conf) as any;
+         $console.info(`Using ${connection!.name} connection`, conf.url);
+      }
+      appConfig.connection = connection;
    }
-   return app;
+
+   return {
+      app: App.create(appConfig),
+      config: appConfig,
+   };
 }
 
 export async function createFrameworkApp<Args = DefaultArgs>(
    config: FrameworkBkndConfig = {},
    args?: Args,
-   opts?: FrameworkOptions,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args, opts);
+   const { app, config: appConfig } = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       if (config.onBuilt) {
          app.emgr.onEvent(
             App.Events.AppBuiltEvent,
             async () => {
-               await config.onBuilt?.(app);
+               await appConfig.onBuilt?.(app);
             },
             "sync",
          );
       }
 
-      await config.beforeBuild?.(app);
+      await appConfig.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }
 
@@ -108,9 +109,8 @@ export async function createFrameworkApp<Args = DefaultArgs>(
 export async function createRuntimeApp<Args = DefaultArgs>(
    { serveStatic, adminOptions, ...config }: RuntimeBkndConfig<Args> = {},
    args?: Args,
-   opts?: RuntimeOptions,
 ): Promise<App> {
-   const app = await createAdapterApp(config, args, opts);
+   const { app, config: appConfig } = await createAdapterApp(config, args);
 
    if (!app.isBuilt()) {
       app.emgr.onEvent(
@@ -123,7 +123,7 @@ export async function createRuntimeApp<Args = DefaultArgs>(
                app.modules.server.get(path, handler);
             }
 
-            await config.onBuilt?.(app);
+            await appConfig.onBuilt?.(app);
             if (adminOptions !== false) {
                app.registerAdminController(adminOptions);
             }
@@ -131,7 +131,7 @@ export async function createRuntimeApp<Args = DefaultArgs>(
          "sync",
       );
 
-      await config.beforeBuild?.(app);
+      await appConfig.beforeBuild?.(app, $registries);
       await app.build(config.buildConfig);
    }
 
@@ -154,22 +154,33 @@ export async function createRuntimeApp<Args = DefaultArgs>(
  * });
  * ```
  */
-export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
+export function serveStaticViaImport(opts?: {
+   manifest?: Manifest;
+   appendRaw?: boolean;
+   package?: string;
+}) {
    let files: string[] | undefined;
+   const pkg = opts?.package ?? "bknd";
 
    // @ts-ignore
    return async (c: Context, next: Next) => {
       if (!files) {
          const manifest =
-            opts?.manifest || ((await import("bknd/dist/manifest.json")).default as Manifest);
+            opts?.manifest ||
+            ((
+               await import(/* @vite-ignore */ `${pkg}/dist/manifest.json`, {
+                  with: { type: "json" },
+               })
+            ).default as Manifest);
          files = Object.values(manifest).flatMap((asset) => [asset.file, ...(asset.css || [])]);
       }
 
       const path = c.req.path.substring(1);
       if (files.includes(path)) {
          try {
-            const content = await import(/* @vite-ignore */ `bknd/static/${path}?raw`, {
-               assert: { type: "text" },
+            const url = `${pkg}/static/${path}${opts?.appendRaw ? "?raw" : ""}`;
+            const content = await import(/* @vite-ignore */ url, {
+               with: { type: "text" },
             }).then((m) => m.default);
 
             if (content) {
@@ -181,7 +192,7 @@ export function serveStaticViaImport(opts?: { manifest?: Manifest }) {
                });
             }
          } catch (e) {
-            console.error("Error serving static file:", e);
+            console.error(`Error serving static file "${path}":`, String(e));
             return c.text("File not found", 404);
          }
       }

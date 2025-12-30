@@ -36,7 +36,7 @@ export class MediaController extends Controller {
             summary: "Get the list of files",
             tags: ["media"],
          }),
-         permission(MediaPermissions.listFiles),
+         permission(MediaPermissions.listFiles, {}),
          async (c) => {
             const files = await this.getStorageAdapter().listObjects();
             return c.json(files);
@@ -51,7 +51,7 @@ export class MediaController extends Controller {
             summary: "Get a file by name",
             tags: ["media"],
          }),
-         permission(MediaPermissions.readFile),
+         permission(MediaPermissions.readFile, {}),
          async (c) => {
             const { filename } = c.req.param();
             if (!filename) {
@@ -81,7 +81,7 @@ export class MediaController extends Controller {
             summary: "Delete a file by name",
             tags: ["media"],
          }),
-         permission(MediaPermissions.deleteFile),
+         permission(MediaPermissions.deleteFile, {}),
          async (c) => {
             const { filename } = c.req.param();
             if (!filename) {
@@ -93,7 +93,10 @@ export class MediaController extends Controller {
          },
       );
 
-      const maxSize = this.getStorage().getConfig().body_max_size ?? Number.POSITIVE_INFINITY;
+      const maxSize =
+         this.media.options.body_max_size ??
+         this.getStorage().getConfig().body_max_size ??
+         Number.POSITIVE_INFINITY;
 
       if (isDebug()) {
          hono.post(
@@ -146,7 +149,7 @@ export class MediaController extends Controller {
             requestBody,
          }),
          jsc("param", s.object({ filename: s.string().optional() })),
-         permission(MediaPermissions.uploadFile),
+         permission(MediaPermissions.uploadFile, {}),
          async (c) => {
             const reqname = c.req.param("filename");
 
@@ -181,16 +184,17 @@ export class MediaController extends Controller {
             "param",
             s.object({
                entity: entitiesEnum,
-               id: s.number(),
+               id: s.anyOf([s.number(), s.string()]),
                field: s.string(),
             }),
          ),
          jsc("query", s.object({ overwrite: s.boolean().optional() })),
-         permission([DataPermissions.entityCreate, MediaPermissions.uploadFile]),
+         permission(DataPermissions.entityCreate, {
+            context: (c) => ({ entity: c.req.param("entity") }),
+         }),
+         permission(MediaPermissions.uploadFile, {}),
          async (c) => {
-            const entity_name = c.req.param("entity");
-            const field_name = c.req.param("field");
-            const entity_id = Number.parseInt(c.req.param("id"));
+            const { entity: entity_name, id: entity_id, field: field_name } = c.req.valid("param");
 
             // check if entity exists
             const entity = this.media.em.entity(entity_name);

@@ -3,7 +3,7 @@ import type { FieldApi, ReactFormExtendedApi } from "@tanstack/react-form";
 import type { JSX } from "react";
 import { useStore } from "@tanstack/react-store";
 import { MediaField } from "media/MediaField";
-import { type ComponentProps, Suspense } from "react";
+import { type ComponentProps, Suspense, useState } from "react";
 import { JsonEditor } from "ui/components/code/JsonEditor";
 import * as Formy from "ui/components/form/Formy";
 import { FieldLabel } from "ui/components/form/Formy";
@@ -16,6 +16,7 @@ import { Alert } from "ui/components/display/Alert";
 import { bkndModals } from "ui/modals";
 import type { EnumField, JsonField, JsonSchemaField } from "data/fields";
 import type { RelationField } from "data/relations";
+import { useEntityAdminOptions } from "ui/options";
 
 // simplify react form types 🤦
 export type FormApi = ReactFormExtendedApi<any, any, any, any, any, any, any, any, any, any>;
@@ -44,6 +45,7 @@ export function EntityForm({
    action,
 }: EntityFormProps) {
    const fields = entity.getFillableFields(action, true);
+   const options = useEntityAdminOptions(entity, action);
 
    return (
       <form onSubmit={handleSubmit}>
@@ -107,16 +109,31 @@ export function EntityForm({
                   >
                      <Form.Field
                         name={field.name}
-                        children={(props) => (
-                           <EntityFormField
-                              field={field}
-                              fieldApi={props}
-                              disabled={fieldsDisabled}
-                              tabIndex={key + 1}
-                              action={action}
-                              data={data}
-                           />
-                        )}
+                        children={(props) => {
+                           const fieldOptions = options.field(field.name);
+                           if (fieldOptions?.render) {
+                              const custom = fieldOptions.render(action, entity, field, {
+                                 handleChange: props.handleChange,
+                                 value: props.state.value,
+                                 data,
+                              });
+                              if (custom) {
+                                 return custom;
+                              }
+                           }
+                           if (field.isHidden(action)) return;
+
+                           return (
+                              <EntityFormField
+                                 field={field}
+                                 fieldApi={props}
+                                 disabled={fieldsDisabled}
+                                 tabIndex={key + 1}
+                                 action={action}
+                                 data={data}
+                              />
+                           );
+                        }}
                      />
                   </ErrorBoundary>
                );
@@ -223,6 +240,10 @@ function EntityMediaFormField({
    disabled?: boolean;
 }) {
    if (!entityId) return;
+   const maxLimit = 50;
+   const maxItems = field.getMaxItems();
+   const isSingle = maxItems === 1;
+   const limit = isSingle ? 1 : maxItems && maxItems > maxLimit ? maxLimit : maxItems;
 
    const value = useStore(formApi.store, (state) => {
       const val = state.values[field.name];
@@ -243,8 +264,9 @@ function EntityMediaFormField({
          <FieldLabel field={field} />
          <Media.Dropzone
             key={key}
-            maxItems={field.getMaxItems()}
-            initialItems={value} /* @todo: test if better be omitted, so it fetches */
+            maxItems={maxItems}
+            allowedMimeTypes={field.getAllowedMimeTypes()}
+            initialItems={isSingle ? value : undefined}
             onClick={onClick}
             entity={{
                name: entity.name,
@@ -253,6 +275,7 @@ function EntityMediaFormField({
             }}
             query={{
                sort: "-id",
+               limit,
             }}
          />
       </Formy.Group>
@@ -264,33 +287,26 @@ function EntityJsonFormField({
    field,
    ...props
 }: { fieldApi: TFieldApi; field: JsonField }) {
+   const [error, setError] = useState<any>(null);
    const handleUpdate = useEvent((value: any) => {
+      setError(null);
       fieldApi.handleChange(value);
    });
 
    return (
-      <Formy.Group>
-         <Formy.Label htmlFor={fieldApi.name}>{field.getLabel()}</Formy.Label>
+      <Formy.Group error={!!error}>
+         <Formy.FieldLabel htmlFor={fieldApi.name} field={field} />
          <Suspense>
             <JsonEditor
                id={fieldApi.name}
                value={fieldApi.state.value}
                onChange={handleUpdate}
                onBlur={fieldApi.handleBlur}
+               onInvalid={setError}
                minHeight="100"
-               /*required={field.isRequired()}*/
                {...props}
             />
          </Suspense>
-         {/*<Formy.Textarea
-            name={fieldApi.name}
-            id={fieldApi.name}
-            value={fieldApi.state.value}
-            onBlur={fieldApi.handleBlur}
-            onChange={handleUpdate}
-            required={field.isRequired()}
-            {...props}
-         />*/}
       </Formy.Group>
    );
 }
@@ -306,7 +322,7 @@ function EntityEnumFormField({
 
    return (
       <Formy.Group>
-         <Formy.Label htmlFor={fieldApi.name}>{field.getLabel()}</Formy.Label>
+         <Formy.FieldLabel htmlFor={fieldApi.name} field={field} />
          <Formy.Select
             name={fieldApi.name}
             id={fieldApi.name}
@@ -317,8 +333,8 @@ function EntityEnumFormField({
             {...props}
          >
             {!field.isRequired() && <option value="">- Select -</option>}
-            {field.getOptions().map((option) => (
-               <option key={option.value} value={option.value}>
+            {field.getOptions().map((option, i) => (
+               <option key={`${option.value}-${i}`} value={option.value}>
                   {option.label}
                </option>
             ))}

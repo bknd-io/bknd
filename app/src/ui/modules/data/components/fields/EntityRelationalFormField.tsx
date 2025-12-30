@@ -44,7 +44,7 @@ export function EntityRelationalFormField({
    const ref = useRef<any>(null);
    const $q = useEntityQuery(field.target(), undefined, {
       select: query.select,
-      limit: query.limit,
+      limit: query.limit + 1 /* overfetch for softscan=false */,
       offset: (query.page - 1) * query.limit,
    });
    const [_value, _setValue] = useState<{ id: number | undefined; [key: string]: any }>();
@@ -93,9 +93,11 @@ export function EntityRelationalFormField({
 
    return (
       <Formy.Group>
-         <Formy.Label htmlFor={fieldApi.name}>
-            {field.getLabel({ fallback: false }) ?? entity.label}
-         </Formy.Label>
+         <Formy.FieldLabel
+            htmlFor={fieldApi.name}
+            field={field}
+            label={field.getLabel({ fallback: false }) ?? entity.label}
+         />
          <div
             data-disabled={fetching || disabled ? 1 : undefined}
             className="data-[disabled]:opacity-70 data-[disabled]:pointer-events-none"
@@ -232,7 +234,7 @@ const PopoverTable = ({
             data={container ?? []}
             entity={entity}
             select={query.select}
-            total={container.meta?.count}
+            total={container.body.meta?.count}
             page={query.page}
             onClickRow={onClickRow}
             onClickPage={onClickPage}

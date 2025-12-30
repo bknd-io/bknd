@@ -1,7 +1,7 @@
 /// <reference types="bun-types" />
 
 import path from "node:path";
-import { type RuntimeBkndConfig, createRuntimeApp, type RuntimeOptions } from "bknd/adapter";
+import { type RuntimeBkndConfig, createRuntimeApp } from "bknd/adapter";
 import { registerLocalMediaAdapter } from ".";
 import { config, type App } from "bknd";
 import type { ServeOptions } from "bun";
@@ -11,32 +11,33 @@ type BunEnv = Bun.Env;
 export type BunBkndConfig<Env = BunEnv> = RuntimeBkndConfig<Env> & Omit<ServeOptions, "fetch">;
 
 export async function createApp<Env = BunEnv>(
-   { distPath, ...config }: BunBkndConfig<Env> = {},
-   args: Env = {} as Env,
-   opts?: RuntimeOptions,
+   { distPath, serveStatic: _serveStatic, ...config }: BunBkndConfig<Env> = {},
+   args: Env = Bun.env as Env,
 ) {
    const root = path.resolve(distPath ?? "./node_modules/bknd/dist", "static");
    registerLocalMediaAdapter();
 
    return await createRuntimeApp(
       {
-         serveStatic: serveStatic({ root }),
+         serveStatic:
+            _serveStatic ??
+            serveStatic({
+               root,
+            }),
          ...config,
       },
-      args ?? (process.env as Env),
-      opts,
+      args,
    );
 }
 
 export function createHandler<Env = BunEnv>(
    config: BunBkndConfig<Env> = {},
-   args: Env = {} as Env,
-   opts?: RuntimeOptions,
+   args: Env = Bun.env as Env,
 ) {
    let app: App | undefined;
    return async (req: Request) => {
       if (!app) {
-         app = await createApp(config, args ?? (process.env as Env), opts);
+         app = await createApp(config, args);
       }
       return app.fetch(req);
    };
@@ -46,17 +47,17 @@ export function serve<Env = BunEnv>(
    {
       distPath,
       connection,
-      initialConfig,
+      config: _config,
       options,
       port = config.server.default_port,
       onBuilt,
       buildConfig,
       adminOptions,
       serveStatic,
+      beforeBuild,
       ...serveOptions
    }: BunBkndConfig<Env> = {},
-   args: Env = {} as Env,
-   opts?: RuntimeOptions,
+   args: Env = Bun.env as Env,
 ) {
    Bun.serve({
       ...serveOptions,
@@ -64,16 +65,16 @@ export function serve<Env = BunEnv>(
       fetch: createHandler(
          {
             connection,
-            initialConfig,
+            config: _config,
             options,
             onBuilt,
             buildConfig,
             adminOptions,
             distPath,
             serveStatic,
+            beforeBuild,
          },
          args,
-         opts,
       ),
    });
 

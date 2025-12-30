@@ -28,7 +28,7 @@ export default {
       },
    }),
    // an initial config is only applied if the database is empty
-   initialConfig: {
+   config: {
       data: schema.toJSON(),
       // we're enabling auth ...
       auth: {

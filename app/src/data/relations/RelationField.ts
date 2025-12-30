@@ -84,9 +84,10 @@ export class RelationField extends Field<RelationFieldConfig> {
    }
 
    override toType(): TFieldTSType {
+      const type = this.config.target_field_type === "integer" ? "number" : "string";
       return {
          ...super.toType(),
-         type: "number",
+         type,
       };
    }
 }

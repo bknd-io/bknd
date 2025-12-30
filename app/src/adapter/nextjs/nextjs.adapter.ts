@@ -1,4 +1,4 @@
-import { createFrameworkApp, type FrameworkBkndConfig, type FrameworkOptions } from "bknd/adapter";
+import { createFrameworkApp, type FrameworkBkndConfig } from "bknd/adapter";
 import { isNode } from "bknd/utils";
 import type { NextApiRequest } from "next";
 
@@ -9,10 +9,9 @@ export type NextjsBkndConfig<Env = NextjsEnv> = FrameworkBkndConfig<Env> & {
 
 export async function getApp<Env = NextjsEnv>(
    config: NextjsBkndConfig<Env>,
-   args: Env = {} as Env,
-   opts?: FrameworkOptions,
+   args: Env = process.env as Env,
 ) {
-   return await createFrameworkApp(config, args ?? (process.env as Env), opts);
+   return await createFrameworkApp(config, args);
 }
 
 function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequest"]) {
@@ -40,11 +39,10 @@ function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequ
 
 export function serve<Env = NextjsEnv>(
    { cleanRequest, ...config }: NextjsBkndConfig<Env> = {},
-   args: Env = {} as Env,
-   opts?: FrameworkOptions,
+   args: Env = process.env as Env,
 ) {
    return async (req: Request) => {
-      const app = await getApp(config, args, opts);
+      const app = await getApp(config, args);
       const request = getCleanRequest(req, cleanRequest);
       return app.fetch(request);
    };

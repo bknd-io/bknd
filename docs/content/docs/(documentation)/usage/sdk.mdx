@@ -1,6 +1,7 @@
 ---
 title: "SDK (TypeScript)"
 description: "Use the bknd SDK in TypeScript"
+icon: TypeScript
 tags: ["documentation"]
 ---
 
@@ -136,6 +137,35 @@ To retrieve a single record from an entity, use the `readOne` method:
 const { data } = await api.data.readOne("posts", 1);
 ```
 
+### `data.readOneBy([entity], [query])`
+
+To retrieve a single record from an entity using a query (e.g., by a specific field value) instead of an ID, use the `readOneBy` method:
+
+```ts
+const { data } = await api.data.readOneBy("posts", {
+  where: {
+    slug: "hello-world",
+  },
+});
+```
+
+This is useful when you want to find a record by a unique field other than the primary key. You can also use `select`, `with`, and `join` options:
+
+```ts
+const { data } = await api.data.readOneBy("users", {
+  select: ["id", "email", "name"],
+  where: {
+    email: "user@example.com",
+  },
+  with: {
+    posts: {
+      limit: 5,
+    },
+  },
+  join: ["profile"],
+});
+```
+
 ### `data.createOne([entity], [data])`
 
 To create a single record of an entity, use the `createOne` method:
@@ -199,6 +229,37 @@ To delete many records of an entity, use the `deleteMany` method:
 const { data } = await api.data.deleteMany("posts", { views: { $lte: 1 } });
 ```
 
+### `data.readManyByReference([entity], [id], [reference], [query])`
+
+To retrieve records from a related entity by following a reference, use the `readManyByReference` method:
+
+```ts
+const { data } = await api.data.readManyByReference("posts", 1, "comments", {
+  limit: 5,
+  sort: "-created_at",
+});
+```
+
+### `data.count([entity], [where])`
+
+To count records in an entity that match certain criteria, use the `count` method:
+
+```ts
+const { data } = await api.data.count("posts", { 
+  views: { $gt: 100 } 
+});
+```
+
+### `data.exists([entity], [where])`
+
+To check if any records exist in an entity that match certain criteria, use the `exists` method:
+
+```ts
+const { data } = await api.data.exists("posts", { 
+  title: "Hello, World!" 
+});
+```
+
 ## Auth (`api.auth`)
 
 Access the `Auth` specific API methods at `api.auth`. If there is successful authentication, the
@@ -234,6 +295,16 @@ const { data } = await api.auth.register("password", {
 });
 ```
 
+### `auth.logout()`
+
+To log out the current user and clear the stored token, use the `logout` method:
+
+```ts
+await api.auth.logout();
+```
+
+This method takes no parameters. It sends a request to the logout endpoint and clears the authentication token. Returns a `Promise<void>`.
+
 ### `auth.me()`
 
 To retrieve the current user, use the `me` method:
@@ -241,3 +312,89 @@ To retrieve the current user, use the `me` method:
 ```ts
 const { data } = await api.auth.me();
 ```
+
+## Media (`api.media`)
+
+Access the `Media` specific API methods at `api.media`.
+
+### `media.listFiles()`
+
+To retrieve a list of all uploaded files, use the `listFiles` method:
+
+```ts
+const { data } = await api.media.listFiles();
+//      ^? FileListObject[]
+```
+
+### `media.getFile([filename])`
+
+To retrieve a file as a readable stream, use the `getFile` method:
+
+```ts
+const { data } = await api.media.getFile("image.jpg");
+//      ^? ReadableStream<Uint8Array>
+```
+
+### `media.getFileStream([filename])`
+
+To get a file stream directly, use the `getFileStream` method:
+
+```ts
+const stream = await api.media.getFileStream("image.jpg");
+//    ^? ReadableStream<Uint8Array>
+```
+
+### `media.download([filename])`
+
+To download a file as a File object, use the `download` method:
+
+```ts
+const file = await api.media.download("image.jpg");
+//    ^? File
+```
+
+### `media.upload([item], [options])`
+
+To upload a file, use the `upload` method. The item can be any of:
+- `File` object
+- `Request` object
+- `Response` object
+- `string` (URL)
+- `ReadableStream`
+- `Buffer`
+- `Blob`
+
+```ts
+// Upload a File object
+const { data } = await api.media.upload(item);
+
+// Upload from a URL
+const { data } = await api.media.upload("https://example.com/image.jpg");
+
+// Upload with custom options
+const { data } = await api.media.upload(item, {
+  filename: "custom-name.jpg",
+});
+```
+
+### `media.uploadToEntity([entity], [id], [field], [item], [options])`
+
+To upload a file directly to an entity field, use the `uploadToEntity` method:
+
+```ts
+const { data } = await api.media.uploadToEntity(
+  "posts", 
+  1, 
+  "image", 
+  item
+);
+```
+
+### `media.deleteFile([filename])`
+
+To delete a file, use the `deleteFile` method:
+
+```ts
+const { data } = await api.media.deleteFile("image.jpg");
+```
+

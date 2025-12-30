@@ -1,25 +1,40 @@
 import { Exception } from "core/errors";
 import { isDebug } from "core/env";
-import { $console, s } from "bknd/utils";
+import { $console, mcpLogLevels, s } from "bknd/utils";
+import { $object } from "modules/mcp";
 import { cors } from "hono/cors";
 import { Module } from "modules/Module";
 import { AuthException } from "auth/errors";
 
 const serverMethods = ["GET", "POST", "PATCH", "PUT", "DELETE"] as const;
 
-export const serverConfigSchema = s.strictObject({
-   cors: s.strictObject({
-      origin: s.string({ default: "*" }),
-      allow_methods: s.array(s.string({ enum: serverMethods }), {
-         default: serverMethods,
-         uniqueItems: true,
+export const serverConfigSchema = $object(
+   "config_server",
+   {
+      cors: s.strictObject({
+         origin: s.string({ default: "*" }),
+         allow_methods: s.array(s.string({ enum: serverMethods }), {
+            default: serverMethods,
+            uniqueItems: true,
+         }),
+         allow_headers: s.array(s.string(), {
+            default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
+         }),
+         allow_credentials: s.boolean({ default: true }),
       }),
-      allow_headers: s.array(s.string(), {
-         default: ["Content-Type", "Content-Length", "Authorization", "Accept"],
+      mcp: s.strictObject({
+         enabled: s.boolean({ default: false }),
+         path: s.string({ default: "/api/system/mcp" }),
+         logLevel: s.string({
+            enum: mcpLogLevels,
+            default: "warning",
+         }),
       }),
-      allow_credentials: s.boolean({ default: true }),
-   }),
-});
+   },
+   {
+      description: "Server configuration",
+   },
+).strict();
 
 export type AppServerConfig = s.Static<typeof serverConfigSchema>;
 
@@ -37,11 +52,16 @@ export class AppServer extends Module<AppServerConfig> {
    }
 
    override async build() {
-      const origin = this.config.cors.origin ?? "";
+      const origin = this.config.cors.origin ?? "*";
+      const origins = origin.includes(",") ? origin.split(",").map((o) => o.trim()) : [origin];
+      const all_origins = origins.includes("*");
       this.client.use(
          "*",
          cors({
-            origin: origin.includes(",") ? origin.split(",").map((o) => o.trim()) : origin,
+            origin: (origin: string) => {
+               if (all_origins) return origin;
+               return origins.includes(origin) ? origin : undefined;
+            },
             allowMethods: this.config.cors.allow_methods,
             allowHeaders: this.config.cors.allow_headers,
             credentials: this.config.cors.allow_credentials,
@@ -72,6 +92,10 @@ export class AppServer extends Module<AppServerConfig> {
          }
 
          if (err instanceof AuthException) {
+            if (isDebug()) {
+               return c.json(err.toJSON(), err.code);
+            }
+
             return c.json(err.toJSON(), err.getSafeErrorAndCode().code);
          }
 

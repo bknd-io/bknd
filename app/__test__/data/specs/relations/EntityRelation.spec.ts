@@ -4,8 +4,10 @@ import {
    type BaseRelationConfig,
    EntityRelation,
    EntityRelationAnchor,
+   ManyToManyRelation,
    RelationTypes,
 } from "data/relations";
+import * as proto from "data/prototype";
 
 class TestEntityRelation extends EntityRelation {
    constructor(config?: BaseRelationConfig) {
@@ -74,5 +76,16 @@ describe("[data] EntityRelation", async () => {
 
       const relation2 = new TestEntityRelation({ required: true });
       expect(relation2.required).toBe(true);
+   });
+
+   it("correctly produces the relation name", async () => {
+      const relation = new ManyToManyRelation(new Entity("apps"), new Entity("organizations"));
+      expect(relation.getName()).not.toContain(",");
+      expect(relation.getName()).toBe("mn_apps_organizations");
+
+      const relation2 = new ManyToManyRelation(new Entity("apps"), new Entity("organizations"), {
+         connectionTableMappedName: "appOrganizations",
+      });
+      expect(relation2.getName()).toBe("mn_apps_organizations_appOrganizations");
    });
 });

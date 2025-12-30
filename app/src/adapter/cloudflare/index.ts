@@ -1,10 +1,14 @@
 import { d1Sqlite, type D1ConnectionConfig } from "./connection/D1Connection";
 
-export * from "./cloudflare-workers.adapter";
-export { makeApp, getFresh } from "./modes/fresh";
-export { getCached } from "./modes/cached";
-export { DurableBkndApp, getDurable } from "./modes/durable";
+export {
+   getFresh,
+   createApp,
+   serve,
+   type CloudflareEnv,
+   type CloudflareBkndConfig,
+} from "./cloudflare-workers.adapter";
 export { d1Sqlite, type D1ConnectionConfig };
+export { doSqlite, type DoConnectionConfig } from "./connection/DoConnection";
 export {
    getBinding,
    getBindings,
@@ -12,9 +16,10 @@ export {
    type GetBindingType,
    type BindingMap,
 } from "./bindings";
-export { constants } from "./config";
+export { constants, makeConfig, type CloudflareContext } from "./config";
 export { StorageR2Adapter, registerMedia } from "./storage/StorageR2Adapter";
 export { registries } from "bknd";
+export { devFsVitePlugin, devFsWrite } from "./vite";
 
 // for compatibility with old code
 export function d1<DB extends D1Database | D1DatabaseSession = D1Database>(

@@ -8,8 +8,8 @@ import { getBinding } from "./bindings";
 import { d1Sqlite } from "./connection/D1Connection";
 import type { CloudflareBkndConfig, CloudflareEnv } from ".";
 import { App } from "bknd";
-import type { Context, ExecutionContext } from "hono";
-import { $console } from "core/utils";
+import type { Context as HonoContext, ExecutionContext } from "hono";
+import { $console } from "bknd/utils";
 import { setCookie } from "hono/cookie";
 
 export const constants = {
@@ -22,10 +22,10 @@ export const constants = {
    },
 };
 
-export type CfMakeConfigArgs<Env extends CloudflareEnv = CloudflareEnv> = {
+export type CloudflareContext<Env extends CloudflareEnv = CloudflareEnv> = {
    env: Env;
-   ctx?: ExecutionContext;
-   request?: Request;
+   ctx: ExecutionContext;
+   request: Request;
 };
 
 function getCookieValue(cookies: string | null, name: string) {
@@ -67,7 +67,7 @@ export function d1SessionHelper(config: CloudflareBkndConfig<any>) {
 
          return undefined;
       },
-      set: (c: Context, d1?: D1DatabaseSession) => {
+      set: (c: HonoContext, d1?: D1DatabaseSession) => {
          if (!d1 || !config.d1?.session) return;
 
          const session = d1.getBookmark();
@@ -89,9 +89,9 @@ export function d1SessionHelper(config: CloudflareBkndConfig<any>) {
 }
 
 let media_registered: boolean = false;
-export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
+export async function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
    config: CloudflareBkndConfig<Env>,
-   args?: CfMakeConfigArgs<Env>,
+   args?: Partial<CloudflareContext<Env>>,
 ) {
    if (!media_registered && config.registerMedia !== false) {
       if (typeof config.registerMedia === "function") {
@@ -102,7 +102,7 @@ export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
       media_registered = true;
    }
 
-   const appConfig = makeAdapterConfig(config, args?.env);
+   const appConfig = await makeAdapterConfig(config, args?.env);
 
    // if connection instance is given, don't do anything
    // other than checking if D1 session is defined
@@ -115,12 +115,12 @@ export function makeConfig<Env extends CloudflareEnv = CloudflareEnv>(
       }
       // if connection is given, try to open with unified sqlite adapter
    } else if (appConfig.connection) {
-      appConfig.connection = sqlite(appConfig.connection);
+      appConfig.connection = sqlite(appConfig.connection) as any;
 
       // if connection is not given, but env is set
       // try to make D1 from bindings
    } else if (args?.env) {
-      const bindings = config.bindings?.(args?.env);
+      const bindings = await config.bindings?.(args?.env);
       const sessionHelper = d1SessionHelper(config);
       const sessionId = sessionHelper.get(args.request);
       let session: D1DatabaseSession | undefined;

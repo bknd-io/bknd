@@ -1,9 +1,12 @@
 import { Exception } from "core/errors";
-import { $console, objectTransform } from "core/utils";
-import { Permission } from "core/security/Permission";
+import { $console, mergeObject, type s } from "bknd/utils";
+import type { Permission, PermissionContext } from "auth/authorize/Permission";
 import type { Context } from "hono";
 import type { ServerEnv } from "modules/Controller";
-import { Role } from "./Role";
+import type { Role } from "./Role";
+import { HttpStatus } from "bknd/utils";
+import type { Policy, PolicySchema } from "./Policy";
+import { convert, type ObjectQuery } from "core/object/query/object-query";
 
 export type GuardUserContext = {
    role?: string | null;
@@ -12,39 +15,41 @@ export type GuardUserContext = {
 
 export type GuardConfig = {
    enabled?: boolean;
+   context?: object;
 };
 export type GuardContext = Context<ServerEnv> | GuardUserContext;
 
-export class Guard {
-   permissions: Permission[];
-   roles?: Role[];
-   config?: GuardConfig;
+export class GuardPermissionsException extends Exception {
+   override name = "PermissionsException";
+   override code = HttpStatus.FORBIDDEN;
 
-   constructor(permissions: Permission[] = [], roles: Role[] = [], config?: GuardConfig) {
+   constructor(
+      public permission: Permission,
+      public policy?: Policy,
+      public description?: string,
+   ) {
+      super(`Permission "${permission.name}" not granted`);
+   }
+
+   override toJSON(): any {
+      return {
+         ...super.toJSON(),
+         description: this.description,
+         permission: this.permission.name,
+         policy: this.policy?.toJSON(),
+      };
+   }
+}
+
+export class Guard {
+   constructor(
+      public permissions: Permission<any, any, any, any>[] = [],
+      public roles: Role[] = [],
+      public config?: GuardConfig,
+   ) {
       this.permissions = permissions;
       this.roles = roles;
       this.config = config;
-   }
-
-   static create(
-      permissionNames: string[],
-      roles?: Record<
-         string,
-         {
-            permissions?: string[];
-            is_default?: boolean;
-            implicit_allow?: boolean;
-         }
-      >,
-      config?: GuardConfig,
-   ) {
-      const _roles = roles
-         ? objectTransform(roles, ({ permissions = [], is_default, implicit_allow }, name) => {
-              return Role.createWithPermissionNames(name, permissions, is_default, implicit_allow);
-           })
-         : {};
-      const _permissions = permissionNames.map((name) => new Permission(name));
-      return new Guard(_permissions, Object.values(_roles), config);
    }
 
    getPermissionNames(): string[] {
@@ -73,7 +78,7 @@ export class Guard {
       return this;
    }
 
-   registerPermission(permission: Permission) {
+   registerPermission(permission: Permission<any, any, any, any>) {
       if (this.permissions.find((p) => p.name === permission.name)) {
          throw new Error(`Permission ${permission.name} already exists`);
       }
@@ -82,9 +87,13 @@ export class Guard {
       return this;
    }
 
-   registerPermissions(permissions: Record<string, Permission>);
-   registerPermissions(permissions: Permission[]);
-   registerPermissions(permissions: Permission[] | Record<string, Permission>) {
+   registerPermissions(permissions: Record<string, Permission<any, any, any, any>>);
+   registerPermissions(permissions: Permission<any, any, any, any>[]);
+   registerPermissions(
+      permissions:
+         | Permission<any, any, any, any>[]
+         | Record<string, Permission<any, any, any, any>>,
+   ) {
       const p = Array.isArray(permissions) ? permissions : Object.values(permissions);
 
       for (const permission of p) {
@@ -117,56 +126,216 @@ export class Guard {
       return this.config?.enabled === true;
    }
 
-   hasPermission(permission: Permission, user?: GuardUserContext): boolean;
-   hasPermission(name: string, user?: GuardUserContext): boolean;
-   hasPermission(permissionOrName: Permission | string, user?: GuardUserContext): boolean {
-      if (!this.isEnabled()) {
-         return true;
-      }
-
-      const name = typeof permissionOrName === "string" ? permissionOrName : permissionOrName.name;
-      $console.debug("guard: checking permission", {
-         name,
-         user: { id: user?.id, role: user?.role },
-      });
-      const exists = this.permissionExists(name);
-      if (!exists) {
-         throw new Error(`Permission ${name} does not exist`);
-      }
-
-      const role = this.getUserRole(user);
-
-      if (!role) {
-         $console.debug("guard: user has no role, denying");
-         return false;
-      } else if (role.implicit_allow === true) {
-         $console.debug(`guard: role "${role.name}" has implicit allow, allowing`);
-         return true;
-      }
-
-      const rolePermission = role.permissions.find(
-         (rolePermission) => rolePermission.permission.name === name,
-      );
-
-      $console.debug("guard: rolePermission, allowing?", {
-         permission: name,
-         role: role.name,
-         allowing: !!rolePermission,
-      });
-      return !!rolePermission;
-   }
-
-   granted(permission: Permission | string, c?: GuardContext): boolean {
+   private collect(permission: Permission, c: GuardContext | undefined, context: any) {
       const user = c && "get" in c ? c.get("auth")?.user : c;
-      return this.hasPermission(permission as any, user);
+      const ctx = {
+         ...((context ?? {}) as any),
+         ...this.config?.context,
+         user,
+      };
+      const exists = this.permissionExists(permission.name);
+      const role = this.getUserRole(user);
+      const rolePermission = role?.permissions.find(
+         (rolePermission) => rolePermission.permission.name === permission.name,
+      );
+      return {
+         ctx,
+         user,
+         exists,
+         role,
+         rolePermission,
+      };
    }
 
-   throwUnlessGranted(permission: Permission | string, c: GuardContext) {
-      if (!this.granted(permission, c)) {
-         throw new Exception(
-            `Permission "${typeof permission === "string" ? permission : permission.name}" not granted`,
-            403,
+   granted<P extends Permission<any, any, any, any>>(
+      permission: P,
+      c: GuardContext,
+      context: PermissionContext<P>,
+   ): void;
+   granted<P extends Permission<any, any, undefined, any>>(permission: P, c: GuardContext): void;
+   granted<P extends Permission<any, any, any, any>>(
+      permission: P,
+      c: GuardContext,
+      context?: PermissionContext<P>,
+   ): void {
+      if (!this.isEnabled()) {
+         return;
+      }
+      const { ctx: _ctx, exists, role, rolePermission } = this.collect(permission, c, context);
+
+      // validate context
+      let ctx = Object.assign({}, _ctx);
+      if (permission.context) {
+         ctx = permission.parseContext(ctx);
+      }
+
+      $console.debug("guard: checking permission", {
+         name: permission.name,
+         context: ctx,
+      });
+      if (!exists) {
+         throw new GuardPermissionsException(
+            permission,
+            undefined,
+            `Permission ${permission.name} does not exist`,
          );
       }
+
+      if (!role) {
+         throw new GuardPermissionsException(permission, undefined, "User has no role");
+      }
+
+      if (!rolePermission) {
+         if (role.implicit_allow === true) {
+            $console.debug(`guard: role "${role.name}" has implicit allow, allowing`);
+            return;
+         }
+
+         throw new GuardPermissionsException(
+            permission,
+            undefined,
+            `Role "${role.name}" does not have required permission`,
+         );
+      }
+
+      if (rolePermission?.policies.length > 0) {
+         $console.debug("guard: rolePermission has policies, checking");
+
+         // set the default effect of the role permission
+         let allowed = rolePermission.effect === "allow";
+         for (const policy of rolePermission.policies) {
+            $console.debug("guard: checking policy", { policy: policy.toJSON(), ctx });
+            // skip filter policies
+            if (policy.content.effect === "filter") continue;
+
+            // if condition is met, check the effect
+            const meets = policy.meetsCondition(ctx);
+            if (meets) {
+               $console.debug("guard: policy meets condition");
+               // if deny, then break early
+               if (policy.content.effect === "deny") {
+                  $console.debug("guard: policy is deny, setting allowed to false");
+                  allowed = false;
+                  break;
+
+                  // if allow, set allow but continue checking
+               } else if (policy.content.effect === "allow") {
+                  allowed = true;
+               }
+            } else {
+               $console.debug("guard: policy does not meet condition");
+            }
+         }
+
+         if (!allowed) {
+            throw new GuardPermissionsException(permission, undefined, "Policy condition unmet");
+         }
+      }
+
+      $console.debug("guard allowing", {
+         permission: permission.name,
+         role: role.name,
+      });
    }
+
+   filters<P extends Permission<any, any, any, any>>(
+      permission: P,
+      c: GuardContext,
+      context: PermissionContext<P>,
+   );
+   filters<P extends Permission<any, any, undefined, any>>(permission: P, c: GuardContext);
+   filters<P extends Permission<any, any, any, any>>(
+      permission: P,
+      c: GuardContext,
+      context?: PermissionContext<P>,
+   ) {
+      if (!permission.isFilterable()) {
+         throw new GuardPermissionsException(permission, undefined, "Permission is not filterable");
+      }
+
+      const {
+         ctx: _ctx,
+         exists,
+         role,
+         user,
+         rolePermission,
+      } = this.collect(permission, c, context);
+
+      // validate context
+      let ctx = Object.assign(
+         {
+            user,
+         },
+         _ctx,
+      );
+
+      if (permission.context) {
+         ctx = permission.parseContext(ctx, {
+            coerceDropUnknown: false,
+         });
+      }
+
+      const filters: PolicySchema["filter"][] = [];
+      const policies: Policy[] = [];
+      if (exists && role && rolePermission && rolePermission.policies.length > 0) {
+         for (const policy of rolePermission.policies) {
+            if (policy.content.effect === "filter") {
+               const meets = policy.meetsCondition(ctx);
+               if (meets) {
+                  policies.push(policy);
+                  filters.push(policy.getReplacedFilter(ctx));
+               }
+            }
+         }
+      }
+
+      const filter = filters.length > 0 ? mergeObject({}, ...filters) : undefined;
+      return {
+         filters,
+         filter,
+         policies,
+         merge: (givenFilter: object | undefined) => {
+            return mergeFilters(givenFilter ?? {}, filter ?? {});
+         },
+         matches: (subject: object | object[], opts?: { throwOnError?: boolean }) => {
+            const subjects = Array.isArray(subject) ? subject : [subject];
+            if (policies.length > 0) {
+               for (const policy of policies) {
+                  for (const subject of subjects) {
+                     if (!policy.meetsFilter(subject, ctx)) {
+                        if (opts?.throwOnError) {
+                           throw new GuardPermissionsException(
+                              permission,
+                              policy,
+                              "Policy filter not met",
+                           );
+                        }
+                        return false;
+                     }
+                  }
+               }
+            }
+            return true;
+         },
+      };
+   }
+}
+
+export function mergeFilters(base: ObjectQuery, priority: ObjectQuery) {
+   const base_converted = convert(base);
+   const priority_converted = convert(priority);
+   const merged = mergeObject(base_converted, priority_converted);
+
+   // in case priority filter is also contained in base's $and, merge priority in
+   if ("$or" in base_converted && base_converted.$or) {
+      const $ors = base_converted.$or as ObjectQuery;
+      const priority_keys = Object.keys(priority_converted);
+      for (const key of priority_keys) {
+         if (key in $ors) {
+            merged.$or[key] = mergeObject($ors[key], priority_converted[key]);
+         }
+      }
+   }
+
+   return merged;
 }

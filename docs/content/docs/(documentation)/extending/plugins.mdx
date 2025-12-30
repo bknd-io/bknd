@@ -1,0 +1,263 @@
+---
+title: Plugins
+tags: ["documentation"]
+---
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+
+bknd allows you to extend its functionality by creating plugins. These allows to hook into the app lifecycle and to provide a data structure that is guaranteed to be merged. A plugin is a function that takes in an instance of `App` and returns the following structure:
+
+<AutoTypeTable path="../app/src/App.ts" name="AppPluginConfig" />
+
+## Creating a simple plugin
+
+To create a simple plugin which guarantees an entity `pages` to be available and an additioanl endpoint to render a html list of pages, you can create it as follows:
+
+```tsx title="myPagesPlugin.tsx"
+/** @jsxImportSource hono/jsx */
+import { type App, type AppPlugin, em, entity, text } from "bknd";
+
+export const myPagesPlugin: AppPlugin = (app) => ({
+   name: "my-pages-plugin",
+   // define the schema of the plugin
+   // this will always be merged into the app's schema
+   schema: () => em({
+      pages: entity("pages", {
+         title: text(),
+         content: text(),
+      }),
+   }),
+   // execute code after the app is built
+   onBuilt: () => {
+      // register a new endpoint, make sure that you choose an endpoint that is reachable for bknd
+      app.server.get("/my-pages", async (c) => {
+         const { data: pages } = await app.em.repo("pages").findMany({});
+         return c.html(
+            <body>
+               <h1>Pages: {pages.length}</h1>
+               <ul>
+                  {pages.map((page: any) => (
+                     <li key={page.id}>{page.title}</li>
+                  ))}
+               </ul>
+            </body>,
+         );
+      });
+   },
+});
+
+```
+
+And then register it in your `bknd.config.ts` file:
+
+```typescript
+import type { BkndConfig } from "bknd/adapter";
+import { myPagesPlugin } from "./myPagesPlugin";
+
+export default {
+   options: {
+      plugins: [myPagesPlugin],
+   }
+} satisfies BkndConfig;
+```
+
+The schema returned from the plugin will be merged into the schema of the app.
+
+
+## Built-in plugins
+
+bknd comes with a few built-in plugins that you can use.
+
+### `syncTypes`
+
+A simple plugin that writes down the TypeScript types of the data schema on boot and each build. The output is equivalent to running `npx bknd types`.
+
+```typescript title="bknd.config.ts"
+import { syncTypes } from "bknd/plugins";
+import { writeFile } from "node:fs/promises";
+
+export default {
+   options: {
+      plugins: [
+         syncTypes({ 
+            // whether to enable the plugin, make sure to disable in production
+            enabled: true,
+            // your writing function (required)
+            write: async (et) => {
+               await writeFile("bknd-types.d.ts", et.toString(), "utf-8");
+            }
+         }),
+      ]
+   },
+} satisfies BkndConfig;
+```
+
+### `syncConfig`
+
+A simple plugin that writes down the app configuration on boot and each build.
+
+```typescript title="bknd.config.ts"
+import { syncConfig } from "bknd/plugins";
+import { writeFile } from "node:fs/promises";
+
+export default {
+   options: {
+      plugins: [
+         syncConfig({ 
+            // whether to enable the plugin, make sure to disable in production
+            enabled: true,
+            // your writing function (required)
+            write: async (config) => {
+               await writeFile("config.json", JSON.stringify(config, null, 2), "utf-8");
+            },
+         }),
+      ]
+   },
+} satisfies BkndConfig;
+```
+
+### `syncSecrets`
+
+A simple plugin that writes down the app secrets on boot and each build.
+
+```typescript title="bknd.config.ts"
+import { syncSecrets } from "bknd/plugins";
+import { writeFile } from "node:fs/promises";
+
+export default {
+   options: {
+      plugins: [
+         syncSecrets({ 
+            // whether to enable the plugin, make sure to disable in production
+            enabled: true,
+            // your writing function (required)
+            write: async (secrets) => {
+               // apply your writing logic, e.g. writing a template file in an env format
+               await writeFile(
+                  ".env.example",
+                  Object.entries(secrets)
+                     .map(([key]) => `${key}=`)
+                     .join("\n")
+               );
+            },
+         }),
+      ]
+   },
+} satisfies BkndConfig;
+```
+
+### `showRoutes`
+
+A simple plugin that logs the routes of your app in the console.
+
+```typescript title="bknd.config.ts"
+import { showRoutes } from "bknd/plugins";
+
+export default {
+   options: {
+      plugins: [
+         showRoutes({ 
+            // whether to show the routes only once (on first build)
+            once: true 
+         })
+      ],
+   },
+} satisfies BkndConfig;
+```
+
+### `cloudflareImageOptimization`
+
+<Callout type="info">
+  This plugin doesn't work on the development server, or on workers deployed with a `workers.dev` subdomain. It requires [Cloudflare Image transformations to be enabled](https://developers.cloudflare.com/images/get-started/#enable-transformations-on-your-zone) on your zone.
+</Callout>
+
+A plugin that add Cloudflare Image Optimization to your app's media storage.
+
+```typescript title="bknd.config.ts"
+import { cloudflareImageOptimization } from "bknd/plugins";
+
+export default {
+   options: {
+      plugins: [
+         cloudflareImageOptimization({
+            // the url to access the image optimization plugin
+            accessUrl: "/api/plugin/image/optimize",
+            // the path to resolve the image from, defaults to `/api/media/file`
+            resolvePath: "/api/media/file",
+            // for example, you may want to have default option to limit to a width of 1000px
+            defaultOptions: {
+               width: 1000,
+            }
+         })
+      ],
+   },
+} satisfies BkndConfig;
+```
+
+Here is a break down of all configuration options:
+
+<AutoTypeTable path="../app/src/plugins/cloudflare/image-optimization.plugin.ts" name="CloudflareImageOptimizationOptions" />
+
+When enabled, you can now access your images at your configured `accessUrl`. For example, if you have a media file at `/api/media/file/image.jpg`, you can access the optimized image at `/api/plugin/image/optimize/image.jpg` for optimization.
+
+Now you can add query parameters for the transformations, e.g. `?width=1000&height=1000`.
+
+<TypeTable
+  type={{
+    dpr: {
+      description:
+        'The device pixel ratio to use',
+      type: 'number',
+      default: 1,
+    },
+    fit: {
+      description: 'The fit mode to use',
+      type: '"scale-down" | "contain" | "cover" | "crop" | "pad"',
+    },
+    format: {
+      description: 'The format to use',
+      type: '"auto" | "avif" | "webp" | "jpeg" | "baseline-jpeg" | "json"'
+    },
+    height: {
+      description: 'The height to use',
+      type: 'number',
+    },
+    width: {
+      description: 'The width to use',
+      type: 'number',
+    },
+    metadata: {
+      description: 'The metadata to use',
+      type: '"copyright" | "keep" | "none"',
+      default: 'copyright'
+    },
+    quality: {
+      description: 'The quality to use',
+      type: 'number',
+      default: 85
+    },
+  }}
+/>
+
+### `timestamps`
+
+A plugin that adds `created_at` and `updated_at` fields to the specified entities.
+
+```typescript title="bknd.config.ts"
+import { timestamps } from "bknd/plugins";
+
+export default {
+   options: {
+      plugins: [
+         timestamps({ 
+            // the entities to add timestamps to
+            entities: ["pages"],
+            // whether to set the `updated_at` field on create, defaults to true
+            setUpdatedOnCreate: true,
+         })
+      ],
+   },
+} satisfies BkndConfig;
+```
+
+

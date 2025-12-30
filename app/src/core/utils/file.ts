@@ -1,7 +1,7 @@
 import { extension, guess, isMimeType } from "media/storage/mime-types-tiny";
-import { randomString } from "core/utils/strings";
+import { randomString } from "./strings";
 import type { Context } from "hono";
-import { invariant } from "core/utils/runtime";
+import { invariant } from "./runtime";
 import { $console } from "./console";
 
 export function getContentName(request: Request): string | undefined;
@@ -238,5 +238,48 @@ export async function blobToFile(
    return new File([blob], name, {
       type: type || guess(name),
       lastModified: Date.now(),
+   });
+}
+
+export function isFileAccepted(file: File | unknown, _accept: string | string[]): boolean {
+   const accept = Array.isArray(_accept) ? _accept.join(",") : _accept;
+   if (!accept || !accept.trim()) return true; // no restrictions
+   if (!isFile(file)) {
+      throw new Error("Given file is not a File instance");
+   }
+
+   const name = file.name.toLowerCase();
+   const type = (file.type || "").trim().toLowerCase();
+
+   // split on commas, trim whitespace
+   const tokens = accept
+      .split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+
+   // try each token until one matches
+   return tokens.some((token) => {
+      if (token.startsWith(".")) {
+         // extension match, e.g. ".png" or ".tar.gz"
+         return name.endsWith(token);
+      }
+
+      const slashIdx = token.indexOf("/");
+      if (slashIdx !== -1) {
+         const [major, minor] = token.split("/");
+         if (minor === "*") {
+            // wildcard like "image/*"
+            if (!type) return false;
+            const [fMajor] = type.split("/");
+            return fMajor === major;
+         } else {
+            // exact MIME like "image/svg+xml" or "application/pdf"
+            // because of "text/plain;charset=utf-8"
+            return type.startsWith(token);
+         }
+      }
+
+      // unknown token shape, ignore
+      return false;
    });
 }

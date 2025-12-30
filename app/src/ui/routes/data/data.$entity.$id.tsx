@@ -17,6 +17,8 @@ import { bkndModals } from "ui/modals";
 import { EntityForm } from "ui/modules/data/components/EntityForm";
 import { EntityTable2 } from "ui/modules/data/components/EntityTable2";
 import { useEntityForm } from "ui/modules/data/hooks/useEntityForm";
+import { notifications } from "@mantine/notifications";
+import { useEntityAdminOptions } from "ui/options";
 
 export function DataEntityUpdate({ params }) {
    return <DataEntityUpdateImpl params={params} key={params.entity} />;
@@ -52,20 +54,32 @@ function DataEntityUpdateImpl({ params }) {
       },
    );
 
+   const options = useEntityAdminOptions(entity, "update", $q.data);
    const backHref = routes.data.entity.list(entity.name);
    const goBack = () => _goBack({ fallback: backHref });
 
    async function onSubmitted(changeSet?: EntityData) {
       //return;
       if (!changeSet) {
-         goBack();
+         notifications.show({
+            title: `Updating ${entity?.label}`,
+            message: "No changes to update",
+            color: "yellow",
+         });
          return;
       }
 
       try {
          await $q.update(changeSet);
          if (error) setError(null);
-         goBack();
+         notifications.show({
+            title: `Updating ${entity?.label}`,
+            message: `Successfully updated ID ${entityId}`,
+            color: "green",
+         });
+
+         // make sure form picks up the latest data
+         Form.reset();
       } catch (e) {
          setError(e instanceof Error ? e.message : "Failed to update");
       }
@@ -76,6 +90,11 @@ function DataEntityUpdateImpl({ params }) {
          try {
             await $q._delete();
             if (error) setError(null);
+            notifications.show({
+               title: `Deleting ${entity?.label}`,
+               message: `Successfully deleted ID ${entityId}`,
+               color: "green",
+            });
             goBack();
          } catch (e) {
             setError(e instanceof Error ? e.message : "Failed to delete");
@@ -111,6 +130,7 @@ function DataEntityUpdateImpl({ params }) {
                   <Dropdown
                      position="bottom-end"
                      items={[
+                        ...(options.actions?.context ?? []),
                         {
                            label: "Inspect",
                            onClick: () => {
@@ -142,6 +162,10 @@ function DataEntityUpdateImpl({ params }) {
                   >
                      <IconButton Icon={TbDots} />
                   </Dropdown>
+                  {options.actions?.primary?.map(
+                     (button, key) =>
+                        button && <Button variant="primary" {...button} type="button" key={key} />,
+                  )}
                   <Form.Subscribe
                      selector={(state) => [state.canSubmit, state.isSubmitting]}
                      children={([canSubmit, isSubmitting]) => (
@@ -171,6 +195,7 @@ function DataEntityUpdateImpl({ params }) {
             </div>
          ) : (
             <AppShell.Scrollable>
+               {options.header}
                {error && (
                   <div className="flex flex-row dark:bg-red-950 bg-red-100 p-4">
                      <b className="mr-2">Update failed: </b> {error}
@@ -186,6 +211,8 @@ function DataEntityUpdateImpl({ params }) {
                   action="update"
                   className="flex flex-grow flex-col gap-3 p-3"
                />
+               {options.footer}
+
                {targetRelations.length > 0 ? (
                   <EntityDetailRelations
                      id={entityId}
@@ -233,6 +260,7 @@ function EntityDetailRelations({
                return {
                   as: "button",
                   type: "button",
+                  //label: ucFirst(other.entity.label),
                   label: ucFirst(other.reference),
                   onClick: () => handleClick(relation),
                   active: selected?.other(entity).reference === other.reference,
@@ -273,7 +301,11 @@ function EntityDetailInner({
 
    // @todo: add custom key for invalidation
    const $q = useApiQuery(
-      (api) => api.data.readManyByReference(entity.name, id, other.reference, search),
+      (api) =>
+         api.data.readManyByReference(entity.name, id, other.reference, {
+            ...search,
+            limit: search.limit + 1 /* overfetch for softscan=false */,
+         }),
       {
          keepPreviousData: true,
          revalidateOnFocus: true,
@@ -292,7 +324,6 @@ function EntityDetailInner({
             navigate(routes.data.entity.create(other.entity.name), {
                query: ref.where,
             });
-            //navigate(routes.data.entity.create(other.entity.name) + `?${query}`);
          };
       }
    } catch (e) {}
@@ -302,6 +333,7 @@ function EntityDetailInner({
    }
 
    const isUpdating = $q.isValidating || $q.isLoading;
+   const meta = $q.data?.body.meta;
 
    return (
       <div
@@ -316,7 +348,7 @@ function EntityDetailInner({
             onClickRow={handleClickRow}
             onClickNew={handleClickNew}
             page={Math.floor(search.offset / search.limit) + 1}
-            total={$q.data?.body?.meta?.count ?? 1}
+            total={meta?.count}
             onClickPage={(page) => {
                setSearch((s) => ({
                   ...s,

@@ -1,4 +1,4 @@
-import * as s from "jsonv-ts";
+import { s } from "bknd/utils";
 
 import type {
    CustomValidator,

@@ -61,14 +61,19 @@ function delayTypes() {
    watcher_timeout = setTimeout(buildTypes, 1000);
 }
 
+const dependencies = Object.keys(pkg.dependencies);
+
 // collection of always-external packages
 const external = [
+   ...dependencies,
    "bun:test",
    "node:test",
    "node:assert/strict",
    "@libsql/client",
    "bknd",
    /^bknd\/.*/,
+   "jsonv-ts",
+   /^jsonv-ts\/.*/,
 ] as const;
 
 /**
@@ -80,14 +85,19 @@ async function buildApi() {
       sourcemap,
       watch,
       define,
-      entry: ["src/index.ts", "src/core/utils/index.ts", "src/plugins/index.ts"],
+      entry: [
+         "src/index.ts",
+         "src/core/utils/index.ts",
+         "src/plugins/index.ts",
+         "src/modes/index.ts",
+      ],
       outDir: "dist",
       external: [...external],
       metafile: true,
+      target: "esnext",
       platform: "browser",
       format: ["esm"],
       splitting: false,
-      treeshake: true,
       loader: {
          ".svg": "dataurl",
       },
@@ -243,8 +253,12 @@ async function buildAdapters() {
       // base adapter handles
       tsup.build({
          ...baseConfig(""),
+         target: "esnext",
+         platform: "neutral",
          entry: ["src/adapter/index.ts"],
          outDir: "dist/adapter",
+         // only way to keep @vite-ignore comments
+         minify: false,
       }),
 
       // specific adatpers
@@ -256,7 +270,20 @@ async function buildAdapters() {
       ),
       tsup.build(baseConfig("astro")),
       tsup.build(baseConfig("aws")),
-      tsup.build(baseConfig("cloudflare")),
+      tsup.build(
+         baseConfig("cloudflare", {
+            external: ["wrangler", "node:process"],
+         }),
+      ),
+      tsup.build(
+         baseConfig("cloudflare/proxy", {
+            target: "esnext",
+            entry: ["src/adapter/cloudflare/proxy.ts"],
+            outDir: "dist/adapter/cloudflare",
+            metafile: false,
+            external: [/bknd/, "wrangler", "node:process"],
+         }),
+      ),
 
       tsup.build({
          ...baseConfig("vite"),

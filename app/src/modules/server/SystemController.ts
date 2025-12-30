@@ -8,15 +8,19 @@ import {
    getTimezoneOffset,
    $console,
    getRuntimeKey,
-   SecretSchema,
    jsc,
    s,
    describeRoute,
    InvalidSchemaError,
+   openAPISpecs,
+   mcpTool,
+   mcp as mcpMiddleware,
+   isNode,
+   type McpServer,
+   threw,
 } from "bknd/utils";
 import type { Context, Hono } from "hono";
 import { Controller } from "modules/Controller";
-import { openAPISpecs } from "jsonv-ts/hono";
 import { swaggerUI } from "@hono/swagger-ui";
 import {
    MODULE_NAMES,
@@ -26,6 +30,10 @@ import {
 } from "modules/ModuleManager";
 import * as SystemPermissions from "modules/permissions";
 import { getVersion } from "core/env";
+import type { Module } from "modules/Module";
+import { getSystemMcp } from "modules/mcp/system-mcp";
+import type { DbModuleManager } from "modules/db/DbModuleManager";
+import type { TPermission } from "auth/authorize/Permission";
 
 export type ConfigUpdate<Key extends ModuleKey = ModuleKey> = {
    success: true;
@@ -38,11 +46,15 @@ export type ConfigUpdateResponse<Key extends ModuleKey = ModuleKey> =
 export type SchemaResponse = {
    version: string;
    schema: ModuleSchemas;
+   readonly: boolean;
    config: ModuleConfigs;
-   permissions: string[];
+   //permissions: string[];
+   permissions: TPermission[];
 };
 
 export class SystemController extends Controller {
+   _mcpServer: McpServer | null = null;
+
    constructor(private readonly app: App) {
       super();
    }
@@ -51,25 +63,253 @@ export class SystemController extends Controller {
       return this.app.modules.ctx();
    }
 
+   register(app: App) {
+      app.server.route("/api/system", this.getController());
+      const config = app.modules.get("server").config;
+
+      if (!config.mcp.enabled) {
+         return;
+      }
+      const { permission, auth } = this.middlewares;
+
+      this.registerMcp();
+
+      app.server.all(
+         config.mcp.path,
+         auth(),
+         permission(SystemPermissions.mcp, {}),
+         mcpMiddleware({
+            setup: async () => {
+               if (!this._mcpServer) {
+                  this._mcpServer = getSystemMcp(app);
+                  this._mcpServer.onNotification((message) => {
+                     if (message.method === "notification/message") {
+                        const consoleMap = {
+                           emergency: "error",
+                           alert: "error",
+                           critical: "error",
+                           error: "error",
+                           warning: "warn",
+                           notice: "log",
+                           info: "info",
+                           debug: "debug",
+                        };
+
+                        const level = consoleMap[message.params.level];
+                        if (!level) return;
+
+                        $console[level](
+                           "MCP notification",
+                           message.params.message ?? message.params,
+                        );
+                     }
+                  });
+               }
+               return {
+                  server: this._mcpServer,
+               };
+            },
+            sessionsEnabled: true,
+            debug: {
+               logLevel: config.mcp.logLevel as any,
+               explainEndpoint: true,
+            },
+            endpoint: {
+               // @ts-ignore
+               _init: isNode() ? { duplex: "half" } : {},
+            },
+         }),
+      );
+   }
+
    private registerConfigController(client: Hono<any>): void {
       const { permission } = this.middlewares;
       // don't add auth again, it's already added in getController
-      const hono = this.create();
+      const hono = this.create(); /* .use(permission(SystemPermissions.configRead)); */
 
-      hono.use(permission(SystemPermissions.configRead));
+      if (!this.app.isReadOnly()) {
+         const manager = this.app.modules as DbModuleManager;
 
-      hono.get(
-         "/raw",
-         describeRoute({
-            summary: "Get the raw config",
-            tags: ["system"],
-         }),
-         permission([SystemPermissions.configReadSecrets]),
-         async (c) => {
-            // @ts-expect-error "fetch" is private
-            return c.json(await this.app.modules.fetch());
-         },
-      );
+         hono.get(
+            "/raw",
+            describeRoute({
+               summary: "Get the raw config",
+               tags: ["system"],
+            }),
+            permission(SystemPermissions.configReadSecrets, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
+            async (c) => {
+               // @ts-expect-error "fetch" is private
+               return c.json(await this.app.modules.fetch().then((r) => r?.configs));
+            },
+         );
+
+         async function handleConfigUpdateResponse(
+            c: Context<any>,
+            cb: () => Promise<ConfigUpdate>,
+         ) {
+            try {
+               return c.json(await cb(), { status: 202 });
+            } catch (e) {
+               $console.error("config update error", e);
+
+               if (e instanceof InvalidSchemaError) {
+                  return c.json(
+                     { success: false, type: "type-invalid", errors: e.errors },
+                     { status: 400 },
+                  );
+               }
+               if (e instanceof Error) {
+                  return c.json(
+                     { success: false, type: "error", error: e.message },
+                     { status: 500 },
+                  );
+               }
+
+               return c.json({ success: false, type: "unknown" }, { status: 500 });
+            }
+         }
+
+         hono.post(
+            "/set/:module",
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
+            jsc("query", s.object({ force: s.boolean().optional() }), { skipOpenAPI: true }),
+            async (c) => {
+               const module = c.req.param("module") as any;
+               const { force } = c.req.valid("query");
+               const value = await c.req.json();
+
+               return await handleConfigUpdateResponse(c, async () => {
+                  // you must explicitly set force to override existing values
+                  // because omitted values gets removed
+                  if (force === true) {
+                     // force overwrite defined keys
+                     const newConfig = {
+                        ...this.app.module[module].config,
+                        ...value,
+                     };
+                     await manager.mutateConfigSafe(module).set(newConfig);
+                  } else {
+                     await manager.mutateConfigSafe(module).patch("", value);
+                  }
+                  return {
+                     success: true,
+                     module,
+                     config: this.app.module[module].config,
+                  };
+               });
+            },
+         );
+
+         hono.post(
+            "/add/:module/:path",
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
+            async (c) => {
+               // @todo: require auth (admin)
+               const module = c.req.param("module") as any;
+               const value = await c.req.json();
+               const path = c.req.param("path") as string;
+
+               if (this.app.modules.get(module).schema().has(path)) {
+                  return c.json(
+                     { success: false, path, error: "Path already exists" },
+                     { status: 400 },
+                  );
+               }
+
+               return await handleConfigUpdateResponse(c, async () => {
+                  await manager.mutateConfigSafe(module).patch(path, value);
+                  return {
+                     success: true,
+                     module,
+                     config: this.app.module[module].config,
+                  };
+               });
+            },
+         );
+
+         hono.patch(
+            "/patch/:module/:path",
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
+            async (c) => {
+               // @todo: require auth (admin)
+               const module = c.req.param("module") as any;
+               const value = await c.req.json();
+               const path = c.req.param("path");
+
+               return await handleConfigUpdateResponse(c, async () => {
+                  await manager.mutateConfigSafe(module).patch(path, value);
+                  return {
+                     success: true,
+                     module,
+                     config: this.app.module[module].config,
+                  };
+               });
+            },
+         );
+
+         hono.put(
+            "/overwrite/:module/:path",
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
+            async (c) => {
+               // @todo: require auth (admin)
+               const module = c.req.param("module") as any;
+               const value = await c.req.json();
+               const path = c.req.param("path");
+
+               return await handleConfigUpdateResponse(c, async () => {
+                  await manager.mutateConfigSafe(module).overwrite(path, value);
+                  return {
+                     success: true,
+                     module,
+                     config: this.app.module[module].config,
+                  };
+               });
+            },
+         );
+
+         hono.delete(
+            "/remove/:module/:path",
+            permission(SystemPermissions.configWrite, {
+               context: (c) => ({
+                  module: c.req.param("module"),
+               }),
+            }),
+            async (c) => {
+               // @todo: require auth (admin)
+               const module = c.req.param("module") as any;
+               const path = c.req.param("path")!;
+
+               return await handleConfigUpdateResponse(c, async () => {
+                  await manager.mutateConfigSafe(module).remove(path);
+                  return {
+                     success: true,
+                     module,
+                     config: this.app.module[module].config,
+                  };
+               });
+            },
+         );
+      }
 
       hono.get(
          "/:module?",
@@ -77,6 +317,11 @@ export class SystemController extends Controller {
             summary: "Get the config for a module",
             tags: ["system"],
          }),
+         mcpTool("system_config", {
+            annotations: {
+               readOnlyHint: true,
+            },
+         }), // @todo: ":module" gets not removed
          jsc("param", s.object({ module: s.string({ enum: MODULE_NAMES }).optional() })),
          jsc("query", s.object({ secrets: s.boolean().optional() })),
          async (c) => {
@@ -84,7 +329,11 @@ export class SystemController extends Controller {
             const { secrets } = c.req.valid("query");
             const { module } = c.req.valid("param");
 
-            secrets && this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c);
+            if (secrets) {
+               this.ctx.guard.granted(SystemPermissions.configReadSecrets, c, {
+                  module,
+               });
+            }
 
             const config = this.app.toJSON(secrets);
 
@@ -99,124 +348,6 @@ export class SystemController extends Controller {
             );
          },
       );
-
-      async function handleConfigUpdateResponse(c: Context<any>, cb: () => Promise<ConfigUpdate>) {
-         try {
-            return c.json(await cb(), { status: 202 });
-         } catch (e) {
-            $console.error("config update error", e);
-
-            if (e instanceof InvalidSchemaError) {
-               return c.json(
-                  { success: false, type: "type-invalid", errors: e.errors },
-                  { status: 400 },
-               );
-            }
-            if (e instanceof Error) {
-               return c.json({ success: false, type: "error", error: e.message }, { status: 500 });
-            }
-
-            return c.json({ success: false, type: "unknown" }, { status: 500 });
-         }
-      }
-
-      hono.post(
-         "/set/:module",
-         permission(SystemPermissions.configWrite),
-         jsc("query", s.object({ force: s.boolean().optional() }), { skipOpenAPI: true }),
-         async (c) => {
-            const module = c.req.param("module") as any;
-            const { force } = c.req.valid("query");
-            const value = await c.req.json();
-
-            return await handleConfigUpdateResponse(c, async () => {
-               // you must explicitly set force to override existing values
-               // because omitted values gets removed
-               if (force === true) {
-                  // force overwrite defined keys
-                  const newConfig = {
-                     ...this.app.module[module].config,
-                     ...value,
-                  };
-                  await this.app.mutateConfig(module).set(newConfig);
-               } else {
-                  await this.app.mutateConfig(module).patch("", value);
-               }
-               return {
-                  success: true,
-                  module,
-                  config: this.app.module[module].config,
-               };
-            });
-         },
-      );
-
-      hono.post("/add/:module/:path", permission(SystemPermissions.configWrite), async (c) => {
-         // @todo: require auth (admin)
-         const module = c.req.param("module") as any;
-         const value = await c.req.json();
-         const path = c.req.param("path") as string;
-
-         if (this.app.modules.get(module).schema().has(path)) {
-            return c.json({ success: false, path, error: "Path already exists" }, { status: 400 });
-         }
-
-         return await handleConfigUpdateResponse(c, async () => {
-            await this.app.mutateConfig(module).patch(path, value);
-            return {
-               success: true,
-               module,
-               config: this.app.module[module].config,
-            };
-         });
-      });
-
-      hono.patch("/patch/:module/:path", permission(SystemPermissions.configWrite), async (c) => {
-         // @todo: require auth (admin)
-         const module = c.req.param("module") as any;
-         const value = await c.req.json();
-         const path = c.req.param("path");
-
-         return await handleConfigUpdateResponse(c, async () => {
-            await this.app.mutateConfig(module).patch(path, value);
-            return {
-               success: true,
-               module,
-               config: this.app.module[module].config,
-            };
-         });
-      });
-
-      hono.put("/overwrite/:module/:path", permission(SystemPermissions.configWrite), async (c) => {
-         // @todo: require auth (admin)
-         const module = c.req.param("module") as any;
-         const value = await c.req.json();
-         const path = c.req.param("path");
-
-         return await handleConfigUpdateResponse(c, async () => {
-            await this.app.mutateConfig(module).overwrite(path, value);
-            return {
-               success: true,
-               module,
-               config: this.app.module[module].config,
-            };
-         });
-      });
-
-      hono.delete("/remove/:module/:path", permission(SystemPermissions.configWrite), async (c) => {
-         // @todo: require auth (admin)
-         const module = c.req.param("module") as any;
-         const path = c.req.param("path")!;
-
-         return await handleConfigUpdateResponse(c, async () => {
-            await this.app.mutateConfig(module).remove(path);
-            return {
-               success: true,
-               module,
-               config: this.app.module[module].config,
-            };
-         });
-      });
 
       client.route("/config", hono);
    }
@@ -233,7 +364,11 @@ export class SystemController extends Controller {
             summary: "Get the schema for a module",
             tags: ["system"],
          }),
-         permission(SystemPermissions.schemaRead),
+         permission(SystemPermissions.schemaRead, {
+            context: (c) => ({
+               module: c.req.param("module"),
+            }),
+         }),
          jsc(
             "query",
             s
@@ -247,9 +382,22 @@ export class SystemController extends Controller {
          async (c) => {
             const module = c.req.param("module") as ModuleKey | undefined;
             const { config, secrets, fresh } = c.req.valid("query");
+            const readonly =
+               // either if app is read only in general
+               this.app.isReadOnly() ||
+               // or if user is not allowed to modify the config
+               threw(() => this.ctx.guard.granted(SystemPermissions.configWrite, c, { module }));
 
-            config && this.ctx.guard.throwUnlessGranted(SystemPermissions.configRead, c);
-            secrets && this.ctx.guard.throwUnlessGranted(SystemPermissions.configReadSecrets, c);
+            if (config) {
+               this.ctx.guard.granted(SystemPermissions.configRead, c, {
+                  module,
+               });
+            }
+            if (secrets) {
+               this.ctx.guard.granted(SystemPermissions.configReadSecrets, c, {
+                  module,
+               });
+            }
 
             const { version, ...schema } = this.app.getSchema();
 
@@ -261,6 +409,7 @@ export class SystemController extends Controller {
             if (module) {
                return c.json({
                   module,
+                  readonly,
                   version,
                   schema: schema[module],
                   config: config ? this.app.module[module].toJSON(secrets) : undefined,
@@ -270,10 +419,23 @@ export class SystemController extends Controller {
             return c.json({
                module,
                version,
+               readonly,
                schema,
                config: config ? this.app.toJSON(secrets) : undefined,
-               permissions: this.app.modules.ctx().guard.getPermissionNames(),
+               permissions: this.app.modules.ctx().guard.getPermissions(),
             });
+         },
+      );
+
+      hono.get(
+         "/permissions",
+         describeRoute({
+            summary: "Get the permissions",
+            tags: ["system"],
+         }),
+         (c) => {
+            const permissions = this.app.modules.ctx().guard.getPermissions();
+            return c.json({ permissions, context: this.app.module.auth.getGuardContextSchema() });
          },
       );
 
@@ -283,10 +445,11 @@ export class SystemController extends Controller {
             summary: "Build the app",
             tags: ["system"],
          }),
+         mcpTool("system_build"),
          jsc("query", s.object({ sync: s.boolean().optional(), fetch: s.boolean().optional() })),
          async (c) => {
             const options = c.req.valid("query") as Record<string, boolean>;
-            this.ctx.guard.throwUnlessGranted(SystemPermissions.build, c);
+            this.ctx.guard.granted(SystemPermissions.build, c);
 
             await this.app.build(options);
             return c.json({
@@ -298,6 +461,7 @@ export class SystemController extends Controller {
 
       hono.get(
          "/ping",
+         mcpTool("system_ping"),
          describeRoute({
             summary: "Ping the server",
             tags: ["system"],
@@ -307,13 +471,20 @@ export class SystemController extends Controller {
 
       hono.get(
          "/info",
+         mcpTool("system_info"),
          describeRoute({
             summary: "Get the server info",
             tags: ["system"],
          }),
          (c) =>
             c.json({
-               version: c.get("app")?.version(),
+               id: this.app._id,
+               version: {
+                  config: c.get("app")?.version(),
+                  bknd: getVersion(),
+               },
+               mode: this.app.mode,
+               readonly: this.app.isReadOnly(),
                runtime: getRuntimeKey(),
                connection: {
                   name: this.app.em.connection.name,
@@ -328,19 +499,6 @@ export class SystemController extends Controller {
                },
                origin: new URL(c.req.raw.url).origin,
                plugins: Array.from(this.app.plugins.keys()),
-               walk: {
-                  auth: [
-                     ...c
-                        .get("app")
-                        .getSchema()
-                        .auth.walk({ data: c.get("app").toJSON(true).auth }),
-                  ]
-                     .filter((n) => n.schema instanceof SecretSchema)
-                     .map((n) => ({
-                        ...n,
-                        schema: n.schema.constructor.name,
-                     })),
-               },
             }),
       );
 
@@ -356,5 +514,59 @@ export class SystemController extends Controller {
       hono.get("/swagger", swaggerUI({ url: "/api/system/openapi.json" }));
 
       return hono;
+   }
+
+   override registerMcp() {
+      const { mcp } = this.app.modules.ctx();
+      const { version, ...appConfig } = this.app.toJSON();
+
+      mcp.resource("system_config", "bknd://system/config", async (c) => {
+         await c.context.ctx().helper.granted(c, SystemPermissions.configRead, {});
+
+         return c.json(this.app.toJSON(), {
+            title: "System Config",
+         });
+      })
+         .resource(
+            "system_config_module",
+            "bknd://system/config/{module}",
+            async (c, { module }) => {
+               await this.ctx.helper.granted(c, SystemPermissions.configRead, {
+                  module,
+               });
+
+               const m = this.app.modules.get(module as any) as Module;
+               return c.json(m.toJSON(), {
+                  title: `Config for ${module}`,
+               });
+            },
+            {
+               list: Object.keys(appConfig),
+            },
+         )
+         .resource("system_schema", "bknd://system/schema", async (c) => {
+            await this.ctx.helper.granted(c, SystemPermissions.schemaRead, {});
+
+            return c.json(this.app.getSchema(), {
+               title: "System Schema",
+            });
+         })
+         .resource(
+            "system_schema_module",
+            "bknd://system/schema/{module}",
+            async (c, { module }) => {
+               await this.ctx.helper.granted(c, SystemPermissions.schemaRead, {
+                  module,
+               });
+
+               const m = this.app.modules.get(module as any);
+               return c.json(m.getSchema().toJSON(), {
+                  title: `Schema for ${module}`,
+               });
+            },
+            {
+               list: Object.keys(this.app.getSchema()),
+            },
+         );
    }
 }

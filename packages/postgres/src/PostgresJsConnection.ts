@@ -1,13 +1,15 @@
 import { Kysely } from "kysely";
 import { PostgresIntrospector } from "./PostgresIntrospector";
 import { PostgresConnection, plugins } from "./PostgresConnection";
-import { customIntrospector } from "bknd/data";
+import { customIntrospector } from "bknd";
 import { PostgresJSDialect } from "kysely-postgres-js";
 import $postgresJs, { type Sql, type Options, type PostgresType } from "postgres";
 
 export type PostgresJsConfig = Options<Record<string, PostgresType>>;
 
 export class PostgresJsConnection extends PostgresConnection {
+   override name = "postgres-js";
+
    private postgres: Sql;
 
    constructor(opts: { postgres: Sql }) {

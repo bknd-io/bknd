@@ -93,17 +93,19 @@ export async function replacePackageJsonVersions(
 }
 
 export async function updateBkndPackages(dir?: string, map?: Record<string, string>) {
-   const versions = {
-      bknd: await sysGetVersion(),
-      ...(map ?? {}),
-   };
-   await replacePackageJsonVersions(
-      async (pkg) => {
-         if (pkg in versions) {
-            return versions[pkg];
-         }
-         return;
-      },
-      { dir },
-   );
+   try {
+      const versions = {
+         bknd: await sysGetVersion(),
+         ...(map ?? {}),
+      };
+      await replacePackageJsonVersions(
+         async (pkg) => {
+            if (pkg in versions) {
+               return versions[pkg];
+            }
+            return;
+         },
+         { dir },
+      );
+   } catch (e) {}
 }

@@ -80,18 +80,79 @@ export class StorageLocalAdapter extends StorageAdapter {
       }
    }
 
+   private parseRangeHeader(
+      rangeHeader: string,
+      fileSize: number,
+   ): { start: number; end: number } | null {
+      // Parse "bytes=start-end" format
+      const match = rangeHeader.match(/^bytes=(\d*)-(\d*)$/);
+      if (!match) return null;
+
+      const [, startStr, endStr] = match;
+      let start = startStr ? Number.parseInt(startStr, 10) : 0;
+      let end = endStr ? Number.parseInt(endStr, 10) : fileSize - 1;
+
+      // Handle suffix-byte-range-spec (e.g., "bytes=-500")
+      if (!startStr && endStr) {
+         start = Math.max(0, fileSize - Number.parseInt(endStr, 10));
+         end = fileSize - 1;
+      }
+
+      // Validate range
+      if (start < 0 || end >= fileSize || start > end) {
+         return null;
+      }
+
+      return { start, end };
+   }
+
    async getObject(key: string, headers: Headers): Promise<Response> {
       try {
-         const content = await readFile(`${this.config.path}/${key}`);
+         const filePath = `${this.config.path}/${key}`;
+         const stats = await stat(filePath);
+         const fileSize = stats.size;
          const mimeType = guessMimeType(key);
 
-         return new Response(content, {
-            status: 200,
-            headers: {
-               "Content-Type": mimeType || "application/octet-stream",
-               "Content-Length": content.length.toString(),
-            },
+         const responseHeaders = new Headers({
+            "Accept-Ranges": "bytes",
+            "Content-Type": mimeType || "application/octet-stream",
          });
+
+         const rangeHeader = headers.get("range");
+
+         if (rangeHeader) {
+            const range = this.parseRangeHeader(rangeHeader, fileSize);
+
+            if (!range) {
+               // Invalid range - return 416 Range Not Satisfiable
+               responseHeaders.set("Content-Range", `bytes */${fileSize}`);
+               return new Response("", {
+                  status: 416,
+                  headers: responseHeaders,
+               });
+            }
+
+            const { start, end } = range;
+            const content = await readFile(filePath, { encoding: null });
+            const chunk = content.slice(start, end + 1);
+
+            responseHeaders.set("Content-Range", `bytes ${start}-${end}/${fileSize}`);
+            responseHeaders.set("Content-Length", chunk.length.toString());
+
+            return new Response(chunk, {
+               status: 206, // Partial Content
+               headers: responseHeaders,
+            });
+         } else {
+            // Normal request - return entire file
+            const content = await readFile(filePath);
+            responseHeaders.set("Content-Length", content.length.toString());
+
+            return new Response(content, {
+               status: 200,
+               headers: responseHeaders,
+            });
+         }
       } catch (error) {
          // Handle file reading errors
          return new Response("", { status: 404 });

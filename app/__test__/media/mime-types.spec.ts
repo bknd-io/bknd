@@ -71,6 +71,8 @@ describe("media/mime-types", () => {
          ["application/zip", "zip"],
          ["text/tab-separated-values", "tsv"],
          ["application/zip", "zip"],
+         ["application/pdf", "pdf"],
+         ["audio/mpeg", "mp3"],
       ] as const;
 
       for (const [mime, ext] of tests) {
@@ -88,6 +90,9 @@ describe("media/mime-types", () => {
          ["image.jpeg", "jpeg"],
          ["-473Wx593H-466453554-black-MODEL.jpg", "jpg"],
          ["-473Wx593H-466453554-black-MODEL.avif", "avif"],
+         ["file.pdf", "pdf"],
+         ["file.mp3", "mp3"],
+         ["robots.txt", "txt"],
       ] as const;
 
       for (const [filename, ext] of tests) {
@@ -101,5 +106,37 @@ describe("media/mime-types", () => {
       const file = new File([""], "image.jpg", { type: "text/plain" });
       const [, ext] = getRandomizedFilename(file).split(".");
       expect(ext).toBe("jpg");
+   });
+
+   test("getRandomizedFilename with body", async () => {
+      // should keep "pdf"
+      const [, ext] = getRandomizedFilename(
+         new File([""], "file.pdf", { type: "application/pdf" }),
+      ).split(".");
+      expect(ext).toBe("pdf");
+
+      {
+         // no ext, should use "pdf" only for known formats
+         const [, ext] = getRandomizedFilename(
+            new File([""], "file", { type: "application/pdf" }),
+         ).split(".");
+         expect(ext).toBe("pdf");
+      }
+
+      {
+         // wrong ext, should keep the wrong one
+         const [, ext] = getRandomizedFilename(
+            new File([""], "file.what", { type: "application/pdf" }),
+         ).split(".");
+         expect(ext).toBe("what");
+      }
+
+      {
+         // txt
+         const [, ext] = getRandomizedFilename(
+            new File([""], "file.txt", { type: "text/plain" }),
+         ).split(".");
+         expect(ext).toBe("txt");
+      }
    });
 });

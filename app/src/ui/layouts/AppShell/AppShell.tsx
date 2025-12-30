@@ -1,6 +1,6 @@
 import { useClickOutside, useHotkeys } from "@mantine/hooks";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
-import { clampNumber } from "core/utils/numbers";
+import { transformObject, clampNumber } from "bknd/utils";
 import { throttle } from "lodash-es";
 import { ScrollArea } from "radix-ui";
 import {
@@ -19,14 +19,20 @@ import { appShellStore } from "ui/store";
 import { useLocation } from "wouter";
 
 export function Root({ children }: { children: React.ReactNode }) {
-   const sidebarWidth = appShellStore((store) => store.sidebarWidth);
+   const sidebarWidths = appShellStore((store) => store.sidebars);
+   const style = transformObject(sidebarWidths, (value) => value.width);
    return (
       <AppShellProvider>
          <div
             id="app-shell"
             data-shell="root"
             className="flex flex-1 flex-col select-none h-dvh"
-            style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
+            style={Object.fromEntries(
+               Object.entries(style).map(([key, value]) => [
+                  `--sidebar-width-${key}`,
+                  `${value}px`,
+               ]),
+            )}
          >
             {children}
          </div>
@@ -73,7 +79,7 @@ export function Content({ children, center }: { children: React.ReactNode; cente
       <main
          data-shell="content"
          className={twMerge(
-            "flex flex-1 flex-row w-dvw h-full",
+            "flex flex-1 flex-row max-w-screen h-full",
             center && "justify-center items-center",
          )}
       >
@@ -97,10 +103,24 @@ export function Main({ children }) {
    );
 }
 
-export function Sidebar({ children }) {
-   const open = appShellStore((store) => store.sidebarOpen);
-   const close = appShellStore((store) => store.closeSidebar);
+export function Sidebar({
+   children,
+   name = "default",
+   handle = "right",
+   minWidth,
+   maxWidth,
+}: {
+   children: React.ReactNode;
+   name?: string;
+   handle?: "right" | "left";
+   minWidth?: number;
+   maxWidth?: number;
+}) {
+   const open = appShellStore((store) => store.sidebars[name]?.open);
+   const close = appShellStore((store) => store.closeSidebar(name));
+   const width = appShellStore((store) => store.sidebars[name]?.width ?? 350);
    const ref = useClickOutside(close, ["mouseup", "touchend"]); //, [document.getElementById("header")]);
+   const sidebarRef = useRef<HTMLDivElement>(null!);
    const [location] = useLocation();
 
    const closeHandler = () => {
@@ -115,53 +135,80 @@ export function Sidebar({ children }) {
 
    return (
       <>
+         {handle === "left" && (
+            <SidebarResize
+               name={name}
+               handle={handle}
+               sidebarRef={sidebarRef}
+               minWidth={minWidth}
+               maxWidth={maxWidth}
+            />
+         )}
          <aside
             data-shell="sidebar"
-            className="hidden md:flex flex-col basis-[var(--sidebar-width)] flex-shrink-0 flex-grow-0 h-full bg-muted/10"
+            ref={sidebarRef}
+            className="hidden md:flex flex-col flex-shrink-0 flex-grow-0 h-full bg-muted/10"
+            style={{ width }}
          >
             {children}
          </aside>
-         <SidebarResize />
+         {handle === "right" && (
+            <SidebarResize
+               name={name}
+               handle={handle}
+               sidebarRef={sidebarRef}
+               minWidth={minWidth}
+               maxWidth={maxWidth}
+            />
+         )}
          <div
             data-open={open}
-            className="absolute w-full md:hidden data-[open=true]:translate-x-0 translate-x-[-100%] transition-transform z-10 backdrop-blur-sm"
+            className="absolute w-full md:hidden data-[open=true]:translate-x-0 translate-x-[-100%] transition-transform z-10 backdrop-blur-sm max-w-[90%]"
          >
             <aside
                ref={ref}
                data-shell="sidebar"
                className="flex-col w-[var(--sidebar-width)] flex-shrink-0 flex-grow-0 h-full border-muted border-r bg-background"
             >
-               {children}
+               <MaxHeightContainer className="overflow-y-scroll md:overflow-y-hidden">
+                  {children}
+               </MaxHeightContainer>
             </aside>
          </div>
       </>
    );
 }
 
-const SidebarResize = () => {
-   const setSidebarWidth = appShellStore((store) => store.setSidebarWidth);
+const SidebarResize = ({
+   name = "default",
+   handle = "right",
+   sidebarRef,
+   minWidth = 250,
+   maxWidth = window.innerWidth * 0.5,
+}: {
+   name?: string;
+   handle?: "right" | "left";
+   sidebarRef: React.RefObject<HTMLDivElement>;
+   minWidth?: number;
+   maxWidth?: number;
+}) => {
+   const setSidebarWidth = appShellStore((store) => store.setSidebarWidth(name));
    const [isResizing, setIsResizing] = useState(false);
-   const [startX, setStartX] = useState(0);
-   const [startWidth, setStartWidth] = useState(0);
+   const [start, setStart] = useState(0);
+   const [startWidth, setStartWidth] = useState(sidebarRef.current?.offsetWidth ?? 0);
 
    const handleMouseDown = (e: React.MouseEvent) => {
       e.preventDefault();
       setIsResizing(true);
-      setStartX(e.clientX);
-      setStartWidth(
-         Number.parseInt(
-            getComputedStyle(document.getElementById("app-shell")!)
-               .getPropertyValue("--sidebar-width")
-               .replace("px", ""),
-         ),
-      );
+      setStart(e.clientX);
+      setStartWidth(sidebarRef.current?.offsetWidth ?? 0);
    };
 
    const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
 
-      const diff = e.clientX - startX;
-      const newWidth = clampNumber(startWidth + diff, 250, window.innerWidth * 0.5);
+      const diff = handle === "right" ? e.clientX - start : start - e.clientX;
+      const newWidth = clampNumber(startWidth + diff, minWidth, maxWidth);
       setSidebarWidth(newWidth);
    };
 
@@ -179,10 +226,11 @@ const SidebarResize = () => {
          window.removeEventListener("mousemove", handleMouseMove);
          window.removeEventListener("mouseup", handleMouseUp);
       };
-   }, [isResizing, startX, startWidth]);
+   }, [isResizing, start, startWidth, minWidth, maxWidth]);
 
    return (
       <div
+         data-shell="sidebar-resize"
          data-active={isResizing ? 1 : undefined}
          className="w-px h-full hidden md:flex bg-muted after:transition-colors relative after:absolute after:inset-0 after:-left-px after:w-[2px] select-none data-[active]:after:bg-sky-400 data-[active]:cursor-col-resize hover:after:bg-sky-400 hover:cursor-col-resize after:z-2"
          onMouseDown={handleMouseDown}
@@ -291,15 +339,15 @@ export const SectionHeaderLink = <E extends React.ElementType = "a">({
       <Tag
          {...props}
          className={twMerge(
-            "hover:bg-primary/5 flex flex-row items-center justify-center gap-2.5 px-5 h-12 leading-none font-medium text-primary/80 rounded-tr-lg rounded-tl-lg",
+            "hover:bg-primary/5 flex flex-row items-center justify-center gap-2.5 px-5 h-12 leading-none font-medium text-primary/80 rounded-tr-lg rounded-tl-lg cursor-pointer border border-transparent border-b-0",
             active
-               ? "bg-background hover:bg-background text-primary border border-muted border-b-0"
-               : "link",
+               ? "bg-background hover:bg-background text-primary border-muted border-b-0"
+               : "link opacity-80",
             badge && "pr-4",
             className,
          )}
       >
-         {children}
+         <span className="truncate">{children}</span>
          {badge ? (
             <span className="px-3 py-1 rounded-full font-mono bg-primary/5 text-sm leading-none">
                {badge}
@@ -317,22 +365,62 @@ export type SectionHeaderTabsProps = {
 };
 export const SectionHeaderTabs = ({ title, items }: SectionHeaderTabsProps) => {
    return (
-      <SectionHeader className="mt-10 border-t pl-3 pb-0 items-end">
-         <div className="flex flex-row items-center gap-6 -mb-px">
-            {title && (
-               <SectionHeaderTitle className="pl-2 hidden md:block">{title}</SectionHeaderTitle>
-            )}
-            <div className="flex flex-row items-center gap-3">
-               {items?.map(({ label, ...item }, key) => (
-                  <SectionHeaderLink key={key} {...item}>
-                     {label}
-                  </SectionHeaderLink>
-               ))}
-            </div>
+      <div className="relative">
+         <div className="absolute left-0 right-0 bottom-0 z-0 h-px bg-muted" />
+         <div className="overflow-x-scroll app-scrollbar mt-10 border-t border-t-muted">
+            <SectionHeader className="pl-3 pb-0 items-end ">
+               <div className="flex flex-row items-center gap-6 -mb-px">
+                  {title && (
+                     <SectionHeaderTitle className="pl-2 hidden md:block">
+                        {title}
+                     </SectionHeaderTitle>
+                  )}
+                  <div className="flex flex-row items-center gap-3 pr-3">
+                     {items?.map(({ label, ...item }, key) => (
+                        <SectionHeaderLink key={key} {...item} className="relative z-2">
+                           {label}
+                        </SectionHeaderLink>
+                     ))}
+                  </div>
+               </div>
+            </SectionHeader>
          </div>
-      </SectionHeader>
+      </div>
    );
 };
+
+export function MaxHeightContainer(props: ComponentPropsWithoutRef<"div">) {
+   const scrollRef = useRef<React.ElementRef<"div">>(null);
+   const [offset, setOffset] = useState(0);
+   const [height, setHeight] = useState(window.innerHeight);
+
+   function updateHeaderHeight() {
+      if (scrollRef.current) {
+         // get offset to top of window
+         const offset = scrollRef.current.getBoundingClientRect().top;
+         const height = window.innerHeight;
+         setOffset(offset);
+         setHeight(height);
+      }
+   }
+
+   useEffect(() => {
+      updateHeaderHeight();
+      const resize = throttle(updateHeaderHeight, 500);
+
+      window.addEventListener("resize", resize);
+
+      return () => {
+         window.removeEventListener("resize", resize);
+      };
+   }, []);
+
+   return (
+      <div ref={scrollRef} style={{ height: `${height - offset}px` }} {...props}>
+         {props.children}
+      </div>
+   );
+}
 
 export function Scrollable({
    children,
@@ -346,7 +434,9 @@ export function Scrollable({
 
    function updateHeaderHeight() {
       if (scrollRef.current) {
-         setOffset(scrollRef.current.offsetTop);
+         // get offset to top of window
+         const offset = scrollRef.current.getBoundingClientRect().top;
+         setOffset(offset);
       }
    }
 

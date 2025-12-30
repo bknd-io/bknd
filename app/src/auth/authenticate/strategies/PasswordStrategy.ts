@@ -1,11 +1,10 @@
 import type { User } from "bknd";
 import type { Authenticator } from "auth/authenticate/Authenticator";
 import { InvalidCredentialsException } from "auth/errors";
-import { hash, $console } from "core/utils";
+import { hash, $console, s, parse, jsc, describeRoute } from "bknd/utils";
 import { Hono } from "hono";
 import { compare as bcryptCompare, genSalt as bcryptGenSalt, hash as bcryptHash } from "bcryptjs";
 import { AuthStrategy } from "./Strategy";
-import { s, parse, jsc } from "bknd/utils";
 
 const schema = s
    .object({
@@ -85,51 +84,67 @@ export class PasswordStrategy extends AuthStrategy<typeof schema> {
       });
       const payloadSchema = this.getPayloadSchema();
 
-      hono.post("/login", jsc("query", redirectQuerySchema), async (c) => {
-         try {
-            const body = parse(payloadSchema, await authenticator.getBody(c), {
-               onError: (errors) => {
-                  $console.error("Invalid login payload", [...errors]);
-                  throw new InvalidCredentialsException();
-               },
-            });
-            const { redirect } = c.req.valid("query");
-
-            return await authenticator.resolveLogin(c, this, body, this.verify(body.password), {
-               redirect,
-            });
-         } catch (e) {
-            return authenticator.respondWithError(c, e as any);
-         }
-      });
-
-      hono.post("/register", jsc("query", redirectQuerySchema), async (c) => {
-         try {
-            const { redirect } = c.req.valid("query");
-            const { password, email, ...body } = parse(
-               payloadSchema,
-               await authenticator.getBody(c),
-               {
+      hono.post(
+         "/login",
+         describeRoute({
+            summary: "Login with email and password",
+            tags: ["auth"],
+         }),
+         jsc("query", redirectQuerySchema),
+         async (c) => {
+            try {
+               const body = parse(payloadSchema, await authenticator.getBody(c), {
                   onError: (errors) => {
-                     $console.error("Invalid register payload", [...errors]);
-                     new InvalidCredentialsException();
+                     $console.error("Invalid login payload", [...errors]);
+                     throw new InvalidCredentialsException();
                   },
-               },
-            );
+               });
+               const { redirect } = c.req.valid("query");
 
-            const profile = {
-               ...body,
-               email,
-               strategy_value: await this.hash(password),
-            };
+               return await authenticator.resolveLogin(c, this, body, this.verify(body.password), {
+                  redirect,
+               });
+            } catch (e) {
+               return authenticator.respondWithError(c, e as any);
+            }
+         },
+      );
 
-            return await authenticator.resolveRegister(c, this, profile, async () => void 0, {
-               redirect,
-            });
-         } catch (e) {
-            return authenticator.respondWithError(c, e as any);
-         }
-      });
+      hono.post(
+         "/register",
+         describeRoute({
+            summary: "Register a new user with email and password",
+            tags: ["auth"],
+         }),
+         jsc("query", redirectQuerySchema),
+         async (c) => {
+            try {
+               const { redirect } = c.req.valid("query");
+               const { password, email, ...body } = parse(
+                  payloadSchema,
+                  await authenticator.getBody(c),
+                  {
+                     onError: (errors) => {
+                        $console.error("Invalid register payload", [...errors]);
+                        new InvalidCredentialsException();
+                     },
+                  },
+               );
+
+               const profile = {
+                  ...body,
+                  email,
+                  strategy_value: await this.hash(password),
+               };
+
+               return await authenticator.resolveRegister(c, this, profile, async () => void 0, {
+                  redirect,
+               });
+            } catch (e) {
+               return authenticator.respondWithError(c, e as any);
+            }
+         },
+      );
 
       return hono;
    }

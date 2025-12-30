@@ -11,8 +11,8 @@ describe("aws adapter", () => {
    adapterTestSuite(bunTestRunner, {
       makeApp: awsLambda.createApp,
       // @todo: add a request to lambda event translator?
-      makeHandler: (c, a, o) => async (request: Request) => {
-         const app = await awsLambda.createApp(c, a, o);
+      makeHandler: (c, a) => async (request: Request) => {
+         const app = await awsLambda.createApp(c, a);
          return app.fetch(request);
       },
    });

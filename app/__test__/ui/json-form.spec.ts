@@ -102,7 +102,9 @@ describe("json form", () => {
       ] satisfies [string, Exclude<JSONSchema, boolean>, boolean][];
 
       for (const [pointer, schema, output] of examples) {
-         expect(utils.isRequired(new Draft2019(schema), pointer, schema)).toBe(output);
+         expect(utils.isRequired(new Draft2019(schema), pointer, schema), `${pointer} `).toBe(
+            output,
+         );
       }
    });
 

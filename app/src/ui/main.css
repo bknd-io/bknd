@@ -74,7 +74,7 @@
    @apply bg-background text-primary overflow-hidden h-dvh w-dvw;
 
    ::selection {
-      @apply bg-muted;
+      @apply bg-primary/15;
    }
 
    input {
@@ -114,4 +114,15 @@ body,
    & *::-webkit-scrollbar-thumb {
       @apply bg-primary/25;
    }
+}
+
+@utility debug {
+   @apply border-red-500 border;
+}
+@utility debug-blue {
+   @apply border-blue-500 border;
+}
+@utility w-min-content {
+   width: min-content;
+   width: -webkit-min-content;
 }

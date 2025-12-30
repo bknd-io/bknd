@@ -1,10 +1,8 @@
-import { IconAlertHexagon } from "@tabler/icons-react";
 import { TbSettings } from "react-icons/tb";
 import { useBknd } from "ui/client/BkndProvider";
 import { IconButton } from "ui/components/buttons/IconButton";
 import { Icon } from "ui/components/display/Icon";
 import { Link } from "ui/components/wouter/Link";
-import { Media } from "ui/elements";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
 import * as AppShell from "ui/layouts/AppShell/AppShell";
 

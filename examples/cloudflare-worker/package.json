@@ -2,16 +2,19 @@
   "name": "cloudflare-worker",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
-    "typegen": "wrangler types"
+    "bknd-typegen": "PROXY=1 npx bknd types",
+    "typegen": "wrangler types && npm run bknd-typegen",
+    "predev": "npm run typegen"
   },
   "dependencies": {
     "bknd": "file:../../app"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
-    "wrangler": "^4.19.1"
+    "typescript": "^5.9.2",
+    "wrangler": "^4.34.0"
   }
 }

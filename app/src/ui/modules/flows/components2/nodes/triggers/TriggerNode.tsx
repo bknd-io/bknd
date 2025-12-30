@@ -94,8 +94,8 @@ export const TriggerNode = (props: NodeProps<Node<TAppFlowTriggerSchema & { labe
                   control={control}
                />
             </div>
-            {data.type === "manual" && <Manual />}
-            {data.type === "http" && (
+            {data?.type === "manual" && <Manual />}
+            {data?.type === "http" && (
                <Http form={{ watch, register, setValue, getValues, control }} />
             )}
          </form>

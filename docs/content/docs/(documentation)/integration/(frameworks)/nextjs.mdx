@@ -108,7 +108,7 @@ import { config } from "@/bknd";
 import { serve } from "bknd/adapter/nextjs";
 
 // optionally, you can set the runtime to edge for better performance
-export const runtime = "edge";
+// export const runtime = "edge";
 
 const handler = serve({
   ...config,
@@ -145,7 +145,7 @@ export default async function AdminPage() {
       config={{
         basepath: "/admin",
         logo_return_path: "/../",
-        color_scheme: "system",
+        theme: "system",
       }}
     />
   );

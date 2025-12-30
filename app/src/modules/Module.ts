@@ -1,3 +1,4 @@
+import type { App } from "bknd";
 import type { EventManager } from "core/events";
 import type { Connection } from "data/connection";
 import type { EntityManager } from "data/entities";
@@ -5,11 +6,15 @@ import type { Hono } from "hono";
 import type { ServerEnv } from "modules/Controller";
 import type { ModuleHelper } from "./ModuleHelper";
 import { SchemaObject } from "core/object/SchemaObject";
-import type { DebugLogger } from "core/utils/DebugLogger";
 import type { Guard } from "auth/authorize/Guard";
+import type { McpServer, DebugLogger } from "bknd/utils";
 
 type PartialRec<T> = { [P in keyof T]?: PartialRec<T[P]> };
 
+export type ModuleBuildContextMcpContext = {
+   app: App;
+   ctx: () => ModuleBuildContext;
+};
 export type ModuleBuildContext = {
    connection: Connection;
    server: Hono<ServerEnv>;
@@ -19,6 +24,7 @@ export type ModuleBuildContext = {
    logger: DebugLogger;
    flags: (typeof Module)["ctx_flags"];
    helper: ModuleHelper;
+   mcp: McpServer<ModuleBuildContextMcpContext>;
 };
 
 export abstract class Module<Schema extends object = object> {

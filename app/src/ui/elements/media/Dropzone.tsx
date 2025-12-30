@@ -9,8 +9,8 @@ import {
    useEffect,
    useMemo,
    useRef,
-   useState,
 } from "react";
+import { isFileAccepted } from "bknd/utils";
 import { type FileWithPath, useDropzone } from "./use-dropzone";
 import { checkMaxReached } from "./helper";
 import { DropzoneInner } from "./DropzoneInner";
@@ -42,28 +42,80 @@ export type DropzoneRenderProps = {
    showPlaceholder: boolean;
    onClick?: (file: { path: string }) => void;
    footer?: ReactNode;
-   dropzoneProps: Pick<DropzoneProps, "maxItems" | "placeholder" | "autoUpload" | "flow">;
+   dropzoneProps: Pick<
+      DropzoneProps,
+      "maxItems" | "placeholder" | "autoUpload" | "flow" | "allowedMimeTypes"
+   >;
 };
 
 export type DropzoneProps = {
+   /**
+    * Get the upload info for a file
+    */
    getUploadInfo: (file: { path: string }) => { url: string; headers?: Headers; method?: string };
+   /**
+    * Handle the deletion of a file
+    */
    handleDelete: (file: { path: string }) => Promise<boolean>;
+   /**
+    * The initial items to display
+    */
    initialItems?: FileState[];
-   flow?: "start" | "end";
+   /**
+    * Maximum number of media items that can be uploaded
+    */
    maxItems?: number;
+   /**
+    * The allowed mime types
+    */
    allowedMimeTypes?: string[];
+   /**
+    * If true, the media item will be overwritten on entity media uploads if limit was reached
+    */
    overwrite?: boolean;
+   /**
+    * If true, the media items will be uploaded automatically
+    */
    autoUpload?: boolean;
+   /**
+    * Whether to add new items to the start or end of the list
+    * @default "start"
+    */
+   flow?: "start" | "end";
+   /**
+    * The on rejected callback
+    */
    onRejected?: (files: FileWithPath[]) => void;
+   /**
+    * The on deleted callback
+    */
    onDeleted?: (file: { path: string }) => void;
+   /**
+    * The on uploaded all callback
+    */
    onUploadedAll?: (files: FileStateWithData[]) => void;
+   /**
+    * The on uploaded callback
+    */
    onUploaded?: (file: FileStateWithData) => void;
+   /**
+    * The on clicked callback
+    */
    onClick?: (file: FileState) => void;
+   /**
+    * The placeholder to use
+    */
    placeholder?: {
       show?: boolean;
       text?: string;
    };
+   /**
+    * The footer to render
+    */
    footer?: ReactNode;
+   /**
+    * The children to render
+    */
    children?: ReactNode | ((props: DropzoneRenderProps) => ReactNode);
 };
 
@@ -102,6 +154,7 @@ export function Dropzone({
    const setIsOver = useStore(store, (state) => state.setIsOver);
    const uploading = useStore(store, (state) => state.uploading);
    const setFileState = useStore(store, (state) => state.setFileState);
+   const overrideFile = useStore(store, (state) => state.overrideFile);
    const removeFile = useStore(store, (state) => state.removeFile);
    const inputRef = useRef<HTMLInputElement>(null);
 
@@ -120,9 +173,16 @@ export function Dropzone({
 
       return specs.every((spec) => {
          if (spec.kind !== "file") {
+            console.warn("file not accepted: not a file", spec.kind);
             return false;
          }
-         return !(allowedMimeTypes && !allowedMimeTypes.includes(spec.type));
+         if (allowedMimeTypes && allowedMimeTypes.length > 0) {
+            if (!isFileAccepted(i, allowedMimeTypes)) {
+               console.warn("file not accepted: not allowed mimetype", spec.type);
+               return false;
+            }
+         }
+         return true;
       });
    }
 
@@ -310,7 +370,7 @@ export function Dropzone({
                      state: "uploaded",
                   };
 
-                  setFileState(file.path, newState.state);
+                  overrideFile(file.path, newState);
                   resolve({ ...response, ...file, ...newState });
                } catch (e) {
                   setFileState(file.path, "uploaded", 1);
@@ -333,7 +393,9 @@ export function Dropzone({
          };
 
          xhr.setRequestHeader("Accept", "application/json");
-         xhr.send(file.body);
+         const formData = new FormData();
+         formData.append("file", file.body);
+         xhr.send(formData);
       });
    }
 
@@ -362,7 +424,9 @@ export function Dropzone({
    const openFileInput = useCallback(() => inputRef.current?.click(), [inputRef]);
    const showPlaceholder = useMemo(
       () =>
-         Boolean(placeholder?.show === true || !maxItems || (maxItems && files.length < maxItems)),
+         Boolean(
+            placeholder?.show !== false && (!maxItems || (maxItems && files.length < maxItems)),
+         ),
       [placeholder, maxItems, files.length],
    );
 
@@ -375,6 +439,7 @@ export function Dropzone({
             type: "file",
             multiple: !maxItems || maxItems > 1,
             onChange: handleFileInputChange,
+            accept: allowedMimeTypes?.join(","),
          },
          showPlaceholder,
          actions: {
@@ -388,11 +453,12 @@ export function Dropzone({
             placeholder,
             autoUpload,
             flow,
+            allowedMimeTypes,
          },
          onClick,
          footer,
       }),
-      [maxItems, flow, placeholder, autoUpload, footer],
+      [maxItems, files.length, flow, placeholder, autoUpload, footer, allowedMimeTypes],
    ) as unknown as DropzoneRenderProps;
 
    return (

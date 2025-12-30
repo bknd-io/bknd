@@ -1,9 +1,23 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import type { ModuleBuildContext } from "../../src";
 import { App, createApp } from "core/test/utils";
-import * as proto from "../../src/data/prototype";
+import * as proto from "data/prototype";
+import { DbModuleManager } from "modules/db/DbModuleManager";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 describe("App", () => {
+   test("use db mode by default", async () => {
+      const app = createApp();
+      await app.build();
+
+      expect(app.mode).toBe("db");
+      expect(app.isReadOnly()).toBe(false);
+      expect(app.modules instanceof DbModuleManager).toBe(true);
+   });
+
    test("seed includes ctx and app", async () => {
       const called = mock(() => null);
       await createApp({
@@ -20,6 +34,7 @@ describe("App", () => {
                   "guard",
                   "flags",
                   "logger",
+                  "mcp",
                   "helper",
                ]);
             },
@@ -28,7 +43,7 @@ describe("App", () => {
       expect(called).toHaveBeenCalled();
 
       const app = createApp({
-         initialConfig: {
+         config: {
             data: proto
                .em({
                   todos: proto.entity("todos", {
@@ -134,5 +149,22 @@ describe("App", () => {
 
       // expect async listeners to be executed sync after request
       expect(called).toHaveBeenCalled();
+   });
+
+   test("getMcpClient", async () => {
+      const app = createApp({
+         config: {
+            server: {
+               mcp: {
+                  enabled: true,
+               },
+            },
+         },
+      });
+      await app.build();
+      const client = app.getMcpClient();
+      const res = await client.listTools();
+      expect(res).toBeDefined();
+      expect(res?.tools.length).toBeGreaterThan(0);
    });
 });

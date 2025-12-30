@@ -29,15 +29,15 @@ const app = createApp();
 
 app.emgr.onEvent(AppEvents.AppRequest, async (event) => {
   //                                         ^? AppRequest
-  console.log("Request received", event.request.url);
+  console.log("Request received", event.params.request.url);
 });
 
 app.emgr.on("app-request", async (event) => {
-  console.log("Request received", event.request.url);
+  console.log("Request received", event.params.request.url);
 });
 
-app.emgr.onAny(async (event) => {
-  console.log("Event received", event.slug);
+app.emgr.onAny(async (event, name) => {
+  console.log("Event received", event, name);
 });
 ```
 
@@ -49,7 +49,7 @@ import { AppEvents } from "bknd";
 export default {
   onBuilt: (app) => {
     app.emgr.onEvent(AppEvents.AppRequest, async (event) => {
-      console.log("Request received", event.request.url);
+      console.log("Request received", event.params.request.url);
     });
   },
 };
@@ -63,7 +63,7 @@ By default, listeners are registered as `async` listeners, meaning that the list
 app.emgr.onEvent(
   AppEvents.AppRequest,
   async (event) => {
-    console.log("Request received", event.request.url);
+    console.log("Request received", event.params.request.url);
   },
   { mode: "sync" },
 );

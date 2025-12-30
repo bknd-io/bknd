@@ -1,4 +1,4 @@
-import { isObject } from "core/utils";
+import { isObject } from "bknd/utils";
 
 import type { KyselyJsonFrom } from "data/relations/EntityRelation";
 import type { RepoQuery } from "data/server/query";

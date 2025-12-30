@@ -3,19 +3,19 @@ import {
    log as $log,
    password as $password,
    text as $text,
+   select as $select,
 } from "@clack/prompts";
 import type { App } from "App";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
 import { makeAppFromEnv } from "cli/commands/run";
 import type { CliCommand } from "cli/types";
 import { Argument } from "commander";
-import { $console } from "core/utils";
+import { $console, isBun } from "bknd/utils";
 import c from "picocolors";
-import { isBun } from "core/utils";
+import { withConfigOptions, type WithConfigOptions } from "cli/utils/options";
 
 export const user: CliCommand = (program) => {
-   program
-      .command("user")
+   withConfigOptions(program.command("user"))
       .description("create/update users, or generate a token (auth)")
       .addArgument(
          new Argument("<action>", "action to perform").choices(["create", "update", "token"]),
@@ -23,10 +23,17 @@ export const user: CliCommand = (program) => {
       .action(action);
 };
 
-async function action(action: "create" | "update" | "token", options: any) {
+async function action(action: "create" | "update" | "token", options: WithConfigOptions) {
    const app = await makeAppFromEnv({
+      config: options.config,
+      dbUrl: options.dbUrl,
       server: "node",
    });
+
+   if (!app.module.auth.enabled) {
+      $log.error("Auth is not enabled");
+      process.exit(1);
+   }
 
    switch (action) {
       case "create":
@@ -42,7 +49,28 @@ async function action(action: "create" | "update" | "token", options: any) {
 }
 
 async function create(app: App, options: any) {
-   const strategy = app.module.auth.authenticator.strategy("password") as PasswordStrategy;
+   const auth = app.module.auth;
+   let role: string | null = null;
+   const roles = Object.keys(auth.config.roles ?? {});
+
+   const strategy = auth.authenticator.strategy("password") as PasswordStrategy;
+   if (roles.length > 0) {
+      role = (await $select({
+         message: "Select role",
+         options: [
+            {
+               value: null,
+               label: "<none>",
+               hint: "No role will be assigned to the user",
+            },
+            ...roles.map((role) => ({
+               value: role,
+               label: role,
+            })),
+         ],
+      })) as any;
+      if ($isCancel(role)) process.exit(1);
+   }
 
    if (!strategy) {
       $log.error("Password strategy not configured");
@@ -75,19 +103,19 @@ async function create(app: App, options: any) {
       const created = await app.createUser({
          email,
          password: await strategy.hash(password as string),
+         role,
       });
       $log.success(`Created user: ${c.cyan(created.email)}`);
+      process.exit(0);
    } catch (e) {
       $log.error("Error creating user");
       $console.error(e);
+      process.exit(1);
    }
 }
 
 async function update(app: App, options: any) {
    const config = app.module.auth.toJSON(true);
-   const strategy = app.module.auth.authenticator.strategy("password") as PasswordStrategy;
-   const users_entity = config.entity_name as "users";
-   const em = app.modules.ctx().em;
 
    const email = (await $text({
       message: "Which user? Enter email",
@@ -100,7 +128,10 @@ async function update(app: App, options: any) {
    })) as string;
    if ($isCancel(email)) process.exit(1);
 
-   const { data: user } = await em.repository(users_entity).findOne({ email });
+   const { data: user } = await app.modules
+      .ctx()
+      .em.repository(config.entity_name as "users")
+      .findOne({ email });
    if (!user) {
       $log.error("User not found");
       process.exit(1);
@@ -118,26 +149,12 @@ async function update(app: App, options: any) {
    });
    if ($isCancel(password)) process.exit(1);
 
-   try {
-      function togglePw(visible: boolean) {
-         const field = em.entity(users_entity).field("strategy_value")!;
-
-         field.config.hidden = !visible;
-         field.config.fillable = visible;
-      }
-      togglePw(true);
-      await app.modules
-         .ctx()
-         .em.mutator(users_entity)
-         .updateOne(user.id, {
-            strategy_value: await strategy.hash(password as string),
-         });
-      togglePw(false);
-
+   if (await app.module.auth.changePassword(user.id, password)) {
       $log.success(`Updated user: ${c.cyan(user.email)}`);
-   } catch (e) {
+      process.exit(0);
+   } else {
       $log.error("Error updating user");
-      $console.error(e);
+      process.exit(1);
    }
 }
 
@@ -173,4 +190,5 @@ async function token(app: App, options: any) {
    console.log(
       `\n${c.dim("Token:")}\n${c.yellow(await app.module.auth.authenticator.jwt(user))}\n`,
    );
+   process.exit(0);
 }

@@ -1,8 +1,14 @@
-import type { DB, PrimaryFieldType, EntityData, RepoQueryIn } from "bknd";
+import type {
+   DB,
+   PrimaryFieldType,
+   EntityData,
+   RepoQueryIn,
+   RepositoryResult,
+   ResponseObject,
+   ModuleApi,
+} from "bknd";
 import { objectTransform, encodeSearch } from "bknd/utils";
-import type { RepositoryResult } from "data/entities";
 import type { Insertable, Selectable, Updateable } from "kysely";
-import type { FetchPromise, ModuleApi, ResponseObject } from "modules/ModuleApi";
 import useSWR, { type SWRConfiguration, type SWRResponse, mutate } from "swr";
 import { type Api, useApi } from "ui/client";
 
@@ -108,7 +114,7 @@ export function makeKey(
    );
 }
 
-interface UseEntityQueryReturn<
+export interface UseEntityQueryReturn<
    Entity extends keyof DB | string,
    Id extends PrimaryFieldType | undefined = undefined,
    Data = Entity extends keyof DB ? Selectable<DB[Entity]> : EntityData,
@@ -136,11 +142,11 @@ export const useEntityQuery = <
    const fetcher = () => read(query ?? {});
 
    type T = Awaited<ReturnType<typeof fetcher>>;
-   const swr = useSWR<T>(options?.enabled === false ? null : key, fetcher as any, {
+   const swr = useSWR(options?.enabled === false ? null : key, fetcher as any, {
       revalidateOnFocus: false,
       keepPreviousData: true,
       ...options,
-   });
+   }) as ReturnType<typeof useSWR<T>>;
 
    const mutateFn = async (id?: PrimaryFieldType) => {
       const entityKey = makeKey(api, entity as string, id);
@@ -156,6 +162,7 @@ export const useEntityQuery = <
 
          // mutate all keys of entity by default
          if (options?.revalidateOnMutate !== false) {
+            // don't use the id, to also update lists
             await mutateFn();
          }
          return res;

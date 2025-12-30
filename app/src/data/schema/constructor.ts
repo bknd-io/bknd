@@ -1,4 +1,4 @@
-import { transformObject } from "core/utils";
+import { transformObject } from "bknd/utils";
 import { Entity } from "data/entities";
 import type { Field } from "data/fields";
 import { FIELDS, RELATIONS, type TAppDataEntity, type TAppDataRelation } from "data/data-schema";

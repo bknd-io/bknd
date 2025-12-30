@@ -9,13 +9,14 @@ import {
 } from "data/relations";
 import { NumberField, TextField } from "data/fields";
 import * as proto from "data/prototype";
-import { getDummyConnection, disableConsoleLog, enableConsoleLog } from "../../helper";
+import { getDummyConnection } from "../../helper";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 import { MutatorEvents } from "data/events";
 
 const { dummyConnection, afterAllCleanup } = getDummyConnection();
 afterAll(afterAllCleanup);
 
-beforeAll(() => disableConsoleLog(["log", "warn"]));
+beforeAll(() => disableConsoleLog());
 afterAll(async () => (await afterAllCleanup()) && enableConsoleLog());
 
 describe("[data] Mutator (base)", async () => {

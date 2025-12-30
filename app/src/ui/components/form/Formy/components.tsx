@@ -1,3 +1,4 @@
+import { Tooltip } from "@mantine/core";
 import clsx from "clsx";
 import { getBrowser } from "core/utils";
 import type { Field } from "data/fields";
@@ -6,6 +7,7 @@ import {
    type ComponentPropsWithoutRef,
    type ElementType,
    forwardRef,
+   Fragment,
    useEffect,
    useImperativeHandle,
    useRef,
@@ -26,8 +28,9 @@ export const Group = <E extends ElementType = "div">({
    return (
       <Tag
          {...props}
+         data-role="group"
          className={twMerge(
-            "flex flex-col gap-1.5",
+            "flex flex-col gap-1.5 w-full",
             as === "fieldset" && "border border-primary/10 p-3 rounded-md",
             as === "fieldset" && error && "border-red-500",
             error && "text-red-500",
@@ -66,17 +69,22 @@ export const ErrorMessage: React.FC<React.ComponentProps<"div">> = ({ className,
    <div {...props} className={twMerge("text-sm text-red-500", className)} />
 );
 
-export const FieldLabel: React.FC<React.ComponentProps<"label"> & { field: Field }> = ({
-   field,
-   ...props
-}) => {
+export const FieldLabel: React.FC<
+   React.ComponentProps<"label"> & { field: Field; label?: string }
+> = ({ field, label, ...props }) => {
    const desc = field.getDescription();
+   const Wrapper = desc
+      ? (p) => <Tooltip position="right" label={desc} {...p} />
+      : (p) => <Fragment {...p} />;
+
    return (
-      <Label {...props} title={desc} className="flex flex-row gap-1 items-center">
-         {field.getLabel()}
-         {field.isRequired() && <span className="font-medium opacity-30">*</span>}
-         {desc && <TbInfoCircle className="opacity-50" />}
-      </Label>
+      <Wrapper>
+         <Label {...props} className="flex flex-row gap-1 items-center self-start">
+            {label ?? field.getLabel()}
+            {field.isRequired() && <span className="font-medium opacity-30">*</span>}
+            {desc && <TbInfoCircle className="opacity-50" />}
+         </Label>
+      </Wrapper>
    );
 };
 
@@ -88,7 +96,7 @@ export const Input = forwardRef<HTMLInputElement, React.ComponentProps<"input">>
          {...props}
          ref={ref}
          className={twMerge(
-            "bg-muted/40 h-11 rounded-md py-2.5 px-4 outline-none w-full",
+            "bg-muted/40 h-11 rounded-md py-2.5 px-4 outline-none w-full disabled:cursor-not-allowed",
             disabledOrReadonly && "bg-muted/50 text-primary/50",
             !disabledOrReadonly &&
                "focus:bg-muted focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all",
@@ -102,6 +110,12 @@ export const TypeAwareInput = forwardRef<HTMLInputElement, React.ComponentProps<
    (props, ref) => {
       if (props.type === "password") {
          return <Password {...props} ref={ref} />;
+      }
+      if ("data-type" in props) {
+         if (props["data-type"] === "textarea") {
+            // @ts-ignore
+            return <Textarea {...props} ref={ref} />;
+         }
       }
 
       return <Input {...props} ref={ref} />;

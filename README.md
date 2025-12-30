@@ -1,34 +1,50 @@
 [![npm version](https://img.shields.io/npm/v/bknd.svg)](https://npmjs.org/package/bknd)
 
-![bknd](https://raw.githubusercontent.com/bknd-io/bknd/refs/heads/main/docs/_assets/poster.png)
+![bknd](https://raw.githubusercontent.com/bknd-io/bknd/refs/heads/main/docs/public/assets/poster.png)
 
 <p align="center" width="100%">
-<a href="https://stackblitz.com/github/bknd-io/bknd-examples?hideExplorer=1&embed=1&view=preview&startScript=example-admin-rich&initialPath=%2Fdata%2Fschema" target="_blank">
+<a href="https://stackblitz.com/github/bknd-io/bknd-demo?hideExplorer=1&embed=1&view=preview&initialPath=%2Fdata%2Fschema" target="_blank">
 <strong>⭐ Live Demo</strong>
 </a>
 </p>
 
-bknd simplifies app development by providing a fully functional backend for database management, authentication, media and workflows. Being lightweight and built on Web Standards, it can be deployed nearly anywhere, including running inside your framework of choice. No more deploying multiple separate services!
+bknd simplifies app development by providing a fully functional visual backend for database management, authentication, media and workflows. Being lightweight and built on Web Standards, it can be deployed nearly anywhere, including running inside your framework of choice. No more deploying multiple separate services!
+
+It's designed to avoid vendor lock-in and architectural limitations. Built exclusively on [WinterTC Minimum Common Web Platform API](https://min-common-api.proposal.wintertc.org/) for universal compatibility, all functionality (data, auth, media, flows) is modular and opt-in, and infrastructure access is adapter-based with direct access to underlying drivers giving you full control without abstractions getting in your way.
+
 * **Runtimes**: Node.js 22+, Bun 1.0+, Deno, Browser, Cloudflare Workers/Pages, Vercel, Netlify, AWS Lambda, etc.
 * **Databases**:
   * SQLite: LibSQL, Node SQLite, Bun SQLite, Cloudflare D1, Cloudflare Durable Objects SQLite, SQLocal
   * Postgres: Vanilla Postgres, Supabase, Neon, Xata
 * **Frameworks**: React, Next.js, React Router, Astro, Vite, Waku
 * **Storage**: AWS S3, S3-compatible (Tigris, R2, Minio, etc.), Cloudflare R2 (binding), Cloudinary, Filesystem
+* **Deployment**: Standalone, Docker, Cloudflare Workers, Vercel, Netlify, Deno Deploy, AWS Lambda, Valtown etc.
 
 **For documentation and examples, please visit https://docs.bknd.io.**
 
 > [!WARNING]
-> This project requires Node.js 22 or higher (because of `node:sqlite`).
+> This project requires Node.js 22.13 or higher (because of `node:sqlite`).
 >
 > Please keep in mind that **bknd** is still under active development
 > and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
 
+## Use Cases
+
+bknd is a general purpose backend system that implements the primitives almost any backend needs. This way, you can use it for any backend use case, including but not limited to:
+
+- **Content Management System (CMS)** as Wordpress alternative, hosted separately or embedded in your frontend
+- **AI Agent Backends** for managing agent state with built-in data persistence, regardless where it is hosted. Optionally communicate over the integrated MCP server.
+- **SaaS Products** with multi-tenant data isolation (RLS) and user management, with freedom to choose your own database and storage provider
+- **Prototypes & MVPs** to validate ideas quickly without infrastructure overhead
+- **API-First Applications** where you need a reliable, type-safe backend without vendor lock-in either with the integrated TypeScript SDK or REST API using OpenAPI
+- **IoT & Embedded Devices** where minimal footprint matters
+
+
 ## Size
 ![gzipped size of bknd](https://img.shields.io/bundlejs/size/bknd?label=bknd)
 ![gzipped size of bknd/client](https://img.badgesize.io/https://unpkg.com/bknd@latest/dist/ui/client/index.js?compression=gzip&label=bknd/client)
-![gzipped size of bknd/elements](https://img.badgesize.io/https://unpkg.com/bknd@latest/dist/ui/elements/index.js?compression=gzip&label=bknd/elements)
-![gzipped size of bknd/ui](https://img.badgesize.io/https://unpkg.com/bknd@latest/dist/ui/index.js?compression=gzip&label=bknd/ui)
+![gzipped size of bknd/elements](https://img.badgesize.io/https://unpkg.com/bknd@latest/dist/ui/elements/index.js?compression=gzip&label=bknd/elements&t=1)
+![gzipped size of bknd/ui](https://img.badgesize.io/https://unpkg.com/bknd@latest/dist/ui/index.js?compression=gzip&label=bknd/ui&t=1)
 
 The size on npm is misleading, as the `bknd` package includes the backend, the ui components as well as the whole backend bundled into the cli including static assets. 
 
@@ -46,6 +62,7 @@ Creating digital products always requires developing both the backend (the logic
   * **Media**: Effortlessly manage and serve all your media files.
   * **Flows**: Design and run workflows with seamless automation. (UI integration coming soon!)
 * 🌐 Built on Web Standards for maximum compatibility
+* 🛠️ MCP server, client and UI built-in to control your backend
 * 🏃‍♂️ Multiple run modes
   * standalone using the CLI
   * using a JavaScript runtime (Node, Bun, workerd)
