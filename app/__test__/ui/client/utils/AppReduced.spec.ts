@@ -133,7 +133,6 @@ describe("AppReduced", () => {
          const options = appReduced.options;
 
          expect(options).toEqual({
-            basepath: "/",
             logo_return_path: "/custom-home",
             basepath: "/custom-admin",
          });

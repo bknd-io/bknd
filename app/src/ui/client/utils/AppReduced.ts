@@ -71,7 +71,6 @@ export class AppReduced {
    get options() {
       return {
          basepath: "/",
-         admin_basepath: "",
          logo_return_path: "/",
          ...this._options,
       };
