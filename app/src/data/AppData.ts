@@ -18,7 +18,7 @@ export class AppData extends Module<AppDataConfig> {
       } = this.config;
 
       const entities = transformObject(_entities, (entityConfig, name) => {
-         return constructEntity(name, entityConfig);
+         return constructEntity(name as string, entityConfig);
       });
 
       const _entity = (_e: Entity | string): Entity => {
@@ -35,32 +35,34 @@ export class AppData extends Module<AppDataConfig> {
       // Store pending indices that reference fields that may not exist yet
       // (e.g., fields added by plugins). These will be resolved after plugins run.
       const pendingIndices: Array<{ index: typeof _indices[string]; name: string }> = [];
-      const resolvedIndices: EntityIndex[] = [];
-
-      for (const [name, index] of Object.entries(_indices)) {
+      
+      const resolvedIndices = transformObject(_indices, (index, name) => {
          const entity = _entity(index.entity)!;
          const missingFields = index.fields.filter((f) => !entity.field(f));
+         const indexName = name as string;
          
          if (missingFields.length > 0) {
             // Defer index creation - fields may be added by plugins
-            pendingIndices.push({ index, name });
-         } else {
-            // All fields exist, create index immediately
-            const fields = index.fields.map((f) => entity.field(f)!);
-            resolvedIndices.push(new EntityIndex(entity, fields, index.unique, name));
+            pendingIndices.push({ index, name: indexName });
+            // Return undefined to exclude from resolved indices (will be handled later)
+            return undefined;
          }
-      }
+         
+         // All fields exist, create index immediately
+         const fields = index.fields.map((f) => entity.field(f)!);
+         return new EntityIndex(entity, fields, index.unique, indexName);
+      });
 
       for (const entity of Object.values(entities)) {
-         this.ctx.em.addEntity(entity);
+         this.ctx.em.addEntity(entity as Entity);
       }
 
       for (const relation of Object.values(relations)) {
-         this.ctx.em.addRelation(relation);
+         this.ctx.em.addRelation(relation as any);
       }
 
-      for (const index of resolvedIndices) {
-         this.ctx.em.addIndex(index);
+      for (const index of Object.values(resolvedIndices)) {
+         this.ctx.em.addIndex(index as EntityIndex);
       }
 
       // Store pending indices to be resolved after plugins run
