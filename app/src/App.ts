@@ -386,6 +386,18 @@ export class App<
             }
          }
       }
+
+      // Resolve pending indices that were deferred because their fields didn't exist yet
+      // (e.g., indices on plugin-added fields like timestamps)
+      try {
+         const dataModule = this.modules.get("data");
+         if (dataModule && typeof (dataModule as any).resolvePendingIndices === "function") {
+            (dataModule as any).resolvePendingIndices();
+         }
+      } catch (e) {
+         // data module might not exist, ignore
+      }
+
       await this.options?.manager?.onModulesBuilt?.(ctx);
    }
 }
