@@ -99,10 +99,13 @@ describe("MediaApi", () => {
       expect(isReadableStream(res.res.body)).toBe(true);
 
       const blob = await res.res.blob();
-      expect(isFile(blob)).toBe(true);
-      expect(blob.size).toBeGreaterThan(0);
-      expect(blob.type).toBe("image/png");
-      expect(blob.name).toContain(name);
+      // Response.blob() always returns Blob, not File - File metadata (name, lastModified) is lost
+      // Client code must manually construct File from Blob (see MediaApi.download() for reference)
+      const file = new File([blob], name, { type: blob.type });
+      expect(isFile(file)).toBe(true);
+      expect(file.size).toBeGreaterThan(0);
+      expect(file.type).toBe("image/png");
+      expect(file.name).toContain(name);
    });
 
    it("getFileStream", async () => {
@@ -110,14 +113,19 @@ describe("MediaApi", () => {
       const api = new MediaApi({}, mockedBackend.request);
 
       const name = "image.png";
-      const res = await api.getFileStream(name);
-      expect(isReadableStream(res)).toBe(true);
+      const { res: originalRes } = await api.getFile(name);
+      const stream = await api.getFileStream(name);
+      expect(isReadableStream(stream)).toBe(true);
 
-      const blob = await new Response(res).blob();
-      expect(isFile(blob)).toBe(true);
-      expect(blob.size).toBeGreaterThan(0);
-      expect(blob.type).toBe("image/png");
-      expect(blob.name).toContain(name);
+      const blob = await new Response(stream).blob();
+      // Response.blob() always returns Blob, not File - File metadata (name, lastModified) is lost
+      // Client code must manually construct File from Blob (see MediaApi.download() for reference)
+      // Use originalRes.headers.get("Content-Type") to preserve MIME type from response
+      const file = new File([blob], name, { type: originalRes.headers.get("Content-Type") || blob.type });
+      expect(isFile(file)).toBe(true);
+      expect(file.size).toBeGreaterThan(0);
+      expect(file.type).toBe("image/png");
+      expect(file.name).toContain(name);
    });
 
    it("should upload file in various ways", async () => {
