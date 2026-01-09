@@ -1,6 +1,0 @@
-[install]
-#registry = "http://localhost:4873"
-
-[test]
-coverageSkipTestFiles = true
-console.depth = 10

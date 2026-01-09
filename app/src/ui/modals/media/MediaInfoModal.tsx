@@ -1,6 +1,6 @@
 import type { ContextModalProps } from "@mantine/modals";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { useEntityQuery } from "ui/client";
+import { useEntityQuery } from "bknd/client";
 import { type FileState, Media } from "ui/elements";
 import { autoFormatString, datetimeStringLocal, formatNumber } from "core/utils";
 import { twMerge } from "tailwind-merge";

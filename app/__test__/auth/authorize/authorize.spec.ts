@@ -1,8 +1,12 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import { Guard, type GuardConfig } from "auth/authorize/Guard";
 import { Permission } from "auth/authorize/Permission";
 import { Role, type RoleSchema } from "auth/authorize/Role";
 import { objectTransform, s } from "bknd/utils";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 function createGuard(
    permissionNames: string[],

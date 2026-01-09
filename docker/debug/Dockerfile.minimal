@@ -1,0 +1,14 @@
+FROM alpine:latest
+
+# Install Node.js and npm
+RUN apk add --no-cache nodejs npm
+
+# Set working directory
+WORKDIR /app
+
+# Create package.json with type: module
+RUN echo '{"type":"module"}' > package.json
+
+# Keep container running (can be overridden)
+CMD ["sh"]
+

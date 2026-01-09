@@ -35,7 +35,7 @@ import { SegmentedControl, Tooltip } from "@mantine/core";
 import { Popover } from "ui/components/overlay/Popover";
 import { cn } from "ui/lib/utils";
 import { JsonViewer } from "ui/components/code/JsonViewer";
-import { mountOnce, useApiQuery } from "ui/client";
+import { mountOnce, useApiQuery } from "bknd/client";
 import { CodePreview } from "ui/components/code/CodePreview";
 import type { JsonError } from "json-schema-library";
 import { Alert } from "ui/components/display/Alert";
@@ -378,11 +378,7 @@ function replaceEntitiesEnum(schema: Record<string, any>, entities: string[]) {
    });
 }
 
-const Policy = ({
-   permission,
-}: {
-   permission: TPermission;
-}) => {
+const Policy = ({ permission }: { permission: TPermission }) => {
    const { value } = useDerivedFieldContext("", ({ value }) => ({
       effect: (value?.effect ?? "allow") as "allow" | "deny" | "filter",
    }));
@@ -503,22 +499,24 @@ const CustomFieldWrapper = ({
                         className: "max-w-none",
                      }}
                      position="bottom-end"
-                     target={() =>
-                        typeof schema.content === "object" ? (
-                           <JsonViewer
-                              className="w-auto max-w-120 bg-background pr-3 text-sm"
-                              json={schema.content}
-                              title={schema.name}
-                              expand={5}
-                           />
-                        ) : (
-                           <CodePreview
-                              code={schema.content}
-                              lang="typescript"
-                              className="w-auto max-w-120 bg-background p-3 text-sm"
-                           />
-                        )
-                     }
+                     target={() => (
+                        <div className="w-auto max-w-[80vw] md:max-w-120 bg-background overflow-scroll">
+                           {typeof schema.content === "object" ? (
+                              <JsonViewer
+                                 className="pr-3 text-sm"
+                                 json={schema.content}
+                                 title={schema.name}
+                                 expand={5}
+                              />
+                           ) : (
+                              <CodePreview
+                                 code={schema.content}
+                                 lang="typescript"
+                                 className="p-3 text-sm"
+                              />
+                           )}
+                        </div>
+                     )}
                   >
                      <Button variant="ghost" size="smaller" IconLeft={TbCodeDots}>
                         {autoFormatString(schema.name)}

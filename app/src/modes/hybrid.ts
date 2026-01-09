@@ -1,6 +1,6 @@
 import type { BkndConfig } from "bknd/adapter";
 import { makeModeConfig, type BkndModeConfig } from "./shared";
-import { getDefaultConfig, type MaybePromise, type ModuleConfigs, type Merge } from "bknd";
+import { getDefaultConfig, type MaybePromise, type Merge } from "bknd";
 import type { DbModuleManager } from "modules/db/DbModuleManager";
 import { invariant, $console } from "bknd/utils";
 
@@ -9,7 +9,7 @@ export type BkndHybridModeOptions = {
     * Reader function to read the configuration from the file system.
     * This is required for hybrid mode to work.
     */
-   reader?: (path: string) => MaybePromise<string>;
+   reader?: (path: string) => MaybePromise<string | object>;
    /**
     * Provided secrets to be merged into the configuration
     */
@@ -23,42 +23,36 @@ export type HybridMode<AdapterConfig extends BkndConfig> = AdapterConfig extends
    ? BkndModeConfig<Args, Merge<BkndHybridModeOptions & AdapterConfig>>
    : never;
 
-export function hybrid<Args>({
-   configFilePath = "bknd-config.json",
-   ...rest
-}: HybridBkndConfig<Args>): BkndConfig<Args> {
+export function hybrid<
+   Config extends BkndConfig,
+   Args = Config extends BkndConfig<infer A> ? A : unknown,
+>(hybridConfig: HybridMode<Config>): BkndConfig<Args> {
    return {
-      ...rest,
-      config: undefined,
+      ...hybridConfig,
       app: async (args) => {
          const {
             config: appConfig,
             isProd,
             plugins,
             syncSchemaOptions,
-         } = await makeModeConfig(
-            {
-               ...rest,
-               configFilePath,
-            },
-            args,
-         );
+         } = await makeModeConfig(hybridConfig, args);
+
+         const configFilePath = appConfig.configFilePath ?? "bknd-config.json";
 
          if (appConfig?.options?.mode && appConfig?.options?.mode !== "db") {
             $console.warn("You should not set a different mode than `db` when using hybrid mode");
          }
          invariant(
             typeof appConfig.reader === "function",
-            "You must set the `reader` option when using hybrid mode",
+            "You must set a `reader` option when using hybrid mode",
          );
 
-         let fileConfig: ModuleConfigs;
-         try {
-            fileConfig = JSON.parse(await appConfig.reader!(configFilePath)) as ModuleConfigs;
-         } catch (e) {
-            const defaultConfig = (appConfig.config ?? getDefaultConfig()) as ModuleConfigs;
-            await appConfig.writer!(configFilePath, JSON.stringify(defaultConfig, null, 2));
-            fileConfig = defaultConfig;
+         const fileContent = await appConfig.reader?.(configFilePath);
+         let fileConfig = typeof fileContent === "string" ? JSON.parse(fileContent) : fileContent;
+         if (!fileConfig) {
+            $console.warn("No config found, using default config");
+            fileConfig = getDefaultConfig();
+            await appConfig.writer?.(configFilePath, JSON.stringify(fileConfig, null, 2));
          }
 
          return {
@@ -80,6 +74,13 @@ export function hybrid<Args>({
                   skipValidation: isProd,
                   // secrets are required for hybrid mode
                   secrets: appConfig.secrets,
+                  onModulesBuilt: async (ctx) => {
+                     if (ctx.flags.sync_required && !isProd && syncSchemaOptions.force) {
+                        $console.log("[hybrid] syncing schema");
+                        await ctx.em.schema().sync(syncSchemaOptions);
+                     }
+                     await appConfig?.options?.manager?.onModulesBuilt?.(ctx);
+                  },
                   ...appConfig?.options?.manager,
                },
             },

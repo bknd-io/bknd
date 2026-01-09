@@ -1,8 +1,12 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, mock, test, beforeAll, afterAll } from "bun:test";
 import { createApp as internalCreateApp, type CreateAppConfig } from "bknd";
 import { getDummyConnection } from "../../__test__/helper";
 import { ModuleManager } from "modules/ModuleManager";
 import { em, entity, text } from "data/prototype";
+import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 async function createApp(config: CreateAppConfig = {}) {
    const app = internalCreateApp({

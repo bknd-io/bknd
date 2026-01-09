@@ -8,14 +8,13 @@ import { Empty } from "ui/components/display/Empty";
 import { Button } from "ui/components/buttons/Button";
 import { appShellStore } from "ui/store";
 import { useBrowserTitle } from "ui/hooks/use-browser-title";
+import { RoutePathStateProvider } from "ui/hooks/use-route-path-state";
+import { Route, Switch } from "wouter";
 
 export default function ToolsMcp() {
    useBrowserTitle(["MCP UI"]);
 
-   const { config, options } = useBknd();
-   const feature = useMcpStore((state) => state.feature);
-   const setFeature = useMcpStore((state) => state.setFeature);
-   const content = useMcpStore((state) => state.content);
+   const { config } = useBknd();
    const openSidebar = appShellStore((store) => store.toggleSidebar("default"));
    const mcpPath = config.server.mcp.path;
 
@@ -29,51 +28,57 @@ export default function ToolsMcp() {
    }
 
    return (
-      <div className="flex flex-col flex-grow max-w-screen">
-         <AppShell.SectionHeader>
-            <div className="flex flex-row gap-4 items-center">
-               <McpIcon />
-               <AppShell.SectionHeaderTitle className="whitespace-nowrap truncate">
-                  MCP UI
-               </AppShell.SectionHeaderTitle>
-               <div className="hidden md:flex flex-row gap-2 items-center bg-primary/5 rounded-full px-3 pr-3.5 py-2">
-                  <TbWorld />
-                  <div className="min-w-0 flex-1">
-                     <span className="block truncate text-sm font-mono leading-none select-text">
-                        {window.location.origin + mcpPath}
-                     </span>
+      <RoutePathStateProvider path={"/:type?"} defaultIdentifier="tools">
+         <div className="flex flex-col flex-grow max-w-screen">
+            <AppShell.SectionHeader>
+               <div className="flex flex-row gap-4 items-center">
+                  <McpIcon />
+                  <AppShell.SectionHeaderTitle className="whitespace-nowrap truncate">
+                     MCP UI
+                  </AppShell.SectionHeaderTitle>
+                  <div className="hidden md:flex flex-row gap-2 items-center bg-primary/5 rounded-full px-3 pr-3.5 py-2">
+                     <TbWorld />
+                     <div className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-mono leading-none select-text">
+                           {window.location.origin + mcpPath}
+                        </span>
+                     </div>
                   </div>
                </div>
-            </div>
-         </AppShell.SectionHeader>
+            </AppShell.SectionHeader>
 
-         <div className="flex h-full">
-            <AppShell.Sidebar>
-               <Tools.Sidebar open={feature === "tools"} toggle={() => setFeature("tools")} />
-               <AppShell.SectionHeaderAccordionItem
-                  title="Resources"
-                  open={feature === "resources"}
-                  toggle={() => setFeature("resources")}
-               >
-                  <div className="flex flex-col flex-grow p-3 gap-3 justify-center items-center opacity-40">
-                     <i>Resources</i>
-                  </div>
-               </AppShell.SectionHeaderAccordionItem>
-            </AppShell.Sidebar>
-            {feature === "tools" && <Tools.Content />}
-
-            {!content && (
-               <Empty title="No tool selected" description="Please select a tool to continue.">
-                  <Button
-                     variant="primary"
-                     onClick={() => openSidebar()}
-                     className="block md:hidden"
+            <div className="flex grow h-full">
+               <AppShell.Sidebar>
+                  <Tools.Sidebar />
+                  <AppShell.RouteAwareSectionHeaderAccordionItem
+                     title="Resources"
+                     identifier="resources"
                   >
-                     Open Tools
-                  </Button>
-               </Empty>
-            )}
+                     <div className="flex flex-col flex-grow p-3 gap-3 justify-center items-center opacity-40">
+                        <i>Resources</i>
+                     </div>
+                  </AppShell.RouteAwareSectionHeaderAccordionItem>
+               </AppShell.Sidebar>
+
+               <Switch>
+                  <Route path="/tools/:toolName?" component={Tools.Content} />
+                  <Route path="*">
+                     <Empty
+                        title="No tool selected"
+                        description="Please select a tool to continue."
+                     >
+                        <Button
+                           variant="primary"
+                           onClick={() => openSidebar()}
+                           className="block md:hidden"
+                        >
+                           Open Tools
+                        </Button>
+                     </Empty>
+                  </Route>
+               </Switch>
+            </div>
          </div>
-      </div>
+      </RoutePathStateProvider>
    );
 }

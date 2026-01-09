@@ -1,5 +1,6 @@
 import { createFrameworkApp, type FrameworkBkndConfig } from "bknd/adapter";
 import { isNode } from "bknd/utils";
+// @ts-expect-error next is not installed
 import type { NextApiRequest } from "next";
 
 type NextjsEnv = NextApiRequest["env"];
@@ -18,7 +19,9 @@ function getCleanRequest(req: Request, cleanRequest: NextjsBkndConfig["cleanRequ
    if (!cleanRequest) return req;
 
    const url = new URL(req.url);
-   cleanRequest?.searchParams?.forEach((k) => url.searchParams.delete(k));
+   cleanRequest?.searchParams?.forEach((k) => {
+      url.searchParams.delete(k);
+   });
 
    if (isNode()) {
       return new Request(url.toString(), {

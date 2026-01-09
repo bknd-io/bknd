@@ -67,7 +67,10 @@ export async function startServer(
    $console.info("Server listening on", url);
 
    if (options.open) {
-      await open(url);
+      const p = await open(url, { wait: false });
+      p.on("error", () => {
+         $console.warn("Couldn't open url in browser");
+      });
    }
 }
 

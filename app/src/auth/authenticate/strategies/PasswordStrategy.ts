@@ -10,6 +10,7 @@ const schema = s
    .object({
       hashing: s.string({ enum: ["plain", "sha256", "bcrypt"], default: "sha256" }),
       rounds: s.number({ minimum: 1, maximum: 10 }).optional(),
+      minLength: s.number({ default: 8, minimum: 1 }).optional(),
    })
    .strict();
 
@@ -37,7 +38,7 @@ export class PasswordStrategy extends AuthStrategy<typeof schema> {
             format: "email",
          }),
          password: s.string({
-            minLength: 8, // @todo: this should be configurable
+            minLength: this.config.minLength,
          }),
       });
    }
@@ -65,12 +66,21 @@ export class PasswordStrategy extends AuthStrategy<typeof schema> {
             return await bcryptCompare(compare, actual);
       }
 
-      return false;
+      return actual === compare;
    }
 
    verify(password: string) {
       return async (user: User) => {
-         const compare = await this.compare(user?.strategy_value!, password);
+         if (!user || !user.strategy_value) {
+            throw new InvalidCredentialsException();
+         }
+
+         if (!this.getPayloadSchema().properties.password.validate(password).valid) {
+            $console.debug("PasswordStrategy: Invalid password", password);
+            throw new InvalidCredentialsException();
+         }
+
+         const compare = await this.compare(user.strategy_value, password);
          if (compare !== true) {
             throw new InvalidCredentialsException();
          }
