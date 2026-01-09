@@ -1,9 +1,11 @@
 import type { AppAuthSchema } from "auth/auth-schema";
 import { useEffect, useState } from "react";
-import { useApi } from "ui/client";
+import { useApi } from "bknd/client";
 
 type AuthStrategyData = Pick<AppAuthSchema, "strategies" | "basepath">;
-export const useAuthStrategies = (options?: { baseUrl?: string }): Partial<AuthStrategyData> & {
+export const useAuthStrategies = (options?: {
+   baseUrl?: string;
+}): Partial<AuthStrategyData> & {
    loading: boolean;
 } => {
    const [data, setData] = useState<AuthStrategyData>();

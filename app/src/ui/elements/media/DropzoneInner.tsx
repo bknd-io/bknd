@@ -19,8 +19,8 @@ import {
 } from "react-icons/tb";
 import { Dropdown, type DropdownItem } from "ui/components/overlay/Dropdown";
 import { IconButton } from "ui/components/buttons/IconButton";
-import { formatNumber } from "core/utils";
-import type { DropzoneRenderProps, FileState } from "ui/elements";
+import { formatNumber } from "bknd/utils";
+import type { DropzoneRenderProps, FileState } from "./Dropzone";
 import { useDropzoneFileState, useDropzoneState } from "./Dropzone";
 
 function handleUploadError(e: unknown) {

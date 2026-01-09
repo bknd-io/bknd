@@ -1,4 +1,4 @@
-import { SegmentedControl, Tooltip } from "@mantine/core";
+import { SegmentedControl } from "@mantine/core";
 import { IconApi, IconBook, IconKeyOff, IconSettings, IconUser } from "@tabler/icons-react";
 import {
    TbDatabase,
@@ -10,7 +10,7 @@ import {
    TbUser,
    TbX,
 } from "react-icons/tb";
-import { useAuth, useBkndWindowContext } from "ui/client";
+import { useAuth, useBkndWindowContext } from "bknd/client";
 import { useBknd } from "ui/client/bknd";
 import { useTheme } from "ui/client/use-theme";
 import { Button } from "ui/components/buttons/Button";
@@ -24,34 +24,35 @@ import { useLocation } from "wouter";
 import { NavLink } from "./AppShell";
 import { autoFormatString } from "core/utils";
 import { appShellStore } from "ui/store";
-import { getVersion } from "core/env";
+import { getVersion, isDebug } from "core/env";
 import { McpIcon } from "ui/routes/tools/mcp/components/mcp-icon";
 import { useAppShellAdminOptions } from "ui/options";
 
 export function HeaderNavigation() {
    const [location, navigate] = useLocation();
+   const { config } = useBknd();
 
    const items: {
       label: string;
       href: string;
-      Icon: any;
+      Icon?: any;
       exact?: boolean;
       tooltip?: string;
       disabled?: boolean;
    }[] = [
-      /*{
-         label: "Base",
-         href: "#",
-         exact: true,
-         Icon: TbLayoutDashboard,
-         disabled: true,
-         tooltip: "Coming soon"
-      },*/
       { label: "Data", href: "/data", Icon: TbDatabase },
       { label: "Auth", href: "/auth", Icon: TbFingerprint },
       { label: "Media", href: "/media", Icon: TbPhoto },
-      { label: "Flows", href: "/flows", Icon: TbHierarchy2 },
    ];
+
+   if (isDebug() || Object.keys(config.flows?.flows ?? {}).length > 0) {
+      items.push({ label: "Flows", href: "/flows", Icon: TbHierarchy2 });
+   }
+
+   if (config.server.mcp.enabled) {
+      items.push({ label: "MCP", href: "/tools/mcp", Icon: McpIcon });
+   }
+
    const activeItem = items.find((item) =>
       item.exact ? location === item.href : location.startsWith(item.href),
    );
@@ -154,8 +155,10 @@ function UserMenu() {
 
    async function handleLogout() {
       await auth.logout();
-      // @todo: grab from somewhere constant
-      navigate(logout_route, { reload: true });
+
+      if (!auth.local) {
+         navigate(logout_route, { reload: true });
+      }
    }
 
    async function handleLogin() {

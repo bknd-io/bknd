@@ -1,6 +1,6 @@
 import type { EntityData } from "bknd";
 import { useState } from "react";
-import { useEntityMutate } from "ui/client";
+import { useEntityMutate } from "bknd/client";
 import { useBkndData } from "ui/client/schema/data/use-bknd-data";
 import { Button } from "ui/components/buttons/Button";
 import { Message } from "ui/components/display/Message";
@@ -121,7 +121,7 @@ export function DataEntityCreate({ params }) {
                handleSubmit={handleSubmit}
                fieldsDisabled={fieldsDisabled}
                data={search.value}
-               Form={Form}
+               Form={Form as any}
                action="create"
                className="flex flex-grow flex-col gap-3 p-3"
             />

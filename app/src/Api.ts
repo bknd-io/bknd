@@ -61,7 +61,7 @@ export class Api {
    private token?: string;
    private user?: TApiUser;
    private verified = false;
-   private token_transport: "header" | "cookie" | "none" = "header";
+   public token_transport: "header" | "cookie" | "none" = "header";
 
    public system!: SystemApi;
    public data!: DataApi;

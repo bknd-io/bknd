@@ -74,6 +74,7 @@ export const jwtConfig = s.strictObject(
 export const authenticatorConfig = s.object({
    jwt: jwtConfig,
    cookie: cookieConfig,
+   default_role_register: s.string().optional(),
 });
 
 type AuthConfig = s.Static<typeof authenticatorConfig>;
@@ -164,9 +165,13 @@ export class Authenticator<
          if (!("strategy_value" in profile)) {
             throw new InvalidConditionsException("Profile must have a strategy value");
          }
+         if ("role" in profile) {
+            throw new InvalidConditionsException("Role cannot be provided during registration");
+         }
 
          const user = await this.userPool.create(strategy.getName(), {
             ...profile,
+            role: this.config.default_role_register,
             strategy_value: profile.strategy_value,
          });
 

@@ -1,5 +1,4 @@
-import { useInsertionEffect, useRef } from "react";
-import { type LinkProps, Link as WouterLink, useRoute, useRouter } from "wouter";
+import { type LinkProps, Link as WouterLink, useRouter } from "wouter";
 import { useEvent } from "../../hooks/use-event";
 
 /*

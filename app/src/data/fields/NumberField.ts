@@ -52,7 +52,7 @@ export class NumberField<Required extends true | false = false> extends Field<
 
       switch (context) {
          case "submit":
-            return Number.parseInt(value);
+            return Number.parseInt(value, 10);
       }
 
       return value;

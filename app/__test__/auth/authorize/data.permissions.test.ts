@@ -7,8 +7,8 @@ import type { App, DB } from "bknd";
 import type { CreateUserPayload } from "auth/AppAuth";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
 
-beforeAll(() => disableConsoleLog());
-afterAll(() => enableConsoleLog());
+beforeAll(disableConsoleLog);
+afterAll(enableConsoleLog);
 
 async function makeApp(config: Partial<CreateAppConfig["config"]> = {}) {
    const app = createApp({

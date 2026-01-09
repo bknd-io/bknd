@@ -10,16 +10,19 @@ export type CodeMode<AdapterConfig extends BkndConfig> = AdapterConfig extends B
    ? BkndModeConfig<Args, AdapterConfig>
    : never;
 
-export function code<Args>(config: BkndCodeModeConfig<Args>): BkndConfig<Args> {
+export function code<
+   Config extends BkndConfig,
+   Args = Config extends BkndConfig<infer A> ? A : unknown,
+>(codeConfig: CodeMode<Config>): BkndConfig<Args> {
    return {
-      ...config,
+      ...codeConfig,
       app: async (args) => {
          const {
             config: appConfig,
             plugins,
             isProd,
             syncSchemaOptions,
-         } = await makeModeConfig(config, args);
+         } = await makeModeConfig(codeConfig, args);
 
          if (appConfig?.options?.mode && appConfig?.options?.mode !== "code") {
             $console.warn("You should not set a different mode than `db` when using code mode");
