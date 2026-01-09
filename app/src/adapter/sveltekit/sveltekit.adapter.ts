@@ -1,15 +1,10 @@
-import { type FrameworkBkndConfig, createRuntimeApp } from "bknd/adapter";
+import { createRuntimeApp, type RuntimeBkndConfig } from "bknd/adapter";
 
 type TSvelteKit = {
    request: Request;
 };
 
-export type SvelteKitBkndConfig<Env> = FrameworkBkndConfig<Env> & {
-   adminOptions?: {
-      adminBasepath?: string;
-      assetsPath?: string;
-   };
-};
+export type SvelteKitBkndConfig<Env> = Pick<RuntimeBkndConfig<Env>, "adminOptions">;
 
 /**
  * Get bknd app instance
