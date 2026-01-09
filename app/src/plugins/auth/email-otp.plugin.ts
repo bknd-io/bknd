@@ -153,7 +153,7 @@ export function emailOTP({
                   "/login",
                   jsc(
                      "json",
-                     s.object({
+                     s.strictObject({
                         email: s.string({ format: "email" }),
                         code: s.string({ minLength: 1 }).optional(),
                      }),
@@ -213,7 +213,7 @@ export function emailOTP({
                   ),
                   jsc("query", s.object({ redirect: s.string().optional() })),
                   async (c) => {
-                     const { email, code } = c.req.valid("json");
+                     const { email, code, ...rest } = c.req.valid("json");
                      const { redirect } = c.req.valid("query");
 
                      // throw if user exists
@@ -232,6 +232,7 @@ export function emailOTP({
                         await em.mutator(entityName).updateOne(otpData.id, { used_at: new Date() });
 
                         const user = await app.createUser({
+                           ...rest,
                            email,
                            password: randomString(32, true),
                         });
