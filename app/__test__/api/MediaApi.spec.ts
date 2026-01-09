@@ -163,7 +163,7 @@ describe("MediaApi", () => {
       }
    });
 
-   it.only("should add overwrite query for entity upload", async (c) => {
+   it("should add overwrite query for entity upload", async (c) => {
       const call = mock(() => null);
       const hono = new Hono().post(
          "/api/media/entity/:entity/:id/:field",
