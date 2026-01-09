@@ -71,4 +71,54 @@ describe("timestamps plugin", () => {
       expect(updatedData.updated_at).toBeDefined();
       expect(updatedData.updated_at).toBeInstanceOf(Date);
    });
+
+   test("index strategy", async () => {
+      const app = createApp({
+         config: {
+            data: em({
+               posts: entity("posts", {
+                  title: text(),
+               }),
+            }).toJSON(),
+         },
+         options: {
+            plugins: [timestamps({ entities: ["posts"] })],
+         },
+      });
+      await app.build();
+      expect(app.em.indices.length).toBe(0);
+      {
+         const app = createApp({
+            config: {
+               data: em({
+                  posts: entity("posts", {
+                     title: text(),
+                  }),
+               }).toJSON(),
+            },
+            options: {
+               plugins: [timestamps({ entities: ["posts"], indexStrategy: "composite" })],
+            },
+         });
+         await app.build();
+         expect(app.em.indices.length).toBe(1);
+      }
+
+      {
+         const app = createApp({
+            config: {
+               data: em({
+                  posts: entity("posts", {
+                     title: text(),
+                  }),
+               }).toJSON(),
+            },
+            options: {
+               plugins: [timestamps({ entities: ["posts"], indexStrategy: "individual" })],
+            },
+         });
+         await app.build();
+         expect(app.em.indices.length).toBe(2);
+      }
+   });
 });
