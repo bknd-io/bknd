@@ -136,8 +136,10 @@ export class Entity<
          .map((field) => (alias ? `${alias}.${field.name} as ${field.name}` : field.name));
    }
 
-   getFillableFields(context?: TActionContext, include_virtual?: boolean): Field[] {
-      return this.getFields(include_virtual).filter((field) => field.isFillable(context));
+   getFillableFields(context?: "create" | "update", include_virtual?: boolean): Field[] {
+      return this.getFields({ virtual: include_virtual }).filter((field) =>
+         field.isFillable(context),
+      );
    }
 
    getRequiredFields(): Field[] {
@@ -189,9 +191,15 @@ export class Entity<
       return this.fields.findIndex((field) => field.name === name) !== -1;
    }
 
-   getFields(include_virtual: boolean = false): Field[] {
-      if (include_virtual) return this.fields;
-      return this.fields.filter((f) => !f.isVirtual());
+   getFields({
+      virtual = false,
+      primary = true,
+   }: { virtual?: boolean; primary?: boolean } = {}): Field[] {
+      return this.fields.filter((f) => {
+         if (!virtual && f.isVirtual()) return false;
+         if (!primary && f instanceof PrimaryField) return false;
+         return true;
+      });
    }
 
    addField(field: Field) {
@@ -231,7 +239,7 @@ export class Entity<
          }
       }
 
-      const fields = this.getFillableFields(context, false);
+      const fields = this.getFillableFields(context as any, false);
 
       if (options?.ignoreUnknown !== true) {
          const field_names = fields.map((f) => f.name);
@@ -275,7 +283,7 @@ export class Entity<
             fields = this.getFillableFields(options.context);
             break;
          default:
-            fields = this.getFields(true);
+            fields = this.getFields({ virtual: true });
       }
 
       const _fields = Object.fromEntries(fields.map((field) => [field.name, field]));
