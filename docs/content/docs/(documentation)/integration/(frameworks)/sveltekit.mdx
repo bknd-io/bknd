@@ -1,0 +1,204 @@
+---
+title: "SvelteKit"
+description: "Run bknd inside SvelteKit"
+tags: ["documentation"]
+---
+
+## Installation
+
+To get started with SvelteKit and bknd, create a new SvelteKit project by following the [official guide](https://svelte.dev/docs/kit/creating-a-project), and then install bknd as a dependency:
+
+<Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
+
+```bash tab="npm"
+npm install bknd
+```
+
+```bash tab="pnpm"
+pnpm install bknd
+```
+
+```bash tab="yarn"
+yarn add bknd
+```
+
+```bash tab="bun"
+bun add bknd
+```
+
+</Tabs>
+
+## Configuration
+
+<Callout type="warning">
+  When run with Node.js, a version of 22 (LTS) or higher is required. Please
+  verify your version by running `node -v`, and
+  [upgrade](https://nodejs.org/en/download/) if necessary.
+</Callout>
+
+Now create a `bknd.config.ts` file in the root of your project:
+
+```typescript title="bknd.config.ts"
+import type { SvelteKitBkndConfig } from "bknd/adapter/sveltekit";
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+} satisfies SvelteKitBkndConfig;
+```
+
+See [bknd.config.ts](/extending/config) for more information on how to configure bknd. The `SvelteKitBkndConfig` type extends the base config type with the following properties:
+
+```typescript
+export type SvelteKitBkndConfig<Env> = Pick<RuntimeBkndConfig<Env>, "adminOptions">;
+```
+
+## Serve the API
+
+The SvelteKit adapter uses SvelteKit's hooks mechanism to handle API requests. Create a `src/hooks.server.ts` file:
+
+```typescript title="src/hooks.server.ts"
+import type { Handle } from "@sveltejs/kit";
+import { serve } from "bknd/adapter/sveltekit";
+import { env } from "$env/dynamic/private";
+import config from "../bknd.config";
+
+const bkndHandler = serve(config, env);
+
+export const handle: Handle = async ({ event, resolve }) => {
+  // handle bknd API requests
+  const pathname = event.url.pathname;
+  if (pathname.startsWith("/api/")) {
+    const res = await bkndHandler(event);
+    if (res.status !== 404) {
+      return res;
+    }
+  }
+
+  return resolve(event);
+};
+```
+
+For more information about the connection object, refer to the [Database](/usage/database) guide.
+
+<Callout type="info">
+  The adapter uses `$env/dynamic/private` to access environment variables, making it runtime-agnostic
+  and compatible with any deployment target (Node.js, Bun, Cloudflare, etc.).
+</Callout>
+
+## Enabling the Admin UI
+
+The SvelteKit adapter supports serving the Admin UI statically. First, copy the required assets to your `static` folder by adding a postinstall script to your `package.json`:
+
+```json title="package.json"
+{
+  "scripts": {
+    "postinstall": "bknd copy-assets --out static"  // [!code highlight]
+  }
+}
+```
+
+Then update your `bknd.config.ts` to configure the admin base path:
+
+```typescript title="bknd.config.ts"
+import type { SvelteKitBkndConfig } from "bknd/adapter/sveltekit";
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+  adminOptions: {  // [!code highlight]
+    adminBasepath: "/admin"  // [!code highlight]
+  },  // [!code highlight]
+} satisfies SvelteKitBkndConfig;
+```
+
+Finally, update your `hooks.server.ts` to also handle admin routes:
+
+```typescript title="src/hooks.server.ts"
+import type { Handle } from "@sveltejs/kit";
+import { serve } from "bknd/adapter/sveltekit";
+import { env } from "$env/dynamic/private";
+import config from "../bknd.config";
+
+const bkndHandler = serve(config, env);
+
+export const handle: Handle = async ({ event, resolve }) => {
+  // handle bknd API and admin requests
+  const pathname = event.url.pathname;
+  if (pathname.startsWith("/api/") || pathname.startsWith("/admin")) {  // [!code highlight]
+    const res = await bkndHandler(event);
+    if (res.status !== 404) {
+      return res;
+    }
+  }
+
+  return resolve(event);
+};
+```
+
+## Example usage of the API
+
+You can use the `getApp` function to access the bknd API in your server-side load functions:
+
+```typescript title="src/routes/+page.server.ts"
+import type { PageServerLoad } from "./$types";
+import { getApp } from "bknd/adapter/sveltekit";
+import { env } from "$env/dynamic/private";
+import config from "../../bknd.config";
+
+export const load: PageServerLoad = async () => {
+  const app = await getApp(config, env);
+  const api = app.getApi();
+
+  const todos = await api.data.readMany("todos");
+
+  return {
+    todos: todos.data ?? [],
+  };
+};
+```
+
+Then display the data in your Svelte component:
+
+```svelte title="src/routes/+page.svelte"
+<script lang="ts">
+  import type { PageData } from "./$types";
+
+  let { data }: { data: PageData } = $props();
+</script>
+
+<h1>Todos</h1>
+<ul>
+  {#each data.todos as todo (todo.id)}
+    <li>{todo.title}</li>
+  {/each}
+</ul>
+```
+
+### Using authentication
+
+To use authentication in your load functions, pass the request headers to the API:
+
+```typescript title="src/routes/+page.server.ts"
+import type { PageServerLoad } from "./$types";
+import { getApp } from "bknd/adapter/sveltekit";
+import { env } from "$env/dynamic/private";
+import config from "../../bknd.config";
+
+export const load: PageServerLoad = async ({ request }) => {
+  const app = await getApp(config, env);
+  const api = app.getApi({ headers: request.headers });
+  await api.verifyAuth();
+
+  const todos = await api.data.readMany("todos");
+
+  return {
+    todos: todos.data ?? [],
+    user: api.getUser(),
+  };
+};
+```
+
+Check the [SvelteKit repository example](https://github.com/bknd-io/bknd/tree/main/examples/sveltekit) for more implementation details.
