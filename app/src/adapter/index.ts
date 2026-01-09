@@ -69,6 +69,11 @@ export async function createAdapterApp<Config extends BkndConfig = BkndConfig, A
       if (Connection.isConnection(config.connection)) {
          connection = config.connection;
       } else {
+         if (connection) {
+            $console.warn(
+               "Connection is not a valid connection object, using default SQLite connection",
+            );
+         }
          const sqlite = (await import("bknd/adapter/sqlite")).sqlite;
          const conf = appConfig.connection ?? { url: "file:data.db" };
          connection = sqlite(conf) as any;
