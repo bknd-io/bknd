@@ -71,7 +71,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
    }
 
    protected uploadFile<T extends FileUploadedEventData>(
-      body: File | Blob | ReadableStream | Buffer<ArrayBufferLike>,
+      body: BodyInit,
       opts?: {
          filename?: string;
          path?: TInput;
@@ -154,7 +154,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          });
       }
 
-      return this.uploadFile<T>(item, opts);
+      return this.uploadFile<T>(item as BodyInit, opts);
    }
 
    async uploadToEntity(
