@@ -7,8 +7,12 @@ const bkndHandler = serve(config, env);
 
 export const handle: Handle = async ({ event, resolve }) => {
   // Handle bknd API requests
-  if (event.url.pathname.startsWith("/api/")) {
-    return bkndHandler(event);
+  const pathname = event.url.pathname;
+  if (pathname.startsWith("/api/") || pathname.startsWith("/admin")) {
+    const res = await bkndHandler(event);
+    if (res.status !== 404) {
+      return res;
+    }
   }
 
   return resolve(event);

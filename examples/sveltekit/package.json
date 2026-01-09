@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "node node_modules/.bin/bknd copy-assets --out static"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^7.0.0",

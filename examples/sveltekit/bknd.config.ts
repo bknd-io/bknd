@@ -35,6 +35,10 @@ export default {
       },
     },
   },
+  adminOptions: {
+    // this path must be the same as in `hooks.server.ts`
+    adminBasepath: "/admin"
+  },
   options: {
     seed: async (ctx) => {
       await ctx.app.module.auth.createUser({
