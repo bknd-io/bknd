@@ -76,6 +76,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          filename?: string;
          path?: TInput;
          _init?: Omit<RequestInit, "body">;
+         query?: Record<string, any>;
       },
    ): FetchPromise<ResponseObject<T>> {
       const headers = {
@@ -102,14 +103,22 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          headers,
       };
       if (opts?.path) {
-         return this.post(opts.path, body, init);
+         return this.request<T>(opts.path, opts?.query, {
+            ...init,
+            body,
+            method: "POST",
+         });
       }
 
       if (!name || name.length === 0) {
          throw new Error("Invalid filename");
       }
 
-      return this.post<T>(opts?.path ?? ["upload", name], body, init);
+      return this.request<T>(opts?.path ?? ["upload", name], opts?.query, {
+         ...init,
+         body,
+         method: "POST",
+      });
    }
 
    async upload<T extends FileUploadedEventData>(
@@ -119,6 +128,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          _init?: Omit<RequestInit, "body">;
          path?: TInput;
          fetcher?: ApiFetcher;
+         query?: Record<string, any>;
       } = {},
    ) {
       if (item instanceof Request || typeof item === "string") {
@@ -155,11 +165,14 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
       opts?: {
          _init?: Omit<RequestInit, "body">;
          fetcher?: typeof fetch;
+         overwrite?: boolean;
       },
    ): Promise<ResponseObject<FileUploadedEventData & { result: DB["media"] }>> {
+      const query = opts?.overwrite !== undefined ? { overwrite: opts.overwrite } : undefined;
       return this.upload(item, {
          ...opts,
          path: ["entity", entity, id, field],
+         query,
       });
    }
 

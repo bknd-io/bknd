@@ -1,7 +1,7 @@
 /// <reference types="@types/bun" />
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Hono } from "hono";
-import { getFileFromContext, isFile, isReadableStream } from "core/utils";
+import { getFileFromContext, isFile, isReadableStream, s, jsc } from "core/utils";
 import { MediaApi } from "media/api/MediaApi";
 import { assetsPath, assetsTmpPath } from "../helper";
 
@@ -98,7 +98,7 @@ describe("MediaApi", () => {
       expect(isReadableStream(res.body)).toBe(true);
       expect(isReadableStream(res.res.body)).toBe(true);
 
-      const blob = await res.res.blob();
+      const blob = (await res.res.blob()) as File;
       expect(isFile(blob)).toBe(true);
       expect(blob.size).toBeGreaterThan(0);
       expect(blob.type).toBe("image/png");
@@ -113,7 +113,7 @@ describe("MediaApi", () => {
       const res = await api.getFileStream(name);
       expect(isReadableStream(res)).toBe(true);
 
-      const blob = await new Response(res).blob();
+      const blob = (await new Response(res).blob()) as File;
       expect(isFile(blob)).toBe(true);
       expect(blob.size).toBeGreaterThan(0);
       expect(blob.type).toBe("image/png");
@@ -161,5 +161,31 @@ describe("MediaApi", () => {
          const response = (await mockedBackend.request(url)) as Response;
          await matches(api.upload(response.body!, { filename: "readable.png" }), "readable.png");
       }
+   });
+
+   it("should add overwrite query for entity upload", async (c) => {
+      const call = mock(() => null);
+      const hono = new Hono().post(
+         "/api/media/entity/:entity/:id/:field",
+         jsc("query", s.object({ overwrite: s.boolean().optional() })),
+         async (c) => {
+            const { overwrite } = c.req.valid("query");
+            expect(overwrite).toBe(true);
+            call();
+            return c.json({ ok: true });
+         },
+      );
+      const api = new MediaApi(
+         {
+            upload_fetcher: hono.request,
+         },
+         hono.request,
+      );
+      const file = Bun.file(`${assetsPath}/image.png`);
+      const res = await api.uploadToEntity("posts", 1, "cover", file as any, {
+         overwrite: true,
+      });
+      expect(res.ok).toBe(true);
+      expect(call).toHaveBeenCalled();
    });
 });
