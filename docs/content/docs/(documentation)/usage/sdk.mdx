@@ -137,6 +137,35 @@ To retrieve a single record from an entity, use the `readOne` method:
 const { data } = await api.data.readOne("posts", 1);
 ```
 
+### `data.readOneBy([entity], [query])`
+
+To retrieve a single record from an entity using a query (e.g., by a specific field value) instead of an ID, use the `readOneBy` method:
+
+```ts
+const { data } = await api.data.readOneBy("posts", {
+  where: {
+    slug: "hello-world",
+  },
+});
+```
+
+This is useful when you want to find a record by a unique field other than the primary key. You can also use `select`, `with`, and `join` options:
+
+```ts
+const { data } = await api.data.readOneBy("users", {
+  select: ["id", "email", "name"],
+  where: {
+    email: "user@example.com",
+  },
+  with: {
+    posts: {
+      limit: 5,
+    },
+  },
+  join: ["profile"],
+});
+```
+
 ### `data.createOne([entity], [data])`
 
 To create a single record of an entity, use the `createOne` method:
@@ -265,6 +294,16 @@ const { data } = await api.auth.register("password", {
   password: "...",
 });
 ```
+
+### `auth.logout()`
+
+To log out the current user and clear the stored token, use the `logout` method:
+
+```ts
+await api.auth.logout();
+```
+
+This method takes no parameters. It sends a request to the logout endpoint and clears the authentication token. Returns a `Promise<void>`.
 
 ### `auth.me()`
 

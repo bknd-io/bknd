@@ -73,7 +73,9 @@ export type ReactRouterBkndConfig<Env = ReactRouterEnv> =
 
 ## Serve the API
 
-Create a helper file to instantiate the bknd instance and retrieve the API, importing the configurationfrom the `bknd.config.ts` file:
+### Helper Functions (Optional)
+
+For convenience, you can create a helper file to instantiate the bknd instance and retrieve the API. This is optional but recommended as it simplifies usage throughout your app. The examples below assume you've created this helper, but you can adjust the approach according to your needs.
 
 ```ts title="app/bknd.ts"
 import {
@@ -108,7 +110,9 @@ export async function getApi(
 
 For more information about the connection object, refer to the [Database](/usage/database) guide.
 
-Create a new api splat route file at `app/routes/api.$.ts`:
+### API Route
+
+Create a catch-all route file at `app/routes/api.$.ts` that forwards requests to bknd:
 
 ```ts title="app/routes/api.$.ts"
 import { getApp } from "~/bknd";
@@ -122,9 +126,22 @@ export const loader = handler;
 export const action = handler;
 ```
 
+If you're using [`@react-router/fs-routes`](https://reactrouter.com/how-to/file-route-conventions), this file will automatically be picked up as a route.
+
+If you're manually defining routes in [`app/routes.ts`](https://reactrouter.com/api/framework-conventions/routes.ts), reference this file in your configuration:
+
+```ts title="app/routes.ts"
+import { type RouteConfig, route } from "@react-router/dev/routes";
+
+export default [
+  // your other routes...
+  route("api/*", "./routes/api.$.ts"),
+] satisfies RouteConfig;
+```
+
 ## Enabling the Admin UI
 
-Create a new splat route file at `app/routes/admin.$.tsx`:
+Create a route file at `app/routes/admin.$.tsx` to enable the bknd Admin UI for managing your data, schema, and users:
 
 ```tsx title="app/routes/admin.$.tsx"
 import { lazy, Suspense, useSyncExternalStore } from "react";
@@ -165,6 +182,19 @@ export default function AdminPage() {
 }
 ```
 
+If you're using [`@react-router/fs-routes`](https://reactrouter.com/how-to/file-route-conventions), this file will automatically be picked up as a route.
+
+If you're manually defining routes in `app/routes.ts`, reference this file in your configuration:
+
+```ts title="app/routes.ts"
+import { type RouteConfig, route } from "@react-router/dev/routes";
+
+export default [
+  // your other routes...
+  route("admin/*", "./routes/admin.$.tsx"),
+] satisfies RouteConfig;
+```
+
 ## Example usage of the API
 
 You can use the `getApi` helper function we've already set up to fetch and mutate:
@@ -193,3 +223,24 @@ export default function Index() {
   );
 }
 ```
+
+## Using React Hooks (Optional)
+
+If you want to use bknd's client-side React hooks (like `useEntityQuery`, `useAuth`, etc.), wrap your app in the `ClientProvider` component. This is typically done in `app/root.tsx`:
+
+```tsx title="app/root.tsx"
+// other imports
+import { ClientProvider } from "bknd/client";
+
+// ...
+export default function App() {
+  return (
+    <ClientProvider>
+      <Outlet />
+    </ClientProvider>
+  );
+}
+// ...
+```
+
+The `ClientProvider` automatically uses the same origin for API requests, which works perfectly when bknd is served from your React Router app. For more details on using React hooks, see the [React SDK documentation](/usage/react).
