@@ -1,3 +1,4 @@
+// biome-ignore-all lint: .
 import type { Plugin } from "vite";
 import { writeFile as nodeWriteFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -48,7 +49,6 @@ export function devFsVitePlugin({
             // Skip our own debug output
             if (output.includes("[dev-fs-plugin]") || output.includes("[dev-fs-polyfill]")) {
                // @ts-ignore
-               // biome-ignore lint/style/noArguments: <explanation>
                return originalStdoutWrite.apply(process.stdout, arguments);
             }
 
@@ -178,7 +178,6 @@ export function devFsVitePlugin({
             }
 
             // @ts-ignore
-            // biome-ignore lint:
             return originalStdoutWrite.apply(process.stdout, arguments);
          };
 
