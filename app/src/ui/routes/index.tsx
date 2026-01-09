@@ -16,9 +16,11 @@ import ToolsRoutes from "./tools";
 
 // @ts-ignore
 let TestRoutes: any;
-if (import.meta.env.DEV) {
-   TestRoutes = lazy(() => import("./test"));
-}
+try {
+   if (import.meta.env.DEV) {
+      TestRoutes = lazy(() => import("./test"));
+   }
+} catch {}
 
 export function Routes({
    BkndWrapper,
