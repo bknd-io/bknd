@@ -253,6 +253,11 @@
       "import": "./dist/adapter/astro/index.js",
       "require": "./dist/adapter/astro/index.js"
     },
+    "./adapter/sveltekit": {
+      "types": "./dist/types/adapter/sveltekit/index.d.ts",
+      "import": "./dist/adapter/sveltekit/index.js",
+      "require": "./dist/adapter/sveltekit/index.js"
+    },
     "./adapter/aws": {
       "types": "./dist/types/adapter/aws/index.d.ts",
       "import": "./dist/adapter/aws/index.js",
@@ -280,6 +285,7 @@
       "adapter/react-router": ["./dist/types/adapter/react-router/index.d.ts"],
       "adapter/bun": ["./dist/types/adapter/bun/index.d.ts"],
       "adapter/node": ["./dist/types/adapter/node/index.d.ts"],
+      "adapter/sveltekit": ["./dist/types/adapter/sveltekit/index.d.ts"],
       "adapter/sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"]
     }
   },
@@ -309,6 +315,8 @@
     "remix",
     "react-router",
     "astro",
+    "sveltekit",
+    "svelte",
     "bun",
     "node"
   ]
