@@ -284,7 +284,7 @@ export class OAuthStrategy extends AuthStrategy<typeof schemaProvided> {
       }
    }
 
-   getController(auth: Authenticator): Hono<any> {
+   getController(auth: Authenticator, opts: { allow_register?: boolean }): Hono<any> {
       const hono = new Hono();
       const secret = "secret";
       const cookie_name = "_challenge";
@@ -376,6 +376,10 @@ export class OAuthStrategy extends AuthStrategy<typeof schemaProvided> {
       hono.post("/:action", async (c) => {
          const action = c.req.param("action") as AuthAction;
          if (!["login", "register"].includes(action)) {
+            return c.notFound();
+         }
+
+         if (action === "register" && !opts.allow_register) {
             return c.notFound();
          }
 
