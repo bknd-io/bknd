@@ -46,7 +46,7 @@
     "test:e2e:report": "VITE_DB_URL=:memory: playwright show-report",
     "docs:build-assets": "bun internal/docs.build-assets.ts"
   },
-  "license": "FSL-1.1-MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
     "@codemirror/lang-html": "^6.4.11",
