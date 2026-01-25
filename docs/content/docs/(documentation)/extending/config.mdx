@@ -210,6 +210,10 @@ to the latest version upon boot ([`db` mode](/usage/introduction#ui-only-mode) o
 }
 ```
 
+<Callout type="warn" title="Guard lockout warning">
+  Setting `auth.guard.enabled` to `true` without first creating a user with an admin role will lock you out of the admin portal. See [Securing Your Admin Portal](/modules/auth#securing-your-admin-portal) for the required steps before enabling the Guard.
+</Callout>
+
 You can use the [CLI](/usage/cli/#getting-the-configuration-config) to get the default configuration:
 
 ```sh
