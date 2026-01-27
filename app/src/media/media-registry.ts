@@ -3,6 +3,7 @@ import type { StorageAdapter } from "./storage/StorageAdapter";
 import type { s } from "bknd/utils";
 import { StorageS3Adapter } from "./storage/adapters/s3/StorageS3Adapter";
 import { StorageCloudinaryAdapter } from "./storage/adapters/cloudinary/StorageCloudinaryAdapter";
+import { StorageLocalAdapterBase } from "./storage/adapters/local/StorageLocalAdapterBase";
 
 type ClassThatImplements<T> = Constructor<T> & { prototype: T };
 
@@ -13,10 +14,15 @@ export const MediaAdapterRegistry = new Registry<{
    cls,
    schema: cls.prototype.getSchema() as s.Schema,
 }))
+   .register("local", StorageLocalAdapterBase)
    .register("s3", StorageS3Adapter)
    .register("cloudinary", StorageCloudinaryAdapter);
 
 export const MediaAdapters = {
+   local: {
+      cls: StorageLocalAdapterBase,
+      schema: StorageLocalAdapterBase.prototype.getSchema(),
+   },
    s3: {
       cls: StorageS3Adapter,
       schema: StorageS3Adapter.prototype.getSchema(),

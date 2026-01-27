@@ -1,33 +1,20 @@
 import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd";
-import { StorageAdapter, guessMimeType } from "bknd";
-import { parse, s, isFile } from "bknd/utils";
+import { guessMimeType } from "bknd";
+import { parse, isFile } from "bknd/utils";
+import { StorageLocalAdapterBase } from "media/storage/adapters/local/StorageLocalAdapterBase";
+import { localAdapterConfig, type LocalAdapterConfig } from "media/storage/adapters/local/local-adapter-schema";
 
-export const localAdapterConfig = s.object(
-   {
-      path: s.string({ default: "./" }),
-   },
-   { title: "Local", description: "Local file system storage", additionalProperties: false },
-);
-export type LocalAdapterConfig = s.Static<typeof localAdapterConfig>;
+// Re-export the schema and type for backwards compatibility
+export { localAdapterConfig, type LocalAdapterConfig } from "media/storage/adapters/local/local-adapter-schema";
 
-export class StorageLocalAdapter extends StorageAdapter {
-   private config: LocalAdapterConfig;
-
+export class StorageLocalAdapter extends StorageLocalAdapterBase {
    constructor(config: Partial<LocalAdapterConfig> = {}) {
-      super();
+      super(config);
       this.config = parse(localAdapterConfig, config);
    }
 
-   getSchema() {
-      return localAdapterConfig;
-   }
-
-   getName(): string {
-      return "local";
-   }
-
-   async listObjects(prefix?: string): Promise<FileListObject[]> {
+   override async listObjects(prefix?: string): Promise<FileListObject[]> {
       const files = await readdir(this.config.path);
       const fileStats = await Promise.all(
          files
@@ -54,7 +41,7 @@ export class StorageLocalAdapter extends StorageAdapter {
       return `"${hashHex}"`;
    }
 
-   async putObject(key: string, body: FileBody): Promise<string | FileUploadPayload> {
+   override async putObject(key: string, body: FileBody): Promise<string | FileUploadPayload> {
       if (body === null) {
          throw new Error("Body is empty");
       }
@@ -65,13 +52,13 @@ export class StorageLocalAdapter extends StorageAdapter {
       return await this.computeEtag(body);
    }
 
-   async deleteObject(key: string): Promise<void> {
+   override async deleteObject(key: string): Promise<void> {
       try {
          await unlink(`${this.config.path}/${key}`);
       } catch (e) {}
    }
 
-   async objectExists(key: string): Promise<boolean> {
+   override async objectExists(key: string): Promise<boolean> {
       try {
          const stats = await stat(`${this.config.path}/${key}`);
          return stats.isFile();
@@ -106,7 +93,7 @@ export class StorageLocalAdapter extends StorageAdapter {
       return { start, end };
    }
 
-   async getObject(key: string, headers: Headers): Promise<Response> {
+   override async getObject(key: string, headers: Headers): Promise<Response> {
       try {
          const filePath = `${this.config.path}/${key}`;
          const stats = await stat(filePath);
@@ -159,22 +146,15 @@ export class StorageLocalAdapter extends StorageAdapter {
       }
    }
 
-   getObjectUrl(key: string): string {
+   override getObjectUrl(key: string): string {
       throw new Error("Method not implemented.");
    }
 
-   async getObjectMeta(key: string): Promise<FileMeta> {
+   override async getObjectMeta(key: string): Promise<FileMeta> {
       const stats = await stat(`${this.config.path}/${key}`);
       return {
          type: guessMimeType(key) || "application/octet-stream",
          size: stats.size,
-      };
-   }
-
-   toJSON(secrets?: boolean) {
-      return {
-         type: this.getName(),
-         config: this.config,
       };
    }
 }
