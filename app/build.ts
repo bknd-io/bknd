@@ -2,7 +2,7 @@ import { $ } from "bun";
 import * as tsup from "tsup";
 import pkg from "./package.json" with { type: "json" };
 import c from "picocolors";
-import { watch as fsWatch } from "node:fs";
+import { watch as fsWatch, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const args = process.argv.slice(2);
@@ -27,7 +27,18 @@ const define = {
 
 if (clean) {
    console.info("Cleaning dist (w/o static)");
-   await $`find dist -mindepth 1 ! -path "dist/static/*" ! -path "dist/static" -exec rm -rf {} +`;
+   // Cross-platform clean: remove all files/folders in dist except static
+   const distPath = join(import.meta.dir, "dist");
+   try {
+      const entries = readdirSync(distPath);
+      for (const entry of entries) {
+         if (entry === "static") continue;
+         const entryPath = join(distPath, entry);
+         rmSync(entryPath, { recursive: true, force: true });
+      }
+   } catch (e) {
+      // dist may not exist yet, ignore
+   }
 }
 
 let types_running = false;
