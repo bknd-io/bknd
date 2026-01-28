@@ -71,6 +71,8 @@ const external = [
    "bun:test",
    "node:test",
    "node:assert/strict",
+   // Node.js built-ins need to be external for browser/neutral platform builds
+   /^node:.*/,
    "@libsql/client",
    "bknd",
    /^bknd\/.*/,
@@ -104,6 +106,10 @@ async function buildApi() {
       splitting: false,
       loader: {
          ".svg": "dataurl",
+      },
+      esbuildOptions: (options) => {
+         // Ensure node: built-ins are externalized for browser platform
+         options.external = [...(options.external || []), "node:*"];
       },
       onSuccess: async () => {
          delayTypes();
@@ -148,6 +154,8 @@ async function buildUi() {
       },
       esbuildOptions: (options) => {
          options.logLevel = "silent";
+         // Ensure node: built-ins are externalized for browser platform
+         options.external = [...(options.external || []), "node:*"];
       },
    } satisfies tsup.Options;
 
@@ -212,6 +220,8 @@ async function buildUiElements() {
             // not important for elements, mock to reduce bundle
             "tailwind-merge": "./src/ui/elements/mocks/tailwind-merge.ts",
          };
+         // Ensure node: built-ins are externalized for browser platform
+         options.external = [...(options.external || []), "node:*"];
       },
       onSuccess: async () => {
          await rewriteClient("./dist/ui/elements/index.js");
