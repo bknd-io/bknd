@@ -162,15 +162,15 @@ function Adapters() {
                   )}
                   disabled={readonly}
                >
-                  <div>
-                     {/*<AdapterIcon type={schema.properties.type.const} />*/}
-                  </div>
-                  <div className="flex flex-col items-start justify-center">
-                     <span>{autoFormatString(schema.title)}</span>
-                     {schema.description && (
-                        <span className="text-xs opacity-70 text-left">{schema.description}</span>
-                     )}
-                  </div>
+                <div>
+                    <AdapterIcon type={schema.properties.type.const} />
+                </div>
+                <div className="flex flex-col items-start justify-center">
+                    <span>{autoFormatString(schema.title)}</span>
+                    {schema.description && (
+                      <span className="text-xs opacity-70 text-left">{schema.description}</span>
+                    )}
+                </div>
                </Button>
             ))}
          </div>
