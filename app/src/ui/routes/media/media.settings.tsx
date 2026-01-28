@@ -163,7 +163,7 @@ function Adapters() {
                   disabled={readonly}
                >
                   <div>
-                     <AdapterIcon type={schema.properties.type.const} />
+                     {/*<AdapterIcon type={schema.properties.type.const} />*/}
                   </div>
                   <div className="flex flex-col items-start justify-center">
                      <span>{autoFormatString(schema.title)}</span>

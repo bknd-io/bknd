@@ -1,20 +1,31 @@
-import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd";
-import { guessMimeType } from "bknd";
-import { parse, isFile } from "bknd/utils";
-import { StorageLocalAdapterBase } from "media/storage/adapters/local/StorageLocalAdapterBase";
-import { localAdapterConfig, type LocalAdapterConfig } from "media/storage/adapters/local/local-adapter-schema";
+import { StorageAdapter, guessMimeType } from "bknd";
+import { parse, isFile, s } from "bknd/utils";
+import { localAdapterSchema } from "media/storage/adapter-schemas";
 
 // Re-export the schema and type for backwards compatibility
-export { localAdapterConfig, type LocalAdapterConfig } from "media/storage/adapters/local/local-adapter-schema";
+export const localAdapterConfig = localAdapterSchema;
+export type LocalAdapterConfig = s.Static<typeof localAdapterSchema>;
 
-export class StorageLocalAdapter extends StorageLocalAdapterBase {
+export class StorageLocalAdapter extends StorageAdapter {
+   private config: LocalAdapterConfig;
+
    constructor(config: Partial<LocalAdapterConfig> = {}) {
-      super(config);
-      this.config = parse(localAdapterConfig, config);
+      super();
+      this.config = parse(localAdapterSchema, config);
    }
 
-   override async listObjects(prefix?: string): Promise<FileListObject[]> {
+   getSchema() {
+      return localAdapterSchema;
+   }
+
+   getName(): string {
+      return "local";
+   }
+
+   async listObjects(prefix?: string): Promise<FileListObject[]> {
       const files = await readdir(this.config.path);
       const fileStats = await Promise.all(
          files
@@ -41,28 +52,30 @@ export class StorageLocalAdapter extends StorageLocalAdapterBase {
       return `"${hashHex}"`;
    }
 
-   override async putObject(key: string, body: FileBody): Promise<string | FileUploadPayload> {
+   async putObject(key: string, body: FileBody): Promise<string | FileUploadPayload> {
       if (body === null) {
          throw new Error("Body is empty");
       }
 
       const filePath = `${this.config.path}/${key}`;
+      // Ensure parent directories exist
+      await mkdir(dirname(filePath), { recursive: true });
       await writeFile(filePath, isFile(body) ? body.stream() : body);
 
       return await this.computeEtag(body);
    }
 
-   override async deleteObject(key: string): Promise<void> {
+   async deleteObject(key: string): Promise<void> {
       try {
          await unlink(`${this.config.path}/${key}`);
-      } catch (e) {}
+      } catch (_e) {}
    }
 
-   override async objectExists(key: string): Promise<boolean> {
+   async objectExists(key: string): Promise<boolean> {
       try {
          const stats = await stat(`${this.config.path}/${key}`);
          return stats.isFile();
-      } catch (error) {
+      } catch (_error) {
          return false;
       }
    }
@@ -93,7 +106,7 @@ export class StorageLocalAdapter extends StorageLocalAdapterBase {
       return { start, end };
    }
 
-   override async getObject(key: string, headers: Headers): Promise<Response> {
+   async getObject(key: string, headers: Headers): Promise<Response> {
       try {
          const filePath = `${this.config.path}/${key}`;
          const stats = await stat(filePath);
@@ -140,21 +153,28 @@ export class StorageLocalAdapter extends StorageLocalAdapterBase {
                headers: responseHeaders,
             });
          }
-      } catch (error) {
+      } catch (_error) {
          // Handle file reading errors
          return new Response("", { status: 404 });
       }
    }
 
-   override getObjectUrl(key: string): string {
+   getObjectUrl(_key: string): string {
       throw new Error("Method not implemented.");
    }
 
-   override async getObjectMeta(key: string): Promise<FileMeta> {
+   async getObjectMeta(key: string): Promise<FileMeta> {
       const stats = await stat(`${this.config.path}/${key}`);
       return {
          type: guessMimeType(key) || "application/octet-stream",
          size: stats.size,
+      };
+   }
+
+   toJSON(_secrets?: boolean) {
+      return {
+         type: this.getName(),
+         config: this.config,
       };
    }
 }

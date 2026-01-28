@@ -9,6 +9,7 @@ import { buildMediaSchema, registry, type TAppMediaConfig } from "./media-schema
 import { mediaFields } from "./media-entities";
 import * as MediaPermissions from "media/media-permissions";
 import * as DatabaseEvents from "data/events";
+import type { AdapterType } from "./storage/adapter-schemas";
 
 export type MediaFields = typeof AppMedia.mediaFields;
 export type MediaFieldSchema = FieldSchema<typeof AppMedia.mediaFields>;
@@ -26,6 +27,41 @@ export class AppMedia extends Module<Required<TAppMediaConfig>> {
       body_max_size: null as number | null,
    };
 
+   /**
+    * Get the adapter class for a given adapter type.
+    * For adapters not in the registry (like "local" in non-Node environments),
+    * this will attempt dynamic import.
+    */
+   private async getAdapterClass(type: AdapterType): Promise<new (config: any) => StorageAdapter> {
+      // First, check if the adapter is already registered in the registry
+      const registered = registry.get(type as any);
+      if (registered?.cls) {
+         return registered.cls;
+      }
+
+      // If not registered, try to dynamically import based on type
+      switch (type) {
+         case "local": {
+            try {
+               // Dynamically import the real local adapter from the built package path
+               // Use a variable path to prevent bundlers from statically analyzing and bundling this import
+               const adapterPath = "bknd/adapter/node";
+               const { StorageLocalAdapter } = await import(/* @vite-ignore */ adapterPath);
+               // Register it for future use
+               registry.register("local", StorageLocalAdapter);
+               return StorageLocalAdapter;
+            } catch (_importError) {
+               throw new Error(
+                  "Local storage adapter requires Node.js or Bun runtime. " +
+                     "Make sure you're running on a supported platform or use a different adapter (e.g., S3, Cloudinary)."
+               );
+            }
+         }
+         default:
+          throw new Error(`Unknown adapter type: ${type}`);
+      }
+   }
+
    override async build() {
       if (!this.config.enabled) {
          this.setBuilt();
@@ -41,7 +77,7 @@ export class AppMedia extends Module<Required<TAppMediaConfig>> {
       let adapter: StorageAdapter;
       try {
          const { type, config } = this.config.adapter;
-         const cls = registry.get(type as any).cls;
+         const cls = await this.getAdapterClass(type as AdapterType);
          adapter = new cls(config as any);
 
          this._storage = new Storage(adapter, this.config.storage, this.ctx.emgr);

@@ -1,24 +1,23 @@
-import { MediaAdapters } from "media/media-registry";
+import { adapterSchemas } from "media/storage/adapter-schemas";
 import { registries } from "modules/registries";
 import { s, objectTransform } from "bknd/utils";
-import { $object, $record, $schema } from "modules/mcp";
+import { $object, $schema } from "modules/mcp";
 
-export const ADAPTERS = {
-   ...MediaAdapters,
-} as const;
-
+// Export the registry for runtime adapter class lookups
 export const registry = registries.media;
 
 export function buildMediaSchema() {
-   const adapterSchemaObject = objectTransform(registry.all(), (adapter, name) => {
+   // Build adapter schema objects from the central schema definitions
+   // This doesn't require importing actual adapter classes (which may have Node.js dependencies)
+   const adapterSchemaObject = objectTransform(adapterSchemas, (schema, name) => {
       return s.strictObject(
          {
             type: s.literal(name),
-            config: adapter.schema,
+            config: schema,
          },
          {
-            title: adapter.schema?.title ?? name,
-            description: adapter.schema?.description,
+            title: schema?.title ?? name,
+            description: schema?.description,
          },
       );
    });
