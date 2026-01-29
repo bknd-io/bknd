@@ -1,26 +1,24 @@
-import { readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import type { FileBody, FileListObject, FileMeta, FileUploadPayload } from "bknd";
 import { StorageAdapter, guessMimeType } from "bknd";
-import { parse, s, isFile } from "bknd/utils";
+import { parse, isFile, s } from "bknd/utils";
+import { localAdapterSchema } from "media/storage/adapter-schemas";
 
-export const localAdapterConfig = s.object(
-   {
-      path: s.string({ default: "./" }),
-   },
-   { title: "Local", description: "Local file system storage", additionalProperties: false },
-);
-export type LocalAdapterConfig = s.Static<typeof localAdapterConfig>;
+// Re-export the schema and type for backwards compatibility
+export const localAdapterConfig = localAdapterSchema;
+export type LocalAdapterConfig = s.Static<typeof localAdapterSchema>;
 
 export class StorageLocalAdapter extends StorageAdapter {
    private config: LocalAdapterConfig;
 
    constructor(config: Partial<LocalAdapterConfig> = {}) {
       super();
-      this.config = parse(localAdapterConfig, config);
+      this.config = parse(localAdapterSchema, config);
    }
 
    getSchema() {
-      return localAdapterConfig;
+      return localAdapterSchema;
    }
 
    getName(): string {
@@ -60,6 +58,8 @@ export class StorageLocalAdapter extends StorageAdapter {
       }
 
       const filePath = `${this.config.path}/${key}`;
+      // Ensure parent directories exist
+      await mkdir(dirname(filePath), { recursive: true });
       await writeFile(filePath, isFile(body) ? body.stream() : body);
 
       return await this.computeEtag(body);
@@ -68,14 +68,14 @@ export class StorageLocalAdapter extends StorageAdapter {
    async deleteObject(key: string): Promise<void> {
       try {
          await unlink(`${this.config.path}/${key}`);
-      } catch (e) {}
+      } catch (_e) {}
    }
 
    async objectExists(key: string): Promise<boolean> {
       try {
          const stats = await stat(`${this.config.path}/${key}`);
          return stats.isFile();
-      } catch (error) {
+      } catch (_error) {
          return false;
       }
    }
@@ -153,13 +153,13 @@ export class StorageLocalAdapter extends StorageAdapter {
                headers: responseHeaders,
             });
          }
-      } catch (error) {
+      } catch (_error) {
          // Handle file reading errors
          return new Response("", { status: 404 });
       }
    }
 
-   getObjectUrl(key: string): string {
+   getObjectUrl(_key: string): string {
       throw new Error("Method not implemented.");
    }
 
@@ -171,7 +171,7 @@ export class StorageLocalAdapter extends StorageAdapter {
       };
    }
 
-   toJSON(secrets?: boolean) {
+   toJSON(_secrets?: boolean) {
       return {
          type: this.getName(),
          config: this.config,

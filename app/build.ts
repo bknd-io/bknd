@@ -2,7 +2,7 @@ import { $ } from "bun";
 import * as tsup from "tsup";
 import pkg from "./package.json" with { type: "json" };
 import c from "picocolors";
-import { watch as fsWatch } from "node:fs";
+import { watch as fsWatch, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const args = process.argv.slice(2);
@@ -27,7 +27,18 @@ const define = {
 
 if (clean) {
    console.info("Cleaning dist (w/o static)");
-   await $`find dist -mindepth 1 ! -path "dist/static/*" ! -path "dist/static" -exec rm -rf {} +`;
+   // Cross-platform clean: remove all files/folders in dist except static
+   const distPath = join(import.meta.dir, "dist");
+   try {
+      const entries = readdirSync(distPath);
+      for (const entry of entries) {
+         if (entry === "static") continue;
+         const entryPath = join(distPath, entry);
+         rmSync(entryPath, { recursive: true, force: true });
+      }
+   } catch (e) {
+      // dist may not exist yet, ignore
+   }
 }
 
 let types_running = false;
@@ -68,9 +79,9 @@ const dependencies = Object.keys(pkg.dependencies);
 // collection of always-external packages
 const external = [
    ...dependencies,
-   "bun:test",
-   "node:test",
-   "node:assert/strict",
+   // Node.js and Bun built-ins need to be external for browser/neutral platform builds
+   /^node:.*/,
+   /^bun:.*/,
    "@libsql/client",
    "bknd",
    /^bknd\/.*/,
@@ -276,11 +287,7 @@ async function buildAdapters() {
             external: [/^sqlocal\/?.*?/, "wouter"],
          }),
       ),
-      tsup.build(
-         baseConfig("bun", {
-            external: [/^bun\:.*/],
-         }),
-      ),
+      tsup.build(baseConfig("bun")),
       tsup.build(baseConfig("astro")),
       tsup.build(baseConfig("aws")),
       tsup.build(
@@ -338,7 +345,6 @@ async function buildAdapters() {
          entry: ["src/adapter/sqlite/bun.ts"],
          outDir: "dist/adapter/sqlite",
          metafile: false,
-         external: [/^bun\:.*/],
       }),
    ]);
 }
