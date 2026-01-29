@@ -27,3 +27,50 @@ Authentication is essential for securing applications, and **bknd** provides a s
 - Compatible with any specification-compliant provider.
 
 With a focus on flexibility and ease of integration, bknd's authentication system offers the essentials for managing secure user access in your applications.
+
+---
+
+## Securing Your Admin Portal
+
+<Callout type="warn" title="Do not enable the Guard without an admin user">
+  Enabling the Guard without first creating a user with an admin role **will lock you out of the admin portal entirely**. There is no login screen that can save you — you'll need to manually edit the database to recover. Follow the checklist below before enabling the Guard.
+</Callout>
+
+The **Guard** protects your admin portal and API endpoints by requiring authentication and proper permissions. Before enabling it, you must set up at least one user with full admin access.
+
+### Checklist Before Enabling Guard
+
+Complete these steps **in order** before turning on the Guard:
+
+1. **Create an admin role** with `implicit_allow: true`
+   - This grants full access to all permissions
+   - Go to Auth → Roles → Create a new role
+   - Enable the "Implicit Allow" toggle
+
+2. **Create a user**
+   - Go to Auth → Users → Create a new user
+   - Set up their email and password
+
+3. **Attach the admin role to the user**
+   - Edit the user you just created
+   - Assign the admin role to them
+
+4. **Verify you can sign in**
+   - Open an incognito/private browser window
+   - Navigate to your app and sign in with the admin user
+   - Confirm you have access
+
+5. **Now enable the Guard**
+   - Go to Auth → Settings
+   - Enable the Guard
+
+### Recovery: If You're Locked Out
+
+If you enabled the Guard without setting up an admin user, you'll need to access your database directly:
+
+1. Connect to your database using a database client or CLI tool
+2. Find the `__bknd` table
+3. Locate the row where `type = 'config'`
+4. In the `json` column, set `auth.guard.enabled` to `false`
+5. Restart your bknd instance
+6. Complete the checklist above, then re-enable the Guard
