@@ -41,7 +41,7 @@ bunx bknd run
 
 This will create a local `data.db` SQLite database file in the folder you ran the command and start the bknd web server at http://localhost:1337.
 
-Right now the admin dashboard is not locked down (AKA "guarded"), which means anyone who can access your dashboard will be able to update the configuration and change data in your entities. To prevent unauthorized use, let's put a guard on your bknd instance.
+By default, access to the admin dashboard is open and not guarded. This is intentional because bknd uses an opt-in philosophy model to allow for quick prototyping and intentional configuration. To restrict access and prevent unauthorized use, let's enable authentication and guard the dashboard.
 
 We will create a user and an admin role. We will then apply the admin role to the user. Then, we can lock down the admin dashboard by enabling the guard, securing access to your bknd app. Let's begin.
 
