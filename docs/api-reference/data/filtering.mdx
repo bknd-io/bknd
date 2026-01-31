@@ -199,17 +199,148 @@ This returns teachers related to the subject, with their department information 
 - Using `with` includes additional data transfer, so only request what you need
 - Multiple joins can impact query performance on large datasets
 
-## Example in TypeScript SDK
+## TypeScript SDK Usage
 
-The TypeScript SDK will automatically choose the right endpoint if your query URL gets too long.
+The TypeScript SDK provides a convenient way to work with the bknd API while automatically handling endpoint selection and query optimization. The SDK intelligently switches between GET and POST endpoints based on query complexity.
 
+### Automatic Endpoint Selection
+
+The SDK automatically chooses the most appropriate endpoint based on your query:
+
+- **Simple queries**: Uses GET endpoint for better caching and performance
+- **Complex queries**: Automatically switches to POST endpoint when URL length limits are approached
+- **Transparent switching**: No code changes needed - the SDK handles this internally
+
+#### Example: Simple Query (Uses GET)
+
+**SDK Usage**:
 ```ts
 import { Api } from "bknd/client";
 
 const api = new Api();
 
-// Filter teachers by subject name
+// Simple filtering - SDK uses GET endpoint
 const { data: teachers } = await api.data.readMany("teacher", {
+   where: {
+      name: "John Smith"
+   },
+   limit: 10
+});
+```
+
+**Equivalent REST API Call**:
+```
+GET /api/data/entity/teacher?where={"name":"John Smith"}&limit=10
+```
+
+#### Example: Complex Query (Automatically Uses POST)
+
+**SDK Usage**:
+```ts
+// Complex filtering - SDK automatically switches to POST
+const { data: teachers } = await api.data.readMany("teacher", {
+   where: {
+      "$or": [
+         {
+            "$and": [
+               { "subject.name": { "$in": ["Math", "Physics", "Chemistry"] } },
+               { "department.budget": { "$gt": 50000 } }
+            ]
+         },
+         {
+            "$and": [
+               { "experience": { "$gte": 10 } },
+               { "rating": { "$gte": 4.5 } },
+               { "certifications": { "$contains": "Advanced" } }
+            ]
+         }
+      ]
+   },
+   join: ["subject", "department", "certifications"],
+   with: {
+      subject: {},
+      department: { select: ["name", "budget"] }
+   },
+   sort: "-rating",
+   limit: 50
+});
+```
+
+**Equivalent REST API Call**:
+```
+POST /api/data/entity/teacher/query
+Content-Type: application/json
+
+{
+  "where": {
+    "$or": [
+      {
+        "$and": [
+          { "subject.name": { "$in": ["Math", "Physics", "Chemistry"] } },
+          { "department.budget": { "$gt": 50000 } }
+        ]
+      },
+      {
+        "$and": [
+          { "experience": { "$gte": 10 } },
+          { "rating": { "$gte": 4.5 } },
+          { "certifications": { "$contains": "Advanced" } }
+        ]
+      }
+    ]
+  },
+  "join": ["subject", "department", "certifications"],
+  "with": ["subject", "department"],
+  "sort": "-rating",
+  "limit": 50
+}
+```
+
+### Relationship Filtering with SDK
+
+#### Filter Only (join without with)
+
+**SDK Usage**:
+```ts
+// Get teachers who teach Math (no subject data in response)
+const { data: mathTeachers } = await api.data.readMany("teacher", {
+   where: {
+      "subject.name": "Math"
+   },
+   join: ["subject"]
+   // Note: no 'with' parameter, so subject data won't be included
+});
+```
+
+**Equivalent REST API Call**:
+```
+GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject
+```
+
+#### Embed Only (with without join)
+
+**SDK Usage**:
+```ts
+// Get all teachers with their subjects embedded
+const { data: teachersWithSubjects } = await api.data.readMany("teacher", {
+   with: {
+      subject: {}
+   }
+   // Note: no 'join' or 'where' with dot notation
+});
+```
+
+**Equivalent REST API Call**:
+```
+GET /api/data/entity/teacher?with=subject
+```
+
+#### Filter and Embed (join + with)
+
+**SDK Usage**:
+```ts
+// Get Math teachers with their subject data embedded
+const { data: mathTeachersWithSubjects } = await api.data.readMany("teacher", {
    where: {
       "subject.name": "Math"
    },
@@ -219,6 +350,270 @@ const { data: teachers } = await api.data.readMany("teacher", {
    }
 });
 ```
+
+**Equivalent REST API Call**:
+```
+GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject&with=subject
+```
+
+### Advanced SDK Features
+
+#### Nested Relationships
+
+**SDK Usage**:
+```ts
+// Get teachers with subjects and their departments
+const { data: teachers } = await api.data.readMany("teacher", {
+   where: {
+      "subject.department.budget": { "$gt": 100000 }
+   },
+   join: ["subject", "subject.department"],
+   with: {
+      subject: {
+         with: {
+            department: {
+               select: ["name", "budget"]
+            }
+         }
+      }
+   }
+});
+```
+
+**Equivalent REST API Call**:
+```
+POST /api/data/entity/teacher/query
+Content-Type: application/json
+
+{
+  "where": {
+    "subject.department.budget": { "$gt": 100000 }
+  },
+  "join": ["subject", "subject.department"],
+  "with": ["subject"],
+  "limit": 50
+}
+```
+
+#### Pagination with Relationships
+
+**SDK Usage**:
+```ts
+// Paginated results with relationships
+const { data: teachers, meta } = await api.data.readMany("teacher", {
+   where: {
+      "subject.name": { "$in": ["Math", "Physics"] }
+   },
+   join: ["subject"],
+   with: {
+      subject: {}
+   },
+   limit: 20,
+   offset: 40, // Third page (20 * 2)
+   sort: "name"
+});
+
+console.log(`Showing ${teachers.length} of ${meta.total} teachers`);
+```
+
+**Equivalent REST API Call**:
+```
+GET /api/data/entity/teacher?where={"subject.name":{"$in":["Math","Physics"]}}&join=subject&with=subject&limit=20&offset=40&sort=name
+```
+
+### SDK Best Practices
+
+#### 1. Use Specific Selects for Performance
+
+**Good Practice**:
+```ts
+// Only select needed fields to reduce payload size
+const { data: teachers } = await api.data.readMany("teacher", {
+   select: ["id", "name", "email"],
+   where: {
+      "subject.name": "Math"
+   },
+   join: ["subject"],
+   with: {
+      subject: {
+         select: ["id", "name"] // Only get essential subject fields
+      }
+   }
+});
+```
+
+**Avoid**:
+```ts
+// Don't fetch all fields if you only need a few
+const { data: teachers } = await api.data.readMany("teacher", {
+   where: {
+      "subject.name": "Math"
+   },
+   join: ["subject"],
+   with: {
+      subject: {} // This fetches ALL subject fields
+   }
+});
+```
+
+#### 2. Minimize Joins for Better Performance
+
+**Good Practice**:
+```ts
+// Only join relations you actually filter by
+const { data: teachers } = await api.data.readMany("teacher", {
+   where: {
+      "subject.name": "Math"
+   },
+   join: ["subject"], // Only join what's needed for filtering
+   with: {
+      department: {} // Can embed without joining if not filtering
+   }
+});
+```
+
+**Avoid**:
+```ts
+// Don't join relations you don't filter by
+const { data: teachers } = await api.data.readMany("teacher", {
+   where: {
+      "subject.name": "Math"
+   },
+   join: ["subject", "department", "certifications"], // Unnecessary joins
+   with: {
+      department: {}
+   }
+});
+```
+
+#### 3. Use Pagination for Large Datasets
+
+**Good Practice**:
+```ts
+// Always use pagination for potentially large result sets
+async function getAllMathTeachers() {
+   const allTeachers = [];
+   let offset = 0;
+   const limit = 50;
+   
+   while (true) {
+      const { data: teachers, meta } = await api.data.readMany("teacher", {
+         where: { "subject.name": "Math" },
+         join: ["subject"],
+         limit,
+         offset
+      });
+      
+      allTeachers.push(...teachers);
+      
+      if (teachers.length < limit || offset + limit >= meta.total) {
+         break;
+      }
+      
+      offset += limit;
+   }
+   
+   return allTeachers;
+}
+```
+
+#### 4. Handle Errors Gracefully
+
+**Good Practice**:
+```ts
+try {
+   const { data: teachers } = await api.data.readMany("teacher", {
+      where: {
+         "subject.name": "Math"
+      },
+      join: ["subject"]
+   });
+   
+   return teachers;
+} catch (error) {
+   if (error.message.includes("Invalid where field")) {
+      console.error("Missing join parameter for relationship filtering");
+      // Retry without relationship filtering or add proper join
+   } else if (error.message.includes("Unknown relation")) {
+      console.error("Check entity schema for correct relation names");
+   }
+   
+   throw error;
+}
+```
+
+#### 5. Optimize Complex Queries
+
+**Good Practice**:
+```ts
+// For very complex queries, consider breaking them down
+const complexQuery = {
+   where: {
+      "$or": [
+         { "subject.name": { "$in": ["Math", "Physics"] } },
+         { "department.budget": { "$gt": 50000 } }
+      ]
+   },
+   join: ["subject", "department"],
+   with: {
+      subject: { select: ["name"] },
+      department: { select: ["name", "budget"] }
+   },
+   sort: "-rating",
+   limit: 100
+};
+
+// The SDK will automatically use POST for this complex query
+const { data: teachers } = await api.data.readMany("teacher", complexQuery);
+```
+
+### SDK vs REST API Comparison
+
+| Feature | SDK Advantage | REST API Advantage |
+|---------|---------------|-------------------|
+| **Endpoint Selection** | Automatic GET/POST switching | Full control over endpoint choice |
+| **Type Safety** | TypeScript types and IntelliSense | Raw HTTP - no type checking |
+| **Error Handling** | Structured error objects | Raw HTTP status codes |
+| **Query Building** | Object-based query construction | Manual URL/JSON construction |
+| **Caching** | Built-in request caching | Manual cache implementation |
+| **Authentication** | Automatic token management | Manual header management |
+
+### When to Use SDK vs Direct REST Calls
+
+#### Use the TypeScript SDK when:
+- Building TypeScript/JavaScript applications
+- You want automatic endpoint optimization
+- You need type safety and IntelliSense
+- You prefer object-based query construction
+- You want built-in error handling
+
+#### Use Direct REST API when:
+- Working with non-JavaScript languages
+- You need fine-grained control over HTTP requests
+- Building integrations with tools that expect REST endpoints
+- You want to minimize client-side dependencies
+- You're working with caching proxies or CDNs
+
+### SDK Configuration for Optimal Performance
+
+```ts
+import { Api } from "bknd/client";
+
+// Configure SDK for optimal performance
+const api = new Api({
+   host: "https://your-bknd-instance.com",
+   token: "your-auth-token",
+   // Optional: Configure request timeout
+   timeout: 30000,
+   // Optional: Enable request caching
+   cache: true
+});
+
+// Verify authentication before making requests
+await api.verifyAuth();
+```
+
+The TypeScript SDK provides a powerful, type-safe way to interact with the bknd API while automatically optimizing your queries for the best performance. It handles the complexity of endpoint selection, parameter serialization, and error handling, allowing you to focus on building your application logic.
 
 ## FAQ
 
