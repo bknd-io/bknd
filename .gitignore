@@ -34,3 +34,5 @@ docker/tmp
 .history
 .aider*
 .vercel
+# Ignore generated spec files from Amazon's Kiro IDE
+/.kiro
