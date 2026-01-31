@@ -1,0 +1,544 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "bknd API", "version": "0.0.0" },
+  "paths": {
+    "/api/system/ping": {
+      "get": {
+        "summary": "Ping",
+        "responses": {
+          "200": {
+            "description": "Pong",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pong": { "default": true, "type": "boolean" }
+                  },
+                  "required": ["pong"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["system"]
+      }
+    },
+    "/api/system/config": {
+      "get": {
+        "summary": "Get config",
+        "responses": {
+          "200": {
+            "description": "Config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": { "type": "number" },
+                    "server": { "type": "object", "properties": {} },
+                    "data": { "type": "object", "properties": {} },
+                    "auth": { "type": "object", "properties": {} },
+                    "flows": { "type": "object", "properties": {} },
+                    "media": { "type": "object", "properties": {} }
+                  },
+                  "required": [
+                    "version",
+                    "server",
+                    "data",
+                    "auth",
+                    "flows",
+                    "media"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["system"]
+      }
+    },
+    "/api/system/schema": {
+      "get": {
+        "summary": "Get config",
+        "responses": {
+          "200": {
+            "description": "Config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": { "type": "number" },
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "server": { "type": "object", "properties": {} },
+                        "data": { "type": "object", "properties": {} },
+                        "auth": { "type": "object", "properties": {} },
+                        "flows": { "type": "object", "properties": {} },
+                        "media": { "type": "object", "properties": {} }
+                      },
+                      "required": ["server", "data", "auth", "flows", "media"]
+                    }
+                  },
+                  "required": ["version", "schema"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["system"]
+      }
+    },
+    "/api/data/entity/{entity}": {
+      "get": {
+        "summary": "List entities",
+        "description": "Retrieve a list of entities with optional filtering, sorting, and relationship inclusion",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The entity type to query"
+          },
+          {
+            "name": "where",
+            "in": "query",
+            "required": false,
+            "schema": { 
+              "type": "string",
+              "description": "JSON object containing filter conditions. Supports operators like $gt, $lt, $in, etc."
+            },
+            "description": "Filter conditions using JSON object notation",
+            "example": "{\"name\": \"John\", \"age\": {\"$gt\": 18}}"
+          },
+          {
+            "name": "join",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Relations to join for filtering (enables dot notation in where clause)",
+            "example": ["profile", "posts"]
+          },
+          {
+            "name": "with",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Relations to embed in the response",
+            "example": ["profile", "posts"]
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 50
+            },
+            "description": "Maximum number of records to return",
+            "example": 20
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Number of records to skip for pagination",
+            "example": 10
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by. Prefix with '-' for descending order",
+            "example": "-created_at"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of entities with optional metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": { 
+                          "id": { "type": "number" }
+                        },
+                        "required": ["id"],
+                        "additionalProperties": true
+                      },
+                      "description": "Simple array response when no pagination metadata is needed"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": { 
+                              "id": { "type": "number" }
+                            },
+                            "required": ["id"],
+                            "additionalProperties": true
+                          }
+                        },
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "integer",
+                              "description": "Total number of records matching the query"
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "description": "Maximum number of records returned"
+                            },
+                            "offset": {
+                              "type": "integer",
+                              "description": "Number of records skipped"
+                            }
+                          },
+                          "required": ["total", "limit", "offset"]
+                        }
+                      },
+                      "required": ["data", "meta"],
+                      "description": "Object response with pagination metadata"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "example": "INVALID_PARAMETER"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid where field(s): subject.name"
+                        },
+                        "details": {
+                          "type": "string",
+                          "example": "To filter by related fields, include the relation in the 'join' parameter"
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["data"]
+      },
+      "post": {
+        "summary": "Create entity",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": {} }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "id": { "type": "number" } },
+                  "required": ["id"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["data"]
+      }
+    },
+    "/api/data/entity/{entity}/{id}": {
+      "get": {
+        "summary": "Get entity",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "id": { "type": "number" } },
+                  "required": ["id"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["data"]
+      },
+      "patch": {
+        "summary": "Update entity",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "number" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": {} }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "id": { "type": "number" } },
+                  "required": ["id"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["data"]
+      },
+      "delete": {
+        "summary": "Delete entity",
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": { "200": { "description": "Entity deleted" } },
+        "tags": ["data"]
+      }
+    },
+    "/api/auth/password/login": {
+      "post": {
+        "summary": "Login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "email": { "type": "string" },
+                        "name": { "type": "string" }
+                      },
+                      "required": ["id", "email", "name"]
+                    }
+                  },
+                  "required": ["user"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["auth"]
+      }
+    },
+    "/api/auth/password/register": {
+      "post": {
+        "summary": "Register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "email": { "type": "string" },
+                        "name": { "type": "string" }
+                      },
+                      "required": ["id", "email", "name"]
+                    }
+                  },
+                  "required": ["user"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["auth"]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get me",
+        "responses": {
+          "200": {
+            "description": "User",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "email": { "type": "string" },
+                        "name": { "type": "string" }
+                      },
+                      "required": ["id", "email", "name"]
+                    }
+                  },
+                  "required": ["user"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["auth"]
+      }
+    },
+    "/api/auth/strategies": {
+      "get": {
+        "summary": "Get auth strategies",
+        "responses": {
+          "200": {
+            "description": "Strategies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "strategies": { "type": "object", "properties": {} }
+                  },
+                  "required": ["strategies"]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["auth"]
+      }
+    }
+  }
+}
