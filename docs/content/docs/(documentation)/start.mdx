@@ -8,36 +8,24 @@ import { Icon } from "@iconify/react";
 import { examples } from "@/app/_components/StackBlitz";
 import { SquareMousePointer, Code, Blend } from 'lucide-react';
 
+<Callout type="warning" title="bknd is in beta">
+  We're making great progress towards v1, but don't recommend production use yet.
+  Follow along for updates on [GitHub Releases](https://github.com/bknd-io/bknd/releases) and in our [Discord community](https://discord.gg/952SFk8Tb8)
+</Callout>
 
-Glad you're here! **bknd** is a lightweight, infrastructure agnostic and feature-rich backend that runs in any JavaScript environment.
+Welcome! bknd is the instant backend for your frontend with full REST API's, admin dashboard, auth and user management, file upload management, [type-safe SDK](/usage/sdk), [React hooks](/usage/react), and plugins to extend the bknd _(like our resend plugin for sending emails)_. bknd can be hosted with your server-side rendered (SSR) web app or hosted as a standalone app.
 
-- Instant backend with full REST API
-- Built on Web Standards for maximum compatibility
-- Multiple ready-made [integrations](/integration/introduction) (standalone, runtime, framework)
-- Official [API SDK](/usage/sdk) and [React SDK](/usage/react) with type-safety
-- [React elements](/usage/elements) for auto-configured authentication and media components
-- Built-in [MCP server](/usage/mcp/overview) for controlling your backend
-- Multiple run [modes](/usage/introduction#modes) (ui-only, code-only, hybrid)
+bknd is incredibly lightweight and built upon Web Standards, so that you can bring bknd anywhere JavaScript runs.
 
-## Preview
+Bring your [favorite frontend](./#start-with-a-frameworkruntime) and [favorite SQL database](./#use-your-favorite-sql-database), and we'll bring the ~~backend~~ bknd.
 
-Here is a preview of **bknd** in StackBlitz:
+## Quickstart: bknd server and admin dashboard demo
 
-<Card className="p-0 pb-1">
-  <StackBlitz path="github/bknd-io/bknd-demo" initialPath="/" />
-  <Accordions className="m-1">
-    <Accordion title="What's going on?">
-      The example shown is starting a [node server](/integration/node) using an [in-memory database](/usage/database#sqlite-in-memory). To ensure there are a few entities defined, it is using an [initial structure](/usage/database#initial-structure) using the prototype methods. Furthermore it uses the [seed option](/usage/database#seeding-the-database) to seed some data in the structure created.
+<Callout type="info" title="This demo bknd instance is for playing and learning">
+Don't worry about messing anything up in this stage since you're learning the ropes of bknd. If you want to start over, please delete the generated `data.db` database file and follow this tutorial again.
+</Callout>
 
-      To ensure there are users defined on first boot, it hooks into the `App.Events.AppFirstBoot` event to create them (documentation pending).
-
-    </Accordion>
-  </Accordions>
-</Card>
-
-## Quickstart
-
-Enter the following command to spin up an instance:
+Enter the following command to spin up a bknd instance via the [bknd CLI](/usage/cli):
 
 <Tabs groupId='package-manager' persist items={[ 'npm','bun' ]}>
 
@@ -51,7 +39,54 @@ bunx bknd run
 
 </Tabs>
 
-To learn more about the CLI, check out the [Using the CLI](/usage/cli) guide.
+This will create a local `data.db` SQLite database file in the folder you ran the command and start the bknd web server at http://localhost:1337.
+
+By default, access to the admin dashboard is open and not guarded. This is intentional because bknd uses an opt-in philosophy model to allow for quick prototyping and intentional configuration. To restrict access and prevent unauthorized use, let's enable authentication and guard the dashboard.
+
+We will create a user and an admin role. We will then apply the admin role to the user. Then, we can lock down the admin dashboard by enabling the guard, securing access to your bknd app. Let's begin.
+
+1. Visit http://localhost:1337/auth/settings. Toggle "Authentication Enabled" to enable auth. Select "Update" to save.
+2. Visit http://localhost:1337/data/entity/users. Create a user by selecting "New User" and entering an email and password.
+3. Visit http://localhost:1337/auth/roles. Create an admin role by selecting "Create new". Name it "Admin" and select "Create". Then, scroll to the bottom of the page and enable "Implicit allow missing permissions?". Select "Update" to save.
+4. Visit http://localhost:1337/data/entity/users. Select on your newly created user, select the "Admin" role, and select "Update".
+5. It's time to guard your admin dashboard. Visit http://localhost:1337/settings/auth. Select "Edit". Scroll to "Guard" and enable it. Then, select "Save". _(This should log you out!)_
+6. Now, log in to your secured admin dashboard at http://localhost:1337/auth/login.
+
+You did it! 🥳 You've successfully started the bknd server and admin dashboard, created an admin user, and protected your bknd app by enabling the guard.
+
+What you've just experienced is called UI-only mode, where the bknd data and configuration is managed via the admin dashboard UI. Some may prefer the UI-only mode, while others may prefer the code-only mode.
+
+### bknd modes
+
+bknd supports multiple modes to suit your needs.
+
+<Cards className="grid-cols-3">
+  <Card title="UI-only" href="/usage/introduction#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
+     Configure your backend and manage your data visually with the built-in Admin UI.
+  </Card>
+  <Card title="Code-only" href="/usage/introduction#code-only-mode" icon={<Code className="text-fd-primary !size-6" />}>
+    Configure your backend programmatically with a Drizzle-like API, manage your data with the Admin UI.
+  </Card>
+  <Card title="Hybrid" href="/usage/introduction#hybrid-mode" icon={<Blend className="text-fd-primary !size-6" />}>
+    Configure your backend visually while in development, use a read-only configuration in production.
+  </Card>
+</Cards>
+
+### Demo bknd in the browser
+
+Here is a preview of bknd in StackBlitz:
+
+<Card className="p-0 pb-1">
+  <StackBlitz path="github/bknd-io/bknd-demo" initialPath="/" />
+  <Accordions className="m-1">
+    <Accordion title="What's going on?">
+      The example shown is starting a [node server](/integration/node) using an [in-memory database](/usage/database#sqlite-in-memory). To ensure there are a few entities defined, it is using an [initial structure](/usage/database#initial-structure) using the prototype methods. Furthermore it uses the [seed option](/usage/database#seeding-the-database) to seed some data in the structure created.
+
+      To ensure there are users defined on first boot, it hooks into the `App.Events.AppFirstBoot` event to create them (documentation pending).
+
+    </Accordion>
+  </Accordions>
+</Card>
 
 ## Start with a Framework/Runtime
 
@@ -116,7 +151,7 @@ Start by using the integration guide for these popular frameworks/runtimes. Ther
 />
 
 <Card
-  icon={<Icon icon="simple-icons:vitest" className="text-fd-primary !size-6" />}
+  icon={<Icon icon="simple-icons:vite" className="text-fd-primary !size-6" />}
   title="Vite"
   href="/integration/vite"
 />
@@ -171,21 +206,5 @@ The following databases are currently supported. Request a new integration if yo
 
   <Card title="Yours missing?" href="https://github.com/bknd-io/bknd/issues/new">
     Create a new issue to request a new database integration.
-  </Card>
-</Cards>
-
-## Choose a mode
-
-**bknd** supports multiple modes to suit your needs.
-
-<Cards className="grid-cols-3">
-  <Card title="UI-only" href="/usage/introduction#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
-     Configure your backend and manage your data visually with the built-in Admin UI.
-  </Card>
-  <Card title="Code-only" href="/usage/introduction#code-only-mode" icon={<Code className="text-fd-primary !size-6" />}>
-    Configure your backend programmatically with a Drizzle-like API, manage your data with the Admin UI.
-  </Card>
-  <Card title="Hybrid" href="/usage/introduction#hybrid-mode" icon={<Blend className="text-fd-primary !size-6" />}>
-    Configure your backend visually while in development, use a read-only configuration in production.
   </Card>
 </Cards>
