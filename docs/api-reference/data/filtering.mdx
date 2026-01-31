@@ -1,0 +1,100 @@
+---
+title: 'Filtering by Relations'
+description: 'How to filter entities based on related data in many-to-many relationships'
+---
+
+You often need to retrieve entries from one entity based on properties of a related entity (for example, get all Teachers who teach "Math"). In bknd, this is handled via the REST API using the `where` clause with dot notation, together with the `join` parameter.
+
+## Example Use Case
+
+You have:
+- An entity: `Teacher`
+- Another entity: `Subject`
+- Many-to-many relation between them (a Teacher can have many Subjects, and vice versa).
+
+You want to find Teachers that have a Subject with the name 'Math'.
+
+## 1. GET Endpoint (recommended for shorter queries)
+
+```
+GET /api/data/entity/teacher?where={"subject.name":"Math"}&join=subject&with=subject
+```
+
+- `join`: Add the related entity to the query so you can filter by its fields.
+- `where`: Use dot notation (`subject.name`) to specify conditions on the related entity.
+- `with` (optional): Embed the relation in the returned results.
+
+<Note>
+If no operation is provided in the where clause, `$eq` (equals) is assumed by default. So `{"subject.name": "Math"}` is the same as `{"subject.name": {"$eq": "Math"}}`.
+</Note>
+
+## 2. POST Endpoint (recommended for longer/complex queries)
+
+If your query gets too long, use the POST endpoint:
+
+```
+POST /api/data/entity/teacher/query
+```
+
+Body:
+```json
+{
+   "where": {
+     "subject.name": "Math"
+   },
+   "join": ["subject"],
+   "with": ["subject"]
+}
+```
+
+## 3. Read Many by Reference
+
+If you have the Subject's ID and want to get all related Teachers quickly:
+
+```
+GET /api/data/entity/subject/<subject_id>/teacher
+```
+
+This returns all Teachers related to the specific Subject.
+
+## Tips
+
+- The `join` parameter is required for being able to filter on nested fields via dot notation.
+- The `with` parameter is optional; it determines whether to embed the relation object in the results.
+
+## Example in TypeScript SDK
+
+The TypeScript SDK will automatically choose the right endpoint if your query URL gets too long.
+
+```ts
+import { Api } from "bknd/client";
+
+const api = new Api();
+
+// Filter teachers by subject name
+const { data: teachers } = await api.data.readMany("teacher", {
+   where: {
+      "subject.name": "Math"
+   },
+   join: ["subject"],
+   with: {
+      subject: {}
+   }
+});
+```
+
+## FAQ
+
+**Q: Are `join` and `with` interchangeable?**
+
+A: No. `join` allows you to use dot notation in filters. `with` specifies embedding related entities in the response. Use both if you want to both filter and receive the related data inline.
+
+## Summary Table
+
+| Parameter | Purpose |
+|-----------|---------|
+| `join` | Allows filtering using dot notation for related fields |
+| `with` | Embeds the joined/related entity in the response |
+| `where` | Filters results; can use dot notation with `join` |
+
+This guidance will help you construct effective API calls that filter results based on related entity properties. If the request gets too complex for the GET endpoint, switch to POST as shown above.
