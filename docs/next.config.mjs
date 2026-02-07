@@ -16,6 +16,10 @@ const config = {
    reactStrictMode: true,
    serverExternalPackages: ["typescript", "twoslash"],
 
+   async redirects() {
+      return redirectsConfig;
+   },
+
    webpack(config) {
       config.resolve.alias["@/bknd"] = path.resolve(__dirname, "../app/src");
       config.resolve.alias["@"] = path.resolve(__dirname);
@@ -28,7 +32,6 @@ const config = {
 
 if (process.env.NODE_ENV === "development") {
    config.output = "standalone";
-   config.redirects = async () => redirectsConfig;
    config.rewrites = async () => rewritesConfig;
 }
 
