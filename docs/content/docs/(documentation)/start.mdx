@@ -6,26 +6,36 @@ tags: ["documentation"]
 
 import { Icon } from "@iconify/react";
 import { examples } from "@/app/_components/StackBlitz";
-import { SquareMousePointer, Code, Blend } from 'lucide-react';
+import { SquareMousePointer, Code, Blend, Rocket } from 'lucide-react';
 
-<Callout type="warning" title="bknd is in beta">
+## bknd is a lightweight batteries-included backend that embeds into your frontend app
+
+<Callout type="warning" title="We are in beta">
   We're making great progress towards v1, but don't recommend production use yet.
   Follow along for updates on [GitHub Releases](https://github.com/bknd-io/bknd/releases) and in our [Discord community](https://discord.gg/952SFk8Tb8)
 </Callout>
 
-Welcome! bknd is the instant backend for your frontend with full REST API's, admin dashboard, auth and user management, file upload management, [type-safe SDK](/usage/sdk), [React hooks](/usage/react), and plugins to extend the bknd _(like our resend plugin for sending emails)_. bknd can be hosted with your server-side rendered (SSR) web app or hosted as a standalone app.
-
-bknd is incredibly lightweight and built upon Web Standards, so that you can bring bknd anywhere JavaScript runs.
+bknd includes full REST APIs, an admin dashboard, auth, media uploads, a [type-safe SDK](/usage/sdk), [React hooks](/usage/react), and plugins to extend it. Host it with your SSR app or as a standalone service. Built on Web Standards, it runs anywhere JavaScript runs.
 
 Bring your [favorite frontend](./#start-with-a-frameworkruntime) and [favorite SQL database](./#use-your-favorite-sql-database), and we'll bring the ~~backend~~ bknd.
 
-## Quickstart: bknd server and admin dashboard demo
+<Cards>
+  <Card
+    href="/motivation"
+    title="Learn about why we built bknd"
+    icon={<Rocket />}
+  >
+    Why another backend system?
+  </Card>
+</Cards>
+
+## Quickstart
 
 <Callout type="info" title="This demo bknd instance is for playing and learning">
 Don't worry about messing anything up in this stage since you're learning the ropes of bknd. If you want to start over, please delete the generated `data.db` database file and follow this tutorial again.
 </Callout>
 
-Enter the following command to spin up a bknd instance via the [bknd CLI](/usage/cli):
+Spin up a bknd instance via the [bknd CLI](/usage/cli):
 
 <Tabs groupId='package-manager' persist items={[ 'npm','bun' ]}>
 
@@ -39,11 +49,9 @@ bunx bknd run
 
 </Tabs>
 
-This will create a local `data.db` SQLite database file in the folder you ran the command and start the bknd web server at http://localhost:1337.
+This creates a local `data.db` SQLite database and starts the bknd web server at http://localhost:1337.
 
-By default, access to the admin dashboard is open and not guarded. This is intentional because bknd uses an opt-in philosophy model to allow for quick prototyping and intentional configuration. To restrict access and prevent unauthorized use, let's enable authentication and guard the dashboard.
-
-We will create a user and an admin role. We will then apply the admin role to the user. Then, we can lock down the admin dashboard by enabling the guard, securing access to your bknd app. Let's begin.
+By default, the admin dashboard is open and not guarded. This is intentional — bknd uses an opt-in philosophy to allow quick prototyping. Let's enable authentication and guard the dashboard to secure it.
 
 1. Visit http://localhost:1337/auth/settings. Toggle "Authentication Enabled" to enable auth. Select "Update" to save.
 2. Visit http://localhost:1337/data/entity/users. Create a user by selecting "New User" and entering an email and password.
@@ -52,29 +60,27 @@ We will create a user and an admin role. We will then apply the admin role to th
 5. It's time to guard your admin dashboard. Visit http://localhost:1337/settings/auth. Select "Edit". Scroll to "Guard" and enable it. Then, select "Save". _(This should log you out!)_
 6. Now, log in to your secured admin dashboard at http://localhost:1337/auth/login.
 
-You did it! 🥳 You've successfully started the bknd server and admin dashboard, created an admin user, and protected your bknd app by enabling the guard.
+You did it! You've started the bknd server, created an admin user, and protected your app by enabling the guard.
 
-What you've just experienced is called UI-only mode, where the bknd data and configuration is managed via the admin dashboard UI. Some may prefer the UI-only mode, while others may prefer the code-only mode.
+## Modes
 
-### bknd modes
-
-bknd supports multiple modes to suit your needs.
+What you just experienced is **UI-only mode** — bknd's data and configuration is managed entirely via the admin dashboard. But that's not the only way to use bknd:
 
 <Cards className="grid-cols-3">
-  <Card title="UI-only" href="/usage/introduction#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
+  <Card title="UI-only" href="/usage/setup#ui-only-mode" icon={<SquareMousePointer className="text-fd-primary !size-6" />}>
      Configure your backend and manage your data visually with the built-in Admin UI.
   </Card>
-  <Card title="Code-only" href="/usage/introduction#code-only-mode" icon={<Code className="text-fd-primary !size-6" />}>
+  <Card title="Code-only" href="/usage/setup#code-only-mode" icon={<Code className="text-fd-primary !size-6" />}>
     Configure your backend programmatically with a Drizzle-like API, manage your data with the Admin UI.
   </Card>
-  <Card title="Hybrid" href="/usage/introduction#hybrid-mode" icon={<Blend className="text-fd-primary !size-6" />}>
+  <Card title="Hybrid" href="/usage/setup#hybrid-mode" icon={<Blend className="text-fd-primary !size-6" />}>
     Configure your backend visually while in development, use a read-only configuration in production.
   </Card>
 </Cards>
 
-### Demo bknd in the browser
+Learn more about each mode and the underlying configuration in [Setup & Modes](/usage/setup).
 
-Here is a preview of bknd in StackBlitz:
+## Try bknd in the browser
 
 <Card className="p-0 pb-1">
   <StackBlitz path="github/bknd-io/bknd-demo" initialPath="/" />
@@ -90,7 +96,7 @@ Here is a preview of bknd in StackBlitz:
 
 ## Start with a Framework/Runtime
 
-Start by using the integration guide for these popular frameworks/runtimes. There will be more in the future, so stay tuned!
+Pick your framework or runtime to get started.
 
 <Cards>
   <Card icon={<Icon icon="tabler:brand-nextjs" className="text-fd-primary !size-6" />} title="NextJS" href="/integration/nextjs" />
