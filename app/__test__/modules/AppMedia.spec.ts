@@ -11,7 +11,8 @@ beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
 describe("AppMedia", () => {
-   test.skip("...", () => {
+   // Debug helper: logs the default media module config (skipped in normal test runs)
+   test.skip("logs media config", () => {
       const media = new AppMedia();
       console.log(media.toJSON());
    });
