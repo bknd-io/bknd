@@ -4,7 +4,7 @@ import "bknd/dist/styles.css";
 import { Admin } from "bknd/ui";
 
 export const Route = createFileRoute("/admin/$")({
-  ssr: false,
+  ssr: false, // "data-only" works too
   component: RouteComponent,
 });
 
