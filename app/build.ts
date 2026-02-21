@@ -79,9 +79,9 @@ const dependencies = Object.keys(pkg.dependencies);
 // collection of always-external packages
 const external = [
    ...dependencies,
-   "bun:test",
-   "node:test",
-   "node:assert/strict",
+   // Node.js and Bun built-ins need to be external for browser/neutral platform builds
+   /^node:.*/,
+   /^bun:.*/,
    "@libsql/client",
    "bknd",
    /^bknd\/.*/,
@@ -287,11 +287,7 @@ async function buildAdapters() {
             external: [/^sqlocal\/?.*?/, "wouter"],
          }),
       ),
-      tsup.build(
-         baseConfig("bun", {
-            external: [/^bun\:.*/],
-         }),
-      ),
+      tsup.build(baseConfig("bun")),
       tsup.build(baseConfig("astro")),
       tsup.build(baseConfig("aws")),
       tsup.build(
@@ -349,7 +345,6 @@ async function buildAdapters() {
          entry: ["src/adapter/sqlite/bun.ts"],
          outDir: "dist/adapter/sqlite",
          metafile: false,
-         external: [/^bun\:.*/],
       }),
    ]);
 }
