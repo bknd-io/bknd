@@ -199,7 +199,12 @@ export class AuthController extends Controller {
       for (const [name, strategy] of Object.entries(strategies)) {
          if (!this.auth.isStrategyEnabled(strategy)) continue;
 
-         hono.route(`/${name}`, strategy.getController(this.auth.authenticator));
+         hono.route(
+            `/${name}`,
+            strategy.getController(this.auth.authenticator, {
+               allow_register: this.auth.config.allow_register,
+            }),
+         );
          this.registerStrategyActions(strategy, hono);
       }
 
@@ -305,7 +310,9 @@ export class AuthController extends Controller {
             await c.context.ctx().helper.granted(c, AuthPermissions.testPassword);
 
             const pw = this.auth.authenticator.strategy("password") as PasswordStrategy;
-            const controller = pw.getController(this.auth.authenticator);
+            const controller = pw.getController(this.auth.authenticator, {
+               allow_register: this.auth.config.allow_register,
+            });
 
             const res = await controller.request(
                new Request("https://localhost/login", {
