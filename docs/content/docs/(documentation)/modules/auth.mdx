@@ -44,6 +44,10 @@ This method updates the password for the specified user.
 - `userId`: The ID of the user whose password should be changed.
 - `password`: The new password value.
 
+This method throws an error if:
+- The user with the given `userId` is not found.
+- The user's authentication strategy is not `"password"` (e.g. the user registered via an OAuth provider).
+
 
 ## Securing Your Admin Portal
 
