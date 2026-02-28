@@ -2,3 +2,4 @@ playwright-report
 test-results
 bknd.config.*
 __test__/helper.d.ts
+.env.local

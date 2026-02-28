@@ -33,7 +33,7 @@ export function Routes({
 }) {
    const { theme } = useTheme();
    const ctx = useBkndWindowContext();
-   const actualBasePath = basePath || ctx.admin_basepath;
+   const actualBasePath = (basePath || ctx.admin_basepath).replace(/\/+$/, "");
 
    return (
       <div id="bknd-admin" className={theme + " antialiased"}>
