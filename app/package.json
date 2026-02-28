@@ -219,6 +219,11 @@
       "import": "./dist/adapter/cloudflare/proxy.js",
       "require": "./dist/adapter/cloudflare/proxy.js"
     },
+    "./adapter/cloudflare/vite": {
+      "types": "./dist/types/adapter/cloudflare/vite.d.ts",
+      "import": "./dist/adapter/cloudflare/vite.js",
+      "require": "./dist/adapter/cloudflare/vite.js"
+    },
     "./adapter": {
       "types": "./dist/types/adapter/index.d.ts",
       "import": "./dist/adapter/index.js"

@@ -6,15 +6,15 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
-    "bknd-typegen": "PROXY=1 npx bknd types",
+    "bknd-typegen": "PROXY=1 node_modules/.bin/bknd types",
     "typegen": "wrangler types && npm run bknd-typegen",
-    "predev": "npm run typegen"
+    "postinstall": "npm run typegen"
   },
   "dependencies": {
     "bknd": "file:../../app"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
-    "wrangler": "^4.34.0"
+    "typescript": "^5.9.3",
+    "wrangler": "^4.46.0"
   }
 }

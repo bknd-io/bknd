@@ -16,6 +16,7 @@ export function registerMedia(
    env: Record<string, any>,
    registries: typeof $registries = $registries,
 ) {
+   if (registries.media.has("r2")) return;
    const r2_bindings = getBindings(env, "R2Bucket");
 
    registries.media.register(
@@ -172,7 +173,7 @@ export class StorageR2Adapter extends StorageAdapter {
       await this.bucket.delete(this.getKey(key));
    }
 
-   getObjectUrl(key: string): string {
+   getObjectUrl(): string {
       throw new Error("Method getObjectUrl not implemented.");
    }
 
@@ -183,7 +184,7 @@ export class StorageR2Adapter extends StorageAdapter {
       return key;
    }
 
-   toJSON(secrets?: boolean) {
+   toJSON() {
       return {
          type: this.getName(),
          config: {},
