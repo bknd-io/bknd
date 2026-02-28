@@ -123,7 +123,7 @@ export class AdminController extends Controller {
                const obj: AdminBkndWindowContext = {
                   user: c.get("auth")?.user,
                   logout_route: authRoutes.logout,
-                  admin_basepath: this.options.adminBasepath,
+                  admin_basepath: this.options.adminBasepath.replace(/\/+$/, ""),
                   theme: this.options.theme,
                   logo_return_path: this.options.logoReturnPath,
                };

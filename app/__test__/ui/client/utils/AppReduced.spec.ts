@@ -203,6 +203,63 @@ describe("AppReduced", () => {
       });
    });
 
+   describe("withBasePath - double slash fix (admin_basepath with trailing slash)", () => {
+      it("should not produce double slashes when admin_basepath has trailing slash", () => {
+         const options: BkndAdminProps["config"] = {
+            basepath: "/",
+            admin_basepath: "/admin/",
+            logo_return_path: "/",
+         };
+
+         appReduced = new AppReduced(mockAppJson, options);
+         const result = appReduced.withBasePath("/data");
+
+         expect(result).toBe("/admin/data");
+         expect(result).not.toContain("//");
+      });
+
+      it("should work correctly when admin_basepath has no trailing slash", () => {
+         const options: BkndAdminProps["config"] = {
+            basepath: "/",
+            admin_basepath: "/admin",
+            logo_return_path: "/",
+         };
+
+         appReduced = new AppReduced(mockAppJson, options);
+         const result = appReduced.withBasePath("/data");
+
+         expect(result).toBe("/admin/data");
+      });
+
+      it("should handle absolute paths with admin_basepath trailing slash", () => {
+         const options: BkndAdminProps["config"] = {
+            basepath: "/",
+            admin_basepath: "/admin/",
+            logo_return_path: "/",
+         };
+
+         appReduced = new AppReduced(mockAppJson, options);
+         const result = appReduced.getAbsolutePath("data");
+
+         expect(result).toBe("~/admin/data");
+         expect(result).not.toContain("//");
+      });
+
+      it("should handle settings path with admin_basepath trailing slash", () => {
+         const options: BkndAdminProps["config"] = {
+            basepath: "/",
+            admin_basepath: "/admin/",
+            logo_return_path: "/",
+         };
+
+         appReduced = new AppReduced(mockAppJson, options);
+         const result = appReduced.getSettingsPath(["general"]);
+
+         expect(result).toBe("~/admin/settings/general");
+         expect(result).not.toContain("//");
+      });
+   });
+
    describe("edge cases", () => {
       it("should handle undefined basepath", () => {
          const options: BkndAdminProps["config"] = {
