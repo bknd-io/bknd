@@ -87,7 +87,7 @@ export class PasswordStrategy extends AuthStrategy<typeof schema> {
       };
    }
 
-   getController(authenticator: Authenticator): Hono<any> {
+   getController(authenticator: Authenticator, opts: { allow_register?: boolean }): Hono<any> {
       const hono = new Hono();
       const redirectQuerySchema = s.object({
          redirect: s.string().optional(),
@@ -120,41 +120,43 @@ export class PasswordStrategy extends AuthStrategy<typeof schema> {
          },
       );
 
-      hono.post(
-         "/register",
-         describeRoute({
-            summary: "Register a new user with email and password",
-            tags: ["auth"],
-         }),
-         jsc("query", redirectQuerySchema),
-         async (c) => {
-            try {
-               const { redirect } = c.req.valid("query");
-               const { password, email, ...body } = parse(
-                  payloadSchema,
-                  await authenticator.getBody(c),
-                  {
-                     onError: (errors) => {
-                        $console.error("Invalid register payload", [...errors]);
-                        new InvalidCredentialsException();
+      if (opts.allow_register) {
+         hono.post(
+            "/register",
+            describeRoute({
+               summary: "Register a new user with email and password",
+               tags: ["auth"],
+            }),
+            jsc("query", redirectQuerySchema),
+            async (c) => {
+               try {
+                  const { redirect } = c.req.valid("query");
+                  const { password, email, ...body } = parse(
+                     payloadSchema,
+                     await authenticator.getBody(c),
+                     {
+                        onError: (errors) => {
+                           $console.error("Invalid register payload", [...errors]);
+                           new InvalidCredentialsException();
+                        },
                      },
-                  },
-               );
+                  );
 
-               const profile = {
-                  ...body,
-                  email,
-                  strategy_value: await this.hash(password),
-               };
+                  const profile = {
+                     ...body,
+                     email,
+                     strategy_value: await this.hash(password),
+                  };
 
-               return await authenticator.resolveRegister(c, this, profile, async () => void 0, {
-                  redirect,
-               });
-            } catch (e) {
-               return authenticator.respondWithError(c, e as any);
-            }
-         },
-      );
+                  return await authenticator.resolveRegister(c, this, profile, async () => void 0, {
+                     redirect,
+                  });
+               } catch (e) {
+                  return authenticator.respondWithError(c, e as any);
+               }
+            },
+         );
+      }
 
       return hono;
    }

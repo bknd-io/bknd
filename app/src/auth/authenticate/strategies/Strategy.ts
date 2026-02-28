@@ -36,7 +36,7 @@ export abstract class AuthStrategy<Schema extends s.Schema = s.Schema> {
 
    protected abstract getSchema(): Schema;
 
-   abstract getController(auth: Authenticator): Hono;
+   abstract getController(auth: Authenticator, opts: { allow_register?: boolean }): Hono;
 
    getType(): string {
       return this.type;
