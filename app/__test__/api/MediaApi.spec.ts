@@ -1,7 +1,7 @@
 /// <reference types="@types/bun" />
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 import { Hono } from "hono";
-import { getFileFromContext, isFile, isReadableStream } from "core/utils";
+import { getFileFromContext, isFile, isReadableStream, s, jsc } from "core/utils";
 import { MediaApi } from "media/api/MediaApi";
 import { assetsPath, assetsTmpPath } from "../helper";
 
@@ -15,7 +15,7 @@ const mockedBackend = new Hono()
    .get("/file/:name", async (c) => {
       const { name } = c.req.param();
       const file = Bun.file(`${assetsPath}/${name}`);
-      return new Response(file, {
+      return new Response(new File([await file.bytes()], name, { type: file.type }), {
          headers: {
             "Content-Type": file.type,
             "Content-Length": file.size.toString(),
@@ -67,7 +67,7 @@ describe("MediaApi", () => {
       const res = await mockedBackend.request("/api/media/file/" + name);
       await Bun.write(path, res);
 
-      const file = await Bun.file(path);
+      const file = Bun.file(path);
       expect(file.size).toBeGreaterThan(0);
       expect(file.type).toBe("image/png");
       await file.delete();
@@ -98,14 +98,11 @@ describe("MediaApi", () => {
       expect(isReadableStream(res.body)).toBe(true);
       expect(isReadableStream(res.res.body)).toBe(true);
 
-      const blob = await res.res.blob();
-      // Response.blob() always returns Blob, not File - File metadata (name, lastModified) is lost
-      // Client code must manually construct File from Blob (see MediaApi.download() for reference)
-      const file = new File([blob], name, { type: blob.type });
-      expect(isFile(file)).toBe(true);
-      expect(file.size).toBeGreaterThan(0);
-      expect(file.type).toBe("image/png");
-      expect(file.name).toContain(name);
+      const blob = (await res.res.blob()) as File;
+      expect(isFile(blob)).toBe(true);
+      expect(blob.size).toBeGreaterThan(0);
+      expect(blob.type).toBe("image/png");
+      expect(blob.name).toContain(name);
    });
 
    it("getFileStream", async () => {
@@ -117,15 +114,11 @@ describe("MediaApi", () => {
       const stream = await api.getFileStream(name);
       expect(isReadableStream(stream)).toBe(true);
 
-      const blob = await new Response(stream).blob();
-      // Response.blob() always returns Blob, not File - File metadata (name, lastModified) is lost
-      // Client code must manually construct File from Blob (see MediaApi.download() for reference)
-      // Use originalRes.headers.get("Content-Type") to preserve MIME type from response
-      const file = new File([blob], name, { type: originalRes.headers.get("Content-Type") || blob.type });
-      expect(isFile(file)).toBe(true);
-      expect(file.size).toBeGreaterThan(0);
-      expect(file.type).toBe("image/png");
-      expect(file.name).toContain(name);
+      const blob = (await new Response(res).blob()) as File;
+      expect(isFile(blob)).toBe(true);
+      expect(blob.size).toBeGreaterThan(0);
+      expect(blob.type).toBe("image/png");
+      expect(blob.name).toContain(name);
    });
 
    it("should upload file in various ways", async () => {
@@ -162,15 +155,38 @@ describe("MediaApi", () => {
       }
 
       // upload via readable from bun
-      await matches(await api.upload(file.stream(), { filename: "readable.png" }), "readable.png");
+      await matches(api.upload(file.stream(), { filename: "readable.png" }), "readable.png");
 
       // upload via readable from response
       {
          const response = (await mockedBackend.request(url)) as Response;
-         await matches(
-            await api.upload(response.body!, { filename: "readable.png" }),
-            "readable.png",
-         );
+         await matches(api.upload(response.body!, { filename: "readable.png" }), "readable.png");
       }
+   });
+
+   it("should add overwrite query for entity upload", async (c) => {
+      const call = mock(() => null);
+      const hono = new Hono().post(
+         "/api/media/entity/:entity/:id/:field",
+         jsc("query", s.object({ overwrite: s.boolean().optional() })),
+         async (c) => {
+            const { overwrite } = c.req.valid("query");
+            expect(overwrite).toBe(true);
+            call();
+            return c.json({ ok: true });
+         },
+      );
+      const api = new MediaApi(
+         {
+            upload_fetcher: hono.request,
+         },
+         hono.request,
+      );
+      const file = Bun.file(`${assetsPath}/image.png`);
+      const res = await api.uploadToEntity("posts", 1, "cover", file as any, {
+         overwrite: true,
+      });
+      expect(res.ok).toBe(true);
+      expect(call).toHaveBeenCalled();
    });
 });

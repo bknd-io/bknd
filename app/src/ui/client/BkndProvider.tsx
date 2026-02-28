@@ -9,7 +9,7 @@ import {
    useState,
    type ReactNode,
 } from "react";
-import { useApi } from "ui/client";
+import { useApi } from "bknd/client";
 import { type TSchemaActions, getSchemaActions } from "./schema/actions";
 import { AppReduced } from "./utils/AppReduced";
 import { Message } from "ui/components/display/Message";

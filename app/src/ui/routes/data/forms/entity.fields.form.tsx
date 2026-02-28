@@ -5,12 +5,12 @@ import {
    ucFirstAllSnakeToPascalWithSpaces,
    s,
    stringIdentifier,
+   pickKeys,
 } from "bknd/utils";
 import {
    type TAppDataEntityFields,
    fieldsSchemaObject as originalFieldsSchemaObject,
 } from "data/data-schema";
-import { omit } from "lodash-es";
 import { forwardRef, memo, useEffect, useImperativeHandle } from "react";
 import { type FieldArrayWithId, type UseFormReturn, useFieldArray, useForm } from "react-hook-form";
 import { TbGripVertical, TbSettings, TbTrash } from "react-icons/tb";
@@ -317,7 +317,6 @@ function EntityField({
    const name = watch(`fields.${index}.name`);
    const { active, toggle } = useRoutePathState(routePattern ?? "", name);
    const fieldSpec = fieldSpecs.find((s) => s.type === type)!;
-   const specificData = omit(field.field.config, commonProps);
    const disabled = fieldSpec.disabled || [];
    const hidden = fieldSpec.hidden || [];
    const dragDisabled = index === 0;
@@ -476,7 +475,7 @@ function EntityField({
                               field={field}
                               onChange={(value) => {
                                  setValue(`${prefix}.config`, {
-                                    ...getValues([`fields.${index}.config`])[0],
+                                    ...pickKeys(getValues([`${prefix}.config`])[0], commonProps),
                                     ...value,
                                  });
                               }}
@@ -520,7 +519,7 @@ const SpecificForm = ({
    readonly?: boolean;
 }) => {
    const type = field.field.type;
-   const specificData = omit(field.field.config, commonProps);
+   const specificData = omitKeys(field.field.config ?? {}, commonProps);
 
    return (
       <JsonSchemaForm

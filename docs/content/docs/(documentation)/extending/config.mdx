@@ -121,7 +121,7 @@ If the connection object is omitted, the app will try to use an in-memory databa
 
 As configuration, you can either pass a partial configuration object or a complete one
 with a version number. The version number is used to automatically migrate the configuration up
-to the latest version upon boot ([`db` mode](/usage/introduction#ui-only-mode) only). The default configuration looks like this:
+to the latest version upon boot ([`db` mode](/usage/setup#ui-only-mode) only). The default configuration looks like this:
 
 ```json
 {
@@ -209,6 +209,10 @@ to the latest version upon boot ([`db` mode](/usage/introduction#ui-only-mode) o
   }
 }
 ```
+
+<Callout type="warn" title="Guard lockout warning">
+  Setting `auth.guard.enabled` to `true` without first creating a user with an admin role will lock you out of the admin portal. See [Securing Your Admin Portal](/modules/auth#securing-your-admin-portal) for the required steps before enabling the Guard.
+</Callout>
 
 You can use the [CLI](/usage/cli/#getting-the-configuration-config) to get the default configuration:
 

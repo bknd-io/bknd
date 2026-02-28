@@ -1,0 +1,24 @@
+{
+  "name": "bknd-sveltekit-example",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "postinstall": "node node_modules/.bin/bknd copy-assets --out static"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^7.0.0",
+    "@sveltejs/kit": "^2.0.0",
+    "@sveltejs/vite-plugin-svelte": "^6.0.0",
+    "svelte": "^5.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^7.0.0"
+  },
+  "dependencies": {
+    "bknd": "file:../../app",
+    "@libsql/client": "^0.15.0"
+  },
+  "type": "module"
+}

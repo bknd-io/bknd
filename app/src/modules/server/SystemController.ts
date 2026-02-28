@@ -1,5 +1,3 @@
-/// <reference types="@cloudflare/workers-types" />
-
 import type { App } from "App";
 import {
    datetimeStringLocal,
@@ -125,7 +123,7 @@ export class SystemController extends Controller {
    private registerConfigController(client: Hono<any>): void {
       const { permission } = this.middlewares;
       // don't add auth again, it's already added in getController
-      const hono = this.create(); /* .use(permission(SystemPermissions.configRead)); */
+      const hono = this.create();
 
       if (!this.app.isReadOnly()) {
          const manager = this.app.modules as DbModuleManager;
@@ -317,6 +315,11 @@ export class SystemController extends Controller {
             summary: "Get the config for a module",
             tags: ["system"],
          }),
+         permission(SystemPermissions.configRead, {
+            context: (c) => ({
+               module: c.req.param("module"),
+            }),
+         }),
          mcpTool("system_config", {
             annotations: {
                readOnlyHint: true,
@@ -354,7 +357,7 @@ export class SystemController extends Controller {
 
    override getController() {
       const { permission, auth } = this.middlewares;
-      const hono = this.create().use(auth());
+      const hono = this.create().use(auth()).use(permission(SystemPermissions.accessApi, {}));
 
       this.registerConfigController(hono);
 
@@ -429,6 +432,9 @@ export class SystemController extends Controller {
 
       hono.get(
          "/permissions",
+         permission(SystemPermissions.schemaRead, {
+            context: (_c) => ({ module: "auth" }),
+         }),
          describeRoute({
             summary: "Get the permissions",
             tags: ["system"],
@@ -441,6 +447,7 @@ export class SystemController extends Controller {
 
       hono.post(
          "/build",
+         permission(SystemPermissions.build, {}),
          describeRoute({
             summary: "Build the app",
             tags: ["system"],
@@ -471,6 +478,7 @@ export class SystemController extends Controller {
 
       hono.get(
          "/info",
+         permission(SystemPermissions.info, {}),
          mcpTool("system_info"),
          describeRoute({
             summary: "Get the server info",
@@ -504,6 +512,7 @@ export class SystemController extends Controller {
 
       hono.get(
          "/openapi.json",
+         permission(SystemPermissions.openapi, {}),
          openAPISpecs(this.ctx.server, {
             info: {
                title: "bknd API",
@@ -511,7 +520,11 @@ export class SystemController extends Controller {
             },
          }),
       );
-      hono.get("/swagger", swaggerUI({ url: "/api/system/openapi.json" }));
+      hono.get(
+         "/swagger",
+         permission(SystemPermissions.openapi, {}),
+         swaggerUI({ url: "/api/system/openapi.json" }),
+      );
 
       return hono;
    }

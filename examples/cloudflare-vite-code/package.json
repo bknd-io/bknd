@@ -1,0 +1,36 @@
+{
+   "name": "cloudflare-vite-fullstack-bknd-code",
+   "description": "A template for building a React application with Vite, Cloudflare Workers, and bknd",
+   "private": true,
+   "type": "module",
+   "scripts": {
+      "build": "vite build",
+      "cf:types": "wrangler types",
+      "bknd": "node --experimental-strip-types node_modules/.bin/bknd",
+      "bknd:seed": "NODE_NO_WARNINGS=1 node --experimental-strip-types seed.ts",
+      "check": "tsc && vite build && wrangler deploy --dry-run",
+      "deploy": "CLOUDFLARE_ENV=production vite build && CLOUDFLARE_ENV=production npm run bknd -- sync --force && wrangler deploy",
+      "dev": "vite",
+      "preview": "npm run build && vite preview",
+      "postinstall": "npm run cf:types && npm run bknd:seed"
+   },
+   "dependencies": {
+      "@tailwindcss/vite": "^4.1.17",
+      "bknd": "file:../../app", 
+      "hono": "4.10.6",
+      "react": "^19.1.0",
+      "react-dom": "^19.1.0",
+      "tailwindcss": "^4.1.17",
+      "wouter": "^3.7.1"
+   },
+   "devDependencies": {
+      "@cloudflare/vite-plugin": "1.15.2",
+      "@types/node": "^24.10.1",
+      "@types/react": "19.2.6",
+      "@types/react-dom": "19.2.3",
+      "@vitejs/plugin-react": "5.1.1",
+      "typescript": "5.9.3",
+      "vite": "^7.2.4",
+      "wrangler": "^4.50.0"
+   }
+}

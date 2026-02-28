@@ -1,7 +1,6 @@
 import type { AuthState } from "Api";
 import type { AuthResponse } from "bknd";
-import { useApi, useInvalidate } from "ui/client";
-import { useClientContext } from "ui/client/ClientProvider";
+import { useApi, useInvalidate, useClientContext } from "bknd/client";
 
 type LoginData = {
    email: string;
@@ -19,6 +18,7 @@ type UseAuth = {
    logout: () => Promise<void>;
    verify: () => Promise<void>;
    setToken: (token: string) => void;
+   local: boolean;
 };
 
 export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
@@ -61,5 +61,6 @@ export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
       logout,
       setToken,
       verify,
+      local: !!api.options.storage,
    };
 };

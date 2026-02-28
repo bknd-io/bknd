@@ -214,7 +214,7 @@ Now you can use the CLI with your Cloudflare resources.
 Instead, it's recommended to split this configuration into separate files, e.g. `bknd.config.ts` and `config.ts`:
 
 ```typescript title="config.ts"
-import type { CloudflareBkndConfig } from "bknd/adapter/cloudflare";
+import { d1, type CloudflareBkndConfig } from "bknd/adapter/cloudflare";
 
 export default {
   app: (env) => ({
