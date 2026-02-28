@@ -13,3 +13,4 @@ count.txt
 todos.json
 public/uploads
 data.db
+src/routeTree.gen.ts

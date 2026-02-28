@@ -72,13 +72,13 @@ function App() {
   const addTodo = useServerFn(createTodo);
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <div className="flex flex-row items-center ">
           <img
             className="dark:invert size-18"
             src="/tanstack-circle-logo.png"
-            alt="Next.js logo"
+            alt="TanStack logo"
           />
           <div className="ml-3.5 mr-2 font-mono opacity-70">&amp;</div>
           <img
@@ -101,7 +101,7 @@ function App() {
               </div>
             )}
             <div className="flex flex-col gap-3">
-              {todos.reverse().map((todo) => (
+              {todos.map((todo) => (
                 <div className="flex flex-row" key={String(todo.id)}>
                   <div className="flex flex-row flex-grow items-center gap-3 ml-1">
                     <input

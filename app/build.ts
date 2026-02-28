@@ -363,10 +363,6 @@ async function buildAdapters() {
       external: [/^bun\:.*/],
     }),
 
-    tsup.build({
-      ...baseConfig("tanstack-start"),
-      platform: "node",
-    }),
   ]);
 }
 
