@@ -4,6 +4,7 @@ import { $console } from "bknd/utils";
 export type TimestampsPluginOptions = {
    entities: string[];
    setUpdatedOnCreate?: boolean;
+   indexStrategy?: "composite" | "individual";
 };
 
 /**
@@ -19,6 +20,7 @@ export type TimestampsPluginOptions = {
 export function timestamps({
    entities = [],
    setUpdatedOnCreate = true,
+   indexStrategy,
 }: TimestampsPluginOptions): AppPlugin {
    return (app: App) => ({
       name: "timestamps",
@@ -29,19 +31,35 @@ export function timestamps({
          }
 
          const appEntities = app.em.entities.map((e) => e.name);
+         const actualEntities = entities.filter((e) => appEntities.includes(e));
 
          return em(
             Object.fromEntries(
-               entities
-                  .filter((e) => appEntities.includes(e))
-                  .map((e) => [
-                     e,
-                     entity(e, {
-                        created_at: datetime(),
-                        updated_at: datetime(),
-                     }),
-                  ]),
+               actualEntities.map((e) => [
+                  e,
+                  entity(e, {
+                     created_at: datetime(),
+                     updated_at: datetime(),
+                  }),
+               ]),
             ),
+            (fns, schema) => {
+               if (indexStrategy) {
+                  for (const entity of actualEntities) {
+                     if (entity in schema) {
+                        switch (indexStrategy) {
+                           case "composite":
+                              fns.index(schema[entity]!).on(["created_at", "updated_at"]);
+                              break;
+                           case "individual":
+                              fns.index(schema[entity]!).on(["created_at"]);
+                              fns.index(schema[entity]!).on(["updated_at"]);
+                              break;
+                        }
+                     }
+                  }
+               }
+            },
          );
       },
       onBuilt: async () => {
