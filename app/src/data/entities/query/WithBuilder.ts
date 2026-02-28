@@ -39,6 +39,7 @@ export class WithBuilder {
             if (query) {
                subQuery = em.repo(other.entity).addOptionsToQueryBuilder(subQuery, query as any, {
                   ignore: ["with", cardinality === 1 ? "limit" : undefined].filter(Boolean) as any,
+                  alias: other.reference,
                });
             }
 
