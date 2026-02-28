@@ -22,7 +22,6 @@ export class AppReduced {
       protected appJson: AppType,
       protected _options: BkndAdminProps["config"] = {},
    ) {
-      //console.log("received appjson", _options);
 
       this._entities = Object.entries(this.appJson.data.entities ?? {}).map(([name, entity]) => {
          return constructEntity(name, entity);

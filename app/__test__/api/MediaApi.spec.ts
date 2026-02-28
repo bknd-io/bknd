@@ -110,7 +110,7 @@ describe("MediaApi", () => {
       const api = new MediaApi({}, mockedBackend.request);
 
       const name = "image.png";
-      const { res: originalRes } = await api.getFile(name);
+      const { res } = await api.getFile(name);
       const stream = await api.getFileStream(name);
       expect(isReadableStream(stream)).toBe(true);
 
