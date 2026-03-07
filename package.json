@@ -8,7 +8,7 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "build:all": "bun run --filter bknd build:all",
+    "build": "bun i && bun run --filter bknd build:all",
     "updater": "bun x npm-check-updates -ui",
     "ci": "find . -name 'node_modules' -type d -exec rm -rf {} + && bun install",
     "npm:local": "verdaccio --config verdaccio.yml",
