@@ -55,6 +55,15 @@ if (!registries.media.has(local)) {
    registries.media.register(local, StorageLocalAdapter);
 }
 
+async function loadConfigFile(configFilePath: string): Promise<CliBkndConfig> {
+   if (/\.[mc]?ts$/.test(configFilePath)) {
+      const { createJiti } = await import("jiti");
+      const jiti = createJiti(import.meta.url);
+      return (await jiti.import(configFilePath, { default: true })) as CliBkndConfig;
+   }
+   return (await import(configFilePath).then((m) => m.default)) as CliBkndConfig;
+}
+
 type MakeAppConfig = {
    connection?: CreateAppConfig["connection"];
    server?: { platform?: Platform };
@@ -100,7 +109,7 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
    } else if (configFilePath) {
       console.info("Using config from", c.cyan(configFilePath));
       try {
-         const config = (await import(configFilePath).then((m) => m.default)) as CliBkndConfig;
+         const config = await loadConfigFile(configFilePath);
          app = await makeConfigApp(config, options.server);
       } catch (e) {
          console.error("Failed to load config:", e);
