@@ -5,6 +5,7 @@ import { Option } from "commander";
 import { config, type App, type CreateAppConfig, type MaybePromise, registries } from "bknd";
 import dotenv from "dotenv";
 import c from "picocolors";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import {
    PLATFORMS,
@@ -64,6 +65,34 @@ async function loadConfigFile(configFilePath: string): Promise<CliBkndConfig> {
    return (await import(configFilePath).then((m) => m.default)) as CliBkndConfig;
 }
 
+function reexecUnderBun(): never {
+   const bunPath = process.env.BUN_INSTALL
+      ? path.join(process.env.BUN_INSTALL, "bin", "bun")
+      : "bun";
+
+   const cliPath = path.resolve(process.argv[1]!);
+   const args = [cliPath, ...process.argv.slice(2)];
+
+   console.info(
+      c.yellow("Config requires Bun runtime, re-executing:"),
+      c.cyan(`bun ${args.join(" ")}`),
+   );
+
+   try {
+      execFileSync(bunPath, args, { stdio: "inherit" });
+      process.exit(0);
+   } catch (e: any) {
+      if (e.status != null) {
+         process.exit(e.status);
+      }
+      console.error(
+         c.red("Could not re-exec under Bun."),
+         "Install Bun (https://bun.sh) or use bknd/adapter/node in your config.",
+      );
+      process.exit(1);
+   }
+}
+
 type MakeAppConfig = {
    connection?: CreateAppConfig["connection"];
    server?: { platform?: Platform };
@@ -113,13 +142,9 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
          app = await makeConfigApp(config, options.server);
       } catch (e) {
          if (e instanceof ReferenceError && e.message === "Bun is not defined") {
-            console.error(
-               c.red("Your config imports from a Bun-specific adapter, but the CLI is running under Node."),
-               `\nRun with Bun instead:\n\n  ${c.cyan("bun node_modules/.bin/bknd")} ${c.dim(process.argv.slice(2).join(" "))}\n`,
-            );
-         } else {
-            console.error("Failed to load config:", e);
+            reexecUnderBun();
          }
+         console.error("Failed to load config:", e);
          process.exit(1);
       }
 
