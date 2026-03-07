@@ -66,6 +66,11 @@ async function loadConfigFile(configFilePath: string): Promise<CliBkndConfig> {
 }
 
 function reexecUnderBun(): never {
+   if (process.env.__BKND_REEXEC) {
+      console.error(c.red("Config requires Bun but still failed under Bun runtime."));
+      process.exit(1);
+   }
+
    const bunPath = process.env.BUN_INSTALL
       ? path.join(process.env.BUN_INSTALL, "bin", "bun")
       : "bun";
@@ -79,7 +84,10 @@ function reexecUnderBun(): never {
    );
 
    try {
-      execFileSync(bunPath, args, { stdio: "inherit" });
+      execFileSync(bunPath, args, {
+         stdio: "inherit",
+         env: { ...process.env, __BKND_REEXEC: "1" },
+      });
       process.exit(0);
    } catch (e: any) {
       if (e.status != null) {
@@ -141,7 +149,7 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
          const config = await loadConfigFile(configFilePath);
          app = await makeConfigApp(config, options.server);
       } catch (e) {
-         if (e instanceof ReferenceError && e.message === "Bun is not defined") {
+         if (e instanceof ReferenceError && /\bBun\b.*not defined/.test(e.message)) {
             reexecUnderBun();
          }
          console.error("Failed to load config:", e);
