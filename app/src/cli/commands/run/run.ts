@@ -179,10 +179,11 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
       try {
          const config = await loadConfigFile(configFilePath);
          app = await makeConfigApp(config, options.server);
-      } catch (e) {
-         if (e instanceof ReferenceError && /\bBun\b.*not defined/.test(e.message)) {
-            reexecUnderBun();
-         }
+      } catch (e: any) {
+         const needsBun =
+            (e instanceof ReferenceError && /\bBun\b.*not defined/.test(e.message)) ||
+            (e?.code === "ERR_UNSUPPORTED_ESM_URL_SCHEME" && /bun:/.test(e.message));
+         if (needsBun) reexecUnderBun();
          console.error("Failed to load config:", e);
          process.exit(1);
       }
