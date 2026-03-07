@@ -59,7 +59,8 @@ if (!registries.media.has(local)) {
 function needsTypeStripping(configFilePath: string): boolean {
    if (!/\.[mc]?ts$/.test(configFilePath)) return false;
    const [major, minor] = process.versions.node.split(".").map(Number);
-   return major === 22 && minor! < 18;
+   // Node v22.06 introduced experimental TypeScript support via strip types.
+   return major === 22 && minor! < 18 && minor! > 5;
 }
 
 function reexecWithTypeStripping(): never {

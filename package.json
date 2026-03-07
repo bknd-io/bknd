@@ -8,6 +8,7 @@
     "node": ">=22.13"
   },
   "scripts": {
+    "build:all": "bun run --filter bknd build:all",
     "updater": "bun x npm-check-updates -ui",
     "ci": "find . -name 'node_modules' -type d -exec rm -rf {} + && bun install",
     "npm:local": "verdaccio --config verdaccio.yml",
@@ -24,5 +25,8 @@
     "typescript": "^5.9.3",
     "verdaccio": "^6.2.1"
   },
-  "workspaces": ["app", "packages/*"]
+  "workspaces": [
+    "app",
+    "packages/*"
+  ]
 }
