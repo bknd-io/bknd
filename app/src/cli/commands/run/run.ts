@@ -56,11 +56,41 @@ if (!registries.media.has(local)) {
    registries.media.register(local, StorageLocalAdapter);
 }
 
+function needsTypeStripping(configFilePath: string): boolean {
+   if (!/\.[mc]?ts$/.test(configFilePath)) return false;
+   const [major, minor] = process.versions.node.split(".").map(Number);
+   return major === 22 && minor! < 18;
+}
+
+function reexecWithTypeStripping(): never {
+   if (process.env.__BKND_REEXEC) {
+      console.error(c.red("TS config still failed after re-exec with --experimental-strip-types."));
+      process.exit(1);
+   }
+
+   const cliPath = path.resolve(process.argv[1]!);
+   const args = ["--experimental-strip-types", cliPath, ...process.argv.slice(2)];
+
+   console.info(
+      c.yellow("Node <22.18 detected, re-executing with --experimental-strip-types"),
+   );
+
+   try {
+      execFileSync(process.execPath, args, {
+         stdio: "inherit",
+         env: { ...process.env, __BKND_REEXEC: "1" },
+      });
+      process.exit(0);
+   } catch (e: any) {
+      if (e.status != null) process.exit(e.status);
+      console.error(c.red("Failed to re-exec with --experimental-strip-types."));
+      process.exit(1);
+   }
+}
+
 async function loadConfigFile(configFilePath: string): Promise<CliBkndConfig> {
-   if (/\.[mc]?ts$/.test(configFilePath)) {
-      const { createJiti } = await import("jiti");
-      const jiti = createJiti(import.meta.url);
-      return (await jiti.import(configFilePath, { default: true })) as CliBkndConfig;
+   if (needsTypeStripping(configFilePath) && !process.execArgv.includes("--experimental-strip-types")) {
+      reexecWithTypeStripping();
    }
    return (await import(configFilePath).then((m) => m.default)) as CliBkndConfig;
 }
