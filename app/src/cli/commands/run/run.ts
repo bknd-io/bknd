@@ -4,6 +4,7 @@ import type { CliBkndConfig, CliCommand } from "cli/types";
 import { Option } from "commander";
 import { config, type App, type CreateAppConfig, type MaybePromise, registries } from "bknd";
 import dotenv from "dotenv";
+import * as errore from "errore";
 import c from "picocolors";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
@@ -18,6 +19,26 @@ import {
 import { createRuntimeApp, makeConfig } from "bknd/adapter";
 import { colorizeConsole, isBun } from "bknd/utils";
 import { withConfigOptions, type WithConfigOptions } from "cli/utils/options";
+
+class ConfigLoadError extends errore.createTaggedError({
+   name: "ConfigLoadError",
+   message: "Failed to load config: $reason",
+}) {}
+
+class NeedsBunError extends errore.createTaggedError({
+   name: "NeedsBunError",
+   message: "Config requires Bun runtime",
+}) {}
+
+class NeedsTypeStrippingError extends errore.createTaggedError({
+   name: "NeedsTypeStrippingError",
+   message: "Node $version needs --experimental-strip-types for .ts config",
+}) {}
+
+class ReexecFailedError extends errore.createTaggedError({
+   name: "ReexecFailedError",
+   message: "Re-exec failed: $reason",
+}) {}
 
 const env_files = [".env", ".dev.vars"];
 dotenv.config({
@@ -63,10 +84,11 @@ function needsTypeStripping(configFilePath: string): boolean {
    return major === 22 && minor! < 18 && minor! > 5;
 }
 
-function reexecWithTypeStripping(): never {
+function reexecWithTypeStripping(): ReexecFailedError | never {
    if (process.env.__BKND_REEXEC) {
-      console.error(c.red("TS config still failed after re-exec with --experimental-strip-types."));
-      process.exit(1);
+      return new ReexecFailedError({
+         reason: "TS config still failed after re-exec with --experimental-strip-types",
+      });
    }
 
    const cliPath = path.resolve(process.argv[1]!);
@@ -76,30 +98,54 @@ function reexecWithTypeStripping(): never {
       c.yellow("Node <22.18 detected, re-executing with --experimental-strip-types"),
    );
 
-   try {
-      execFileSync(process.execPath, args, {
-         stdio: "inherit",
-         env: { ...process.env, __BKND_REEXEC: "1" },
-      });
-      process.exit(0);
-   } catch (e: any) {
-      if (e.status != null) process.exit(e.status);
-      console.error(c.red("Failed to re-exec with --experimental-strip-types."));
-      process.exit(1);
-   }
+   const result = errore.try({
+      try: () =>
+         execFileSync(process.execPath, args, {
+            stdio: "inherit",
+            env: { ...process.env, __BKND_REEXEC: "1" },
+         }),
+      catch: (e) =>
+         new ReexecFailedError({
+            reason: "Failed to re-exec with --experimental-strip-types",
+            cause: e,
+         }),
+   });
+
+   if (result instanceof Error) return result;
+   process.exit(0);
 }
 
-async function loadConfigFile(configFilePath: string): Promise<CliBkndConfig> {
+async function loadConfigFile(
+   configFilePath: string,
+): Promise<ConfigLoadError | NeedsBunError | NeedsTypeStrippingError | CliBkndConfig> {
    if (needsTypeStripping(configFilePath) && !process.execArgv.includes("--experimental-strip-types")) {
-      reexecWithTypeStripping();
+      return new NeedsTypeStrippingError({
+         version: process.versions.node,
+      });
    }
-   return (await import(configFilePath).then((m) => m.default)) as CliBkndConfig;
+
+   const result = await errore.tryAsync({
+      try: () => import(configFilePath).then((m) => m.default as CliBkndConfig),
+      catch: (e) => {
+         const needsBun =
+            (e instanceof ReferenceError && /\bBun\b.*not defined/.test(e.message)) ||
+            (e instanceof Error && "code" in e && e.code === "ERR_UNSUPPORTED_ESM_URL_SCHEME" && /bun:/.test(e.message));
+         if (needsBun) return new NeedsBunError();
+         return new ConfigLoadError({
+            reason: e instanceof Error ? e.message : String(e),
+            cause: e,
+         });
+      },
+   });
+
+   return result;
 }
 
-function reexecUnderBun(): never {
+function reexecUnderBun(): ReexecFailedError | never {
    if (process.env.__BKND_REEXEC) {
-      console.error(c.red("Config requires Bun but still failed under Bun runtime."));
-      process.exit(1);
+      return new ReexecFailedError({
+         reason: "Config requires Bun but still failed under Bun runtime",
+      });
    }
 
    const bunPath = process.env.BUN_INSTALL
@@ -114,22 +160,21 @@ function reexecUnderBun(): never {
       c.cyan(`bun ${args.join(" ")}`),
    );
 
-   try {
-      execFileSync(bunPath, args, {
-         stdio: "inherit",
-         env: { ...process.env, __BKND_REEXEC: "1" },
-      });
-      process.exit(0);
-   } catch (e: any) {
-      if (e.status != null) {
-         process.exit(e.status);
-      }
-      console.error(
-         c.red("Could not re-exec under Bun."),
-         "Install Bun (https://bun.sh) or use bknd/adapter/node in your config.",
-      );
-      process.exit(1);
-   }
+   const result = errore.try({
+      try: () =>
+         execFileSync(bunPath, args, {
+            stdio: "inherit",
+            env: { ...process.env, __BKND_REEXEC: "1" },
+         }),
+      catch: (e) =>
+         new ReexecFailedError({
+            reason: "Could not re-exec under Bun. Install Bun (https://bun.sh) or use bknd/adapter/node in your config.",
+            cause: e,
+         }),
+   });
+
+   if (result instanceof Error) return result;
+   process.exit(0);
 }
 
 type MakeAppConfig = {
@@ -176,16 +221,33 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
       // check configuration file to be present
    } else if (configFilePath) {
       console.info("Using config from", c.cyan(configFilePath));
-      try {
-         const config = await loadConfigFile(configFilePath);
-         app = await makeConfigApp(config, options.server);
-      } catch (e: any) {
-         const needsBun =
-            (e instanceof ReferenceError && /\bBun\b.*not defined/.test(e.message)) ||
-            (e?.code === "ERR_UNSUPPORTED_ESM_URL_SCHEME" && /bun:/.test(e.message));
-         if (needsBun) reexecUnderBun();
-         console.error("Failed to load config:", e);
-         process.exit(1);
+      const configResult = await loadConfigFile(configFilePath);
+
+      if (configResult instanceof Error) {
+         errore.matchError(configResult, {
+            NeedsTypeStrippingError: () => {
+               const reexecResult = reexecWithTypeStripping();
+               // only reached on failure — success calls process.exit(0)
+               console.error(c.red(reexecResult.message));
+               process.exit(1);
+            },
+            NeedsBunError: () => {
+               const reexecResult = reexecUnderBun();
+               // only reached on failure — success calls process.exit(0)
+               console.error(c.red(reexecResult.message));
+               process.exit(1);
+            },
+            ConfigLoadError: (e) => {
+               console.error(c.red("Failed to load config:"), e.reason);
+               process.exit(1);
+            },
+            Error: (e) => {
+               console.error(c.red("Failed to load config:"), e.message);
+               process.exit(1);
+            },
+         });
+      } else {
+         app = await makeConfigApp(configResult, options.server);
       }
 
       // try to use an in-memory connection

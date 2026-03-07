@@ -108,6 +108,7 @@
     "clsx": "^2.1.1",
     "commander": "^14.0.2",
     "dotenv": "^17.2.3",
+    "errore": "^0.14.0",
     "jotai": "^2.12.2",
     "jsdom": "^26.1.0",
     "kysely-generic-sqlite": "^1.2.1",
