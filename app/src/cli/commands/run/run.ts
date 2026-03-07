@@ -112,7 +112,14 @@ export async function makeAppFromEnv(options: Partial<RunOptions> = {}) {
          const config = await loadConfigFile(configFilePath);
          app = await makeConfigApp(config, options.server);
       } catch (e) {
-         console.error("Failed to load config:", e);
+         if (e instanceof ReferenceError && e.message === "Bun is not defined") {
+            console.error(
+               c.red("Your config imports from a Bun-specific adapter, but the CLI is running under Node."),
+               `\nRun with Bun instead:\n\n  ${c.cyan("bun node_modules/.bin/bknd")} ${c.dim(process.argv.slice(2).join(" "))}\n`,
+            );
+         } else {
+            console.error("Failed to load config:", e);
+         }
          process.exit(1);
       }
 

@@ -97,6 +97,12 @@ The `app` function is useful if you need a cross-platform way to access the envi
 
 TypeScript configuration files (`.ts`) are fully supported and work out of the box with `npx bknd run` — no additional flags or tools required.
 
+If your config imports from a runtime-specific adapter (e.g. `bknd/adapter/bun`), you need to run the CLI with that runtime:
+
+```sh
+bun node_modules/.bin/bknd run
+```
+
 ### Turso/LibSQL database
 
 To start an instance with a Turso/LibSQL database, run the following:
