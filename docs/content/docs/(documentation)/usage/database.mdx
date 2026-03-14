@@ -310,7 +310,7 @@ const app = createApp({ connection });
 
 ## Data Structure
 
-To provide a database structure, you can pass `config` to the creation of an app. In [`db` mode](/usage/introduction#ui-only-mode), the data structure is only respected if the database is empty. If you made updates, ensure to delete the database first, or perform updates through the Admin UI.
+To provide a database structure, you can pass `config` to the creation of an app. In [`db` mode](/usage/setup#ui-only-mode), the data structure is only respected if the database is empty. If you made updates, ensure to delete the database first, or perform updates through the Admin UI.
   
 Here is a quick example:
 
@@ -506,9 +506,9 @@ const app = createApp({
 });
 ```
 
-Note that in [`db` mode](/usage/introduction#ui-only-mode), the seed function will only be executed on app's first boot. If a configuration already exists in the database, it will not be executed.
+Note that in [`db` mode](/usage/setup#ui-only-mode), the seed function will only be executed on app's first boot. If a configuration already exists in the database, it will not be executed.
 
-In [`code` mode](/usage/introduction#code-only-mode), the seed function will not be automatically executed. You can manually execute it by running the following command:
+In [`code` mode](/usage/setup#code-only-mode), the seed function will not be automatically executed. You can manually execute it by running the following command:
 
 ```bash
 npx bknd sync --seed --force

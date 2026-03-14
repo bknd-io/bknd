@@ -9,7 +9,7 @@
     "start",
     "motivation",
     "---Usage---",
-    "./usage/introduction",
+    "./usage/setup",
     "./usage/database",
     "./usage/cli",
     "./usage/sdk",

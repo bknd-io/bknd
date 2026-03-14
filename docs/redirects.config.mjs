@@ -9,4 +9,9 @@ export const redirectsConfig = [
     destination: "/start",
     permanent: true,
   },
+  {
+    source: "/usage/introduction",
+    destination: "/usage/setup",
+    permanent: true,
+  },
 ];

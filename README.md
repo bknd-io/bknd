@@ -165,3 +165,19 @@ npx bknd run
 ```bash
 npm install bknd
 ```
+
+## Contributing
+
+We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) before getting started. It covers dev setup, project structure, testing, code style, and how to submit changes.
+
+Before writing code, please open a GitHub Issue or start a conversation in [Discord](https://discord.com/invite/952SFk8Tb8) so we can align on the approach.
+
+## Contributors
+
+Thank you to everyone who has contributed to bknd.
+
+<a href="https://github.com/bknd-io/bknd/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=bknd-io/bknd" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
