@@ -11,6 +11,7 @@ import { css, Style } from "hono/css";
 import { Controller } from "modules/Controller";
 import * as SystemPermissions from "modules/permissions";
 import type { TApiUser } from "Api";
+import type { AppTheme } from "ui/client/use-theme";
 import type { Manifest } from "vite";
 
 const htmlBkndContextReplace = "<!-- BKND_CONTEXT -->";
@@ -20,7 +21,7 @@ export type AdminBkndWindowContext = {
    logout_route: string;
    admin_basepath: string;
    logo_return_path?: string;
-   theme?: "dark" | "light" | "system";
+   theme?: AppTheme;
 };
 
 // @todo: add migration to remove admin path from config
@@ -31,7 +32,7 @@ export type AdminControllerOptions = {
    html?: string;
    forceDev?: boolean | { mainPath: string };
    debugRerenders?: boolean;
-   theme?: "dark" | "light" | "system";
+   theme?: AppTheme;
    logoReturnPath?: string;
    manifest?: Manifest;
 };
@@ -122,7 +123,7 @@ export class AdminController extends Controller {
                const obj: AdminBkndWindowContext = {
                   user: c.get("auth")?.user,
                   logout_route: authRoutes.logout,
-                  admin_basepath: this.options.adminBasepath,
+                  admin_basepath: this.options.adminBasepath.replace(/\/+$/, ""),
                   theme: this.options.theme,
                   logo_return_path: this.options.logoReturnPath,
                };
@@ -304,7 +305,7 @@ const wrapperStyle = css`
    -moz-osx-font-smoothing: grayscale;
    color: rgb(9,9,11);
    background-color: rgb(250,250,250);
-   
+
    @media (prefers-color-scheme: dark) {
       color: rgb(250,250,250);
       background-color: rgb(30,31,34);
