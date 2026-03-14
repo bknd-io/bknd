@@ -43,7 +43,7 @@ export default function Home() {
   return (
     <div class="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main class="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <div class="flex flex-row items-center ">
+        <div class="flex flex-row items-center justify-evenly min-w-full">
           <img
             class="dark:invert size-18"
             src="/solid.svg"
