@@ -1,0 +1,402 @@
+---
+title: "Nuxt"
+description: "Run bknd inside Nuxt"
+tags: ["documentation"]
+---
+
+## Installation
+
+To get started with Nuxt and bknd, create a new Nuxt project by following the [official guide](https://nuxt.com/docs/4.x/getting-started/installation), and then install bknd as a dependency:
+
+<Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
+
+```bash tab="npm"
+npm install bknd
+```
+
+```bash tab="pnpm"
+pnpm install bknd
+```
+
+```bash tab="yarn"
+yarn add bknd
+```
+
+```bash tab="bun"
+bun add bknd
+```
+
+</Tabs>
+
+## Configuration
+
+<Callout type="warning">
+  When run with Node.js, a version of 22 (LTS) or higher is required. Please
+  verify your version by running `node -v`, and
+  [upgrade](https://nodejs.org/en/download/) if necessary.
+</Callout>
+
+Now create a `bknd.config.ts` file in the root of your project:
+
+```typescript title="bknd.config.ts"
+import type NuxtBkndConfig from "bknd/adapter/nuxt";
+import { em, entity, text, boolean } from "bknd";
+import { secureRandomString } from "bknd/utils";
+
+const schema = em({
+  todos: entity("todos", {
+    title: text(),
+    done: boolean(),
+  }),
+});
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+  config: {
+    data: schema.toJSON(),
+    auth: {
+      enabled: true,
+      jwt: {
+        secret: secureRandomString(32),
+      },
+    },
+  },
+  options: {
+    // the seed option is only executed if the database was empty
+    seed: async (ctx) => {
+      // create some entries
+      await ctx.em.mutator("todos").insertMany([
+        { title: "Learn bknd", done: true },
+        { title: "Build something cool", done: false },
+      ]);
+
+      // and create a user
+      await ctx.app.module.auth.createUser({
+        email: "test@bknd.io",
+        password: "12345678",
+      });
+    },
+  },
+} satisfies NuxtBkndConfig;
+```
+
+For more information about the connection object, refer to the [Database](/usage/database) guide.
+
+
+See [bknd.config.ts](/extending/config) for more information on how to configure bknd. The `NuxtBkndConfig` type extends the base config type with the following properties:
+
+```typescript
+export type NuxtBkndConfig<Env = NuxtEnv> = FrameworkBkndConfig<Env>;
+```
+
+## Serve the API and Admin UI
+
+The Nuxt adapter uses Nuxt middleware to handle API requests and serve the Admin UI. Create a `/server/middleware/bknd.ts` file:
+
+```typescript title="/server/middleware/bknd.ts"
+import { serve } from "bknd/adapter/nuxt";
+import config from "../../bknd.config";
+
+const handler = serve(config, process.env);
+
+export default defineEventHandler(async (event) => {
+  const pathname = event.path;
+  const request = toWebRequest(event);
+
+  if (pathname.startsWith("/api") || pathname !== "/") {
+    const res = await handle(request);
+
+    if (res && res.status !== 404) {
+      return res;
+    }
+  }
+});
+```
+
+<Callout type="success">
+  You can visit https://localhost:3000/admin to see the admin UI. Additionally you can create more todos as you explore the admin UI.
+</Callout>
+
+Create a helper file to instantiate the bknd instance and retrieve the API, importing the configuration from the `bknd.config.ts` file:
+
+```ts title="server/utils/bknd.ts"
+import { type NuxtBkndConfig, getApp as getNuxtApp } from "bknd/adapter/nuxt";
+import bkndConfig from "../../bknd.config";
+
+export async function getApp<Env = NodeJS.ProcessEnv>(
+   config: NuxtBkndConfig<Env>,
+   args: Env = process.env as Env,
+) {
+   return await getNuxtApp(config, args);
+}
+
+export async function getApi({ headers, verify }: { verify?: boolean; headers?: Headers }) {
+   const app = await getApp(bkndConfig, process.env);
+
+   if (verify) {
+      const api = app.getApi({ headers });
+      await api.verifyAuth();
+      return api;
+   }
+
+   return app.getApi();
+};
+```
+
+<Callout type="info">
+  The adapter uses `process.env` to access environment variables, this works because Nuxt uses Nitro underneath and it will use polyfills for `process.env` making it platform/runtime agnostic.
+</Callout>
+
+
+## Example usage of the API
+
+You can use the `getApp` function to access the bknd API in your app to expose endpoints,
+Here are some examples:
+
+```typescript title="server/routes/todos.post.ts"
+export default defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { data, action } = body;
+
+  const api = await getApi({});
+  
+  switch (action) {
+    case 'get': {
+      const limit = 5;
+      const todos = await api.data.readMany("todos", { limit, sort: "-id" });
+      return { total: todos.body.meta.total, todos, limit };
+    }
+
+    case 'create': {
+      return await api.data.createOne("todos", { title: data.title });
+    }
+
+    case 'delete': {
+      return await api.data.deleteOne("todos", data.id);
+    }
+
+    case 'toggle': {
+      return await api.data.updateOne("todos", data.id, { done: !data.done });
+    }
+
+    default: {
+      return { path: action };
+    }
+  }
+});
+```
+
+<Callout type="warning">
+  This can't be done in the `server/api` directory as it will collide with the API endpoints created by the middleware. We will use [defineEventHandler](https://nuxt.com/docs/4.x/directory-structure/server) in the [server/routes](https://nuxt.com/docs/4.x/directory-structure/server) directory to create endpoints and use them in conjunction with composables to access the API safely.
+</Callout>
+
+
+### Using the API through composables
+
+To use the API in your frontend components/pages, you can create a composable that uses the enpoints created in previous steps:
+
+```typescript title="app/composables/useTodoActions.ts"
+import type { DB } from "bknd";
+
+type Todo = DB["todos"];
+
+export const useTodoActions = () => {
+  const fetchTodos = () =>
+    $fetch<{ limit: number; todos: Array<Todo>; total: number }>("/todos", {
+      method: "POST",
+      body: { action: "get" },
+    });
+
+  const createTodo = (title: string) =>
+    $fetch("/todos", {
+      method: "POST",
+      body: { action: "create", data: { title } },
+    });
+
+  const deleteTodo = (todo: Todo) =>
+    $fetch("/todos", {
+      method: "POST",
+      body: { action: "delete", data: { id: todo.id } },
+    });
+
+  const toggleTodo = (todo: Todo) =>
+    $fetch("/todos", {
+      method: "POST",
+      body: { action: "toggle", data: todo },
+    });
+
+  return { fetchTodos, createTodo, deleteTodo, toggleTodo };
+};
+```
+
+### Usage in a page/component
+
+Make a composable to fetch the todos:
+
+```ts title="app/composables/useTodoActions.ts"
+import type { DB } from "bknd";
+
+type Todo = DB["todos"];
+
+export const useTodoActions = () => {
+  const fetchTodos = () =>
+    $fetch<{ limit: number; todos: Array<Todo>; total: number }>("/todos", {
+      method: "POST",
+      body: { action: "get" },
+    });
+
+  const createTodo = (title: string) =>
+    $fetch("/todos", {
+      method: "POST",
+      body: { action: "create", data: { title } },
+    });
+
+  const deleteTodo = (todo: Todo) =>
+    $fetch("/todos", {
+      method: "POST",
+      body: { action: "delete", data: { id: todo.id } },
+    });
+
+  const toggleTodo = (todo: Todo) =>
+    $fetch("/todos", {
+      method: "POST",
+      body: { action: "toggle", data: todo },
+    });
+
+  return { fetchTodos, createTodo, deleteTodo, toggleTodo };
+};
+```
+Then use the `useTodoActions` composable in a page:
+
+```vue title="app/pages/todos.vue"
+<script lang="ts" setup>
+const { fetchTodos, createTodo, deleteTodo, toggleTodo } = useTodoActions();
+const { data:todos, execute } = await useAsyncData("todos", () => fetchTodos());
+
+onMounted(() => {
+  execute();
+});
+</script>
+
+<template>
+  <div 
+    v-if="todos"
+    className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20"
+  >
+    <main className="flex flex-col gap-8 row-start-2 justify-center items-center sm:items-start">
+      <div class="flex flex-row items-center ">
+        <img class="dark:invert size-24" src="/nuxt.svg" alt="Nuxt logo" />
+        <div class="ml-3.5 mr-2 font-mono opacity-70">&amp;</div>
+        <img class="dark:invert" src="/bknd.svg" alt="bknd logo" width="183" height="59" />
+      </div>
+      <div v-if="data?.todos">
+        <ul>
+          <li v-for="todo in data.todos" :key="todo.id">
+            {{ todo.title }}
+            <button @click="toggleTodo(todo)">Toggle</button>
+            <button @click="deleteTodo(todo)">Delete</button>
+          </li>
+        </ul>
+        <form @submit.prevent="createTodo('New Todo')">
+          <input type="text" placeholder="New Todo" />
+          <button type="submit">Add</button>
+        </form>
+      </div>
+      <div v-else className="flex flex-col gap-1">
+        <p>
+          No todos found.
+        </p>
+      </div>
+    </main>
+  </div>
+</template>
+```
+
+<Callout type="success">
+  You can visit https://localhost:3000/todos to see all the todos.
+</Callout>
+
+### Using authentication
+
+Make a composable to fetch the user:
+
+```ts title="app/composables/useUser.ts"
+import type { User } from "bknd";
+
+export const useUser = () => {
+  const getUser = () => $fetch("/api/auth/me") as Promise<{ user: User }>;
+  return { getUser };
+};
+```
+
+Then use the `useUser` composable in a page:
+
+```vue title="app/pages/user.vue"
+<script lang="ts" setup>
+const { getUser } = useUser();
+const { data, status: userStatus, execute } = await useAsyncData("user", () => getUser());
+
+onMounted(() => {
+  execute();
+});
+
+</script>
+
+<template>
+  <div 
+    v-if="userStatus !== 'pending'"
+    className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-16 sm:p-20"
+  >
+    <main className="flex flex-col gap-8 row-start-2 justify-center items-center sm:items-start">
+      <div class="flex flex-row items-center ">
+        <img class="dark:invert size-24" src="/nuxt.svg" alt="Nuxt logo" />
+        <div class="ml-3.5 mr-2 font-mono opacity-70">&amp;</div>
+        <img class="dark:invert" src="/bknd.svg" alt="bknd logo" width="183" height="59" />
+      </div>
+      <div v-if="data?.user">
+        Logged in as {{ data.user.email }}.
+        <a className="font-medium underline" href='/api/auth/logout'>
+          Logout
+        </a>
+      </div>
+      <div v-else className="flex flex-col gap-1">
+        <p>
+          Not logged in.
+          <a className="font-medium underline" href="/admin/auth/login">
+            Login
+          </a>
+        </p>
+        <p className="text-xs opacity-50">
+          Sign in with:
+          <b>
+            <code>test@bknd.io</code>
+          </b>
+          /
+          <b>
+            <code>12345678</code>
+          </b>
+        </p>
+      </div>
+    </main>
+    <Footer />
+  </div>
+</template>
+```
+
+## Important Note
+
+Use `external` attribute on Nuxt links, anytime you are traversing to an external route (like `/api/*` which are handled by bknd's middleware) to prevent vue router from intercepting the link.
+
+```vue
+<NuxtLink external href="/admin">
+  Admin
+</NuxtLink>
+```
+
+<Callout type="error">
+  If you don't use the `external` attribute, vue router will intercept the link and try to navigate to it, which will fail and result in a 404 error.
+</Callout>
+
+Check the [Nuxt repository example](https://github.com/bknd-io/bknd/tree/main/examples/nuxt) for more implementation details.
