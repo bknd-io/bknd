@@ -189,7 +189,7 @@ export default defineEventHandler(async (event) => {
 ```
 
 <Callout type="warning">
-  This can't be done in the `/server/api` directory as it will collide with the API endpoints created by the middleware. We will use [defineEventHandler](https://nuxt.com/docs/4.x/directory-structure/server) in the [/server/routes](https://nuxt.com/docs/4.x/directory-structure/server) directory to create endpoints and use them in conjunction with composables to access the API safely.
+  This can't be done in the `server/api` directory as it will collide with the API endpoints created by the middleware. We will use [defineEventHandler](https://nuxt.com/docs/4.x/directory-structure/server) in the [server/routes](https://nuxt.com/docs/4.x/directory-structure/server) directory to create endpoints and use them in conjunction with composables to access the API safely.
 </Callout>
 
 
@@ -384,5 +384,19 @@ onMounted(() => {
   </div>
 </template>
 ```
+
+## Important Note
+
+Use `external` attribute on Nuxt links, anytime you are traversing to an external route (like `/api/*` which are handled by bknd's middleware) to prevent vue router from intercepting the link.
+
+```vue
+<NuxtLink external href="/admin">
+  Admin
+</NuxtLink>
+```
+
+<Callout type="error">
+  If you don't use the `external` attribute, vue router will intercept the link and try to navigate to it, which will fail and result in a 404 error.
+</Callout>
 
 Check the [Nuxt repository example](https://github.com/bknd-io/bknd/tree/main/examples/nuxt) for more implementation details.

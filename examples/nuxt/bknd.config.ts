@@ -54,5 +54,6 @@ export default {
    adminOptions: {
       adminBasepath: "/admin",
       assetsPath: "/admin/",
+      logoReturnPath: "../..",
    },
 } satisfies NuxtBkndConfig;

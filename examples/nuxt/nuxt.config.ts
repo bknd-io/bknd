@@ -8,4 +8,5 @@ export default defineNuxtConfig({
       title: "Nuxt 🤝 Bknd.io",
     },
   },
+  css: ["assets/css/main.css"],
 });
