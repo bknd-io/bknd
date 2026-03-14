@@ -1,0 +1,291 @@
+---
+title: "Tanstack Start"
+description: "Run bknd inside Tanstack Start"
+tags: ["documentation"]
+---
+
+## Installation
+
+To get started with Tanstack Start and bknd, create a new Tanstack Start project by following the [official guide](https://tanstack.com/start/latest/docs/framework/react/getting-started#start-a-new-project-from-scratch), and then install bknd as a dependency:
+
+<Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
+
+```bash tab="npm"
+npm install bknd
+```
+
+```bash tab="pnpm"
+pnpm install bknd
+```
+
+```bash tab="yarn"
+yarn add bknd
+```
+
+```bash tab="bun"
+bun add bknd
+```
+
+</Tabs>
+
+## Configuration
+
+<Callout type="warning">
+  When run with Node.js, a version of 22 (LTS) or higher is required. Please
+  verify your version by running `node -v`, and
+  [upgrade](https://nodejs.org/en/download/) if necessary.
+</Callout>
+
+Now create a `bknd.config.ts` file in the root of your project:
+
+```typescript title="bknd.config.ts"
+import { type TanstackStartConfig } from "bknd/adapter/tanstack-start";
+import { em, entity, text, boolean } from "bknd";
+
+const schema = em({
+  todos: entity("todos", {
+    title: text(),
+    done: boolean(),
+  }),
+});
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+  config: {
+    data: schema.toJSON(),
+    auth: {
+      enabled: true,
+      jwt: {
+        secret: "random_gibberish_please_change_this",
+        // use something like `openssl rand -hex 32` for production
+      },
+    },
+  },
+  options: {
+    // the seed option is only executed if the database was empty
+    seed: async (ctx) => {
+      // create some entries
+      await ctx.em.mutator("todos").insertMany([
+        { title: "Learn bknd", done: true },
+        { title: "Build something cool", done: false },
+      ]);
+
+      // and create a user
+      await ctx.app.module.auth.createUser({
+        email: "test@bknd.io",
+        password: "12345678",
+      });
+    },
+  },
+} satisfies TanstackStartConfig;
+```
+
+For more information about the connection object, refer to the [Database](/usage/database) guide.
+
+
+See [bknd.config.ts](/extending/config) for more information on how to configure bknd. The `TanstackStartConfig` type extends the base config type with the following properties:
+
+```typescript
+export type TanstackStartConfig<Env = TanstackStartEnv> = FrameworkBkndConfig<Env>;
+```
+
+## Serve the API
+
+The Tanstack Start adapter uses Tanstack Start's hooks mechanism to handle API requests. Create a `/src/routes/api.$.ts` file:
+
+```typescript title="/src/routes/api.$.ts"
+import { createFileRoute } from "@tanstack/react-router";
+import config from "../../bknd.config";
+import { serve } from "bknd/adapter/tanstack-start";
+
+const handler = serve(config);
+
+export const Route = createFileRoute("/api/$")({
+  server: {
+    handlers: {
+      ANY: async ({ request }) => await handler(request),
+    },
+  },
+});
+```
+
+Create a helper file to instantiate the bknd instance and retrieve the API, importing the configuration from the `bknd.config.ts` file:
+
+```ts title="src/bknd.ts"
+import config from "../bknd.config";
+import { getApp } from "bknd/adapter/tanstack-start";
+
+export async function getApi({
+  headers,
+  verify,
+}: {
+  verify?: boolean;
+  headers?: Headers;
+}) {
+  const app = await getApp(config, process.env);
+
+  if (verify) {
+    const api = app.getApi({ headers });
+    await api.verifyAuth();
+    return api;
+  }
+
+  return app.getApi();
+};
+```
+
+<Callout type="info">
+  The adapter uses `process.env` to access environment variables, this works because Tanstack Start uses Nitro underneath and it will use polyfills for `process.env` making it platform/runtime agnostic.
+</Callout>
+
+## Enabling the Admin UI
+
+Create a page at /src/routes/admin.$.tsx:
+
+```typescript title="/src/routes/admin.$.tsx"
+import { createFileRoute } from "@tanstack/react-router";
+import { useAuth } from "bknd/client";
+import "bknd/dist/styles.css";
+import { Admin } from "bknd/ui";
+
+export const Route = createFileRoute("/admin/$")({
+  ssr: false, // [!code highlight] "data-only" works too
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  const { user } = useAuth();
+  return (
+    <Admin
+      withProvider={{ user: user }}
+      config={{
+        basepath: "/admin",
+        logo_return_path: "/../",
+        theme: "system",
+      }}
+      baseUrl={import.meta.env.APP_URL}
+    />
+  );
+};
+```
+
+<Callout type="info">
+  Admin routes are expected to run on the client not using `ssr: false` will cause errors like `✘ [ERROR] No matching export in "node_modules/json-schema-library/dist/index.mjs" for import "Draft2019"` and production build might fail because of this
+</Callout>
+
+
+## Example usage of the API
+
+You can use the `getApp` function to access the bknd API in your app:
+These are a few examples how you can validate user and handle server-side requests using `createServerFn`.
+
+```typescript title="src/routes/index.tsx"
+import { createFileRoute } from "@tanstack/react-router";
+import { getApi } from "@/bknd";
+import { createServerFn } from "@tanstack/react-start";
+
+export const getTodo = createServerFn()
+  .handler(async () => {
+    const api = await getApi({});
+    const limit = 5;
+    const todos = await api.data.readMany("todos", { limit, sort: "-id" });
+    return { todos };
+  });
+
+export const Route = createFileRoute("/")({
+  ssr: false,
+  component: App,
+  loader: async () => {
+    return await getTodo();
+  },
+});
+
+function App() {
+  const { todos } = Route.useLoaderData();
+
+  return (
+    <div>
+      <h1>Todos</h1>
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo.id}>{todo.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+
+
+### Using authentication
+
+To use authentication in your app, pass the request headers to the API:
+
+```typescript title="src/routes/user.tsx"
+import { getApi } from "@/bknd";
+import { createServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { getRequest } from "@tanstack/react-start/server";
+
+export const getUser = createServerFn()
+  .handler(async () => {
+    const request = getRequest();
+    const api = await getApi({ verify: true, headers: request.headers });
+    const user = api.getUser();
+    return { user };
+  });
+
+export const Route = createFileRoute("/user")({
+  component: RouteComponent,
+  loader: async () => {
+    return { user: await getUser() };
+  },
+});
+
+function RouteComponent() {
+  const { user } = Route.useLoaderData();
+  return (
+    <div>
+      {user ? (
+        <>
+          Logged in as {user.email}.{" "}
+          <Link
+            className="font-medium underline"
+            to={"/api/auth/logout" as string}
+          >
+            Logout
+          </Link>
+        </>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <p>
+            Not logged in.
+            <Link
+              className="font-medium underline"
+              to={"/admin/auth/login" as string}
+            >
+              Login
+            </Link>
+          </p>
+          <p className="text-xs opacity-50">
+            Sign in with:
+            <b>
+              <code>test@bknd.io</code>
+            </b>
+            /
+            <b>
+              <code>12345678</code>
+            </b>
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+Check the [Tanstack Start repository example](https://github.com/bknd-io/bknd/tree/main/examples/tanstack-start) for more implementation details.
