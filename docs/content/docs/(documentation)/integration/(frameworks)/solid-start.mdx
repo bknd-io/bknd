@@ -219,8 +219,7 @@ export const getTodo = async () => {
 
 const getTodosFromServer = query(async () => await getTodo(), "getTodosFromServer");
 
-export default async function Home() {
-  const api = await getApi();
+export default function Home() {
   const data = createAsync(() => getTodosFromServer());
 
   return (
@@ -250,7 +249,7 @@ export const getUser = async () => {
   return api.getUser();
 }
 
-export default function Home() {
+export default function Auth() {
   const [data] = createResource(async () => {
     const user = await getUser()
     return { user };
