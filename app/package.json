@@ -258,6 +258,11 @@
       "import": "./dist/adapter/sveltekit/index.js",
       "require": "./dist/adapter/sveltekit/index.js"
     },
+    "./adapter/solid-start": {
+      "types": "./dist/types/adapter/solid-start/index.d.ts",
+      "import": "./dist/adapter/solid-start/index.js",
+      "require": "./dist/adapter/solid-start/index.js"
+    },
     "./adapter/aws": {
       "types": "./dist/types/adapter/aws/index.d.ts",
       "import": "./dist/adapter/aws/index.js",
@@ -292,6 +297,7 @@
       "adapter/node": ["./dist/types/adapter/node/index.d.ts"],
       "adapter/sveltekit": ["./dist/types/adapter/sveltekit/index.d.ts"],
       "adapter/tanstack-start": ["./dist/types/adapter/tanstack-start/index.d.ts"],
+      "adapter/solid-start": ["./dist/types/adapter/solid-start/index.d.ts"],
       "adapter/sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"]
     }
   },
@@ -324,6 +330,7 @@
     "sveltekit",
     "svelte",
     "bun",
-    "node"
+    "node",
+    "solid-start"
   ]
 }

@@ -15,6 +15,9 @@ const configs = {
   nextjs: {
     base_path: "/admin",
   },
+   "solid-start": {
+      base_path: "/admin",
+   },
   astro: {
     base_path: "/admin",
   },
