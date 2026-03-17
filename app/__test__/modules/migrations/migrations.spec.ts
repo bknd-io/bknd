@@ -7,7 +7,9 @@ import v7 from "./samples/v7.json";
 import v8 from "./samples/v8.json";
 import v8_2 from "./samples/v8-2.json";
 import v9 from "./samples/v9.json";
+import v10 from "./samples/v10.json";
 import { disableConsoleLog, enableConsoleLog } from "core/utils/test";
+import { CURRENT_VERSION } from "modules/db/migrations";
 
 beforeAll(() => disableConsoleLog());
 afterAll(enableConsoleLog);
@@ -61,7 +63,7 @@ async function getRawConfig(
    return await db
       .selectFrom("__bknd")
       .selectAll()
-      .$if(!!opts?.version, (qb) => qb.where("version", "=", opts?.version))
+      .where("version", "=", opts?.version ?? CURRENT_VERSION)
       .$if((opts?.types?.length ?? 0) > 0, (qb) => qb.where("type", "in", opts?.types))
       .execute();
 }
@@ -115,7 +117,6 @@ describe("Migrations", () => {
          "^^s3.secret_access_key^^",
       );
       const [config, secrets] = (await getRawConfig(app, {
-         version: 10,
          types: ["config", "secrets"],
       })) as any;
 
@@ -128,5 +129,16 @@ describe("Migrations", () => {
       expect(secrets.json["media.adapter.config.secret_access_key"]).toBe(
          "^^s3.secret_access_key^^",
       );
+   });
+
+   test("migration from 10 to 11", async () => {
+      expect(v10.version).toBe(10);
+      expect(v10.data.entities.test.fields.title.config.fillable).toEqual(["read", "update"]);
+
+      const app = await createVersionedApp(v10);
+
+      expect(app.version()).toBeGreaterThan(10);
+      const [config] = (await getRawConfig(app, { types: ["config"] })) as any;
+      expect(config.json.data.entities.test.fields.title.config.fillable).toEqual(true);
    });
 });
