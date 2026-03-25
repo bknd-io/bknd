@@ -93,3 +93,40 @@ If you enabled the Guard without setting up an admin user, you'll need to access
 4. In the `json` column, set `auth.guard.enabled` to `false`
 5. Restart your bknd instance
 6. Complete the checklist above, then re-enable the Guard
+
+## Setup row based authentication
+
+Follow these steps if you want to create a "role" that allows users to only edit their own user data:
+
+1. **Create an user role**
+   - Go to Auth → Roles → Create a new role
+   - In this case we name it "user"
+   - In section "Data Permissions" switch ON the toggles data.entity.update and data.entity.read
+   - For both click on the "settings" logo and past the following code in Condition
+```json
+{
+  "entity": "users"
+}
+```
+   - For Effect choose "filter" and past in the following code
+```json
+{
+  "id": "@user.id"
+}
+```
+   - Leave both the sections "Auth Permissions" and "Media Permissions" untouched
+   - In the section "System Permissions" switch ON all toggles except for system.build, system.info and system.config.write
+
+2. **Create a user** (or use an existing)
+   - Go to Auth → Users → Create a new user
+   - Set up their email and password
+
+3. **Attach the user role to the created user**
+   - Edit the user you just created
+   - Assign the "user" role to it
+
+4. **Sign in as a user**
+   - Open an incognito/private browser window
+   - Navigate to your app and sign in with the user
+   - Confirm you have access to edit your own user data
+
