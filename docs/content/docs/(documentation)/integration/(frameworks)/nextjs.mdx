@@ -127,30 +127,79 @@ export const DELETE = handler;
 ```
 
 ## Enabling the Admin UI
+Create a file at `admin/[[...admin]]/page.client.tsx`:
+
+``` tsx title="admin/[[...admin]]/page.client.tsx"
+"use client";
+import dynamic from "next/dynamic";
+
+export const Admin = dynamic(async () => (await import("bknd/ui")).Admin, {
+  ssr: false,
+});
+```
+<Callout type="info">
+  We are using [Colocation](https://nextjs.org/docs/app/getting-started/project-structure#colocation) to prevent server-side hydration error, and the dynamic function to load Admin component only on client side.
+</Callout>
+
 
 Create a page at `admin/[[...admin]]/page.tsx`:
-
 ```tsx title="admin/[[...admin]]/page.tsx"
-import { Admin } from "bknd/ui";
 import { getApi } from "@/bknd";
 import "bknd/dist/styles.css";
+import { Admin } from "./page.client";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 export default async function AdminPage() {
   // make sure to verify auth using headers
   const api = await getApi({ verify: true });
 
+  // early return if not logged in
+  if (!api.getUser()) {
+    return redirect("/unauthorized");
+  }
+
   return (
-    <Admin
-      withProvider={{ user: api.getUser() }}
-      config={{
-        basepath: "/admin",
-        logo_return_path: "/../",
-        theme: "system",
-      }}
-    />
+    <Suspense>
+      <Admin
+        withProvider={{ user: api.getUser() }}
+        config={{
+          basepath: "/admin",
+          logo_return_path: "/../",
+          theme: "system",
+        }}
+      />
+    </Suspense>
   );
-}
+};
 ```
+
+## React SDK configuration
+
+To use queries and mutation on client side, bknd provides first class support for it with it's [React SDK](/usage/react) 
+to set it up with Next.js add the `ClientProvider` to your root layout
+
+
+```tsx title="app/layout.tsx"
+import { ClientProvider } from "bknd/client";
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body>
+        <ClientProvider>
+          {children}
+        </ClientProvider>
+      </body>
+    </html>
+  );
+};
+```
+
 
 ## Example usage of the API
 
