@@ -71,7 +71,7 @@ export type NextjsBkndConfig<Env = NextjsEnv> = FrameworkBkndConfig<Env> & {
 
 ## Serve the API
 
-Create a helper file to instantiate the bknd instance and retrieve the API, importing the configurationfrom the `bknd.config.ts` file:
+Create a helper file to instantiate the bknd instance and retrieve the API, importing the configuration from the `bknd.config.ts` file:
 
 ```ts title="src/bknd.ts"
 import {
@@ -171,4 +171,27 @@ export default async function Home() {
     </ul>
   );
 }
+```
+
+## Note for Production
+If your admin component is not rendering and has a error like `Identifier 'b' has already been declared`, you will need to add these lines to your `next.config.(mjs|ts)` file:
+
+```ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // ...
+  // for turbopack 
+  experimental: {
+    turbopackMinify: false,
+  },
+
+  // for webpack
+  // webpack: (config) => {
+  //   config.optimization.minimize = false;
+  //   return config;
+  // },
+};
+
+export default nextConfig;
 ```
