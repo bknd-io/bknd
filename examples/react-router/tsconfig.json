@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig.json",
   "include": [
     "**/*",
     "**/.server/**/*",
@@ -13,7 +14,6 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "rootDirs": [".", "./.react-router/types"],
-    "baseUrl": ".",
     "paths": {
       "~/*": ["./app/*"]
     },
