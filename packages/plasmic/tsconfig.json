@@ -19,7 +19,6 @@
     "noImplicitAny": false,
     "noPropertyAccessFromIndexSignature": false,
     "rootDir": "src",
-    "baseUrl": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*"],
