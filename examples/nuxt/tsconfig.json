@@ -1,5 +1,5 @@
 {
-  // https://nuxt.com/docs/guide/concepts/typescript
+  "$schema": "https://json.schemastore.org/tsconfig.json",
   "files": [],
   "references": [
     {
