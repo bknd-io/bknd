@@ -27,6 +27,7 @@
     "build:static": "vite build",
     "watch": "bun run build.ts --types --watch",
     "types": "bun tsc -p tsconfig.build.json --noEmit",
+    "clean:types": "find ./dist -name '*.d.ts' -delete && rm -f ./dist/tsconfig.tsbuildinfo",
     "updater": "bun x npm-check-updates -ui",
     "cli": "LOCAL=1 bun src/cli/index.ts",
     "prepublishOnly": "bun run types && bun run test && bun run test:node && NODE_NO_WARNINGS=1 VITE_DB_URL=:memory: bun run test:e2e && bun run build:all && cp ../README.md ./",
