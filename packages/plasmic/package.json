@@ -4,14 +4,15 @@
    "type": "module",
    "sideEffects": false,
    "scripts": {
-      "build": "rm -rf dist && bun tsup && bun run build:types",
-      "watch": "bun tsup --watch --onSuccess 'bun run build:types'",
-      "build:only": "rm -rf dist && bun tsup",
+      "build": "rm -rf dist && bun tsdown && bun run build:types",
+      "watch": "bun tsdown --watch --onSuccess 'bun run build:types'",
+      "build:only": "rm -rf dist && bun tsdown",
       "types": "bun tsc -p tsconfig.json --noEmit --skipLibCheck",
       "build:types": "bun tsc --emitDeclarationOnly",
       "updater": "bun x npm-check-updates -ui",
       "pack": "rm -rf *.tgz && npm pack && mv *.tgz latest.tgz",
-      "prepublishOnly": "bun run build"
+      "prepublishOnly": "bun run build",
+      "tsdown": "bunx tsdown"
    },
    "publishConfig": {
       "access": "public"
@@ -33,7 +34,7 @@
    "optionalDependencies": {
       "@plasmicapp/loader-nextjs": "^1.0.0"
    },
-   "tsup": {
+   "tsdown": {
       "entry": [
          "src/index.ts",
          "src/nextjs/index.tsx"

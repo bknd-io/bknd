@@ -107,7 +107,7 @@ bknd/
       index.ts            # Main package exports
     __test__/             # Unit tests (mirrors src/ structure)
     e2e/                  # End-to-end tests (Playwright)
-    build.ts              # Build script (tsup/esbuild)
+    build.ts              # Build script (tsdown/rolldown)
     build.cli.ts          # CLI build script
   packages/               # Small satellite packages
     cli/                  # Standalone CLI package (bknd-cli)
@@ -146,7 +146,7 @@ Plugins (in `app/src/plugins/`) hook into the app lifecycle via callbacks like `
 
 ### Build System
 
-The build is handled by a custom `app/build.ts` script using tsup (esbuild under the hood). It builds four targets in parallel:
+The build is handled by a custom `app/build.ts` script using tsdown (rolldown under the hood). It builds four targets in parallel:
 
 - **API** -- the core backend
 - **UI** -- the admin interface
