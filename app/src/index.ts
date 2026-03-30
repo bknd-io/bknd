@@ -82,7 +82,7 @@ export * as AuthPermissions from "auth/auth-permissions";
  */
 export { getExtensionFromName, getRandomizedFilename } from "media/utils";
 import * as StorageEvents from "media/storage/events";
-export const MediaEvents = {
+export const MediaEvents: typeof StorageEvents = {
    ...StorageEvents,
 };
 export * as MediaPermissions from "media/media-permissions";
@@ -104,7 +104,10 @@ export { StorageCloudinaryAdapter } from "media/storage/adapters/cloudinary/Stor
  * Data
  */
 import { MutatorEvents, RepositoryEvents } from "data/events";
-export const DatabaseEvents = { ...MutatorEvents, ...RepositoryEvents };
+export const DatabaseEvents: typeof MutatorEvents & typeof RepositoryEvents = {
+   ...MutatorEvents,
+   ...RepositoryEvents,
+};
 export type {
    RepoQuery,
    RepoQueryIn,
