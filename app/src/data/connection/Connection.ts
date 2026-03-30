@@ -31,7 +31,7 @@ export type IndexMetadata = {
 };
 
 export interface SelectQueryBuilderExpression<O> extends AliasableExpression<O> {
-   get isSelectQueryBuilder(): true;
+   readonly isSelectQueryBuilder: true;
    toOperationNode(): SelectQueryNode;
 }
 
