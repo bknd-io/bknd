@@ -8,10 +8,15 @@ export async function buildTypes() {
         clean: true,
         logLevel: "silent",
         unbundle: true,
+        root: "src",
+        outDir: "dist/types",
         dts: {
-            emitDtsOnly: true,
-            resolver: "oxc",
+          emitDtsOnly: true,
+          resolver: "oxc"
         },
+        deps: {
+         skipNodeModulesBundle: true
+        }
     });
 }
 
