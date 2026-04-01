@@ -2,7 +2,7 @@ import { build, type UserConfig } from "tsdown";
 import pkg from "./package.json" with { type: "json" };
 import c from "picocolors";
 import { watch as fsWatch, readdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { buildTypes as runTypesBuild } from "./build.types";
 
 const args = process.argv.slice(2);
@@ -86,7 +86,8 @@ const neverBundle = [
  * Building backend and general API
  */
 async function buildApi() {
-   await build({
+  await build({
+     
       minify,
       sourcemap,
       // don't use tsdown's broken watch, we'll handle it ourselves
@@ -219,7 +220,7 @@ async function buildUiElements() {
       },
       alias: {
          // not important for elements, mock to reduce bundle
-         "tailwind-merge": "./src/ui/elements/mocks/tailwind-merge.ts",
+         "tailwind-merge": resolve(import.meta.dir, "src/ui/elements/mocks/tailwind-merge.ts"),
       },
 
       onSuccess: async () => {
