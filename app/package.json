@@ -24,7 +24,7 @@
     "build:ci": "mkdir -p dist/static/.vite && echo '{}' > dist/static/.vite/manifest.json && NODE_ENV=production bun run build.ts",
     "build:cli": "bun run build.cli.ts",
     "build:static": "vite build",
-    "benchmark": "bun run benchmark:bun-run-build",
+    "benchmark": "bun add -d mitata",
     "benchmark:bun-run-build": "bun run benchmark/bun-run-build",
     "watch": "bun run build.ts --types --watch",
     "types": "bun tsc -p tsconfig.build.json --noEmit",
