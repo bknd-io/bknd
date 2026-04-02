@@ -11,6 +11,7 @@ const minify = args.includes("--minify");
 const types = args.includes("--types");
 const sourcemap = args.includes("--sourcemap");
 const clean = args.includes("--clean");
+const dev = args.includes("--dev");
 
 // silence tsdown
 const oldConsole = {
@@ -55,7 +56,7 @@ async function buildTypes() {
 }
 
 let watcher_timeout: any;
-function delayTypes() {
+function delayTypes(delayTime = 1000) {
    if (!watch || !types) return;
    if (watcher_timeout) {
       clearTimeout(watcher_timeout);
@@ -64,7 +65,7 @@ function delayTypes() {
       void buildTypes().catch((error) => {
          oldConsole.warn(c.cyan("[Types]"), c.red("build failed"), error);
       });
-   }, 1000);
+   }, delayTime);
 }
 
 const dependencies = Object.keys(pkg.dependencies);
@@ -87,18 +88,18 @@ const neverBundle = [
  */
 async function buildApi() {
   await build({
-     
       minify,
       sourcemap,
       // don't use tsdown's broken watch, we'll handle it ourselves
       watch: false,
+      dts: false,
       define,
       entry: [
          "src/index.ts",
          "src/core/utils/index.ts",
-         // "src/plugins/index.ts",
          "src/modes/index.ts",
       ],
+      unbundle: false,
       outDir: "dist",
       deps: {
          neverBundle: [...neverBundle],
@@ -108,8 +109,6 @@ async function buildApi() {
       platform: "browser",
       nodeProtocol: true,
       format: ["esm"],
-
-      // plugins: [dtsPlugin],
 
       loader: {
          ".svg": "dataurl",
@@ -134,6 +133,7 @@ async function buildUi() {
       minify,
       sourcemap,
       watch: false,
+      dts: false,
       define,
       deps: {
          neverBundle: [
@@ -148,40 +148,43 @@ async function buildUi() {
             "@mantine/core",
          ],
       },
-      devtools: false, // TODO: set true once tsdown's devtools performance is addressed
+      devtools: dev,
       platform: "browser",
       format: ["esm"],
-      bundle: true,
+      unbundle: false,
       treeshake: true,
       loader: {
          ".svg": "dataurl",
       },
+      
       logLevel: "silent",
-
-      // plugins: [dtsPlugin],
    } satisfies UserConfig;
 
-   await build({
-      ...base,
-      entry: ["src/ui/index.ts", "src/ui/main.css", "src/ui/styles.css"],
-      outDir: "dist/ui",
-      onSuccess: async () => {
-         await rewriteClient("./dist/ui/index.js");
-         delayTypes();
-         oldConsole.log(c.cyan("[UI]"), c.green("built"));
-      },
-   });
+   
 
-   await build({
-      ...base,
-      entry: ["src/ui/client/index.ts"],
-      outDir: "dist/ui/client",
-      onSuccess: async () => {
-         await rewriteClient("./dist/ui/client/index.js");
-         delayTypes();
-         oldConsole.log(c.cyan("[UI]"), "Client", c.green("built"));
-      },
-   });
+   await Promise.all([
+      build({
+         ...base,
+         entry: ["src/ui/index.ts", "src/ui/main.css", "src/ui/styles.css"],
+         outDir: "dist/ui",
+         onSuccess: async () => {
+            await rewriteClient("./dist/ui/index.js");
+            delayTypes();
+            oldConsole.log(c.cyan("[UI]"), c.green("built"));
+         },
+      }),
+
+      build({
+         ...base,
+         entry: ["src/ui/client/index.ts"],
+         outDir: "dist/ui/client",
+         onSuccess: async () => {
+            await rewriteClient("./dist/ui/client/index.js");
+            delayTypes();
+            oldConsole.log(c.cyan("[UI]"), "Client", c.green("built"));
+         },
+      }),
+   ]);
 }
 
 /**
@@ -194,6 +197,7 @@ async function buildUiElements() {
       minify,
       sourcemap,
       watch: false,
+   dts: false,
       define,
       entry: ["src/ui/elements/index.ts"],
       outDir: "dist/ui/elements",
@@ -210,7 +214,6 @@ async function buildUiElements() {
             "use-sync-external-store",
          ],
       },
-      // plugins: [dtsPlugin],
       platform: "browser",
       format: ["esm"],
       bundle: true,
@@ -239,13 +242,13 @@ function baseConfig(adapter: string, overrides: Partial<UserConfig> = {}): UserC
       minify,
       sourcemap,
       watch: false,
+      dts: false,
       entry: [`src/adapter/${adapter}/index.ts`],
       format: ["esm"],
       platform: "neutral",
       outDir: `dist/adapter/${adapter}`,
-      devtools: false, // TODO: set true once tsdown's devtools performance is addressed
+      devtools: dev,
       nodeProtocol: true,
-      // plugins: [dtsPlugin],
       onSuccess: async () => {
          delayTypes();
          oldConsole.log(c.cyan("[Adapter]"), adapter || "base", c.green("built"));
@@ -279,9 +282,10 @@ async function buildAdapters() {
          outDir: "dist/adapter",
          // only way to keep @vite-ignore comments
          minify: false,
+         dts: false,
       }),
 
-      // specific adatpers
+      // specific adapters
       build(baseConfig("react-router")),
       build(
          baseConfig("browser", {
@@ -375,18 +379,22 @@ async function buildAdapters() {
    ]);
 }
 
-async function buildAll() {
-    await Promise.all([buildApi(), buildUi(), buildUiElements(), buildAdapters()]);
+const buildPipeline = [buildApi, buildUi, buildUiElements, buildAdapters];
+
+// Run type generation in parallel, since it can be slow and doesn't block the main build
+if (types) {
+   buildPipeline.push(async () => await buildTypes());
 }
 
 // initial build
 await buildAll();
 
-if (types) {
-    await buildTypes();
+async function buildAll() {
+    await Promise.all(buildPipeline.map(fn => fn()));
 }
 
-// custom watcher since tsdown's watch is broken in 8.3.5+
+
+// custom watcher since tsdown's watch is broken in v0.21.7
 if (watch) {
    oldConsole.log(c.cyan("[Watch]"), "watching for changes in src/...");
 
