@@ -19,6 +19,7 @@
     "entry": [
       "src/index.ts"
     ],
+    "dts": false,
     "minify": true,
     "outDir": "dist",
     "format": [

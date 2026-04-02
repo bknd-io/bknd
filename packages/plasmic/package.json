@@ -39,6 +39,7 @@
          "src/index.ts",
          "src/nextjs/index.tsx"
       ],
+      "dts": false,
       "minify": true,
       "clean": true,
       "external": [
