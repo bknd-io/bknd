@@ -278,6 +278,11 @@
       "import": "./dist/adapter/tanstack-start/index.js",
       "require": "./dist/adapter/tanstack-start/index.js"
     },
+    "./adapter/web": {
+      "types": "./dist/types/adapter/web/index.d.ts",
+      "import": "./dist/adapter/web/index.js",
+      "require": "./dist/adapter/web/index.js"
+    },
     "./dist/main.css": "./dist/ui/main.css",
     "./dist/styles.css": "./dist/ui/styles.css",
     "./dist/manifest.json": "./dist/static/.vite/manifest.json",
@@ -298,6 +303,7 @@
       "adapter/node": ["./dist/types/adapter/node/index.d.ts"],
       "adapter/sveltekit": ["./dist/types/adapter/sveltekit/index.d.ts"],
       "adapter/tanstack-start": ["./dist/types/adapter/tanstack-start/index.d.ts"],
+      "adapter/web": ["./dist/types/adapter/web/index.d.ts"],
       "adapter/sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"]
     }
   },

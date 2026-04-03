@@ -341,6 +341,11 @@ async function buildAdapters() {
     }),
 
     tsup.build({
+      ...baseConfig("web"),
+      platform: "neutral",
+    }),
+
+    tsup.build({
       ...baseConfig("node"),
       platform: "node",
     }),
