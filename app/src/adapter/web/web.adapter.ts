@@ -6,7 +6,7 @@ import {
 import type { AdminControllerOptions } from "modules/server/AdminController";
 import type { App } from "App";
 
-export type WebBkndConfig<Env = any> = FrameworkBkndConfig<Env> & {
+export type WebBkndConfig<Env = Record<string, string | undefined>> = FrameworkBkndConfig<Env> & {
    adminOptions?: AdminControllerOptions | false;
 };
 
