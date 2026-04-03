@@ -6,7 +6,7 @@ import { type BunBkndConfig, serve } from "bknd/adapter/bun";
 // this is optional, if omitted, it uses an in-memory database
 const config: BunBkndConfig = {
    connection: {
-      url: "file:data.db",
+      url: "data.db",
    },
    config: {
       media: {

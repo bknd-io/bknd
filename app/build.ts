@@ -336,6 +336,11 @@ async function buildAdapters() {
     }),
 
     tsup.build({
+      ...baseConfig("nuxt"),
+      platform: "node",
+    }),
+
+    tsup.build({
       ...baseConfig("node"),
       platform: "node",
     }),

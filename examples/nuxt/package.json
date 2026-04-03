@@ -1,0 +1,21 @@
+{
+  "name": "nuxbknd",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "typegen": "bunx tsx node_modules/.bin/bknd types --outfile bknd-types.d.ts",
+    "postinstall": "nuxt prepare && bun run bknd copy-assets --out public/admin"
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "6.14.0",
+    "@types/node": "^25.2.3",
+    "bknd": "file:../../app",
+    "nuxt": "^4.3.1",
+    "vue": "^3.5.28",
+    "vue-router": "^4.6.4"
+  }
+}

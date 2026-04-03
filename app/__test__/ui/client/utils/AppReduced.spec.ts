@@ -206,8 +206,7 @@ describe("AppReduced", () => {
    describe("withBasePath - double slash fix (admin_basepath with trailing slash)", () => {
       it("should not produce double slashes when admin_basepath has trailing slash", () => {
          const options: BkndAdminProps["config"] = {
-            basepath: "/",
-            admin_basepath: "/admin/",
+            basepath: "/admin",
             logo_return_path: "/",
          };
 
@@ -220,8 +219,7 @@ describe("AppReduced", () => {
 
       it("should work correctly when admin_basepath has no trailing slash", () => {
          const options: BkndAdminProps["config"] = {
-            basepath: "/",
-            admin_basepath: "/admin",
+            basepath: "/admin",
             logo_return_path: "/",
          };
 
@@ -233,8 +231,7 @@ describe("AppReduced", () => {
 
       it("should handle absolute paths with admin_basepath trailing slash", () => {
          const options: BkndAdminProps["config"] = {
-            basepath: "/",
-            admin_basepath: "/admin/",
+            basepath: "/admin",
             logo_return_path: "/",
          };
 
@@ -247,8 +244,7 @@ describe("AppReduced", () => {
 
       it("should handle settings path with admin_basepath trailing slash", () => {
          const options: BkndAdminProps["config"] = {
-            basepath: "/",
-            admin_basepath: "/admin/",
+            basepath: "/admin",
             logo_return_path: "/",
          };
 

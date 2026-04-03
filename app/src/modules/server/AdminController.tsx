@@ -210,8 +210,9 @@ export class AdminController extends Controller {
                },
             }).then((res) => res.json());
          } else {
+            const manifestPath = "bknd/dist/manifest.json";
             // @ts-ignore
-            manifest = await import("bknd/dist/manifest.json", {
+            manifest = await import(/* @vite-ignore */ manifestPath, {
                with: { type: "json" },
             }).then((res) => res.default);
          }

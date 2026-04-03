@@ -17,7 +17,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-    "baseUrl": "."
   },
   "include": ["index.ts"]
 }

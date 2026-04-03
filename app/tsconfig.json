@@ -2,11 +2,11 @@
   "compilerOptions": {
     "composite": false,
     "incremental": true,
-    "module": "ESNext",
+    "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "allowImportingTsExtensions": false,
-    "target": "ES2022",
+    "target": "es2023",
     "noImplicitAny": false,
     "allowJs": true,
     "verbatimModuleSyntax": true,
@@ -26,7 +26,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "rootDir": ".",
-    "baseUrl": ".",
     "outDir": "./dist/types",
     "paths": {
       "*": ["./src/*"],

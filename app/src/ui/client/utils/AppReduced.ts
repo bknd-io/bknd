@@ -77,7 +77,7 @@ export class AppReduced {
 
    withBasePath(path: string | string[], absolute = false): string {
       const paths = Array.isArray(path) ? path : [path];
-      return [absolute ? "~" : null, this.options.basepath, this.options.admin_basepath, ...paths]
+      return [absolute ? "~" : null, this.options.basepath, ...paths]
          .filter(Boolean)
          .join("/")
          .replace(/\/+/g, "/")
