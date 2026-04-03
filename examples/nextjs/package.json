@@ -16,7 +16,7 @@
     "next": "15.2.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "typescript": "^6.0.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
