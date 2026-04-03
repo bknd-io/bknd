@@ -1,0 +1,210 @@
+---
+title: "Web Adapter"
+description: "Bring bknd to any web framework or runtime"
+tags: ["documentation"]
+---
+
+## What is the Web Adapter?
+
+The web adapter (`bknd/adapter/web`) is your universal connector. Use it to integrate bknd into **any** web framework or runtime — even ones without a dedicated adapter.
+
+**Use the web adapter when:**
+- Your framework doesn't have a dedicated bknd adapter
+- You want full control over your server setup
+- You're building a custom server or edge function
+
+**Use a platform-specific adapter when:**
+- You're using a supported framework (Next.js, SvelteKit, Nuxt, Astro, etc.)
+- You prefer opinionated, zero-config setup
+
+## Installation
+
+<Tabs groupId='package-manager' persist items={[ 'npm', 'pnpm', 'yarn', 'bun']}>
+
+```bash tab="npm"
+npm install bknd
+```
+
+```bash tab="pnpm"
+pnpm install bknd
+```
+
+```bash tab="yarn"
+yarn add bknd
+```
+
+```bash tab="bun"
+bun add bknd
+```
+
+</Tabs>
+
+## Basic Setup
+
+Create a config file and initialize the adapter:
+
+```typescript title="bknd.config.ts"
+import type { WebBkndConfig } from "bknd/adapter/web";
+
+export default {
+  connection: {
+    url: "file:data.db",
+  },
+} satisfies WebBkndConfig;
+```
+
+```typescript title="src/bknd.ts"
+import { createBknd } from "bknd/adapter/web";
+import config from "../bknd.config";
+
+export const bknd = createBknd(config, process.env);
+```
+
+`createBknd` returns three methods:
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getApp()` | `Promise<App>` | The built bknd app instance (cached) |
+| `getApi({ headers, verify })` | `Promise<Api>` | Convenience wrapper around `app.getApi()` |
+| `serve()` | `(req: Request) => Promise<Response>` | A fetch handler for your server |
+
+## Choosing an Admin UI Path
+
+The web adapter supports two approaches to serving the admin UI:
+
+| Path | Best For | How |
+|------|----------|-----|
+| **Client-side** (default) | React frameworks: Next.js, Astro, React Router, Tanstack Start | Import and render `<Admin />` in your own React route |
+| **Server-side** | Non-React frameworks: SvelteKit, Nuxt, Bun, Node, Deno | The server serves the admin HTML and assets |
+
+## Path 1: Client-Side Admin (Default)
+
+For React-capable frameworks, render the admin UI directly in a route:
+
+```tsx title="app/admin/[[...admin]]/page.tsx"
+import { Admin } from "bknd/ui";
+import "bknd/dist/styles.css";
+import { bknd } from "@/bknd";
+
+export default async function AdminPage() {
+  const api = await bknd.getApi({ verify: true });
+
+  return (
+    <Admin
+      withProvider={{ user: api.getUser() }}
+      config={{ basepath: "/admin" }}
+    />
+  );
+}
+```
+
+No server-side admin configuration needed. The admin UI runs entirely in the browser.
+
+## Path 2: Server-Side Admin
+
+For non-React frameworks or standalone servers, enable the admin controller:
+
+```typescript title="src/bknd.ts"
+import { createBknd } from "bknd/adapter/web";
+import config from "../bknd.config";
+
+export const bknd = createBknd({
+  ...config,
+  adminOptions: {
+    adminBasepath: "/admin",
+  },
+}, process.env);
+```
+
+You'll also need to serve the admin's static assets (JS, CSS). Choose one of three strategies:
+
+### Strategy 1: serveStatic Middleware
+
+**Best for:** Bun, Node, standalone servers with filesystem access
+
+Use Hono's platform-specific `serveStatic` to serve assets from `node_modules/bknd/dist/static/`:
+
+```typescript title="src/bknd.ts"
+import { createBknd } from "bknd/adapter/web";
+import { serveStatic } from "hono/bun"; // or "@hono/node-server/serve-static"
+import config from "../bknd.config";
+
+export const bknd = createBknd({
+  ...config,
+  adminOptions: { adminBasepath: "/admin" },
+  serveStatic: serveStatic({ root: "./node_modules/bknd/dist/static" }),
+}, process.env);
+```
+
+### Strategy 2: copy-assets Postinstall
+
+**Best for:** SvelteKit, Nuxt, any framework with a static directory
+
+Copy assets at install time and let your framework serve them:
+
+```json title="package.json"
+{
+  "scripts": {
+    "postinstall": "bknd copy-assets --out static"
+  }
+}
+```
+
+Per-framework output paths:
+
+| Framework | `--out` flag |
+|-----------|-------------|
+| SvelteKit | `--out static` |
+| Nuxt | `--out public` |
+| Next.js | `--out public` |
+| Astro | `--out public` |
+
+### Strategy 3: serveStaticViaImport
+
+**Best for:** Edge/serverless runtimes (Deno Deploy, Cloudflare Workers)
+
+For environments without filesystem access:
+
+```typescript title="src/bknd.ts"
+import { createBknd } from "bknd/adapter/web";
+import { serveStaticViaImport } from "bknd/adapter";
+import config from "../bknd.config";
+
+export const bknd = createBknd({
+  ...config,
+  adminOptions: { adminBasepath: "/admin" },
+  serveStatic: serveStaticViaImport(),
+}, process.env);
+```
+
+## Serving Requests
+
+Use `bknd.serve()` as a fetch handler in your server:
+
+```typescript title="server.ts"
+import { bknd } from "./bknd";
+
+// Bun
+Bun.serve({ fetch: bknd.serve(), port: 3000 });
+
+// Node (with @hono/node-server)
+import { serve } from "@hono/node-server";
+serve({ fetch: bknd.serve(), port: 3000 });
+```
+
+Or use `bknd.getApp()` to integrate with an existing Hono or other router setup.
+
+## Reference: WebBkndConfig
+
+```typescript
+type WebBkndConfig<Env> = FrameworkBkndConfig<Env> & {
+  /** Serve the admin UI from the server. Omit for client-side admin. */
+  adminOptions?: AdminControllerOptions;
+
+  /** Hono middleware for serving bknd's bundled JS/CSS assets. */
+  serveStatic?: MiddlewareHandler | [string, MiddlewareHandler];
+
+  /** Override path to bknd's dist folder (default: ./node_modules/bknd/dist) */
+  distPath?: string;
+};
+```

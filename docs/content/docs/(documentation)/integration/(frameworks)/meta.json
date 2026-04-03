@@ -1,11 +1,3 @@
 {
-  "pages": [
-    "nextjs",
-    "react-router",
-    "astro",
-    "sveltekit",
-    "tanstack-start",
-    "vite",
-    "nuxt"
-  ]
+  "pages": ["nextjs", "react-router", "astro", "sveltekit", "tanstack-start", "vite", "nuxt", "web"]
 }
