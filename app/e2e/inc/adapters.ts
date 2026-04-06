@@ -15,6 +15,9 @@ const configs = {
   nextjs: {
     base_path: "/admin",
   },
+  meta: {
+    base_path: "/admin",
+  },
   nuxt: {
     base_path: "/admin",
   },

@@ -5,6 +5,7 @@
     "astro",
     "sveltekit",
     "tanstack-start",
+    "web",
     "vite",
     "nuxt"
   ]
