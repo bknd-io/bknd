@@ -30,7 +30,7 @@ export const Group = <E extends ElementType = "div">({
          {...props}
          data-role="group"
          className={twMerge(
-            "flex flex-col gap-1.5 w-full",
+            "flex flex-col gap-1.5 has-disabled:cursor-not-allowed w-full",
             as === "fieldset" && "border border-primary/10 p-3 rounded-md",
             as === "fieldset" && error && "border-red-500",
             error && "text-red-500",
@@ -97,7 +97,7 @@ export const Input = forwardRef<HTMLInputElement, React.ComponentProps<"input">>
          ref={ref}
          className={twMerge(
             "bg-muted/40 h-11 rounded-md py-2.5 px-4 outline-none w-full disabled:cursor-not-allowed",
-            disabledOrReadonly && "bg-muted/50 text-primary/50",
+            disabledOrReadonly && "bg-muted/50 text-primary/50 cursor-not-allowed",
             !disabledOrReadonly &&
                "focus:bg-muted focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all",
             props.className,
@@ -154,7 +154,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, React.ComponentProps<"te
             {...props}
             ref={ref}
             className={twMerge(
-               "bg-muted/40 min-h-11 rounded-md py-2.5 px-4 focus:bg-muted outline-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all disabled:bg-muted/50 disabled:text-primary/50",
+               "bg-muted/40 min-h-11 rounded-md py-2.5 px-4 focus:bg-muted outline-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all disabled:bg-muted/50 disabled:text-primary/50 disabled:cursor-not-allowed",
                props.className,
             )}
          />
@@ -214,7 +214,7 @@ export const BooleanInput = forwardRef<HTMLInputElement, React.ComponentProps<"i
                {...props}
                type="checkbox"
                ref={ref}
-               className="outline-none focus:outline-none focus:ring-2 focus:ring-zinc-500  transition-all disabled:opacity-70 scale-150 ml-1"
+               className="outline-none focus:outline-none focus:ring-2 focus:ring-zinc-500  transition-all disabled:opacity-70 disabled:cursor-not-allowed scale-150 ml-1"
                checked={checked}
                onChange={handleCheck}
                disabled={props.disabled}
@@ -260,7 +260,6 @@ export const Switch = forwardRef<
             props.disabled && "opacity-50 !cursor-not-allowed",
          )}
          onCheckedChange={(bool) => {
-            console.log("setting", bool);
             props.onChange?.({ target: { value: bool } });
          }}
          {...(props as any)}
@@ -294,7 +293,7 @@ export const Select = forwardRef<
          {...props}
          ref={ref}
          className={twMerge(
-            "bg-muted/40 focus:bg-muted rounded-md py-2.5 px-4 outline-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all disabled:bg-muted/50 disabled:text-primary/50",
+            "bg-muted/40 focus:bg-muted rounded-md py-2.5 px-4 outline-none focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all disabled:bg-muted/50 disabled:text-primary/50 disabled:cursor-not-allowed",
             "appearance-none h-11 w-full",
             !props.multiple && "border-r-8 border-r-transparent",
             props.className,
