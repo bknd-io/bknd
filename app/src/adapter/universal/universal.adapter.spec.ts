@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, test, expect } from "bun:test";
-import { createBknd } from "./web.adapter";
+import { createBknd } from "./universal.adapter";
 import { disableConsoleLog, enableConsoleLog } from "core/utils";
 import { adapterTestSuite } from "adapter/adapter-test-suite";
 import { bunTestRunner } from "adapter/bun/test";
@@ -7,7 +7,7 @@ import { bunTestRunner } from "adapter/bun/test";
 beforeAll(disableConsoleLog);
 afterAll(enableConsoleLog);
 
-describe("web adapter via createBknd", () => {
+describe("universal adapter via createBknd", () => {
    adapterTestSuite(bunTestRunner, {
       makeApp: (options, args) => createBknd({ mode: "api", options }, args).getApp(),
       makeHandler: (options, args) => createBknd({ mode: "api", options: options ?? {} }, args).serve(),
@@ -44,7 +44,7 @@ describe("web adapter via createBknd", () => {
 
 
 // ------------------------ MODE STANDALONE ------------------------
-describe("web adapter via createBknd in standalone mode", () => {
+describe("universal adapter via createBknd in standalone mode", () => {
    adapterTestSuite(bunTestRunner, {
       makeApp: (options, args) => createBknd({ mode: "standalone", options }, args).getApp(),
       makeHandler: (options, args) => createBknd({ mode: "standalone", options: options ?? {} }, args).serve(),

@@ -233,10 +233,10 @@
       "import": "./dist/adapter/nextjs/index.js",
       "require": "./dist/adapter/nextjs/index.js"
     },
-    "./adapter/web": {
-      "types": "./dist/types/adapter/web/index.d.ts",
-      "import": "./dist/adapter/web/index.js",
-      "require": "./dist/adapter/web/index.js"
+    "./adapter/universal": {
+      "types": "./dist/types/adapter/universal/index.d.ts",
+      "import": "./dist/adapter/universal/index.js",
+      "require": "./dist/adapter/universal/index.js"
     },
     "./adapter/nuxt": {
       "types": "./dist/types/adapter/nuxt/index.d.ts",
@@ -297,7 +297,7 @@
       "adapter/cloudflare": ["./dist/types/adapter/cloudflare/index.d.ts"],
       "adapter/vite": ["./dist/types/adapter/vite/index.d.ts"],
       "adapter/nextjs": ["./dist/types/adapter/nextjs/index.d.ts"],
-      "adapter/web": ["./dist/types/adapter/web/index.d.ts"],
+      "adapter/universal": ["./dist/types/adapter/universal/index.d.ts"],
       "adapter/nuxt": ["./dist/types/adapter/nuxt/index.d.ts"],
       "adapter/react-router": ["./dist/types/adapter/react-router/index.d.ts"],
       "adapter/bun": ["./dist/types/adapter/bun/index.d.ts"],

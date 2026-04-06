@@ -1,6 +1,6 @@
 import { em, entity, text, boolean } from "bknd";
 import { registerLocalMediaAdapter } from "bknd/adapter/node";
-import type { Config } from "bknd/adapter/web";
+import type { Config } from "bknd/adapter/universal";
 
 const local = registerLocalMediaAdapter();
 

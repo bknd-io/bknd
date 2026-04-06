@@ -1,14 +1,14 @@
 ---
-title: "Web Adapter"
+title: "Universal Adapter"
 description: "Bring bknd to any web framework or runtime"
 tags: ["documentation"]
 ---
 
-## What is the Web Adapter?
+## What is the Universal Adapter?
 
-The web adapter (`bknd/adapter/web`) is a framework/runtime agnostic adapter which can integrate `bknd` into **any** web framework or runtime — even ones without a dedicated adapter.
+The universal adapter (`bknd/adapter/universal`) is a framework/runtime agnostic adapter which can integrate `bknd` into **any** web framework or runtime — even ones without a dedicated adapter.
 
-**Use the web adapter when:**
+**Use the universal adapter when:**
 - Your framework doesn't have a dedicated bknd adapter
 - You want full control over your server setup
 - You're building a custom server or edge function
@@ -44,7 +44,7 @@ bun add bknd
 Start by creating a config file:
 
 ```typescript title="bknd.config.ts"
-import type { Config } from "bknd/adapter/web";
+import type { Config } from "bknd/adapter/universal";
 
 export default {
   connection: {
@@ -60,7 +60,7 @@ Use `Config<"api">` when you are using a React-based framework otherwise use `Co
 
 ### Helper Singleton
 ```typescript title="lib/bknd.ts"
-import { createBknd } from "bknd/adapter/web";
+import { createBknd } from "bknd/adapter/universal";
 import config from "../bknd.config";
 
 export const bknd = createBknd({ mode: "standalone", options: config }, process.env);
@@ -112,7 +112,7 @@ No server-side admin configuration needed. The admin UI runs entirely in the bro
 For non-React frameworks or standalone servers, enable the admin controller:
 
 ```typescript title="src/bknd.ts"
-import { createBknd } from "bknd/adapter/web";
+import { createBknd } from "bknd/adapter/universal";
 import config from "../bknd.config";
 
 export const bknd = createBknd({ mode: "standalone", options: config }, env);
@@ -128,7 +128,7 @@ You'll also need to serve the admin's static assets (JS, CSS). Choose one of thr
 Use Hono's platform-specific `serveStatic` in `bknd.config.ts` to serve assets from `node_modules/bknd/dist/static/`:
 
 ```typescript title="bknd.config.ts"
-import type { Config } from "bknd/adapter/web";
+import type { Config } from "bknd/adapter/universal";
 import { serveStatic } from "hono/bun"; // or "@hono/node-server/serve-static"
 
 export default {
@@ -173,7 +173,7 @@ Per-framework output paths:
 For environments without filesystem access:
 
 ```typescript title="bknd.config.ts"
-import type { Config } from "bknd/adapter/web";
+import type { Config } from "bknd/adapter/universal";
 import { serveStaticViaImport } from "bknd/adapter";
 
 export default {

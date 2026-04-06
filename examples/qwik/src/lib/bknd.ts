@@ -1,4 +1,4 @@
-import { createBknd } from "bknd/adapter/web";
+import { createBknd } from "bknd/adapter/universal";
 import bkndConfig from "../../bknd.config";
 import type { EnvGetter } from "@builder.io/qwik-city/middleware/request-handler";
 
