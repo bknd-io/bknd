@@ -9,11 +9,13 @@ import type { App } from "App";
 
 export type AdapterModeWithOptions<Env = Record<string, string | undefined>> =
    | {
-        mode: "standalone";
+        /** Serves the API along with the admin UI and static assets */
+        mode: "admin";
         options: RuntimeBkndConfig<Env>;
      }
    | {
-        mode: "api";
+        /** Serves the API only, without the admin UI — use when your framework handles rendering */
+        mode: "headless";
         options: FrameworkBkndConfig<Env>;
      };
 
@@ -24,7 +26,7 @@ export function createBknd<Env>(config: AdapterModeWithOptions<Env>, env?: Env) 
 
    async function getApp(): Promise<App> {
       if (!appPromise) {
-         if (mode === "standalone") {
+         if (mode === "admin") {
             if (options.adminOptions && !options.serveStatic) {
                $console.warn(
                   "adminOptions provided without serveStatic — admin UI assets may not be served. " +
@@ -59,9 +61,10 @@ export function createBknd<Env>(config: AdapterModeWithOptions<Env>, env?: Env) 
    return { getApp, getApi, serve };
 }
 
-/** Utility type to determine the config type based on mode,
- *  Usage `Config<"standalone">` or `Config<"api">`
- */
+/**
+  * Utility type to determine the config type based on mode,
+  * Usage `Config<"standalone">` or `Config<"api">`
+  */
 export type Config<T extends AdapterModeWithOptions["mode"]> = Extract<
    Parameters<typeof createBknd>[0],
    { mode: T }

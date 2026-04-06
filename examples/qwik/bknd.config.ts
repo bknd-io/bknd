@@ -57,4 +57,4 @@ export default {
       assetsPath: "/admin/",
       logoReturnPath: "../..",
    },
-} satisfies Config<"standalone">;
+} satisfies Config<"admin">;

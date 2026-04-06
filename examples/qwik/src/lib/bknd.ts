@@ -2,7 +2,7 @@ import { createBknd } from "bknd/adapter/universal";
 import bkndConfig from "../../bknd.config";
 import type { EnvGetter } from "@builder.io/qwik-city/middleware/request-handler";
 
-export const getApp = async (env?: EnvGetter) => createBknd({ mode: "standalone", options: bkndConfig }, env);
+export const getApp = async (env?: EnvGetter) => createBknd({ mode: "admin", options: bkndConfig }, env);
 
 export const handler = async (req: Request, env?: EnvGetter) => {
    return (await getApp(env)).serve()(req);
