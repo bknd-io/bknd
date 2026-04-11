@@ -8,7 +8,7 @@ describe("[data] JsonField", async () => {
    fieldTestSuite(bunTestRunner, JsonField, {
       defaultValue: { a: 1 },
       //sampleValues: ["string", { test: 1 }, 1],
-      schemaType: "text",
+      schemaType: "json",
    });
 
    test("transformPersist (no config)", async () => {

@@ -7,7 +7,7 @@ import {
    type KyselyPlugin,
 } from "kysely";
 import { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/sqlite";
-import { Connection, type DbFunctions, type FieldSpec, type SchemaResponse } from "../Connection";
+import { Connection, type DbFunctions, type FieldSpec, type SchemaResponse, type Features } from "../Connection";
 import type { Constructor } from "core/registry/Registry";
 import { customIntrospector } from "../Connection";
 import { SqliteIntrospector } from "./SqliteIntrospector";
@@ -31,6 +31,11 @@ export type SqliteConnectionConfig<
 
 export abstract class SqliteConnection<Client = unknown> extends Connection<Client> {
    override name = "sqlite";
+   protected override readonly supported: Features = {
+      returning: true,
+      batching: false,
+      softscans: true,
+   };
 
    constructor(config: SqliteConnectionConfig) {
       const { excludeTables, additionalPlugins } = config;
