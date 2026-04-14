@@ -39,7 +39,6 @@ describe("issue #391: end-to-end flow", () => {
       const options = schemaParse(repoQuery, rawQueryParams);
       const mergedWhere = mergeFilters(options.where, policyFilter);
 
-      console.log("merged:", JSON.stringify(mergedWhere, null, 2));
       expect(mergedWhere.created_at.$gte).toBe("2024-06-01");
       expect(mergedWhere.status.$eq).toBe("published");
    });
