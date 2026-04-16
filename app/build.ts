@@ -18,8 +18,8 @@ const oldConsole = {
    log: console.log,
    warn: console.warn,
 };
-console.log = () => {};
-console.warn = () => {};
+console.log = () => { };
+console.warn = () => { };
 
 const define = {
    __isDev: "0",
@@ -87,7 +87,7 @@ const neverBundle = [
  * Building backend and general API
  */
 async function buildApi() {
-  await build({
+   await build({
       minify,
       sourcemap,
       // don't use tsdown's broken watch, we'll handle it ourselves
@@ -97,12 +97,15 @@ async function buildApi() {
       entry: [
          "src/index.ts",
          "src/core/utils/index.ts",
+         "src/plugins/index.ts",
          "src/modes/index.ts",
       ],
       unbundle: false,
       outDir: "dist",
       deps: {
-         neverBundle: [...neverBundle],
+         neverBundle: [
+            ...neverBundle
+         ],
       },
 
       target: "esnext",
@@ -156,11 +159,11 @@ async function buildUi() {
       loader: {
          ".svg": "dataurl",
       },
-      
+
       logLevel: "silent",
    } satisfies UserConfig;
 
-   
+
 
    await Promise.all([
       build({
@@ -197,7 +200,7 @@ async function buildUiElements() {
       minify,
       sourcemap,
       watch: false,
-   dts: false,
+      dts: false,
       define,
       entry: ["src/ui/elements/index.ts"],
       outDir: "dist/ui/elements",
@@ -390,7 +393,7 @@ if (types) {
 await buildAll();
 
 async function buildAll() {
-    await Promise.all(buildPipeline.map(fn => fn()));
+   await Promise.all(buildPipeline.map(fn => fn()));
 }
 
 
@@ -430,5 +433,5 @@ if (watch) {
    });
 
    // keep process alive
-   await new Promise(() => {});
+   await new Promise(() => { });
 }
