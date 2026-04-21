@@ -15,7 +15,7 @@ export const entityConfigSchema = s
          name: s.string(),
          name_singular: s.string(),
          description: s.string(),
-         sort_field: s.string({ default: config.data.default_primary_field }),
+         sort_field: s.string(),
          sort_dir: s.string({ enum: ["asc", "desc"], default: "asc" }),
          primary_format: s.string({ enum: primaryFieldTypes }),
       },
@@ -82,6 +82,10 @@ export class Entity<
          fields.forEach((field) => this.addField(field));
       }
 
+      if (!this.config.sort_field) {
+         this.config.sort_field = this.getPrimaryField().name;
+      }
+
       if (type) this.type = type;
       this[ENTITY_SYMBOL] = true;
    }
@@ -115,7 +119,7 @@ export class Entity<
 
    getDefaultSort() {
       return {
-         by: this.config.sort_field ?? "id",
+         by: this.config.sort_field ?? this.getPrimaryField().name,
          dir: this.config.sort_dir ?? "asc",
       };
    }
