@@ -21,6 +21,8 @@ import {
    type NumberFieldConfig,
    TextField,
    type TextFieldConfig,
+   PrimaryField,
+   type PrimaryFieldConfig,
 } from "data/fields";
 
 import { Entity, type EntityConfig, type TEntityType } from "data/entities";
@@ -51,6 +53,8 @@ type Options<Config = any> = {
 };
 
 const FieldMap = {
+   primary: (o: Omit<Options, "required">) =>
+      new PrimaryField(o.field_name, { ...o.config, required: true }),
    text: (o: Options) => new TextField(o.field_name, { ...o.config, required: o.is_required }),
    number: (o: Options) => new NumberField(o.field_name, { ...o.config, required: o.is_required }),
    date: (o: Options) => new DateField(o.field_name, { ...o.config, required: o.is_required }),
@@ -73,7 +77,7 @@ export class FieldPrototype {
       public type: TFieldType,
       public config: any,
       public is_required: boolean,
-   ) {}
+   ) { }
 
    required() {
       this.is_required = true;
@@ -108,6 +112,11 @@ export class FieldPrototype {
    }
 }
 
+export function primary(
+   config?: Omit<PrimaryFieldConfig, "required">,
+): PrimaryField<false> & { required: () => PrimaryField<true> } {
+   return new FieldPrototype("primary", config, false) as any;
+}
 export function text(
    config?: Omit<TextFieldConfig, "required">,
 ): TextField<false> & { required: () => TextField<true> } {
@@ -296,8 +305,8 @@ class EntityManagerPrototype<Entities extends Record<string, Entity>> extends En
 
 type Chained<R extends Record<string, (...args: any[]) => any>> = {
    [K in keyof R]: R[K] extends (...args: any[]) => any
-      ? (...args: Parameters<R[K]>) => Chained<R>
-      : never;
+   ? (...args: Parameters<R[K]>) => Chained<R>
+   : never;
 };
 type ChainedFn<
    Fn extends (...args: any[]) => Record<string, (...args: any[]) => any>,
@@ -356,22 +365,22 @@ export function em<Entities extends Record<string, Entity>>(
 
 export type InferEntityFields<T> = T extends Entity<infer _N, infer Fields>
    ? {
-        [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
-           ? Required extends true
-              ? Type
-              : Type | undefined
-           : never;
-     }
+      [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
+      ? Required extends true
+      ? Type
+      : Type | undefined
+      : never;
+   }
    : never;
 
 export type InferFields<Fields> = Fields extends Record<string, Field<any, any, any>>
    ? {
-        [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
-           ? Required extends true
-              ? Type
-              : Type | undefined
-           : never;
-     }
+      [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
+      ? Required extends true
+      ? Type
+      : Type | undefined
+      : never;
+   }
    : never;
 
 type Prettify<T> = {
@@ -387,10 +396,10 @@ type OptionalUndefined<
    T,
    Props extends keyof T = keyof T,
    OptionsProps extends keyof T = Props extends keyof T
-      ? undefined extends T[Props]
-         ? Props
-         : never
-      : never,
+   ? undefined extends T[Props]
+   ? Props
+   : never
+   : never,
 > = Merge<
    {
       [K in OptionsProps]?: T[K];
@@ -401,8 +410,8 @@ type OptionalUndefined<
 
 export type InferField<Field> = Field extends { _type: infer Type; _required: infer Required }
    ? Required extends true
-      ? Type
-      : Type | undefined
+   ? Type
+   : Type | undefined
    : never;
 
 export type Schemas<T extends Record<string, Entity>> = {
@@ -410,5 +419,5 @@ export type Schemas<T extends Record<string, Entity>> = {
 };
 
 export type InsertSchema<T> = Simplify<OptionalUndefined<InferEntityFields<T>>>;
-export type Schema<T> = Simplify<{ id: Generated<number> } & InsertSchema<T>>;
+export type Schema<T> = Simplify<{ id: Generated<number> | string } & InsertSchema<T>>;
 export type FieldSchema<T> = Simplify<OptionalUndefined<InferFields<T>>>;

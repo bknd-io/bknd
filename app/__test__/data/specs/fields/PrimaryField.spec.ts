@@ -24,7 +24,7 @@ describe("[data] PrimaryField", async () => {
    });
 
    test("isFillable", async () => {
-      expect(field.isFillable()).toBe(false);
+      expect(field.isFillable()).toBe(true);
    });
 
    test("isHidden", async () => {
@@ -36,7 +36,7 @@ describe("[data] PrimaryField", async () => {
    });
 
    test("transformPersist/Retrieve", async () => {
-      expect(field.transformPersist(1)).rejects.toThrow();
+      expect(field.transformPersist(1)).resolves.toBe(1);
       expect(field.transformRetrieve(1)).toBe(1);
    });
 
