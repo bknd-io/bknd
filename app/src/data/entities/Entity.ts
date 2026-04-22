@@ -171,7 +171,7 @@ export class Entity<
    }
 
    getPrimaryField(): PrimaryField {
-      return this.fields[0] as PrimaryField;
+      return this.fields.find((field) => field.type === "primary") as PrimaryField;
    }
 
    id(): PrimaryField {

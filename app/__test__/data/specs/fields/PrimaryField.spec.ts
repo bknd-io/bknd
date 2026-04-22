@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { PrimaryField } from "data/fields";
 
 describe("[data] PrimaryField", async () => {
-   const field = new PrimaryField("primary");
+   const field = new PrimaryField("primary", { fillable: false });
 
    test("name", async () => {
       expect(field.name).toBe("primary");
@@ -24,7 +24,7 @@ describe("[data] PrimaryField", async () => {
    });
 
    test("isFillable", async () => {
-      expect(field.isFillable()).toBe(true);
+      expect(field.isFillable()).toBe(false);
    });
 
    test("isHidden", async () => {
@@ -36,7 +36,7 @@ describe("[data] PrimaryField", async () => {
    });
 
    test("transformPersist/Retrieve", async () => {
-      expect(field.transformPersist(1)).resolves.toBe(1);
+      expect(field.transformPersist(1)).rejects.toThrow();
       expect(field.transformRetrieve(1)).toBe(1);
    });
 
