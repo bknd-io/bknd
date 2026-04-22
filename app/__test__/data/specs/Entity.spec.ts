@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Entity } from "data/entities";
-import { NumberField, TextField } from "data/fields";
+import { NumberField, TextField, PrimaryField } from "data/fields";
 
 describe("[data] Entity", async () => {
    const entity = new Entity("test", [
@@ -46,5 +46,17 @@ describe("[data] Entity", async () => {
       const field = new TextField("new_field");
       entity.addField(field);
       expect(entity.getField("new_field")).toBe(field);
+   });
+
+   test("custom primary", async () => {
+      const customPrimaryEntity = new Entity("custom", [
+         new PrimaryField("custom", { format: "uuid" }),
+         new TextField("name"),
+      ]);
+
+      expect(customPrimaryEntity.getPrimaryField().name).toEqual("custom");
+      expect(customPrimaryEntity.getPrimaryField().format).toEqual("uuid");
+      expect(customPrimaryEntity.getSelect()).toEqual(["custom", "name"]);
+      expect(customPrimaryEntity.getField("id")).toBeUndefined(); // no auto id
    });
 });
