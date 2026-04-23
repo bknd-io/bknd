@@ -77,7 +77,7 @@ export class FieldPrototype {
       public type: TFieldType,
       public config: any,
       public is_required: boolean,
-   ) { }
+   ) {}
 
    required() {
       this.is_required = true;
@@ -305,8 +305,8 @@ class EntityManagerPrototype<Entities extends Record<string, Entity>> extends En
 
 type Chained<R extends Record<string, (...args: any[]) => any>> = {
    [K in keyof R]: R[K] extends (...args: any[]) => any
-   ? (...args: Parameters<R[K]>) => Chained<R>
-   : never;
+      ? (...args: Parameters<R[K]>) => Chained<R>
+      : never;
 };
 type ChainedFn<
    Fn extends (...args: any[]) => Record<string, (...args: any[]) => any>,
@@ -365,22 +365,22 @@ export function em<Entities extends Record<string, Entity>>(
 
 export type InferEntityFields<T> = T extends Entity<infer _N, infer Fields>
    ? {
-      [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
-      ? Required extends true
-      ? Type
-      : Type | undefined
-      : never;
-   }
+        [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
+           ? Required extends true
+              ? Type
+              : Type | undefined
+           : never;
+     }
    : never;
 
 export type InferFields<Fields> = Fields extends Record<string, Field<any, any, any>>
    ? {
-      [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
-      ? Required extends true
-      ? Type
-      : Type | undefined
-      : never;
-   }
+        [K in keyof Fields]: Fields[K] extends { _type: infer Type; _required: infer Required }
+           ? Required extends true
+              ? Type
+              : Type | undefined
+           : never;
+     }
    : never;
 
 type Prettify<T> = {
@@ -396,10 +396,10 @@ type OptionalUndefined<
    T,
    Props extends keyof T = keyof T,
    OptionsProps extends keyof T = Props extends keyof T
-   ? undefined extends T[Props]
-   ? Props
-   : never
-   : never,
+      ? undefined extends T[Props]
+         ? Props
+         : never
+      : never,
 > = Merge<
    {
       [K in OptionsProps]?: T[K];
@@ -410,8 +410,8 @@ type OptionalUndefined<
 
 export type InferField<Field> = Field extends { _type: infer Type; _required: infer Required }
    ? Required extends true
-   ? Type
-   : Type | undefined
+      ? Type
+      : Type | undefined
    : never;
 
 export type Schemas<T extends Record<string, Entity>> = {
