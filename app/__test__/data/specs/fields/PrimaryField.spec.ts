@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { PrimaryField } from "data/fields";
 
 describe("[data] PrimaryField", async () => {
-   const field = new PrimaryField("primary");
+   const field = new PrimaryField("primary", { fillable: false });
 
    test("name", async () => {
       expect(field.name).toBe("primary");

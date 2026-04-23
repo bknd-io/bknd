@@ -21,6 +21,8 @@ import {
    type NumberFieldConfig,
    TextField,
    type TextFieldConfig,
+   PrimaryField,
+   type PrimaryFieldConfig,
 } from "data/fields";
 
 import { Entity, type EntityConfig, type TEntityType } from "data/entities";
@@ -51,6 +53,8 @@ type Options<Config = any> = {
 };
 
 const FieldMap = {
+   primary: (o: Omit<Options, "required">) =>
+      new PrimaryField(o.field_name, { ...o.config, required: true }),
    text: (o: Options) => new TextField(o.field_name, { ...o.config, required: o.is_required }),
    number: (o: Options) => new NumberField(o.field_name, { ...o.config, required: o.is_required }),
    date: (o: Options) => new DateField(o.field_name, { ...o.config, required: o.is_required }),
@@ -108,6 +112,11 @@ export class FieldPrototype {
    }
 }
 
+export function primary(
+   config?: Omit<PrimaryFieldConfig, "required">,
+): PrimaryField<false> & { required: () => PrimaryField<true> } {
+   return new FieldPrototype("primary", config, false) as any;
+}
 export function text(
    config?: Omit<TextFieldConfig, "required">,
 ): TextField<false> & { required: () => TextField<true> } {
@@ -410,5 +419,5 @@ export type Schemas<T extends Record<string, Entity>> = {
 };
 
 export type InsertSchema<T> = Simplify<OptionalUndefined<InferEntityFields<T>>>;
-export type Schema<T> = Simplify<{ id: Generated<number> } & InsertSchema<T>>;
+export type Schema<T> = Simplify<{ id: Generated<number> | string } & InsertSchema<T>>;
 export type FieldSchema<T> = Simplify<OptionalUndefined<InferFields<T>>>;
