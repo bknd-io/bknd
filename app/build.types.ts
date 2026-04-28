@@ -11,6 +11,7 @@ export async function buildTypes() {
     root: "src",
     outDir: "dist/types",
     entry: ["./src/**/*.ts", "./src/**/*.tsx"],
+    format: "esm",
     dts: {
       emitDtsOnly: true,
       resolver: "oxc",
