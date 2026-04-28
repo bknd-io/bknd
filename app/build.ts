@@ -111,7 +111,7 @@ async function buildApi() {
       target: "esnext",
       platform: "browser",
       nodeProtocol: true,
-      format: ["esm"],
+      format: "esm",
 
       loader: {
          ".svg": "dataurl",
@@ -153,7 +153,7 @@ async function buildUi() {
       },
       devtools: dev,
       platform: "browser",
-      format: ["esm"],
+      format: "esm",
       unbundle: false,
       treeshake: true,
       loader: {
@@ -218,7 +218,7 @@ async function buildUiElements() {
          ],
       },
       platform: "browser",
-      format: ["esm"],
+      format: "esm",
       bundle: true,
       treeshake: true,
       loader: {
@@ -247,7 +247,7 @@ function baseConfig(adapter: string, overrides: Partial<UserConfig> = {}): UserC
       watch: false,
       dts: false,
       entry: [`src/adapter/${adapter}/index.ts`],
-      format: ["esm"],
+      format: "esm",
       platform: "neutral",
       outDir: `dist/adapter/${adapter}`,
       devtools: dev,
