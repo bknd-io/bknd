@@ -1,12 +1,11 @@
 import { retry, type TestRunner } from "core/test";
 import type { StorageAdapter } from "media/storage/StorageAdapter";
 import { randomString } from "bknd/utils";
-import type { BunFile } from "bun";
 
 export async function adapterTestSuite(
    testRunner: TestRunner,
    _adapter: StorageAdapter | (() => StorageAdapter),
-   file: File | BunFile,
+   file: File | import("bun").BunFile,
    opts?: {
       retries?: number;
       retryTimeout?: number;
