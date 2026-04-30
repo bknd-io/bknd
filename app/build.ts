@@ -138,6 +138,12 @@ async function buildUi() {
       watch: false,
       dts: false,
       define,
+      css: {
+         transformer: "postcss",
+         postcss: "postcss.config.js",
+         minify: true,
+         splitting: false
+      },
       deps: {
          neverBundle: [
             ...neverBundle,
