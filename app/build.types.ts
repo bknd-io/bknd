@@ -15,7 +15,8 @@ export async function buildTypes() {
     dts: {
       emitDtsOnly: true,
       resolver: "oxc",
-      eager: true
+      eager: true,
+      incremental: true,
     },
     deps: {
       skipNodeModulesBundle: true
