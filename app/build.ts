@@ -376,15 +376,16 @@ async function buildAdapters() {
          devtools: false,
       }),
 
-      build({
-         ...baseConfig("sqlite/bun"),
-         entry: ["src/adapter/sqlite/bun.ts"],
-         outDir: "dist/adapter/sqlite",
-         devtools: false,
-         deps: {
-            neverBundle: [/^bun:.*/],
-         },
-      }),
+      build(
+         baseConfig("sqlite/bun", {
+            entry: ["src/adapter/sqlite/bun.ts"],
+            outDir: "dist/adapter/sqlite",
+            devtools: false,
+            deps: {
+               neverBundle: [/^bun:.*/],
+            },
+         }),
+      ),
    ]);
 }
 
