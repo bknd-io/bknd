@@ -55,6 +55,21 @@ export class AppServer extends Module<AppServerConfig> {
       const origin = this.config.cors.origin ?? "*";
       const origins = origin.includes(",") ? origin.split(",").map((o) => o.trim()) : [origin];
       const all_origins = origins.includes("*");
+
+      // Normalize trailing slashes so that /admin/ matches /admin.
+      // Hono's app.route doesn't match trailing slashes; host frameworks
+      // like Nuxt/Nitro redirect /admin -> /admin/. When running standalone
+      // we emit a 308 ourselves so the route layer sees a clean path without
+      // re-running the middleware chain (which would re-consume c.req.raw).
+      this.client.use("*", async (c, next) => {
+         const url = new URL(c.req.url);
+         if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
+            url.pathname = url.pathname.replace(/\/+$/, "");
+            return c.redirect(url.toString(), 308);
+         }
+         return next();
+      });
+
       this.client.use(
          "*",
          cors({
