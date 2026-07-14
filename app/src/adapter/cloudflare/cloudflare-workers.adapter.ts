@@ -8,6 +8,12 @@ import { $console } from "bknd/utils";
 import { createRuntimeApp } from "bknd/adapter";
 import { registerAsyncsExecutionContext, makeConfig, type CloudflareContext } from "./config";
 
+// Statically import the admin UI build manifest so the bundler (wrangler/esbuild)
+// resolves and bundles it at build time, rather than leaving a runtime dynamic
+// import that workerd cannot resolve via package.json exports maps.
+// @ts-ignore
+import adminUiManifest from "bknd/dist/manifest.json";
+
 declare global {
    namespace Cloudflare {
       interface Env {}
@@ -38,6 +44,19 @@ export async function createApp<Env extends CloudflareEnv = CloudflareEnv>(
    ctx: Partial<CloudflareContext<Env>> = {},
 ) {
    const appConfig = await makeConfig(config, ctx);
+
+   // The AdminController can't dynamically import "bknd/dist/manifest.json"
+   // at runtime in the Workers runtime (workerd ignores package.json exports
+   // for runtime imports). Statically import it here so esbuild bundles the
+   // manifest into the Worker and pass it as the admin controller's manifest
+   // unless the caller explicitly provides one (or disables the admin).
+   if (appConfig.adminOptions !== false && !(appConfig.adminOptions as any)?.manifest) {
+      appConfig.adminOptions = {
+         ...(appConfig.adminOptions as any),
+         manifest: adminUiManifest,
+      };
+   }
+
    return await createRuntimeApp<Env>(
       {
          ...appConfig,
