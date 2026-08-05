@@ -141,12 +141,24 @@ describe("MediaApi", () => {
 
       // upload bun file
       await matches(api.upload(file as any, { filename: "bunfile.png" }), "bunfile.png");
-
+      
       // upload via request
       await matches(api.upload(new Request(url), { filename: "request.png" }), "request.png");
-
+      
       // upload via url
       await matches(api.upload(url, { filename: "url.png" }), "url.png");
+      
+      
+      // mocked since only s3 supports chunked upload
+      await matches(
+         api.upload(file as any, { filename: "bunfile.png", chunked: true }),
+         "bunfile.png",
+      );
+      await matches(
+         api.upload(new Request(url), { filename: "request.png", chunked: true }),
+         "request.png",
+      );
+      await matches(api.upload(url, { filename: "url.png", chunked: true }), "url.png");
 
       // upload via response
       {

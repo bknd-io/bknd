@@ -77,6 +77,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          path?: TInput;
          _init?: Omit<RequestInit, "body">;
          query?: Record<string, any>;
+         chunked?: boolean;
       },
    ): FetchPromise<ResponseObject<T>> {
       const headers = {
@@ -102,8 +103,14 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          ...(opts?._init || {}),
          headers,
       };
+
+      const query = {
+         ...opts?.query,
+         ...(opts?.chunked !== undefined ? { chunked: opts.chunked } : {}),
+      };
+
       if (opts?.path) {
-         return this.request<T>(opts.path, opts?.query, {
+         return this.request<T>(opts.path, query, {
             ...init,
             body,
             method: "POST",
@@ -114,7 +121,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          throw new Error("Invalid filename");
       }
 
-      return this.request<T>(opts?.path ?? ["upload", name], opts?.query, {
+      return this.request<T>(opts?.path ?? ["upload", name], query, {
          ...init,
          body,
          method: "POST",
@@ -129,6 +136,7 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          path?: TInput;
          fetcher?: ApiFetcher;
          query?: Record<string, any>;
+         chunked?: boolean;
       } = {},
    ) {
       if (item instanceof Request || typeof item === "string") {
@@ -166,13 +174,17 @@ export class MediaApi extends ModuleApi<MediaApiOptions> {
          _init?: Omit<RequestInit, "body">;
          fetcher?: typeof fetch;
          overwrite?: boolean;
+         chunked?: boolean;
       },
    ): Promise<ResponseObject<FileUploadedEventData & { result: DB["media"] }>> {
-      const query = opts?.overwrite !== undefined ? { overwrite: opts.overwrite } : undefined;
+      const query = {
+         ...(opts?.overwrite !== undefined ? { overwrite: opts.overwrite } : {}),
+         ...(opts?.chunked ? { chunked: opts.chunked } : {}),
+      };
       return this.upload(item, {
          ...opts,
          path: ["entity", entity, id, field],
-         query,
+         query: Object.keys(query).length > 0 ? query : undefined,
       });
    }
 
