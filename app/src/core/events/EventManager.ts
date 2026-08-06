@@ -14,6 +14,12 @@ export interface EmitsEvents {
    emgr: EventManager;
 }
 
+export type EventRegistryMap<
+   RegisteredEvents extends Record<string, EventClass> = Record<string, EventClass>,
+> = {
+   [K in keyof RegisteredEvents]: RegisteredEvents[K];
+};
+
 // for compatibility, moved it to Event.ts
 export type { EventClass };
 
@@ -65,7 +71,7 @@ export class EventManager<
       return [...this.listeners];
    }
 
-   get Events(): { [K in keyof RegisteredEvents]: RegisteredEvents[K] } {
+   get Events(): EventRegistryMap<RegisteredEvents> {
       // proxy class to access events
       return new Proxy(this, {
          get: (_, prop: string) => {

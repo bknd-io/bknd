@@ -1,6 +1,6 @@
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
-import React, { type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { BkndProvider } from "ui/client/bknd";
 import { useTheme, type AppTheme } from "ui/client/use-theme";
 import { Logo } from "ui/components/display/Logo";

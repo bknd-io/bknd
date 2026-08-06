@@ -10,7 +10,8 @@
     "noImplicitAny": false,
     "allowJs": true,
     "verbatimModuleSyntax": true,
-    "declaration": true,
+    "declaration": false,
+    "declarationMap": false,
     "strict": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
@@ -26,7 +27,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "rootDir": ".",
-    "outDir": "./dist/types",
+    "outDir": "./dist",
     "paths": {
       "*": ["./src/*"],
       "bknd": ["./src/index.ts"],
@@ -47,5 +48,5 @@
     "__test__",
     "e2e/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "dist/types", "**/*.d.ts"]
+  "exclude": ["node_modules", "dist", "**/*.d.ts"]
 }

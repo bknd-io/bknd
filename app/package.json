@@ -15,7 +15,8 @@
   },
   "packageManager": "bun@1.3.3",
   "engines": {
-    "node": ">=22.13"
+    "node": ">=22.18.0",
+    "bun": ">=1.3.3"
   },
   "scripts": {
     "dev": "BKND_CLI_LOG_LEVEL=debug vite",
@@ -23,11 +24,11 @@
     "build:all": "rm -rf dist && bun run build:static && NODE_ENV=production bun run build.ts --minify --types --clean && bun run build:cli",
     "build:ci": "mkdir -p dist/static/.vite && echo '{}' > dist/static/.vite/manifest.json && NODE_ENV=production bun run build.ts",
     "build:cli": "bun run build.cli.ts",
+    "build:types": "bun run build.types.ts",
     "build:static": "vite build",
     "watch": "bun run build.ts --types --watch",
     "types": "bun tsc -p tsconfig.build.json --noEmit",
     "clean:types": "find ./dist -name '*.d.ts' -delete && rm -f ./dist/tsconfig.tsbuildinfo",
-    "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly && tsc-alias",
     "updater": "bun x npm-check-updates -ui",
     "cli": "LOCAL=1 bun src/cli/index.ts",
     "prepublishOnly": "bun run types && bun run test && bun run test:node && NODE_NO_WARNINGS=1 VITE_DB_URL=:memory: bun run test:e2e && bun run build:all && cp ../README.md ./",
@@ -93,17 +94,18 @@
     "@rjsf/utils": "5.22.0",
     "@standard-schema/spec": "^1.0.0",
     "@tabler/icons-react": "3.35.0",
-    "@tailwindcss/postcss": "^4.1.16",
-    "@tailwindcss/vite": "^4.1.16",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-store": "^0.8.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
-    "@types/node": "^24.10.0",
+    "@tsdown/css": "^0.22.14",
+    "@types/node": "^24.13.3",
     "@types/pg": "^8.15.6",
-    "@types/react": "^19.0.10",
+    "@types/react": "^19.2.16",
     "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react": "^5.1.0",
-    "@vitest/coverage-v8": "3.0.9",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "4.1.10",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.1.1",
     "commander": "^14.0.2",
@@ -114,89 +116,87 @@
     "kysely-postgres-js": "^2.0.0",
     "libsql": "^0.5.22",
     "libsql-stateless-easy": "^1.8.0",
-    "miniflare": "^4.20251011.2",
+    "miniflare": "^4.20260317.3",
     "open": "^10.2.0",
     "openapi-types": "^12.1.3",
     "pg": "^8.16.3",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.26",
+    "postcss-import": "^16.1.1",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "postgres": "^3.4.7",
     "posthog-js-lite": "^3.6.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-hook-form": "^7.66.0",
     "react-icons": "5.5.0",
     "react-json-view-lite": "^2.5.0",
     "sql-formatter": "^15.6.10",
     "sqlocal": "^0.16.0",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss": "^4.1.16",
+    "tailwindcss": "^4.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "tsc-alias": "^1.8.16",
-    "tsup": "^8.5.0",
-    "tsx": "^4.20.6",
+    "tsdown": "^0.22.14",
     "uuid": "^13.0.0",
-    "vite": "^7.1.12",
-    "vite-plugin-circular-dependency": "^0.5.0",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "3.0.9",
+    "vite": "^8.0.16",
+    "vite-plugin-circular-dependency": "^0.6.0",
+    "vitest": "4.1.10",
     "wouter": "^3.7.1",
-    "wrangler": "^4.45.4"
+    "wrangler": "^4.78.0"
   },
   "optionalDependencies": {
     "@hono/node-server": "^1.19.6"
   },
   "peerDependencies": {
-    "react": ">=19",
-    "react-dom": ">=19"
+    "react": ">=19.2.6",
+    "react-dom": ">=19.2.6"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/types/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/types/index.d.mts",
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
     "./ui": {
-      "types": "./dist/types/ui/index.d.ts",
+      "types": "./dist/types/ui/index.d.mts",
       "import": "./dist/ui/index.js",
       "require": "./dist/ui/index.js"
     },
     "./elements": {
-      "types": "./dist/types/ui/elements/index.d.ts",
+      "types": "./dist/types/ui/elements/index.d.mts",
       "import": "./dist/ui/elements/index.js",
       "require": "./dist/ui/elements/index.js"
     },
     "./client": {
-      "types": "./dist/types/ui/client/index.d.ts",
+      "types": "./dist/types/ui/client/index.d.mts",
       "import": "./dist/ui/client/index.js",
       "require": "./dist/ui/client/index.js"
     },
     "./utils": {
-      "types": "./dist/types/core/utils/index.d.ts",
+      "types": "./dist/types/core/utils/index.d.mts",
       "import": "./dist/core/utils/index.js",
       "require": "./dist/core/utils/index.js"
     },
     "./cli": {
-      "types": "./dist/types/cli/index.d.ts",
+      "types": "./dist/types/cli/index.d.mts",
       "import": "./dist/cli/index.js",
       "require": "./dist/cli/index.js"
     },
     "./plugins": {
-      "types": "./dist/types/plugins/index.d.ts",
+      "types": "./dist/types/plugins/index.d.mts",
       "import": "./dist/plugins/index.js",
       "require": "./dist/plugins/index.js"
     },
     "./modes": {
-      "types": "./dist/types/modes/index.d.ts",
+      "types": "./dist/types/modes/index.d.mts",
       "import": "./dist/modes/index.js",
       "require": "./dist/modes/index.js"
     },
     "./adapter/sqlite": {
-      "types": "./dist/types/adapter/sqlite/edge.d.ts",
+      "types": "./dist/types/adapter/sqlite/edge.d.mts",
       "import": {
         "workerd": "./dist/adapter/sqlite/edge.js",
         "edge-light": "./dist/adapter/sqlite/edge.js",
@@ -204,101 +204,130 @@
         "vercel": "./dist/adapter/sqlite/edge.js",
         "browser": "./dist/adapter/sqlite/edge.js",
         "bun": "./dist/adapter/sqlite/bun.js",
-        "node": "./dist/adapter/sqlite/node.js",
-        "default": "./dist/adapter/sqlite/node.js"
+        "node": "./dist/adapter/sqlite/node.mjs",
+        "default": "./dist/adapter/sqlite/node.mjs"
       },
-      "require": "./dist/adapter/sqlite/node.js"
+      "require": "./dist/adapter/sqlite/node.mjs"
     },
     "./adapter/cloudflare": {
-      "types": "./dist/types/adapter/cloudflare/index.d.ts",
+      "types": "./dist/types/adapter/cloudflare/index.d.mts",
       "import": "./dist/adapter/cloudflare/index.js",
       "require": "./dist/adapter/cloudflare/index.js"
     },
     "./adapter/cloudflare/proxy": {
-      "types": "./dist/types/adapter/cloudflare/proxy.d.ts",
+      "types": "./dist/types/adapter/cloudflare/proxy.d.mts",
       "import": "./dist/adapter/cloudflare/proxy.js",
       "require": "./dist/adapter/cloudflare/proxy.js"
     },
     "./adapter": {
-      "types": "./dist/types/adapter/index.d.ts",
+      "types": "./dist/types/adapter/index.d.mts",
       "import": "./dist/adapter/index.js"
     },
     "./adapter/vite": {
-      "types": "./dist/types/adapter/vite/index.d.ts",
-      "import": "./dist/adapter/vite/index.js",
-      "require": "./dist/adapter/vite/index.js"
+      "types": "./dist/types/adapter/vite/index.d.mts",
+      "import": "./dist/adapter/vite/index.mjs",
+      "require": "./dist/adapter/vite/index.mjs"
     },
     "./adapter/nextjs": {
-      "types": "./dist/types/adapter/nextjs/index.d.ts",
-      "import": "./dist/adapter/nextjs/index.js",
-      "require": "./dist/adapter/nextjs/index.js"
+      "types": "./dist/types/adapter/nextjs/index.d.mts",
+      "import": "./dist/adapter/nextjs/index.mjs",
+      "require": "./dist/adapter/nextjs/index.mjs"
     },
     "./adapter/nuxt": {
-      "types": "./dist/types/adapter/nuxt/index.d.ts",
-      "import": "./dist/adapter/nuxt/index.js",
-      "require": "./dist/adapter/nuxt/index.js"
+      "types": "./dist/types/adapter/nuxt/index.d.mts",
+      "import": "./dist/adapter/nuxt/index.mjs",
+      "require": "./dist/adapter/nuxt/index.mjs"
     },
     "./adapter/react-router": {
-      "types": "./dist/types/adapter/react-router/index.d.ts",
+      "types": "./dist/types/adapter/react-router/index.d.mts",
       "import": "./dist/adapter/react-router/index.js",
       "require": "./dist/adapter/react-router/index.js"
     },
     "./adapter/bun": {
-      "types": "./dist/types/adapter/bun/index.d.ts",
+      "types": "./dist/types/adapter/bun/index.d.mts",
       "import": "./dist/adapter/bun/index.js",
       "require": "./dist/adapter/bun/index.js"
     },
     "./adapter/node": {
-      "types": "./dist/types/adapter/node/index.d.ts",
-      "import": "./dist/adapter/node/index.js",
-      "require": "./dist/adapter/node/index.js"
+      "types": "./dist/types/adapter/node/index.d.mts",
+      "import": "./dist/adapter/node/index.mjs",
+      "require": "./dist/adapter/node/index.mjs"
     },
     "./adapter/astro": {
-      "types": "./dist/types/adapter/astro/index.d.ts",
+      "types": "./dist/types/adapter/astro/index.d.mts",
       "import": "./dist/adapter/astro/index.js",
       "require": "./dist/adapter/astro/index.js"
     },
     "./adapter/sveltekit": {
-      "types": "./dist/types/adapter/sveltekit/index.d.ts",
-      "import": "./dist/adapter/sveltekit/index.js",
-      "require": "./dist/adapter/sveltekit/index.js"
+      "types": "./dist/types/adapter/sveltekit/index.d.mts",
+      "import": "./dist/adapter/sveltekit/index.mjs",
+      "require": "./dist/adapter/sveltekit/index.mjs"
     },
     "./adapter/aws": {
-      "types": "./dist/types/adapter/aws/index.d.ts",
+      "types": "./dist/types/adapter/aws/index.d.mts",
       "import": "./dist/adapter/aws/index.js",
       "require": "./dist/adapter/aws/index.js"
     },
     "./adapter/browser": {
-      "types": "./dist/types/adapter/browser/index.d.ts",
+      "types": "./dist/types/adapter/browser/index.d.mts",
       "import": "./dist/adapter/browser/index.js",
       "require": "./dist/adapter/browser/index.js"
     },
     "./adapter/tanstack-start": {
-      "types": "./dist/types/adapter/tanstack-start/index.d.ts",
-      "import": "./dist/adapter/tanstack-start/index.js",
-      "require": "./dist/adapter/tanstack-start/index.js"
+      "types": "./dist/types/adapter/tanstack-start/index.d.mts",
+      "import": "./dist/adapter/tanstack-start/index.mjs",
+      "require": "./dist/adapter/tanstack-start/index.mjs"
     },
-    "./dist/main.css": "./dist/ui/main.css",
-    "./dist/styles.css": "./dist/ui/styles.css",
+    "./dist/main.css": "./dist/ui/style.css",
+    "./dist/styles.css": "./dist/ui/style.css",
+    "./dist/style.css": "./dist/ui/style.css",
     "./dist/manifest.json": "./dist/static/.vite/manifest.json",
     "./static/*": "./dist/static/*"
   },
   "typesVersions": {
     "*": {
-      "utils": ["./dist/types/core/utils/index.d.ts"],
-      "cli": ["./dist/types/cli/index.d.ts"],
-      "plugins": ["./dist/types/plugins/index.d.ts"],
-      "adapter": ["./dist/types/adapter/index.d.ts"],
-      "adapter/cloudflare": ["./dist/types/adapter/cloudflare/index.d.ts"],
-      "adapter/vite": ["./dist/types/adapter/vite/index.d.ts"],
-      "adapter/nextjs": ["./dist/types/adapter/nextjs/index.d.ts"],
-      "adapter/nuxt": ["./dist/types/adapter/nuxt/index.d.ts"],
-      "adapter/react-router": ["./dist/types/adapter/react-router/index.d.ts"],
-      "adapter/bun": ["./dist/types/adapter/bun/index.d.ts"],
-      "adapter/node": ["./dist/types/adapter/node/index.d.ts"],
-      "adapter/sveltekit": ["./dist/types/adapter/sveltekit/index.d.ts"],
-      "adapter/tanstack-start": ["./dist/types/adapter/tanstack-start/index.d.ts"],
-      "adapter/sqlite": ["./dist/types/adapter/sqlite/edge.d.ts"]
+      "utils": [
+        "./dist/types/core/utils/index.d.mts"
+      ],
+      "cli": [
+        "./dist/types/cli/index.d.mts"
+      ],
+      "plugins": [
+        "./dist/types/plugins/index.d.mts"
+      ],
+      "adapter": [
+        "./dist/types/adapter/index.d.mts"
+      ],
+      "adapter/cloudflare": [
+        "./dist/types/adapter/cloudflare/index.d.mts"
+      ],
+      "adapter/vite": [
+        "./dist/types/adapter/vite/index.d.mts"
+      ],
+      "adapter/nextjs": [
+        "./dist/types/adapter/nextjs/index.d.mts"
+      ],
+      "adapter/nuxt": [
+        "./dist/types/adapter/nuxt/index.d.mts"
+      ],
+      "adapter/react-router": [
+        "./dist/types/adapter/react-router/index.d.mts"
+      ],
+      "adapter/bun": [
+        "./dist/types/adapter/bun/index.d.mts"
+      ],
+      "adapter/node": [
+        "./dist/types/adapter/node/index.d.mts"
+      ],
+      "adapter/sveltekit": [
+        "./dist/types/adapter/sveltekit/index.d.mts"
+      ],
+      "adapter/tanstack-start": [
+        "./dist/types/adapter/tanstack-start/index.d.mts"
+      ],
+      "adapter/sqlite": [
+        "./dist/types/adapter/sqlite/edge.d.mts"
+      ]
     }
   },
   "publishConfig": {

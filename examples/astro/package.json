@@ -10,11 +10,11 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/react": "^4.2.2",
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/react": "^6.0.1",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
-    "astro": "^5.16.9",
+    "astro": "^7.0.7",
     "bknd": "file:../../app",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

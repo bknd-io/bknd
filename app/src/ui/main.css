@@ -102,9 +102,10 @@ body,
    /* Chrome, Edge, and Safari */
    & *::-webkit-scrollbar {
       @apply w-1;
-      &:horizontal {
-         @apply h-px;
-      }
+   }
+
+   & *::-webkit-scrollbar:horizontal {
+      @apply h-px;
    }
 
    & *::-webkit-scrollbar-track {
