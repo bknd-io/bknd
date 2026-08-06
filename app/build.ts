@@ -92,6 +92,8 @@ async function buildApi() {
       sourcemap,
       // don't use tsdown's broken watch, we'll handle it ourselves
       watch: false,
+      // cleaning is handled manually (--clean) to preserve dist/static
+      clean: false,
       dts: false,
       define,
       entry: [
@@ -136,6 +138,8 @@ async function buildUi() {
       minify,
       sourcemap,
       watch: false,
+      // cleaning is handled manually (--clean) to preserve dist/static
+      clean: false,
       dts: false,
       define,
       css: {
@@ -206,6 +210,8 @@ async function buildUiElements() {
       minify,
       sourcemap,
       watch: false,
+      // cleaning is handled manually (--clean) to preserve dist/static
+      clean: false,
       dts: false,
       define,
       entry: ["src/ui/elements/index.ts"],
@@ -251,6 +257,8 @@ function baseConfig(adapter: string, overrides: Partial<UserConfig> = {}): UserC
       minify,
       sourcemap,
       watch: false,
+      // cleaning is handled manually (--clean) to preserve dist/static
+      clean: false,
       dts: false,
       entry: [`src/adapter/${adapter}/index.ts`],
       format: "esm",
