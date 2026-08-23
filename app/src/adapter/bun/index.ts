@@ -1,6 +1,7 @@
 export * from "./bun.adapter";
 export * from "../node/storage";
 export * from "./connection/BunSqliteConnection";
+export * from "./connection/DuckdbConnection";
 
 export async function writer(path: string, content: string) {
    await Bun.write(path, content);

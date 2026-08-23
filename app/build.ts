@@ -83,6 +83,8 @@ const external = [
   "node:test",
   "node:assert/strict",
   "@libsql/client",
+  "@duckdb/node-api",
+  "@duckdb/node-bindings",
   "bknd",
   /^bknd\/.*/,
   "jsonv-ts",

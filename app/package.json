@@ -83,6 +83,7 @@
     "@cloudflare/vitest-pool-workers": "^0.10.4",
     "@cloudflare/workers-types": "^4.20251014.0",
     "@dagrejs/dagre": "^1.1.4",
+    "@duckdb/node-api": "^1.5.5-r.4",
     "@hono/vite-dev-server": "^0.23.0",
     "@hookform/resolvers": "^5.2.2",
     "@libsql/client": "^0.15.15",

@@ -12,6 +12,7 @@ Currently supported and tested databases are:
 - SQLite (embedded): Node.js SQLite, Bun SQLite, LibSQL, SQLocal
 - SQLite (remote): Turso, Cloudflare D1
 - Postgres: Vanilla Postgres, Supabase, Neon, Xata
+- DuckDB (embedded): via `@duckdb/node-api`
 
 By default, bknd will try to use a SQLite database in-memory. Depending on your runtime, a different SQLite implementation will be used.
 
@@ -286,6 +287,39 @@ serve({
   connection: xataConnection({ xata }),
 });
 ```
+
+## DuckDB
+
+[DuckDB](https://duckdb.org) is an embedded analytics-grade database. The `duckdb` connection ships with a dedicated Kysely dialect and runs on the Node.js and Bun runtimes via the native `@duckdb/node-api` bindings.
+
+```ts
+import { serve } from "bknd/adapter/node";
+import { duckdb } from "bknd/adapter/node";
+
+serve({
+  connection: await duckdb({ path: "data.db" }),
+});
+```
+
+Omitting `path` uses an in-memory database. You can also pass [DuckDB configuration options](https://duckdb.org/docs/configuration/overview) or bring your own instance:
+
+```ts
+import { duckdb } from "bknd/adapter/node";
+import { DuckDBInstance } from "@duckdb/node-api";
+
+const connection = await duckdb({
+  path: "data.db",
+  options: { threads: "1" },
+  // instance: await DuckDBInstance.create("data.db"),
+  // foreignKeys: true,
+});
+```
+
+DuckDB specifics to be aware of:
+
+- Integer primary keys use sequence-backed defaults (`create sequence` + `default nextval(...)`) because DuckDB's `GENERATED AS IDENTITY` is not implemented alongside constraints. This is handled transparently, including introspection.
+- Foreign keys are **opt-in** (`foreignKeys: true`). DuckDB only supports `NO ACTION` referential behavior and treats row updates as delete+insert, so updating a parent row referenced by a child errors. SQLite — bknd's default — does not enforce foreign keys, which is why they are off by default here as well.
+- DuckDB is an embedded single-writer engine: one process per database file, queries are serialized on a single connection. It shines for local apps and read-heavy/analytics-style workloads, not for multi-process OLTP.
 
 ## Custom Connection
 
