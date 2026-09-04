@@ -312,7 +312,7 @@ export class Mutator<
 
       const validated: any[] = [];
       for (const row of data) {
-         const validatedData = {
+         let validatedData = {
             ...entity.getDefaultObject(),
             ...(await this.getValidatedData(row, "create")),
          };
@@ -326,6 +326,16 @@ export class Mutator<
             ) {
                throw new Error(`Field "${field.name}" is required`);
             }
+         }
+
+         // primary
+         const primary = entity.getPrimaryField();
+         const primary_value = primary.getNewValue();
+         if (primary_value) {
+            validatedData = {
+               [primary.name]: primary_value,
+               ...validatedData,
+            };
          }
 
          validated.push(validatedData);
