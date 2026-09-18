@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@solidjs/meta": "^0.29.4",
-    "@solidjs/router": "^0.15.0",
-    "@solidjs/start": "2.0.0-alpha.2",
+    "@solidjs/router": "^1.0.0",
+    "@solidjs/start": "2.0.5",
     "bknd": "file:../../app",
-    "nitro": "3.0.1-alpha.2",
+    "nitro": "3.0.260903-beta",
     "solid-js": "^1.9.5",
-    "vite": "^7.0.0"
+    "vite": "^8.3.0"
   },
   "engines": {
     "node": ">=22"
