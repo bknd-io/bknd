@@ -6,6 +6,7 @@
     "sveltekit",
     "tanstack-start",
     "vite",
-    "nuxt"
+    "nuxt",
+    "solid-start"
   ]
 }

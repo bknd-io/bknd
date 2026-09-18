@@ -346,6 +346,11 @@ async function buildAdapters() {
     }),
 
     tsup.build({
+      ...baseConfig("solid-start"),
+      platform: "node",
+    }),
+
+    tsup.build({
       ...baseConfig("sqlite/edge"),
       entry: ["src/adapter/sqlite/edge.ts"],
       outDir: "dist/adapter/sqlite",
