@@ -17,8 +17,8 @@ export function useSearch<Schema extends s.Schema = s.Schema>(
    const defaults = useMemo(() => {
       return mergeObject(
          // @ts-ignore
-         schema.template({ withOptional: true }),
          options?.defaultValue ?? {},
+         schema.template({ withOptional: true }),
       );
    }, [JSON.stringify({ schema, dflt: options?.defaultValue })]);
    const [value, setValue] = useState<s.StaticCoerced<Schema>>(defaults);
