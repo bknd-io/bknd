@@ -430,7 +430,7 @@ export class Authenticator<
       let token: string | undefined;
       if (headers.has("Authorization")) {
          const bearerHeader = String(headers.get("Authorization"));
-         token = bearerHeader.replace("Bearer ", "");
+         token = bearerHeader.replace(/^Bearer\s+/i, "");
       } else {
          const context = is_context ? (c as Context) : ({ req: { raw: { headers } } } as Context);
          token = await this.getAuthCookie(context);

@@ -149,7 +149,7 @@ describe("AppAuth", () => {
       });
 
       await app.build();
-      app.registerAdminController();
+      app.registerAdminController({ forceDev: true });
       const spy = spyOn(app.module.auth.authenticator, "requestCookieRefresh");
 
       // register custom route
