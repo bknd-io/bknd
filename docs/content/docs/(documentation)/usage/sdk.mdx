@@ -375,6 +375,11 @@ const { data } = await api.media.upload("https://example.com/image.jpg");
 const { data } = await api.media.upload(item, {
   filename: "custom-name.jpg",
 });
+
+// Multipart Upload (S3 Only) 
+const { data } = await api.media.upload(item, {
+  chunked: true,
+});
 ```
 
 ### `media.uploadToEntity([entity], [id], [field], [item], [options])`
