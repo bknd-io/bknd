@@ -24,7 +24,11 @@ export class PrimaryField<Required extends true | false = false> extends Field<
    override readonly type = "primary";
 
    constructor(name: string = config.data.default_primary_field, cfg?: PrimaryFieldConfig) {
-      super(name, { ...cfg, fillable: false, required: false });
+      super(name, {
+         ...cfg,
+         fillable: cfg?.fillable ?? name !== config.data.default_primary_field,
+         required: false,
+      });
    }
 
    override isRequired(): boolean {
@@ -60,7 +64,13 @@ export class PrimaryField<Required extends true | false = false> extends Field<
       return undefined;
    }
 
-   override async transformPersist(value: any): Promise<number> {
+   override async transformPersist(value: any): Promise<any> {
+      if (this.isFillable()) {
+         if (value == null) {
+            return this.getNewValue();
+         }
+         return value;
+      }
       throw new Error("PrimaryField: This function should not be called");
    }
 
