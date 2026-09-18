@@ -15,17 +15,18 @@ import {
    type KyselyPlugin,
    type SelectQueryBuilder,
 } from "kysely";
-import { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/postgres";
+import { jsonArrayFrom, jsonBuildObject, jsonObjectFrom } from "kysely/helpers/mysql";
+import type { Field } from "data/fields/Field";
 
 export type QB = SelectQueryBuilder<any, any, any>;
 
 export const plugins = [new ParseJSONResultsPlugin()];
 
-export abstract class PostgresConnection<Client = unknown> extends Connection<Client> {
+export abstract class MysqlConnection<Client = unknown> extends Connection<Client> {
    protected override readonly supported: Features = {
-      batching: true,
+      batching: false,
       softscans: true,
-      returning: true,
+      returning: false,
    };
 
    constructor(kysely: Kysely<any>, fn?: Partial<DbFunctions>, _plugins?: KyselyPlugin[]) {
@@ -52,16 +53,14 @@ export abstract class PostgresConnection<Client = unknown> extends Connection<Cl
 
       switch (spec.type) {
          case "blob":
-            type = "bytea";
+            type = "blob";
             break;
          case "date":
          case "datetime":
-            // https://www.postgresql.org/docs/17/datatype-datetime.html
             type = "timestamp";
             break;
          case "text":
-            // https://www.postgresql.org/docs/17/datatype-character.html
-            type = "varchar";
+            type = "varchar(255)";
             break;
       }
 
@@ -81,6 +80,23 @@ export abstract class PostgresConnection<Client = unknown> extends Connection<Cl
             return col;
          },
       ];
+   }
+
+   override toDriver(value: unknown, field: Field): unknown {
+      if (
+         ((field.schema && field.schema()?.type === "date") ||
+            (field.schema && field.schema()?.type === "datetime") ||
+            (field.schema && field.schema()?.type === "timestamp")) &&
+         value
+      ) {
+         if (value instanceof Date) {
+            return value.toISOString().slice(0, 19).replace("T", " ");
+         }
+         if (typeof value === "string" && value.includes("T") && value.endsWith("Z")) {
+            return value.slice(0, 19).replace("T", " ");
+         }
+      }
+      return super.toDriver(value, field);
    }
 
    override async executeQueries<O extends ConnQuery[]>(...qbs: O): Promise<ConnQueryResults<O>> {
