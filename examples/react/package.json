@@ -23,7 +23,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "globals": "^15.15.0",
     "tailwindcss": "^4.0.14",
-    "typescript": "~5.7.2",
+    "typescript": "^6.0.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^7.2.4",
     "vite-tsconfig-paths": "^5.1.4"

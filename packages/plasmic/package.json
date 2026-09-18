@@ -21,7 +21,7 @@
       "@types/bun": "latest",
       "bknd": "workspace:*",
       "tsdx": "^0.14.1",
-      "typescript": "^5.0.0"
+      "typescript": "^6.0.2"
    },
    "peerDependencies": {
       "bknd": "*",
