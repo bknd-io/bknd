@@ -17,6 +17,11 @@ export type BkndAdminConfig = {
     */
    basepath?: string;
    /**
+    * Sub-path for the Admin UI within the base path
+    * @default ``
+    */
+   admin_basepath?: string;
+   /**
     * Path to return to when clicking the logo
     * @default `/`
     */
