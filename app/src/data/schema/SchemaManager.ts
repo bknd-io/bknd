@@ -77,7 +77,7 @@ export class SchemaManager {
    }
 
    getIntrospectionFromEntity(entity: Entity): IntrospectedTable {
-      const fields = entity.getFields(false);
+      const fields = entity.getFields({ virtual: false });
       const indices = this.em.getIndicesOf(entity);
 
       // this is intentionally setting values to defaults, like "nullable" and "default"
