@@ -64,3 +64,23 @@ describe("[data] PrimaryField", async () => {
       });
    });
 });
+
+
+describe("[data] PrimaryField (fillable)", async () => {
+   const field = new PrimaryField("primary", { fillable: true });
+
+   test("isFillable", async () => {
+      expect(field.isFillable()).toBe(true);
+   });
+
+   test("transformPersist/Retrieve", async () => {
+      expect(field.transformPersist(null)).resolves.toBeUndefined();
+      expect(field.transformRetrieve(1)).toBe(1);
+   });
+
+   test("format", () => { 
+      const uuid = new PrimaryField("integer", { format: "uuid" });
+      expect(uuid.transformPersist(null)).toBeDefined();
+   });
+
+});
