@@ -87,7 +87,6 @@ export function Link({
 
    // console.log({ adminBasePath, _href, href, bkndOptions })
    if (native) {
-      // @ts-expect-error update wouter breaks types for anchor tag
       return <a className={`${active ? "active " : ""}${className}`} {...props} href={href} />;
    }
 
