@@ -1,5 +1,6 @@
 import { type LinkProps, Link as WouterLink, useRouter } from "wouter";
 import { useEvent } from "../../hooks/use-event";
+import { useBkndOptions } from "ui/client/BkndProvider";
 
 /*
  * Transforms `path` into its relative `base` version
@@ -70,11 +71,13 @@ export function Link({
 
       return false;
    }
-
+   const bkndOptions = useBkndOptions();
+   const adminBasePath = bkndOptions?.admin_basepath ?? "";
    const _href = props.href ?? props.to;
+
    const href = router
       .hrefs(
-         _href[0] === "~" ? _href.slice(1) : router.base + _href,
+         _href[0] === "~" ? adminBasePath + _href.slice(1) : router.base + _href,
          router, // pass router as a second argument for convinience
       )
       .replace("//", "/");
@@ -82,8 +85,9 @@ export function Link({
    const active =
       href.replace(router.base, "").length <= 1 ? href === absPath : isActive(absPath, href);
 
+   // console.log({ adminBasePath, _href, href, bkndOptions })
    if (native) {
-      return <a className={`${active ? "active " : ""}${className}`} {...props} />;
+      return <a className={`${active ? "active " : ""}${className}`} {...props} href={href} />;
    }
 
    const wouterOnClick = (e: any) => {
@@ -99,10 +103,11 @@ export function Link({
    };
 
    return (
+      // @ts-expect-error className is not typed on WouterLink
       <WouterLink
-         // @ts-expect-error className is not typed on WouterLink
-         className={`${active ? "active " : ""}${className}`}
          {...props}
+         className={`${active ? "active " : ""}${className}`}
+         href={`~${href}`}
          onClick={wouterOnClick}
       />
    );
