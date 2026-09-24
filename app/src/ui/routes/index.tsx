@@ -12,6 +12,7 @@ import { FlashMessage } from "ui/modules/server/FlashMessage";
 import { AuthRegister } from "ui/routes/auth/auth.register";
 import { BkndModalsProvider } from "ui/modals";
 import { useBkndWindowContext } from "bknd/client";
+import type { BkndAdminProps } from "ui/Admin";
 import ToolsRoutes from "./tools";
 
 // @ts-ignore
@@ -24,10 +25,12 @@ try {
 
 export function Routes({
    BkndWrapper,
+   options,
    basePath = "",
    children,
 }: {
-   BkndWrapper: ComponentType<{ children: ReactNode }>;
+   BkndWrapper: ComponentType<{ children: ReactNode; options?: BkndAdminProps["config"] }>;
+   options?: BkndAdminProps["config"];
    basePath?: string;
    children?: ReactNode;
 }) {
@@ -43,7 +46,7 @@ export function Routes({
                <Route path="/auth/login" component={AuthLogin} />
                <Route path="/auth/register" component={AuthRegister} />
 
-               <BkndWrapper>
+               <BkndWrapper options={options}>
                   <BkndModalsProvider>
                      <Route path="/" nest>
                         <Root>

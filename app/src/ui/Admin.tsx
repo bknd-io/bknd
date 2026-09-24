@@ -17,9 +17,9 @@ export type BkndAdminConfig = {
     */
    basepath?: string;
    /**
-   * Sub-path for the Admin UI within the base path
-   * @default ``
-   */
+    * Sub-path for the Admin UI within the base path
+    * @default ``
+    */
    admin_basepath?: string;
    /**
     * Path to return to when clicking the logo
@@ -77,6 +77,14 @@ export default function Admin(props: BkndAdminProps) {
    );
 }
 
+function BkndWrapper({ options, children }: { options?: BkndAdminConfig; children: ReactNode }) {
+   return (
+      <BkndProvider options={options} fallback={<Skeleton theme={options?.theme} />}>
+         {children}
+      </BkndProvider>
+   );
+}
+
 function AdminInner(props: BkndAdminProps) {
    const { theme } = useTheme();
    const config = {
@@ -84,16 +92,10 @@ function AdminInner(props: BkndAdminProps) {
       ...useBkndWindowContext(),
    };
 
-   const BkndWrapper = ({ children }: { children: ReactNode }) => (
-      <BkndProvider options={config} fallback={<Skeleton theme={config?.theme} />}>
-         {children}
-      </BkndProvider>
-   );
-
    return (
       <MantineProvider {...createMantineTheme(theme as any)}>
          <Notifications position="top-right" />
-         <Routes BkndWrapper={BkndWrapper} basePath={config?.basepath}>
+         <Routes BkndWrapper={BkndWrapper} options={config} basePath={config?.basepath}>
             {props.children}
          </Routes>
       </MantineProvider>
