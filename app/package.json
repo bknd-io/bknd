@@ -68,6 +68,7 @@
     "jsonv-ts": "^0.10.1",
     "kysely": "0.28.8",
     "lodash-es": "^4.17.21",
+    "mysql2": "^3.21.1",
     "oauth4webapi": "^2.11.1",
     "object-path-immutable": "^4.1.2",
     "picocolors": "^1.1.1",

@@ -90,15 +90,17 @@ const CONN_SYMBOL = Symbol.for("bknd:connection");
 export type Features = {
    batching: boolean;
    softscans: boolean;
+   returning: boolean;
 };
 
 export abstract class Connection<Client = unknown> {
    abstract name: string;
    protected initialized = false;
    protected pluginRunner: KyselyPluginRunner;
-   protected readonly supported: Partial<Features> = {
+   protected readonly supported: Features = {
       batching: false,
       softscans: true,
+      returning: false,
    };
    kysely: Kysely<DB>;
    client!: Client;
