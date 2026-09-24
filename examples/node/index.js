@@ -7,7 +7,7 @@ import { serve } from "bknd/adapter/node";
 /** @type {import("bknd/adapter/node").NodeBkndConfig} */
 const config = {
    connection: {
-      url: "file:data.db",
+      url: "data.db",
    },
    config: {
       media: {

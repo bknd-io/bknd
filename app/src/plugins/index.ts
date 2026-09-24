@@ -9,3 +9,4 @@ export { syncTypes, type SyncTypesOptions } from "./dev/sync-types.plugin";
 export { syncSecrets, type SyncSecretsOptions } from "./dev/sync-secrets.plugin";
 export { timestamps, type TimestampsPluginOptions } from "./data/timestamps.plugin";
 export { emailOTP, type EmailOTPPluginOptions } from "./auth/email-otp.plugin";
+export { sort, type SortPluginOptions } from "./data/sort.plugin";

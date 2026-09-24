@@ -1,6 +1,7 @@
 import { transformObject } from "bknd/utils";
 import type { Kysely } from "kysely";
 import { set } from "lodash-es";
+import type { InitialModuleConfigs } from "modules/ModuleManager";
 
 export type MigrationContext = {
    db: Kysely<any>;
@@ -105,6 +106,29 @@ export const migrations: Migration[] = [
       version: 10,
       up: async (config) => {
          return config;
+      },
+   },
+   {
+      // change field.config.fillable to only "create" and "update"
+      version: 11,
+      up: async (config: InitialModuleConfigs) => {
+         const { data, ...rest } = config;
+         return {
+            ...rest,
+            data: {
+               ...data,
+               entities: transformObject(data?.entities ?? {}, (entity) => {
+                  return {
+                     ...entity,
+                     fields: transformObject(entity?.fields ?? {}, (field) => {
+                        const fillable = field!.config?.fillable;
+                        if (!fillable || typeof fillable === "boolean") return field;
+                        return { ...field, config: { ...field!.config, fillable: true } };
+                     }),
+                  };
+               }),
+            },
+         };
       },
    },
 ];

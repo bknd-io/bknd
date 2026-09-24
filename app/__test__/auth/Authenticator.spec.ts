@@ -38,4 +38,27 @@ describe("Authenticator", async () => {
       expect(cookie).toStartWith("auth=");
       expect(cookie).toEndWith("HttpOnly; Secure; SameSite=Strict");
    });
+
+   test("bearer token is case insensitive", async () => {
+      const auth = new Authenticator({}, null as any, {
+         jwt: {
+            secret: "secret",
+            fields: ["sub"],
+         },
+         cookie: {
+            sameSite: "strict",
+         },
+      });
+      const token = await auth.jwt({ sub: "test" });
+
+      const res = await auth.resolveAuthFromRequest(new Headers({
+         Authorization: `Bearer ${token}`,
+      }));
+      expect((res as any).sub).toBe("test")
+
+      const res2 = await auth.resolveAuthFromRequest(new Headers({
+         Authorization: `bearer ${token}`,
+      }));
+      expect((res2 as any).sub).toBe("test")
+   })
 });

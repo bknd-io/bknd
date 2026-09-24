@@ -3,10 +3,11 @@ import path from "node:path";
 import c from "picocolors";
 
 const basePath = new URL(import.meta.resolve("../../")).pathname.slice(0, -1);
+type RunOptions = Omit<Bun.SpawnOptions.SpawnOptions<"ignore", "pipe", "pipe">, "stdout" | "stderr">;
 
 async function run(
    cmd: string[] | string,
-   opts: Bun.SpawnOptions.OptionsObject & {},
+   opts: RunOptions,
    onChunk: (chunk: string, resolve: (data: any) => void, reject: (err: Error) => void) => void,
 ): Promise<{ proc: Bun.Subprocess; data: any }> {
    return new Promise((resolve, reject) => {
@@ -17,7 +18,7 @@ async function run(
       });
 
       // Read from stdout
-      const reader = (proc.stdout as ReadableStream).getReader();
+      const reader = proc.stdout.getReader();
       const decoder = new TextDecoder();
 
       // Function to read chunks

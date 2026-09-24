@@ -24,7 +24,8 @@ export function getChangeSet(
       (acc, _value, key) => {
          const field = fields.find((f) => f.name === key);
          // @todo: filtering virtual here, need to check (because of media)
-         if (!field || field.isVirtual()) return;
+         // @note: adding non-fillable here as it'll fail validaiton on backend
+         if (!field || field.isVirtual() || !field.isFillable()) return;
          const value = _value === "" ? null : _value;
 
          // normalize to null if undefined
