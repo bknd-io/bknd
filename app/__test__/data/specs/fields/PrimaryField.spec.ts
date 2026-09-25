@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { PrimaryField } from "data/fields";
 
 describe("[data] PrimaryField", async () => {
-   const field = new PrimaryField("primary");
+   const field = new PrimaryField("primary", { fillable: false });
 
    test("name", async () => {
       expect(field.name).toBe("primary");
@@ -63,4 +63,24 @@ describe("[data] PrimaryField", async () => {
          import: [{ package: "kysely", name: "Generated" }],
       });
    });
+});
+
+
+describe("[data] PrimaryField (fillable)", async () => {
+   const field = new PrimaryField("primary", { fillable: true });
+
+   test("isFillable", async () => {
+      expect(field.isFillable()).toBe(true);
+   });
+
+   test("transformPersist/Retrieve", async () => {
+      expect(field.transformPersist(null)).resolves.toBeUndefined();
+      expect(field.transformRetrieve(1)).toBe(1);
+   });
+
+   test("format", () => { 
+      const uuid = new PrimaryField("integer", { format: "uuid" });
+      expect(uuid.transformPersist(null)).toBeDefined();
+   });
+
 });
