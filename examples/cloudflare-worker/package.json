@@ -14,7 +14,7 @@
     "bknd": "file:../../app"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
+    "typescript": "^6.0.2",
     "wrangler": "^4.34.0"
   }
 }
