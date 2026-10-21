@@ -38,7 +38,11 @@ export class StorageS3Adapter extends StorageAdapter {
    readonly #config: S3AdapterConfig;
    readonly client: AwsClient;
 
-   constructor(config: S3AdapterConfig) {
+   /**
+    * @param config the S3 adapter config
+    * @param options.region the signing region, guessed from the URL's hostname if omitted
+    */
+   constructor(config: S3AdapterConfig, options: { region?: string } = {}) {
       super();
       this.client = new AwsClient(
          {
@@ -46,6 +50,7 @@ export class StorageS3Adapter extends StorageAdapter {
             secretAccessKey: config.secret_access_key,
             retries: isDebug() ? 0 : 10,
             service: "s3",
+            region: options.region,
          },
          {
             convertParams: "pascalToKebab",
@@ -155,7 +160,9 @@ export class StorageS3Adapter extends StorageAdapter {
    async getObjectMeta(key: string) {
       const res = await this.headObject(key);
       const type = String(res.headers.get("content-type"));
-      const size = Number(String(res.headers.get("content-range")?.split("/")[1]));
+      // some S3-compatible stores (e.g. Neon) ignore the range on HEAD, so fall back to the full length
+      const range = res.headers.get("content-range");
+      const size = Number(range ? range.split("/")[1] : res.headers.get("content-length"));
 
       return {
          type,

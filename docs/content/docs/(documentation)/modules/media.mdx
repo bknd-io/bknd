@@ -17,7 +17,7 @@ tags: ["documentation"]
 - **File Uploads**: Supports direct (chunked coming soon) uploads of files up to 5GB (depending
   on your environment).
 - **Adapter-Based Design**:
-  - Pre-built support for S3, S3-compatible services (e.g., R2, Tigris), and Cloudinary.
+  - Pre-built support for S3, S3-compatible services (e.g., R2, Tigris, Neon Object Storage), and Cloudinary.
   - Extend functionality by implementing custom adapters.
 - **Entity Integration**: Attach media files directly to entities for seamless data association.
 - **Content Delivery**: Serve media over an API endpoint or directly from your provider.
@@ -63,6 +63,80 @@ export default {
   },
 } satisfies BkndConfig;
 ```
+
+### Neon Object Storage
+
+[Neon Object Storage](https://neon.com/docs/storage/overview) is S3-compatible object storage built into your Neon project. Buckets branch with your database: a new branch starts with a copy-on-write view of its parent's files, and uploads to a branch stay on that branch. This pairs well with a Neon Postgres database, since the media entity rows and the files they point to branch together.
+
+1. Create a bucket and a credential.
+
+   With the [Neon CLI](https://neon.com/docs/cli), in a directory linked to your project and branch (`neon link`):
+
+   ```bash
+   neon buckets create bknd-media
+   neon credentials create --scope storage:read --scope storage:write --name bknd
+   ```
+
+   The credential's `token_id` is the access key, and its `s3_secret_access_key` is the secret access key. The secret is only shown once, so store it right away. You can also create buckets and credentials in the Neon Console.
+
+   <Callout type="info">
+     Give the credential both `storage:read` and `storage:write`. bknd lists, reads and deletes
+     files as well as uploading them.
+   </Callout>
+
+2. Get the branch's storage endpoint.
+
+   `neon env pull` writes the endpoint, region and a credential for the linked branch to your `.env` file:
+
+   ```bash
+   neon env pull --file .env
+   ```
+
+   ```bash title=".env"
+   AWS_ENDPOINT_URL_S3=https://br-cool-darkness-a1b2c3d4.storage.c-1.us-east-2.aws.neon.tech
+   AWS_ACCESS_KEY_ID=nak_live_...
+   AWS_SECRET_ACCESS_KEY=nsk_live_...
+   AWS_REGION=us-east-2
+   ```
+
+   Inside [Neon Functions](https://neon.com/docs/compute/functions/environment-variables), Neon injects the same four variables for the function's branch.
+
+3. Enable the adapter.
+
+   In the admin UI, open the **Media** tab, enable media support, choose **Neon** and enter the credential, endpoint and bucket. Or configure it in code:
+
+```typescript title="bknd.config.ts"
+import type { BkndConfig } from "bknd/adapter";
+
+export default {
+  config: {
+    media: {
+      enabled: true,
+      adapter: {
+        type: "neon",
+        config: {
+          access_key: process.env.AWS_ACCESS_KEY_ID!,
+          secret_access_key: process.env.AWS_SECRET_ACCESS_KEY!,
+          endpoint: process.env.AWS_ENDPOINT_URL_S3!,
+          bucket: "bknd-media",
+        },
+      },
+    },
+  },
+} satisfies BkndConfig;
+```
+
+| Option              | Description                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| `access_key`        | The credential's `token_id` (`nak_live_...`)                                                     |
+| `secret_access_key` | The credential's `s3_secret_access_key` (`nsk_live_...`)                                         |
+| `endpoint`          | The branch storage endpoint, without a trailing slash                                            |
+| `bucket`            | A bucket on that branch                                                                          |
+| `region`            | Optional. The signing region, e.g. `us-east-2`. bknd reads it from the endpoint when you omit it, so you rarely need to set it |
+
+Neon only supports path-style requests, so the adapter always sends them to `{endpoint}/{bucket}/{key}`. Files are served through bknd at `/api/media/file/{filename}`, which works for both `private` and `public_read` buckets.
+
+Each Neon branch has its own endpoint. To use a preview branch, point `endpoint` at that branch's endpoint. A credential created on a parent branch also works on every branch created from it.
 
 ### Local adapter for development
 
