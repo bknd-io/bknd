@@ -182,7 +182,7 @@ export function useBknd({ withSecrets }: { withSecrets?: boolean } = {}): BkndCo
 export function useBkndOptions(): BkndAdminProps["config"] {
    const ctx = useContext(BkndContext);
    return (
-      ctx.options ?? {
+      ctx?.options ?? {
          basepath: "/",
       }
    );
