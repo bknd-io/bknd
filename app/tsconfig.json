@@ -28,6 +28,7 @@
     "rootDir": ".",
     "outDir": "./dist/types",
     "paths": {
+      "Api": ["./src/Api"],
       "*": ["./src/*"],
       "bknd": ["./src/index.ts"],
       "bknd/utils": ["./src/core/utils/index.ts"],
