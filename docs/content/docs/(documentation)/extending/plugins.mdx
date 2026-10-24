@@ -335,3 +335,55 @@ export default {
 ```
 
 <AutoTypeTable path="../app/src/plugins/auth/email-otp.plugin.ts" name="EmailOTPPluginOptions" />
+
+
+### `sort`
+
+A plugin that maintains sequential numeric positions for one or more entities. Positions are updated automatically when items are inserted or moved. You can optionally configure a scope so that positions are maintained independently within groups, such as tasks within a project.
+
+```typescript title="bknd.config.ts"
+import { sort } from "bknd/plugins";
+
+export default {
+   options: {
+      plugins: [
+         sort({
+            entities: {
+               tasks: {
+                  field: "position",
+                  scope: "project_id",
+               },
+            },
+         }),
+      ],
+   },
+} satisfies BkndConfig;
+```
+
+The configured `field` is used for the numeric position. If the field does not exist, the plugin adds it as a number field with a default value of `0`; if it already exists, it must be a number field. The plugin also adds an index for the field when one is not already present. The optional `scope` field limits reordering to records with the same scope value.
+
+The plugin registers the following endpoints. The default base path is `/api/sort` and can be changed with `apiBasePath`:
+
+- `POST /api/sort/:entity/reorder` moves an item to a position. The request body must include the item `id` and its new numeric `position`.
+- `POST /api/sort/:entity/recalculate` recalculates positions in ascending order of the configured field. To recalculate only one scope, pass its value in the optional `scope` property.
+
+```http title="Move a task"
+POST /api/sort/tasks/reorder
+Content-Type: application/json
+
+{
+   "id": "task_123",
+   "position": 2
+}
+```
+
+```http title="Recalculate a project's task positions"
+POST /api/sort/tasks/recalculate
+Content-Type: application/json
+
+{
+   "scope": "project_456"
+}
+```
+
+<AutoTypeTable path="../app/src/plugins/data/sort.plugin.ts" name="SortPluginOptions" />

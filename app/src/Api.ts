@@ -121,7 +121,7 @@ export class Api {
          }
 
          // try authorization header
-         const headerToken = this.options.headers.get("authorization")?.replace("Bearer ", "");
+         const headerToken = this.options.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
          if (headerToken) {
             this.token_transport = "header";
             this.updateToken(headerToken);

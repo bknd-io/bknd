@@ -41,12 +41,12 @@ describe("postgres", () => {
    beforeAll(async () => {
       if (!(await isPostgresRunning())) {
          await $`docker run --rm --name bknd-test-postgres -d -e POSTGRES_PASSWORD=${credentials.password} -e POSTGRES_USER=${credentials.user} -e POSTGRES_DB=${credentials.database} -p ${credentials.port}:5432 postgres:17`;
-         await $waitUntil("Postgres is running", isPostgresRunning);
+         await $waitUntil("Postgres is running", isPostgresRunning, 500, 20);
          await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
       disableConsoleLog();
-   });
+   }, 30000);
    afterAll(async () => {
       if (await isPostgresRunning()) {
          try {

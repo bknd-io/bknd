@@ -1,12 +1,12 @@
 {
-  "compilerOptions": {
+"compilerOptions": {
     "composite": false,
     "incremental": true,
-    "module": "ESNext",
+    "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "allowImportingTsExtensions": false,
-    "target": "ES2022",
+    "target": "es2023",
     "noImplicitAny": false,
     "allowJs": true,
     "verbatimModuleSyntax": true,
@@ -26,9 +26,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "rootDir": ".",
-    "baseUrl": ".",
     "outDir": "./dist/types",
     "paths": {
+      "Api": ["./src/Api"],
       "*": ["./src/*"],
       "bknd": ["./src/index.ts"],
       "bknd/utils": ["./src/core/utils/index.ts"],
@@ -36,7 +36,17 @@
       "bknd/adapter/*": ["./src/adapter/*/index.ts"],
       "bknd/client": ["./src/ui/client/index.ts"],
       "bknd/modes": ["./src/modes/index.ts"],
-      "bknd/elements": ["./src/ui/elements/index.ts"]
+      "bknd/elements": ["./src/ui/elements/index.ts"],
+      "core": ["./src/core"],
+      "auth": ["./src/auth"],
+      "data": ["./src/data"],
+      "media": ["./src/media"],
+      "modules": ["./src/modules"],
+      "core/*": ["./src/core/*"],
+      "auth/*": ["./src/auth/*"],
+      "data/*": ["./src/data/*"],
+      "media/*": ["./src/media/*"],
+      "modules/*": ["./src/modules/*"],
     }
   },
   "include": [

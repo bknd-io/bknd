@@ -10,17 +10,16 @@
     "allowImportingTsExtensions": false,
     "verbatimModuleSyntax": true,
     "strict": true,
-    "outDir": "dist",
-    "declarationDir": "dist",
+    "outDir": "./dist",
+    "declarationDir": "./dist",
     "declaration": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
     "noPropertyAccessFromIndexSignature": false,
-    "rootDir": "src",
-    "baseUrl": "src",
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
+    "rootDir": "./src",
+    "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo"
   },
-  "include": ["src/**/*"],
+  "include": ["./src/**/*"],
   "exclude": ["bknd", "dist", "node_modules"]
 }

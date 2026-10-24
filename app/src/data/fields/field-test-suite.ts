@@ -99,6 +99,7 @@ export function fieldTestSuite(
       const _config = {
          ..._requiredConfig,
          required: false,
+         fillable: true,
       };
 
       function fieldJson(field: Field) {
@@ -116,10 +117,7 @@ export function fieldTestSuite(
 
       expect(fieldJson(fillable)).toEqual({
          type: noConfigField.type,
-         config: {
-            ..._config,
-            fillable: true,
-         },
+         config: _config,
       });
 
       expect(fieldJson(required)).toEqual({
@@ -150,7 +148,6 @@ export function fieldTestSuite(
          type: requiredAndDefault.type,
          config: {
             ..._config,
-            fillable: true,
             required: true,
             default_value: config.defaultValue,
          },

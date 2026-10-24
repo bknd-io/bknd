@@ -23,7 +23,6 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
       "bknd": ["../app/src/index.ts"],
       "bknd/*": ["../app/src/*"]
