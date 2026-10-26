@@ -4,7 +4,7 @@ import { Entity, EntityManager } from "data/entities";
 import {
    ManyToOneRelation,
    OneToOneRelation,
-   RelationField,
+   type RelationField,
    RelationMutator,
 } from "data/relations";
 import { NumberField, TextField } from "data/fields";
@@ -41,6 +41,24 @@ describe("[data] Mutator (base)", async () => {
 
       // but expect additional fields to be present
       expect((res.data as any).not_fillable).toBeDefined();
+      expect((res.data as any).id).toBeDefined();
+   });
+
+   test("insertMany", async () => {
+      expect(em.mutator(entity).getValidatedData(payload, "create")).resolves.toEqual(payload);
+      const res = await em.mutator(entity).insertMany([
+         { label: "item 1", count: 1 },
+         { label: "item 2", count: 2 },
+         { label: "item 3", count: 3 },
+         { label: "item 4", count: 4 },
+      ]);
+
+      expect(res.data.length).toBe(4);
+      res.data.forEach((entry) => {
+         expect((entry as any).id).toBeDefined();
+         expect((entry as any).label).toStartWith("item ");
+         expect(entry.count).toBeNumber();
+      });
    });
 
    test("updateOne", async () => {
