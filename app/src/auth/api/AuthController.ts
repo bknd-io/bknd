@@ -16,6 +16,7 @@ import {
    $console,
 } from "bknd/utils";
 import type { PasswordStrategy } from "auth/authenticate/strategies";
+import { UserNotFoundException } from "auth/errors";
 
 export type AuthActionResponse = {
    success: boolean;
@@ -114,6 +115,77 @@ export class AuthController extends Controller {
             }),
             async (c) => {
                return c.json(create.schema);
+            },
+         );
+      }
+
+      if (change) {
+         hono.post(
+            "/change",
+            permission(AuthPermissions.changePassword, {}),
+            permission(DataPermissions.entityUpdate, {
+               context: (c) => ({ entity: this.auth.config.entity_name }),
+            }),
+            describeRoute({
+               summary: "Change a user's password",
+               tags: ["auth"],
+            }),
+            async (c) => {
+               try {
+                  const body = await this.auth.authenticator.getBody(c);
+                  const valid = parse(change.schema, body, {});
+                  const processed = (await change.preprocess?.(valid)) ?? valid;
+                  const { email } = processed;
+                  const { data: user } = await this.userRepo.findOne({ email });
+                  if (!user) {
+                     throw new UserNotFoundException();
+                  }
+
+                  const users_entity = this.auth.config.entity_name as "users";
+
+                  const togglePw = (visible: boolean) => {
+                     const field = this.em.entity(users_entity).field("strategy_value")!;
+                     field.config.hidden = !visible;
+                     field.config.fillable = visible;
+                  };
+
+                  const pw = this.auth.authenticator.strategy(
+                     "password" as const,
+                  ) as PasswordStrategy;
+                  
+                  togglePw(true);
+                  await this.em.mutator(users_entity).updateOne(user.id, {
+                     strategy_value: await pw.hash(body.password),
+                  });
+                  togglePw(false);
+
+                  return c.json({
+                     success: true,
+                     action: "change",
+                     strategy: name,
+                  } as AuthActionResponse);
+               } catch (error) {
+                  if (error instanceof UserNotFoundException) {
+                     return c.json(
+                        {
+                           success: false,
+                           ...error.getSafeErrorAndCode(),
+                        },
+                        400,
+                     );
+                  }
+                  throw error;
+               }
+            },
+         );
+         hono.get(
+            "change/schema.json",
+            describeRoute({
+               summary: "Get the schema for changing a user's password",
+               tags: ["auth"],
+            }),
+            async (c) => {
+               return c.json(change.schema);
             },
          );
       }
