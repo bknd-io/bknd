@@ -76,6 +76,6 @@ export class AuthApi extends ModuleApi<AuthApiOptions> {
    }
 
    async updatePassword(input: any) {
-      return this.action("password", "change", input);
+      return this.post<Omit<AuthActionResponse, "data">>(["password", "actions", "change"], input);
    }
 }

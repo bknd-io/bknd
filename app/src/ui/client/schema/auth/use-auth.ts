@@ -1,4 +1,5 @@
 import type { AuthState } from "Api";
+import type { AuthActionResponse } from "auth/api/AuthController";
 import type { AuthResponse } from "bknd";
 import { useApi, useInvalidate, useClientContext } from "bknd/client";
 
@@ -15,6 +16,7 @@ type UseAuth = {
    verified: boolean;
    login: (data: LoginData) => Promise<AuthResponse>;
    register: (data: LoginData) => Promise<AuthResponse>;
+   updatePassword: (input: string) => Promise<AuthActionResponse>;
    logout: () => Promise<void>;
    verify: () => Promise<void>;
    setToken: (token: string) => void;
@@ -34,6 +36,11 @@ export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
 
    async function register(input: LoginData) {
       const res = await api.auth.register("password", input);
+      return res.data;
+   }
+
+   async function updatePassword(input: string) {
+      const res = await api.auth.updatePassword(input);
       return res.data;
    }
 
@@ -58,6 +65,7 @@ export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
       verified,
       login,
       register,
+      updatePassword,
       logout,
       setToken,
       verify,

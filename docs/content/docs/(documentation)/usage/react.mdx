@@ -168,7 +168,7 @@ Provides authentication state and helper functions for login, register, logout, 
 import { useAuth } from "bknd/client";
 
 export default function AuthComponent() {
-  const { user, verified, login, logout } = useAuth();
+  const { user, verified, login, logout, updatePassword } = useAuth();
 
   if (!user) {
     return (
@@ -189,6 +189,13 @@ export default function AuthComponent() {
     <div>
       <p>Welcome, {user.email}!</p>
       <button onClick={logout}>Logout</button>
+      <form onSubmit={async (e) => {
+        e.preventDefault();
+        const form = new FormData(e.currentTarget);
+        await updatePassword(form.get("password"));
+      }}>
+        <input type="password" name="password" />
+      </form>
     </div>
   );
 }
