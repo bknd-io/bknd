@@ -69,6 +69,41 @@ describe("WhereBuilder", () => {
       }
    });
 
+   test("$notnull", () => {
+      const tests: [WhereQuery, string, any[]][] = [
+         [{ deleted_at: { $notnull: true } }, '"deleted_at" is not null', []],
+         [{ deleted_at: { $notnull: false } }, '"deleted_at" is null', []],
+         [{ deleted_at: { $notnull: 1 } }, '"deleted_at" is not null', []],
+         [{ deleted_at: { $notnull: 0 } }, '"deleted_at" is null', []],
+      ];
+
+      for (const [query, expectedSql, expectedParams] of tests) {
+         const { sql, parameters } = compile(query);
+         expect(sql).toContain(`select * from "t" where ${expectedSql}`);
+         expect(parameters).toEqual(expectedParams);
+      }
+   });
+
+   test("$gte/$lte with string values (date range query)", () => {
+      const tests: [WhereQuery, string, any[]][] = [
+         [{ created_at: { $gte: "2024-01-01" } }, '"created_at" >= ?', ["2024-01-01"]],
+         [{ created_at: { $lte: "2024-12-31" } }, '"created_at" <= ?', ["2024-12-31"]],
+         [
+            { created_at: { $gte: "2024-01-01", $lte: "2024-12-31" } },
+            '("created_at" >= ? and "created_at" <= ?)',
+            ["2024-01-01", "2024-12-31"],
+         ],
+         [{ name: { $gt: "Alice" } }, '"name" > ?', ["Alice"]],
+         [{ name: { $lt: "Zoe" } }, '"name" < ?', ["Zoe"]],
+      ];
+
+      for (const [query, expectedSql, expectedParams] of tests) {
+         const { sql, parameters } = compile(query);
+         expect(sql).toContain(`select * from "t" where ${expectedSql}`);
+         expect(parameters).toEqual(expectedParams);
+      }
+   });
+
    test("keys", () => {
       const tests: [WhereQuery, string[]][] = [
          // multiple constraints per property

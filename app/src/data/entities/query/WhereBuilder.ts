@@ -66,6 +66,11 @@ const expressions = [
       (v, k, eb: Builder) => eb(key(k), v ? "is" : "is not", null),
    ),
    exp(
+      "$notnull",
+      (v: BooleanLike) => isBooleanLike(v),
+      (v, k, eb: Builder) => eb(key(k), v ? "is not" : "is", null),
+   ),
+   exp(
       "$in",
       (v: any[]) => Array.isArray(v),
       (v, k, eb: Builder) => eb(key(k), "in", v),
@@ -77,7 +82,8 @@ const expressions = [
    ),
    exp(
       "$between",
-      (v: [number, number]) => Array.isArray(v) && v.length === 2,
+      (v: [Primitive, Primitive]) =>
+         Array.isArray(v) && v.length === 2 && v.every((n) => isPrimitive(n)),
       (v, k, eb: Builder) => eb.between(key(k), v[0], v[1]),
    ),
    exp(

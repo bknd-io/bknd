@@ -1,4 +1,10 @@
-import { type FilterQuery, type Primitive, exp, isPrimitive, makeValidator } from "./query";
+import {
+   type FilterQuery,
+   type Primitive,
+   exp,
+   isPrimitive,
+   makeValidator,
+} from "./query";
 
 const expressions = [
    exp(
@@ -63,28 +69,28 @@ const expressions = [
    ),
    exp(
       "$gt",
-      (v: number) => typeof v === "number",
+      (v: Primitive) => isPrimitive(v),
       (e: any, a: any) => a > e,
    ),
    exp(
       "$gte",
-      (v: number) => typeof v === "number",
+      (v: Primitive) => isPrimitive(v),
       (e: any, a: any) => a >= e,
    ),
    exp(
       "$lt",
-      (v: number) => typeof v === "number",
+      (v: Primitive) => isPrimitive(v),
       (e: any, a: any) => a < e,
    ),
    exp(
       "$lte",
-      (v: number) => typeof v === "number",
+      (v: Primitive) => isPrimitive(v),
       (e: any, a: any) => a <= e,
    ),
    exp(
       "$between",
-      (v: [number, number]) =>
-         Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === "number"),
+      (v: [Primitive, Primitive]) =>
+         Array.isArray(v) && v.length === 2 && v.every((n) => isPrimitive(n)),
       (e: any, a: any) => e[0] <= a && a <= e[1],
    ),
 ];
