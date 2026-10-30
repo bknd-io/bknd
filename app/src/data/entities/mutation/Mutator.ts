@@ -155,12 +155,24 @@ export class Mutator<
          };
       }
 
-      const query = this.conn
-         .insertInto(entity.name)
-         .values(validatedData)
-         .returning(entity.getSelect());
+      let query: any = this.conn.insertInto(entity.name).values(validatedData);
+
+      if (this.em.connection.supports("returning")) {
+         query = query.returning(entity.getSelect());
+      }
 
       const res = await this.performQuery(query, { single: true });
+
+      if (!this.em.connection.supports("returning")) {
+         const primary = entity.getPrimaryField();
+         const id = res.first().insertId ?? validatedData[primary.name];
+         if (id) {
+            const fetchQuery = this.conn.selectFrom(entity.name).selectAll().where(primary.name, "=", id);
+            const fetchResult = await this.em.connection.executeQuery(fetchQuery);
+            res.results[0]!.rows = fetchResult.rows;
+            res.results[0]!.data = this.em.hydrate(entity.name, fetchResult.rows as any);
+         }
+      }
 
       await this.emgr.emit(
          new Mutator.Events.MutatorInsertAfter({ entity, data: res.data, changed: validatedData }),
@@ -186,13 +198,23 @@ export class Mutator<
       const _data = result.returned ? result.params.data : data;
       const validatedData = await this.getValidatedData(_data, "update");
 
-      const query = this.conn
+      let query: any = this.conn
          .updateTable(entity.name)
          .set(validatedData as any)
-         .where(entity.id().name, "=", id)
-         .returning(entity.getSelect());
+         .where(entity.id().name, "=", id);
+
+      if (this.em.connection.supports("returning")) {
+         query = query.returning(entity.getSelect());
+      }
 
       const res = await this.performQuery(query, { single: true });
+
+      if (!this.em.connection.supports("returning")) {
+         const fetchQuery = this.conn.selectFrom(entity.name).selectAll().where(entity.id().name, "=", id);
+         const fetchResult = await this.em.connection.executeQuery(fetchQuery);
+         res.results[0]!.rows = fetchResult.rows;
+         res.results[0]!.data = this.em.hydrate(entity.name, fetchResult.rows as any);
+      }
 
       await this.emgr.emit(
          new Mutator.Events.MutatorUpdateAfter({
@@ -214,12 +236,23 @@ export class Mutator<
 
       await this.emgr.emit(new Mutator.Events.MutatorDeleteBefore({ entity, entityId: id }));
 
-      const query = this.conn
-         .deleteFrom(entity.name)
-         .where(entity.id().name, "=", id)
-         .returning(entity.getSelect());
+      let query: any = this.conn.deleteFrom(entity.name).where(entity.id().name, "=", id);
+
+      let rows: any[] = [];
+      if (!this.em.connection.supports("returning")) {
+         const fetchQuery = this.conn.selectFrom(entity.name).selectAll().where(entity.id().name, "=", id);
+         const fetchResult = await this.em.connection.executeQuery(fetchQuery);
+         rows = fetchResult.rows;
+      } else {
+         query = query.returning(entity.getSelect());
+      }
 
       const res = await this.performQuery(query, { single: true });
+
+      if (!this.em.connection.supports("returning")) {
+         res.results[0]!.rows = rows;
+         res.results[0]!.data = this.em.hydrate(entity.name, rows as any);
+      }
 
       await this.emgr.emit(
          new Mutator.Events.MutatorDeleteAfter({ entity, entityId: id, data: res.data }),
@@ -280,9 +313,11 @@ export class Mutator<
          throw new Error("Where clause must be provided for mass deletion");
       }
 
-      const qb = this.appendWhere(this.conn.deleteFrom(entity.name), where).returning(
-         entity.getSelect(),
-      );
+      let qb: any = this.appendWhere(this.conn.deleteFrom(entity.name), where);
+
+      if (this.em.connection.supports("returning")) {
+         qb = qb.returning(entity.getSelect());
+      }
 
       return await this.performQuery(qb);
    }
@@ -299,9 +334,12 @@ export class Mutator<
          throw new Error("Where clause must be provided for mass update");
       }
 
-      const query = this.appendWhere(this.conn.updateTable(entity.name), where)
-         .set(validatedData as any)
-         .returning(entity.getSelect());
+      let query: any = this.appendWhere(this.conn.updateTable(entity.name), where)
+         .set(validatedData as any);
+
+      if (this.em.connection.supports("returning")) {
+         query = query.returning(entity.getSelect());
+      }
 
       return await this.performQuery(query);
    }
@@ -333,11 +371,33 @@ export class Mutator<
          validated.push(validatedData);
       }
 
-      const query = this.conn
+      let query: any = this.conn
          .insertInto(entity.name)
-         .values(validated)
-         .returning(entity.getSelect());
+         .values(validated);
 
-      return await this.performQuery(query);
+      if (this.em.connection.supports("returning")) {
+         query = query.returning(entity.getSelect());
+      }
+
+      const res = await this.performQuery(query);
+
+      if (!this.em.connection.supports("returning")) {
+         const firstId = res.first().insertId;
+         if (firstId) {
+            const primary = entity.getPrimaryField();
+            const fetchQuery = this.conn
+               .selectFrom(entity.name)
+               .selectAll()
+               .where(primary.name, ">=", firstId)
+               .orderBy(primary.name, "asc")
+               .limit(data.length);
+
+            const fetchResult = await this.em.connection.executeQuery(fetchQuery);
+            res.results[0]!.rows = fetchResult.rows;
+            res.results[0]!.data = this.em.hydrate(entity.name, fetchResult.rows as any);
+         }
+      }
+
+      return res;
    }
 }

@@ -155,6 +155,9 @@ export { SqliteLocalConnection } from "data/connection/sqlite/SqliteLocalConnect
 // data sqlocal
 export { SQLocalConnection, sqlocal } from "data/connection/sqlite/sqlocal/SQLocalConnection";
 
+// data mysql
+export { Mysql2Connection, mysql2 } from "data/connection/mysql/Mysql2Connection";
+
 // data postgres
 export {
    pg,
