@@ -1,10 +1,4 @@
-import {
-   IconBrandAws,
-   IconBrandCloudflare,
-   IconBucket,
-   IconCloud,
-   IconServer,
-} from "@tabler/icons-react";
+import { IconBrandAws, IconBrandCloudflare, IconCloud, IconServer } from "@tabler/icons-react";
 import { isDebug } from "core/env";
 import { autoFormatString } from "core/utils";
 import { twMerge } from "tailwind-merge";
@@ -136,7 +130,6 @@ const Icons = {
    cloudinary: IconCloud,
    local: IconServer,
    r2: IconBrandCloudflare,
-   neon: IconBucket,
 };
 
 const AdapterIcon = ({ type }: { type: string }) => {
