@@ -59,9 +59,12 @@ export abstract class MysqlConnection<Client = unknown> extends Connection<Clien
          case "datetime":
             type = "timestamp";
             break;
-         case "text":
-            type = "varchar(255)";
-            break;
+          case "text":
+             type = "varchar(255)";
+             break;
+          case "json":
+             type = "text";
+             break;
       }
 
       return [

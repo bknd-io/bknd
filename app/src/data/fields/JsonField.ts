@@ -25,13 +25,6 @@ export class JsonField<Required extends true | false = false, TypeOverride = obj
       return jsonFieldConfigSchema;
    }
 
-   override schema() {
-      return Object.freeze({
-         ...super.schema()!,
-         type: "json",
-      });
-   }
-
    /**
     * Transform value after retrieving from database
     * @param value

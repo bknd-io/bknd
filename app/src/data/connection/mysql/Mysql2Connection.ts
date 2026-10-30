@@ -19,7 +19,6 @@ export class Mysql2Connection extends MysqlConnection<Pool> {
       const kysely = new Kysely({
          dialect: customIntrospector(MysqlDialect, MysqlIntrospector, {
             excludeTables: [],
-            // casting type because the types in mysql2 and mysql2/promise are different
          }).create(config as KyselyMysqlDialectDialectConfig),
          plugins,
       });

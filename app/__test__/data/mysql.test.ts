@@ -28,8 +28,8 @@ async function isMySqlRunning() {
    try {
       // Try to actually connect to MySql
       const conn = mysql2({ pool: createPool(credentials) });
-         await conn.ping();
-         await conn.close();
+      await conn.ping();
+      await conn.close();
       return true;
    } catch (e) {
       return false;
@@ -51,33 +51,34 @@ describe("mysql", () => {
       if (await isMySqlRunning()) {
          try {
             await $`docker stop bknd-test-mysql`;
-         } catch (e) { }
+         } catch (e) {}
       }
 
       enableConsoleLog();
    });
 
-   describe.serial.each([
-      ["mysql2", () => mysql2({ pool: createPool(credentials) })]])("%s", (name, createConnection) => {
-         connectionTestSuite(
-            {
-               ...bunTestRunner,
-               test: test.serial,
+   describe.serial("mysql2", () => {
+      const createConnection = () => mysql2({ pool: createPool(credentials) });
+
+      connectionTestSuite(
+         {
+            ...bunTestRunner,
+            test: test.serial,
+         },
+         {
+            makeConnection: () => {
+               const connection = createConnection();
+               return {
+                  connection,
+                  dispose: async () => {
+                     await cleanDatabase(connection);
+                     await connection.close();
+                  },
+               };
             },
-            {
-               makeConnection: () => {
-                  const connection = createConnection();
-                  return {
-                     connection,
-                     dispose: async () => {
-                        await cleanDatabase(connection);
-                        await connection.close();
-                     },
-                  };
-               },
-               rawDialectDetails: [],
-               disableConsoleLog: false,
-            },
-         );
-      });
+            rawDialectDetails: [],
+            disableConsoleLog: false,
+         },
+      );
+   });
 });

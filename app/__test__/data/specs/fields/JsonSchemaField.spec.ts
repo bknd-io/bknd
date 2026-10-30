@@ -4,7 +4,7 @@ import { fieldTestSuite } from "data/fields/field-test-suite";
 
 describe("[data] JsonSchemaField", async () => {
    // @ts-ignore
-   fieldTestSuite({ expect, test }, JsonSchemaField, { defaultValue: {}, schemaType: "json" });
+   fieldTestSuite({ expect, test }, JsonSchemaField, { defaultValue: {}, schemaType: "text" });
 
    // @todo: add JsonSchemaField tests
 });

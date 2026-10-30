@@ -163,15 +163,12 @@ export class Mutator<
 
       if (!this.em.connection.supports("returning")) {
          const primary = entity.getPrimaryField();
-         // @ts-ignore
          const id = res.first().insertId ?? validatedData[primary.name];
          if (id) {
             const fetchQuery = this.conn.selectFrom(entity.name).selectAll().where(primary.name, "=", id);
             const fetchResult = await this.em.connection.executeQuery(fetchQuery);
-            // @ts-ignore
-            res.results[0].rows = fetchResult.rows;
-            // @ts-ignore
-            res.results[0].data = this.em.hydrate(entity.name, fetchResult.rows as any);
+            res.results[0]!.rows = fetchResult.rows;
+            res.results[0]!.data = this.em.hydrate(entity.name, fetchResult.rows as any);
          }
       }
 
@@ -213,10 +210,8 @@ export class Mutator<
       if (!this.em.connection.supports("returning")) {
          const fetchQuery = this.conn.selectFrom(entity.name).selectAll().where(entity.id().name, "=", id);
          const fetchResult = await this.em.connection.executeQuery(fetchQuery);
-         // @ts-ignore
-         res.results[0].rows = fetchResult.rows;
-         // @ts-ignore
-         res.results[0].data = this.em.hydrate(entity.name, fetchResult.rows as any);
+         res.results[0]!.rows = fetchResult.rows;
+         res.results[0]!.data = this.em.hydrate(entity.name, fetchResult.rows as any);
       }
 
       await this.emgr.emit(
@@ -253,10 +248,8 @@ export class Mutator<
       const res = await this.performQuery(query, { single: true });
 
       if (!this.em.connection.supports("returning")) {
-         // @ts-ignore
-         res.results[0].rows = rows;
-         // @ts-ignore
-         res.results[0].data = this.em.hydrate(entity.name, rows as any);
+         res.results[0]!.rows = rows;
+         res.results[0]!.data = this.em.hydrate(entity.name, rows as any);
       }
 
       await this.emgr.emit(
@@ -387,7 +380,6 @@ export class Mutator<
       const res = await this.performQuery(query);
 
       if (!this.em.connection.supports("returning")) {
-         // @ts-ignore
          const firstId = res.first().insertId;
          if (firstId) {
             const primary = entity.getPrimaryField();
@@ -399,10 +391,8 @@ export class Mutator<
                .limit(data.length);
 
             const fetchResult = await this.em.connection.executeQuery(fetchQuery);
-            // @ts-ignore
-            res.results[0].rows = fetchResult.rows;
-            // @ts-ignore
-            res.results[0].data = this.em.hydrate(entity.name, fetchResult.rows as any);
+            res.results[0]!.rows = fetchResult.rows;
+            res.results[0]!.data = this.em.hydrate(entity.name, fetchResult.rows as any);
          }
       }
 

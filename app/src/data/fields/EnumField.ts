@@ -48,14 +48,6 @@ export class EnumField<Required extends true | false = false, TypeOverride = str
       return enumFieldConfigSchema;
    }
 
-   // prevent runtime mutation
-   override schema() {
-      return Object.freeze({
-         ...super.schema()!,
-         type: "text",
-      });
-   }
-
    getOptions(): { label: string; value: string }[] {
       const options = this.config?.options ?? { type: "strings", values: [] };
 
