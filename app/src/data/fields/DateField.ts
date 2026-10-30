@@ -65,7 +65,7 @@ export class DateField<Required extends true | false = false> extends Field<
       if (context === "submit") {
          try {
             return date.toISOString();
-         } catch (_) {
+         } catch (e) {
             return undefined;
          }
       }
@@ -73,8 +73,8 @@ export class DateField<Required extends true | false = false> extends Field<
       if (this.config.type === "week") {
          try {
             return `${date.getFullYear()}-W${dayjs(date).week()}`;
-         } catch (_) {
-            $console.warn("DateField.getValue:week error", value);
+         } catch (e) {
+            $console.warn("DateField.getValue:week error", value, String(e));
             return;
          }
       }
@@ -86,8 +86,8 @@ export class DateField<Required extends true | false = false> extends Field<
          const local = new Date(date.getTime() - offset * 60000);
 
          return this.formatDate(local);
-      } catch (_) {
-         $console.warn("DateField.getValue error", this.config.type, value);
+      } catch (e) {
+         $console.warn("DateField.getValue error", this.config.type, value, String(e));
          return;
       }
    }
@@ -111,7 +111,7 @@ export class DateField<Required extends true | false = false> extends Field<
 
       try {
          return new Date(value);
-      } catch (_) {
+      } catch (e) {
          return null;
       }
    }

@@ -38,7 +38,6 @@ export class JsonSchemaField<
       return jsonSchemaFieldConfigSchema;
    }
 
-
    getJsonSchema(): JsonSchema {
       return this.config?.schema as JsonSchema;
    }
