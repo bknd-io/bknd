@@ -74,4 +74,8 @@ export class AuthApi extends ModuleApi<AuthApiOptions> {
          },
       }).then(() => this.options.onTokenUpdate?.(undefined, true));
    }
+
+   async updatePassword(input: any) {
+      return this.post<Omit<AuthActionResponse, "data">>(["password", "actions", "change"], input);
+   }
 }

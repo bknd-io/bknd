@@ -134,7 +134,7 @@ const fns = <Mode extends "cookie" | "token" = "token">(app: App, mode?: Mode) =
             body: body(user),
          })) as Response;
 
-         const data = mode === "cookie" ? getCookie(res, "auth") : await res.json();
+         const data: any = mode === "cookie" ? getCookie(res, "auth") : await res.json();
 
          return { res, data };
       },
@@ -144,7 +144,7 @@ const fns = <Mode extends "cookie" | "token" = "token">(app: App, mode?: Mode) =
             headers: headers(),
             body: body(user),
          })) as Response;
-         const data = mode === "cookie" ? getCookie(res, "auth") : await res.json();
+         const data: any = mode === "cookie" ? getCookie(res, "auth") : await res.json();
 
          return { res, data };
       },
@@ -317,5 +317,33 @@ describe("integration auth", () => {
             })
             .then((r) => r.data.user.role),
       ).toBe("guest");
+   });
+
+   it("should change password", async () => {
+      const app = createAuthApp();
+      await app.build();
+      const $fns = fns(app);
+
+      const { data } = await $fns.login(configs.users.admin);
+      const updateReq = await app.server.request("/api/auth/password/actions/change", {
+         method: "POST",
+         headers: { Authorization: `Bearer ${data.token}`, "Content-Type": "application/json" },
+         body: JSON.stringify({ email: configs.users.normal.email, password: "newpass123" }),
+      });
+      expect(updateReq.status).toBe(200);
+      const updateJson = (await updateReq.json()) as any;
+      expect(updateJson.success).toBe(true);
+
+      // simulate logout
+      const logoutReq = await app.server.request("/api/auth/logout");
+      expect(logoutReq.status).toBe(302);
+
+      // login with new password
+      const { res: loginRes, data: loginData } = await $fns.login({
+         email: configs.users.normal.email,
+         password: "newpass123",
+      });
+      expect(loginRes.status).toBe(200);
+      expect(loginData.user.email).toBe(configs.users.normal.email);
    });
 });

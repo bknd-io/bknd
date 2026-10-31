@@ -295,6 +295,16 @@ const { data } = await api.auth.register("password", {
 });
 ```
 
+### `auth.updatePassword([input])`
+
+To update password for the currently logged-in user, use the `updatePassword` method:
+
+```ts
+const { data } = await api.auth.updatePassword({
+  password: "...",
+});
+```
+
 ### `auth.logout()`
 
 To log out the current user and clear the stored token, use the `logout` method:
