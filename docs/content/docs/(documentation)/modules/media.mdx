@@ -17,7 +17,7 @@ tags: ["documentation"]
 - **File Uploads**: Supports direct (chunked coming soon) uploads of files up to 5GB (depending
   on your environment).
 - **Adapter-Based Design**:
-  - Pre-built support for S3, S3-compatible services (e.g., R2, Tigris), and Cloudinary.
+  - Pre-built support for S3, S3-compatible services (e.g., R2, Tigris, Neon Object Storage), and Cloudinary.
   - Extend functionality by implementing custom adapters.
 - **Entity Integration**: Attach media files directly to entities for seamless data association.
 - **Content Delivery**: Serve media over an API endpoint or directly from your provider.
@@ -39,6 +39,7 @@ There are two ways to enable S3 or S3 compatible storage in bknd.
 
    - **S3**: `https://{bucket}.s3.{region}.amazonaws.com`
    - **R2 (Cloudflare)**: `https://{account_id}.r2.cloudflarestorage.com/{bucket}`
+   - **Neon Object Storage**: `https://br-{branch}.storage.c-{n}.{region}.aws.neon.tech/{bucket}`
 
 2. Enable programmatically.
 
@@ -57,6 +58,37 @@ export default {
           access_key: "<key>",
           secret_access_key: "<secret key>",
           url: "<bucket url>",
+        },
+      },
+    },
+  },
+} satisfies BkndConfig;
+```
+
+### Neon Object Storage
+
+[Neon Object Storage](https://neon.com/docs/storage/overview) works with the S3 adapter. In a directory linked to your Neon project (`neon link`), create a bucket and pull the branch's storage credentials:
+
+```bash
+neon buckets create bknd-media
+neon env pull --file .env
+```
+
+Then set `url` to the branch endpoint followed by the bucket name:
+
+```typescript title="bknd.config.ts"
+import type { BkndConfig } from "bknd/adapter";
+
+export default {
+  config: {
+    media: {
+      enabled: true,
+      adapter: {
+        type: "s3",
+        config: {
+          access_key: process.env.AWS_ACCESS_KEY_ID!,
+          secret_access_key: process.env.AWS_SECRET_ACCESS_KEY!,
+          url: `${process.env.AWS_ENDPOINT_URL_S3}/bknd-media`,
         },
       },
     },
