@@ -38,6 +38,13 @@ export class JsonSchemaField<
       return jsonSchemaFieldConfigSchema;
    }
 
+   override schema() {
+      return Object.freeze({
+         ...super.schema()!,
+         type: "json",
+      });
+   }
+
    getJsonSchema(): JsonSchema {
       return this.config?.schema as JsonSchema;
    }

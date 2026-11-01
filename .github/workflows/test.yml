@@ -23,6 +23,22 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_PASSWORD: mysql
+          MYSQL_ROOT_PASSWORD: mysql
+          MYSQL_USER: mysql
+          MYSQL_DATABASE: bknd
+          MYSQL_ROOT_HOST: "%"
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     
     steps:
       - uses: actions/checkout@v4

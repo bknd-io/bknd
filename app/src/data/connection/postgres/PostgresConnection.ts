@@ -5,6 +5,7 @@ import {
    type SchemaResponse,
    type ConnQuery,
    type ConnQueryResults,
+   type Features,
 } from "../Connection";
 import {
    ParseJSONResultsPlugin,
@@ -21,9 +22,10 @@ export type QB = SelectQueryBuilder<any, any, any>;
 export const plugins = [new ParseJSONResultsPlugin()];
 
 export abstract class PostgresConnection<Client = unknown> extends Connection<Client> {
-   protected override readonly supported = {
+   protected override readonly supported: Features = {
       batching: true,
       softscans: true,
+      returning: true,
    };
 
    constructor(kysely: Kysely<any>, fn?: Partial<DbFunctions>, _plugins?: KyselyPlugin[]) {
