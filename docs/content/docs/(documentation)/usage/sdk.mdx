@@ -301,6 +301,7 @@ To update password for the currently logged-in user, use the `updatePassword` me
 
 ```ts
 const { data } = await api.auth.updatePassword({
+  email: "...",
   password: "...",
 });
 ```

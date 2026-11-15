@@ -16,7 +16,7 @@ type UseAuth = {
    verified: boolean;
    login: (data: LoginData) => Promise<AuthResponse>;
    register: (data: LoginData) => Promise<AuthResponse>;
-   updatePassword: (input: string) => Promise<AuthActionResponse>;
+   updatePassword: (input: LoginData) => Promise<AuthActionResponse>;
    logout: () => Promise<void>;
    verify: () => Promise<void>;
    setToken: (token: string) => void;
@@ -39,7 +39,7 @@ export const useAuth = (options?: { baseUrl?: string }): UseAuth => {
       return res.data;
    }
 
-   async function updatePassword(input: string) {
+   async function updatePassword(input: LoginData) {
       const res = await api.auth.updatePassword(input);
       return res.data;
    }
