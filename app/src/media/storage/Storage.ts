@@ -4,6 +4,7 @@ import { isMimeType } from "media/storage/mime-types-tiny";
 import * as StorageEvents from "./events";
 import type { FileUploadedEventData } from "./events";
 import type { StorageAdapter } from "./StorageAdapter";
+import { StorageS3Adapter } from "media/storage/adapters/s3/StorageS3Adapter";
 
 export type FileListObject = {
    key: string;
@@ -63,8 +64,14 @@ export class Storage implements EmitsEvents {
       file: FileBody,
       name: string,
       noEmit?: boolean,
+      chunked?: boolean,
    ): Promise<FileUploadedEventData> {
-      const result = await this.#adapter.putObject(name, file);
+      const uploader =
+         chunked && this.#adapter instanceof StorageS3Adapter
+            ? this.#adapter.putObjectMultipart.bind(this.#adapter)
+            : this.#adapter.putObject.bind(this.#adapter);
+
+      const result = await uploader(name, file);
       if (typeof result === "undefined") {
          throw new Error("Failed to upload file");
       }

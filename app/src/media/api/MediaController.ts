@@ -149,9 +149,11 @@ export class MediaController extends Controller {
             requestBody,
          }),
          jsc("param", s.object({ filename: s.string().optional() })),
+         jsc("query", s.object({ chunked: s.boolean().optional() })),
          permission(MediaPermissions.uploadFile, {}),
          async (c) => {
             const reqname = c.req.param("filename");
+            const { chunked } = c.req.valid("query");
 
             const body = await getFileFromContext(c);
             if (!body) {
@@ -165,7 +167,7 @@ export class MediaController extends Controller {
             }
 
             const filename = reqname ?? getRandomizedFilename(body as File);
-            const res = await this.getStorage().uploadFile(body, filename);
+            const res = await this.getStorage().uploadFile(body, filename, undefined, chunked);
 
             return c.json(res, HttpStatus.CREATED);
          },
@@ -188,13 +190,18 @@ export class MediaController extends Controller {
                field: s.string(),
             }),
          ),
-         jsc("query", s.object({ overwrite: s.boolean().optional() })),
+         jsc(
+            "query",
+            s.object({ overwrite: s.boolean().optional(), chunked: s.boolean().optional() }),
+         ),
+
          permission(DataPermissions.entityCreate, {
             context: (c) => ({ entity: c.req.param("entity") }),
          }),
          permission(MediaPermissions.uploadFile, {}),
          async (c) => {
             const { entity: entity_name, id: entity_id, field: field_name } = c.req.valid("param");
+            const { chunked } = c.req.valid("query");
 
             // check if entity exists
             const entity = this.media.em.entity(entity_name);
@@ -284,7 +291,7 @@ export class MediaController extends Controller {
             }
 
             const filename = getRandomizedFilename(file as File);
-            const info = await this.getStorage().uploadFile(file, filename, true);
+            const info = await this.getStorage().uploadFile(file, filename, true, chunked);
 
             const mutator = this.media.em.mutator(media_entity);
             mutator.__unstable_toggleSystemEntityCreation(false);
