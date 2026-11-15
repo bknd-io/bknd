@@ -26,6 +26,13 @@ export class PasswordStrategy extends AuthStrategy<typeof schema> {
             strategy_value: await this.hash(password),
          };
       });
+
+      this.registerAction("change", this.getPayloadSchema(), async ({ password, ...input }) => {
+         return {
+            ...input,
+            strategy_value: await this.hash(password),
+         };
+      });
    }
 
    getSchema() {
