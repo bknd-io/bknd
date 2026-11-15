@@ -192,8 +192,12 @@ export default function AuthComponent() {
       <form onSubmit={async (e) => {
         e.preventDefault();
         const form = new FormData(e.currentTarget);
-        await updatePassword(form.get("password"));
+        await updatePassword({
+          email: user.email,
+          password: form.get("password")
+        });
       }}>
+        <label>Password<label/><br/>
         <input type="password" name="password" />
       </form>
     </div>
