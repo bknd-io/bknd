@@ -173,6 +173,7 @@ export {
 
 // data prototype
 export {
+   primary,
    text,
    number,
    date,
